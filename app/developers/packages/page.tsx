@@ -22,6 +22,7 @@ export const metadata: Metadata = {
 export default function DeveloperPackagesPage() {
   return <main className="tic tic-landing tic-packages-page">
     <PlatformNav active="packages" />
+    <PackageWorkbench />
     <header className="tic-packages-hero">
       <div><p className="tic-eyebrow"><span className="tic-status-dot"/> OFFICIAL DEVELOPER PACKAGES</p><h1>One intelligence layer.<br/><em>Every developer workflow.</em></h1><p>Five first-party packages, published from the Tidelight mother repository. Versions and install details are refreshed from npm and PyPI.</p>
         <div className="tic-package-hero-meta"><span><i>01</i> Mother repository: <code>TidelightOrg/tidelight</code></span><span><i>02</i> Registries: <code>npm · PyPI · GHCR</code></span></div><div className="tic-package-hero-actions"><Link className="tic-button tic-primary" href="#package-directory-title">Browse packages <span aria-hidden="true">↓</span></Link><Link className="tic-button" href="https://dev.tidelight.app#sdks">Read the developer quickstart <span aria-hidden="true">→</span></Link></div>
@@ -33,7 +34,6 @@ export default function DeveloperPackagesPage() {
         <span className="tic-package-connector connector-a"/><span className="tic-package-connector connector-b"/><span className="tic-package-connector connector-c"/><span className="tic-package-connector connector-d"/><span className="tic-package-connector connector-e"/>
       </div>
     </header>
-    <PackageWorkbench />
     <section className="tic-package-directory" aria-labelledby="package-directory-title">
       <div className="tic-package-section-head"><div><p className="tic-eyebrow">PACKAGE DIRECTORY / 05</p><h2 id="package-directory-title">Choose your entry point</h2><p>Live package versions, registry links, and installation commands are refreshed from the public registries.</p></div><span className="tic-package-live-label"><i/> npm · PyPI</span></div>
       <div className="tic-package-grid">{packageCatalog.map((item, index) => <PackageRegistryCard key={item.id} packageId={item.id} name={item.display.name} summary={item.display.summary} href={item.display.href} glyph={item.display.glyph} ecosystem={item.display.ecosystem} index={index} />)}</div>

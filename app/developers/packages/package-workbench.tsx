@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { RegistryFacts } from "./registry-facts";
+import { RegistryFacts, useRegistryPackage } from "./registry-facts";
 
 type PackageId = "sdk" | "mcp" | "python" | "react" | "cli";
 
@@ -124,12 +124,27 @@ const order: PackageId[] = ["sdk", "mcp", "python", "react", "cli"];
 
 export function PackageWorkbench() {
   const [selected, setSelected] = useState<PackageId>("sdk");
+  const [surface, setSurface] = useState<"install" | "example" | "verify">("install");
   const [copied, setCopied] = useState(false);
   const current = previews[selected];
+  const registry = useRegistryPackage(selected);
+  const exactInstall = registry.version
+    ? registry.registry === "npm"
+      ? `npm install ${registry.name}@${registry.version}`
+      : `python -m pip install ${registry.name}==${registry.version}`
+    : registry.install;
+  const compatibility: Record<PackageId, string[]> = {
+    sdk: ["Tested on Node 22.x", "ES modules", "TypeScript declarations"],
+    mcp: ["Node.js 22+", "Tested on Node 22.x", "Hosted API key required"],
+    python: ["Python 3.10+", "Tested on 3.10 & 3.12", "pip / virtualenv"],
+    react: ["React 18 or 19", "Tested on React 19.2.8", "SDK ^0.1.1 peer"],
+    cli: ["Node.js 22+", "Tested on Node 22", "OS keychain integration"],
+  };
+  const preview = surface === "install" ? exactInstall : surface === "verify" ? current.command : current.source;
 
   async function copySource() {
     try {
-      await navigator.clipboard.writeText(current.source);
+      await navigator.clipboard.writeText(preview);
       setCopied(true);
       window.setTimeout(() => setCopied(false), 1800);
     } catch {
@@ -145,7 +160,7 @@ export function PackageWorkbench() {
           <h2 id="package-workbench-title">One platform. Five ways in.</h2>
           <p>Preview package interfaces, install the published release, or run source checks in the mother repository.</p>
         </div>
-        <span className="tic-package-workbench-status"><i aria-hidden="true"/>Five official package releases</span>
+          <span className={`tic-package-workbench-status ${registry.status === "published" && registry.version ? "is-verified" : "is-pending"}`}><i aria-hidden="true"/>{registry.status === "published" && registry.version ? "Registry release verified" : registry.version ? "Using last verified release" : "Checking public registry"}</span>
       </div>
 
       <div className="tic-package-workbench-shell">
@@ -157,7 +172,7 @@ export function PackageWorkbench() {
                 key={id}
                 type="button"
                 aria-pressed={selected === id}
-                onClick={() => { setSelected(id); setCopied(false); }}
+                onClick={() => { setSelected(id); setCopied(false); setSurface("install"); }}
               >
                 <span aria-hidden="true">{item.glyph}</span>
                 <span>{item.name}</span>
@@ -171,26 +186,27 @@ export function PackageWorkbench() {
             <p className="tic-package-workbench-type">{current.type}</p>
             <h3>{current.name}</h3>
             <p>{current.description}</p>
-            <div className="tic-package-workbench-state"><span>Official release available</span><span>Live registry version</span></div>
+            <div className="tic-package-workbench-state"><span>{registry.status === "published" && registry.version ? `Published · v${registry.version}` : "Registry status unavailable"}</span><span>{registry.registry === "npm" ? "npm registry" : "PyPI registry"}</span></div>
             <RegistryFacts packageId={selected} compact />
 
-            <div className="tic-package-local-check">
-              <span>LOCAL SOURCE CHECK</span>
-              <code>{current.command}</code>
+            <div className="tic-package-compatibility" aria-label={`${current.name} compatibility`}>
+              <span>COMPATIBILITY</span>
+              <div>{compatibility[selected].map(item => <span key={item}>{item}</span>)}</div>
             </div>
 
             <div className="tic-package-workbench-actions">
               <Link href={current.href}>View package details <span aria-hidden="true">→</span></Link>
-              <button type="button" onClick={copySource}>{copied ? "Copied" : "Copy example"}</button>
+              <a href={registry.url} target="_blank" rel="noreferrer">Open registry <span aria-hidden="true">↗</span></a>
             </div>
-            <p className="tic-package-workbench-note" role="status" aria-live="polite">
-              {copied ? "Example copied." : "Examples show the source interface; they do not include sample market results."}
-            </p>
+            <p className="tic-package-workbench-note" role="status" aria-live="polite">{copied ? `${surface === "install" ? "Install command" : surface === "verify" ? "Source check" : "Example"} copied.` : registry.status !== "published" ? `Live registry check unavailable. Install is pinned to the last verified version ${registry.version ?? "not yet verified"}.` : registry.integrity ? "Archive integrity is published by the registry and linked in package details." : "Examples show the source interface; they do not include sample market results."}</p>
           </div>
 
-          <div className="tic-package-workbench-preview" aria-label={`${current.name} example`} key={selected}>
-            <div className="tic-package-preview-topline"><span>EXAMPLE / SOURCE INTERFACE</span><span aria-hidden="true">•••</span></div>
-            <pre tabIndex={0}><code>{current.source}</code></pre>
+          <div className="tic-package-workbench-preview" aria-label={`${current.name} package workbench`} key={`${selected}-${surface}`}>
+            <div className="tic-package-preview-topline"><div role="group" aria-label={`${current.name} workbench view`}>
+              {(["install", "example", "verify"] as const).map(view => <button key={view} type="button" aria-pressed={surface === view} onClick={() => { setSurface(view); setCopied(false); }}>{view === "install" ? "Install" : view === "example" ? "Example" : "Test source"}</button>)}
+            </div><button className="tic-package-copy" type="button" onClick={copySource}>{copied ? "Copied" : "Copy"}</button></div>
+            <pre tabIndex={0} aria-label={surface === "install" ? "Version-pinned install command" : surface === "verify" ? "Mother repository package test command" : "Package example source"}><code>{preview}</code></pre>
+            <div className="tic-package-preview-footer"><span>{surface === "install" ? (registry.version ? `PINNED TO ${registry.version}` : "REGISTRY VERSION PENDING") : surface === "verify" ? "MOTHER REPOSITORY · LOCAL TESTS" : "QUICKSTART SNIPPET · NO LIVE DATA"}</span>{surface === "verify" && <Link href="https://github.com/TidelightOrg/tidelight">Browse source ↗</Link>}</div>
           </div>
         </div>
       </div>
