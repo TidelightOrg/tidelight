@@ -1,0 +1,36 @@
+import type { Metadata } from "next";
+import Link from "next/link";
+import Image from "next/image";
+import { notFound } from "next/navigation";
+import { articleBySlug, articles } from "../articles";
+import "../blog.css";
+
+export function generateStaticParams() {
+  return articles.map(({ slug }) => ({ slug }));
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params;
+  const article = articleBySlug(slug);
+  if (!article) return { title: "Story not found — Tidelight" };
+  const url = `https://blogs.tidelight.app/${article.slug}`;
+  return {
+    title: { absolute: `${article.title} — Tidelight Field Notes` },
+    description: article.dek,
+    alternates: { canonical: url },
+    openGraph: { title: article.title, description: article.dek, url, siteName: "Tidelight Field Notes", type: "article", publishedTime: new Date(article.date).toISOString() },
+  };
+}
+
+export default async function BlogArticlePage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = await params;
+  const article = articleBySlug(slug);
+  if (!article) notFound();
+  return <main className="tl-blog tl-blog-reading">
+    <nav className="tl-blog-nav" aria-label="Main navigation"><Link href="https://blogs.tidelight.app" className="tl-blog-brand"><Image src="/tidelight-mark.svg" alt="" width={30} height={30}/><span>Tidelight</span><i/>Field Notes</Link><div><Link href="https://blogs.tidelight.app/#latest">Stories</Link><Link href="https://tidelight.app/developers">Developers</Link><Link className="tl-blog-social" href="https://x.com/TidelightOrg" target="_blank" rel="noreferrer">Follow on X <span aria-hidden="true">↗</span></Link></div></nav>
+    <header className="tl-article-hero"><Link href="https://blogs.tidelight.app" className="tl-article-back">← Field Notes</Link><p className="tl-blog-eyebrow">{article.category} <i/> {article.readTime}</p><h1>{article.title}</h1><p>{article.dek}</p><time>{article.date}</time></header>
+    <div className="tl-article-art" aria-hidden="true"><span>FIELD NOTES / TIDELIGHT</span><div><Image src="/tidelight-mark.svg" alt="" width={60} height={60}/><strong>Context<br/>changes everything.</strong></div><small>EVENT → EVIDENCE → EXPOSURE → SCENARIO</small></div>
+    <article className="tl-article-body">{article.sections.map((section) => <section key={section.heading}><h2>{section.heading}</h2>{section.paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}{section.bullets ? <ul>{section.bullets.map((bullet) => <li key={bullet}>{bullet}</li>)}</ul> : null}</section>)}<aside className="tl-article-end"><span>CONTINUE EXPLORING</span><Link href="https://tidelight.app/developers">Visit Intelligence Cloud <b>↗</b></Link><Link href="https://package.tidelight.app">Explore Packages <b>↗</b></Link></aside></article>
+    <footer className="tl-blog-footer"><Link href="https://tidelight.app" className="tl-blog-brand"><Image src="/tidelight-mark.svg" alt="" width={26} height={26}/><span>Tidelight</span></Link><span>Independent thinking. Shared context.</span><div><Link href="https://blogs.tidelight.app">All stories</Link><Link href="https://x.com/TidelightOrg" target="_blank" rel="noreferrer">X <span>↗</span></Link></div></footer>
+  </main>;
+}

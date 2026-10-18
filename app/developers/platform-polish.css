@@ -96,8 +96,8 @@
   .tic-platform-nav .tic-brand>span:last-child{display:inline!important;font-size:10px;color:var(--muted)}
   .tic-platform-nav-links{display:none!important}
   .tic-mobile-menu{display:block;margin-left:auto}
-  .tic-mobile-menu-toggle{position:relative;display:flex;align-items:center;justify-content:center;gap:9px;min-width:43px;min-height:42px;padding:0 12px;border:1px solid color-mix(in srgb,var(--brand-teal) 22%,var(--line));border-radius:13px;background:color-mix(in srgb,var(--panel) 69%,transparent);color:var(--text);font-size:12px;font-weight:650;cursor:pointer;backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%)}
-  .tic-mobile-menu-label{display:none}
+  .tic-mobile-menu-toggle{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-width:78px;min-height:42px;padding:0 11px;border:1px solid color-mix(in srgb,var(--brand-teal) 22%,var(--line));border-radius:13px;background:color-mix(in srgb,var(--panel) 69%,transparent);color:var(--text);font-size:12px;font-weight:650;cursor:pointer;backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%)}
+  .tic-mobile-menu-label{display:inline}
   .tic-mobile-menu-icon{display:grid;gap:4px;width:17px}
   .tic-mobile-menu-icon i{display:block;width:17px;height:1.5px;border-radius:2px;background:currentColor;transition:transform .2s,translate .2s}
   .tic-mobile-menu-panel:not([hidden]){position:fixed;inset:0;z-index:1200;display:flex;flex-direction:column;overflow-y:auto;overscroll-behavior:contain;padding:22px 22px max(25px,env(safe-area-inset-bottom));background:radial-gradient(ellipse at 4% 0%,color-mix(in srgb,var(--brand-teal) 11%,transparent),transparent 44%),color-mix(in srgb,var(--panel) 86%,var(--bg));backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%)}
@@ -124,13 +124,15 @@
   .tic-mobile-menu-cta{width:100%;min-height:52px;border-radius:10px!important;font-size:14px!important}
   .tic-mobile-menu-foot{margin:16px 0 0;color:var(--muted);font:8px var(--mono);letter-spacing:.04em}
   body:has(.tic-mobile-menu.is-open){overflow:hidden}
-  .tic-mobile-system-dock{position:fixed;z-index:1100;right:12px;bottom:max(8px,env(safe-area-inset-bottom));left:12px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:3px;min-height:63px;padding:6px;border:1px solid color-mix(in srgb,var(--line) 75%,transparent);border-radius:18px;background:color-mix(in srgb,var(--panel) 76%,transparent);box-shadow:0 12px 40px color-mix(in srgb,var(--text) 12%,transparent),inset 0 1px #ffffffa0;backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%)}
-  .tic-mobile-system-dock a{display:grid;place-items:center;align-content:center;gap:3px;min-width:0;min-height:48px;border-radius:12px;color:var(--muted);font:9px var(--font);text-decoration:none;-webkit-tap-highlight-color:transparent}
+  .tic-mobile-system-dock{position:fixed;z-index:1100;right:10px;bottom:max(8px,env(safe-area-inset-bottom));left:10px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;min-height:68px;padding:7px;border:1px solid color-mix(in srgb,var(--line) 75%,transparent);border-radius:18px;background:color-mix(in srgb,var(--panel) 82%,transparent);box-shadow:0 12px 40px color-mix(in srgb,var(--text) 12%,transparent),inset 0 1px #ffffffa0;backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%)}
+  .tic-mobile-system-dock a{display:grid;place-items:center;align-content:center;gap:4px;min-width:0;min-height:50px;padding-inline:1px;border-radius:12px;color:var(--muted);font:clamp(9px,2.8vw,11px) var(--font);text-decoration:none;white-space:nowrap;-webkit-tap-highlight-color:transparent}
   .tic-mobile-system-dock a[aria-current="page"]{background:color-mix(in srgb,var(--brand-teal) 11%,transparent);color:var(--brand-teal);font-weight:650}
-  .tic-mobile-system-dock svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
-  .tic-landing{padding-bottom:calc(82px + env(safe-area-inset-bottom))}
+  .tic-mobile-system-dock svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
+  .tic-landing,.tic-docs,.tic-console-main{padding-bottom:calc(108px + env(safe-area-inset-bottom))}
 }
 @media(max-width:400px){
+  .tic-mobile-menu-toggle{min-width:44px;padding-inline:11px}
+  .tic-mobile-menu-label{display:none}
   .tic-mobile-menu-panel:not([hidden]){padding-inline:19px}
   .tic-mobile-menu-items>a{min-height:64px}
   .tic-mobile-menu-items strong{font-size:17px}

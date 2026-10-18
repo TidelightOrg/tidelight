@@ -15,7 +15,7 @@ export function DeveloperMobileDock({ current = "platform" }: { current?: "platf
   const items = [
     { id: "platform", label: "Cloud", href: "https://tidelight.app/developers", icon: "M3 10.5 12 3l9 7.5M5 9v11h14V9M9 20v-6h6v6" },
     { id: "console", label: "Console", href: "https://tidelight.app/developers/console", icon: "M4 5h16v14H4zM8 9l3 3-3 3M13 15h3" },
-    { id: "packages", label: "Packages", href: "https://package.tidelight.app", icon: "M12 3 21 8v8l-9 5-9-5V8zM3 8l9 5 9-5M12 13v8" },
+    { id: "packages", label: "Packages", href: "https://package.tidelight.app/dashboard", icon: "M12 3 21 8v8l-9 5-9-5V8zM3 8l9 5 9-5M12 13v8" },
     { id: "tidelight", label: "Tidelight", href: "https://tidelight.app/", icon: "M12 3a9 9 0 1 0 9 9M12 7a5 5 0 1 0 5 5" },
     { id: "support", label: "Support", href: `https://tidelight.app/developers/support?ecosystem=${current === "packages" ? "packages" : "intelligence"}`, icon: "M4 5h16v12H9l-5 4zM8 9h8M8 13h5" },
   ] as const;
@@ -37,6 +37,7 @@ export function PlatformNav({ active = "platform", ecosystem }: PlatformNavProps
   const menuRef = useRef<HTMLDivElement>(null);
   const currentSystem = ecosystem ?? (active === "packages" ? "packages" : active === "support" ? "tidelight" : "intelligence");
   const homeHref = currentSystem === "packages" ? "https://package.tidelight.app/" : currentSystem === "tidelight" ? "https://tidelight.app/" : "https://tidelight.app/developers";
+  const consoleHref = currentSystem === "packages" ? "https://package.tidelight.app/dashboard" : currentSystem === "tidelight" ? "https://tidelight.app/overview" : "https://tidelight.app/developers/console";
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -90,7 +91,7 @@ export function PlatformNav({ active = "platform", ecosystem }: PlatformNavProps
       <Link href={`https://tidelight.app/developers/support?ecosystem=${currentSystem}`} aria-current={active === "support" ? "page" : undefined}>Support</Link>
       <EcosystemSwitcher current={currentSystem} />
       <ThemeQuickSwitch />
-      <Link href="https://tidelight.app/developers/console" className="tic-button tic-nav-cta">Open console <span aria-hidden="true">↗</span></Link>
+      <Link href={consoleHref} className="tic-button tic-nav-cta">{currentSystem === "packages" ? "Open dashboard" : "Open console"} <span aria-hidden="true">↗</span></Link>
     </div>
     <div className={`tic-mobile-menu${menuOpen ? " is-open" : ""}`}>
       <button
@@ -146,7 +147,7 @@ export function PlatformNav({ active = "platform", ecosystem }: PlatformNavProps
           <span>Appearance</span>
           <ThemeQuickSwitch />
         </div>
-        <Link href="https://tidelight.app/developers/console" className="tic-button tic-primary tic-mobile-menu-cta" onClick={() => setMenuOpen(false)}>Open console <span aria-hidden="true">→</span></Link>
+        <Link href={consoleHref} className="tic-button tic-primary tic-mobile-menu-cta" onClick={() => setMenuOpen(false)}>{currentSystem === "packages" ? "Open package dashboard" : "Open console"} <span aria-hidden="true">→</span></Link>
         <p className="tic-mobile-menu-foot">Source-aware market and research infrastructure.</p>
       </div>
     </div>

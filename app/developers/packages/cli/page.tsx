@@ -19,6 +19,6 @@ export default function CliPackagePage() {
     <PlatformNav active="packages" />
     <div className="tic-package-breadcrumb"><Link href="https://package.tidelight.app">Packages</Link><span>/</span><span>@tidelight/cli</span></div>
     <CliPackageDetail />
-    <footer className="tic-footer"><Link href="https://tidelight.app/developers" className="tic-brand"><Image src="/tidelight-mark.svg" alt="" width={23} height={23}/><span className="tic-brand-name">Tidelight</span><span>Intelligence Cloud</span></Link><Link href="https://package.tidelight.app">All packages →</Link></footer>
+    <footer className="tic-footer"><Link href="https://package.tidelight.app" className="tic-brand"><Image src="/tidelight-mark.svg" alt="" width={23} height={23}/><span className="tic-brand-name">Tidelight</span><span>Packages</span></Link><div><Link href="https://package.tidelight.app/dashboard">Package dashboard →</Link><Link href="https://package.tidelight.app">All packages</Link></div></footer>
   </main>;
 }

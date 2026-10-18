@@ -2,6 +2,7 @@ import Link from "next/link";
 import Image from "next/image";
 import "../tidelight-developers.css";
 import "../platform-polish.css";
+import "./docs-premium.css";
 import { ThemeQuickSwitch } from "@/app/ui/theme-provider";
 import { EcosystemSwitcher } from "../ecosystem-switcher";
 import { DeveloperMobileDock } from "../platform-nav";

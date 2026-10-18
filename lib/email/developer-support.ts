@@ -6,6 +6,8 @@ import { sendWithResend } from "./resend";
 
 const requestedAdmins = ["muhammadabdulhameed787@gmail.com", "thedigitalabiola@gmail.com"];
 const from = "Tidelight Developer Support <support@tidelight.app>";
+const MAX_CONCURRENT_SUPPORT_EMAILS = 2;
+const SUPPORT_EMAIL_BATCH_INTERVAL_MS = 1_000;
 
 async function operatorRecipients(admin: SupabaseClient): Promise<string[]> {
   const recipients = new Set(requestedAdmins);
@@ -37,8 +39,8 @@ export async function notifySupportOperators({ admin, ticketId, subject, ecosyst
   const recipients = await operatorRecipients(admin);
   const href = `https://tidelight.app/operator/developer-support?ticket=${encodeURIComponent(ticketId)}`;
   let delivered = 0;
-  for (let offset = 0; offset < recipients.length; offset += 8) {
-    const batch = recipients.slice(offset, offset + 8);
+  for (let offset = 0; offset < recipients.length; offset += MAX_CONCURRENT_SUPPORT_EMAILS) {
+    const batch = recipients.slice(offset, offset + MAX_CONCURRENT_SUPPORT_EMAILS);
     const results = await Promise.allSettled(batch.map((to) => sendWithResend({
       from,
       to,
@@ -47,6 +49,9 @@ export async function notifySupportOperators({ admin, ticketId, subject, ecosyst
       idempotencyKey: `developer-support:${ticketId}:${eventKey ?? event.toLowerCase().replace(/[^a-z0-9]+/g, "-")}:${to.toLowerCase()}`,
     })));
     delivered += results.filter(result => result.status === "fulfilled").length;
+    if (offset + MAX_CONCURRENT_SUPPORT_EMAILS < recipients.length) {
+      await new Promise((resolve) => setTimeout(resolve, SUPPORT_EMAIL_BATCH_INTERVAL_MS));
+    }
   }
   return { total: recipients.length, delivered };
 }
