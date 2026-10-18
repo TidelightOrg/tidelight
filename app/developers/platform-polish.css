@@ -143,9 +143,17 @@
   .tic-mobile-menu-items>a{min-height:64px}
   .tic-mobile-menu-items strong{font-size:17px}
 }
+@media(min-width:401px) and (max-width:460px){
+  .tic-platform-nav{gap:8px;padding-inline:12px}
+  .tic-platform-nav .tic-brand{gap:6px}
+  .tic-platform-nav .tic-brand>span:last-child{display:none!important}
+  .tic-mobile-quick-cta{padding-inline:10px}
+  .tic-mobile-menu-toggle{min-width:46px;padding-inline:12px}
+}
 @media(prefers-reduced-motion:reduce){.tic-mobile-menu-icon i{transition:none}}
 
 /* Keep developer navigation intentional across wide desktop viewports. */
 .tic-premium-top{width:100%;gap:clamp(24px,4vw,64px);padding-inline:clamp(24px,5vw,88px)}
 .tic-premium-top .tic-platform-nav-links{flex:1;min-width:0;justify-content:flex-end;gap:clamp(18px,2.5vw,36px)}
 @media(max-width:900px){.tic-premium-top{padding-inline:24px;gap:14px}.tic-premium-top .tic-platform-nav-links{gap:14px}}
+

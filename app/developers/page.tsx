@@ -2,9 +2,11 @@ import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
 import { PlatformNav } from "./platform-nav";
+import { IntelligenceUiPreview } from "./intelligence-ui-preview";
 import "./tidelight-developers.css";
 import "./platform-polish.css";
 import "./cloud-landing.css";
+import "./intelligence-ui-preview.css";
 
 export const metadata: Metadata = {
   title: { absolute: "Tidelight Intelligence Cloud — Market intelligence infrastructure" },
@@ -64,6 +66,11 @@ export default function DevelopersPage() {
       </figure>
     </section>
 
+    <section className="tic-intelligence-showcase" aria-labelledby="tic-intelligence-showcase-title">
+      <div className="tic-intelligence-showcase-copy"><p className="tic-eyebrow">INTELLIGENCE, MADE INTERACTIVE</p><h2 id="tic-intelligence-showcase-title">Make the evidence part of the interface.</h2><p>Give people a clear path from a question to its sources and structured response. The same scoped Tidelight services can power a calm, source-aware experience inside your own product.</p><Link href="https://package.tidelight.app/react">Explore the React package <span aria-hidden="true">→</span></Link></div>
+      <IntelligenceUiPreview />
+    </section>
+
     <section className="tic-premium-showcase">
       <div className="tic-showcase-copy"><p className="tic-eyebrow">A RESPONSE WITH CONTEXT</p><h2>Every instrument has a source. Keep it that way.</h2><p>Tokenized equity spot instruments are clearly distinguished from underlying US stocks and perpetual contracts. Responses carry provider timing and source labels, so downstream systems can preserve what the data represents.</p><Link href="https://dev.tidelight.app#reference">Read the market endpoint reference <span aria-hidden="true">→</span></Link></div>
       <div className="tic-code-window"><div className="tic-window-bar"><div className="tic-window-dots"><i/><i/><i/></div><span>MARKET INSTRUMENTS / RESPONSE SHAPE</span><span>JSON</span></div><pre aria-label="Example response schema"><code><span className="tic-code-fade">{"// Shape of a supported market response"}</span>{"\n"}<span className="tic-code-key">GET</span> <span className="tic-code-value">/v1/market/instruments</span>{"\n"}<span className="tic-code-fade">Authorization: Bearer YOUR_KEY</span>{"\n\n"}{"{"}{"\n"}  <span className="tic-code-key">{"\"data\""}</span>: [ ... ],{"\n"}  <span className="tic-code-key">{"\"next_cursor\""}</span>: <span className="tic-code-fade">{"null | \"…\""}</span>,{"\n"}  <span className="tic-code-key">{"\"generated_at\""}</span>: <span className="tic-code-fade">{"\"ISO timestamp\""}</span>,{"\n"}  <span className="tic-code-key">{"\"request_id\""}</span>: <span className="tic-code-fade">{"\"request identifier\""}</span>{"\n"}{"}"}</code></pre><div className="tic-code-caption"><span className="tic-code-caption-mark">↳</span><span>Actual responses include provider-sourced instrument fields and timing. This illustration shows the contract shape, not live market data.</span></div></div>
@@ -81,6 +88,6 @@ export default function DevelopersPage() {
     </section>
 
     <section className="tic-cta-band"><div><p className="tic-eyebrow">BUILD WITH TIDELIGHT</p><h2>Start with the service that fits your workflow.</h2><p>Set up a project, grant only what you need, then explore the live API or connect an MCP client.</p></div><div><Link href="https://tidelight.app/developers/console" className="tic-button tic-primary">Open developer console <span aria-hidden="true">→</span></Link><Link href="https://dev.tidelight.app#quickstart" className="tic-cta-text">Read the quickstart ↗</Link></div></section>
-    <footer className="tic-footer tic-premium-footer"><Link href="/developers" className="tic-brand"><Image src="/tidelight-mark.svg" alt="" width={24} height={24}/><span className="tic-brand-name">Tidelight</span><span>Intelligence Cloud</span></Link><span>Source-aware intelligence infrastructure</span><div><Link href="https://package.tidelight.app">Packages</Link><Link href="https://dev.tidelight.app">Documentation</Link><Link href="https://tidelight.app/developers/console">Console</Link><Link href="/">Tidelight home</Link></div></footer>
+    <footer className="tic-footer tic-premium-footer"><Link href="/developers" className="tic-brand"><Image src="/tidelight-mark.svg" alt="" width={24} height={24}/><span className="tic-brand-name">Tidelight</span><span>Intelligence Cloud</span></Link><span>Source-aware intelligence infrastructure</span><div><Link href="https://package.tidelight.app">Packages</Link><Link href="https://dev.tidelight.app">Documentation</Link><Link href="https://tidelight.app/developers/console">Console</Link><Link href="https://github.com/TidelightOrg/tidelight" target="_blank" rel="noreferrer">GitHub ↗</Link><Link href="https://x.com/TidelightOrg" target="_blank" rel="noreferrer">X ↗</Link><Link href="/">Tidelight home</Link></div></footer>
   </main>;
 }
