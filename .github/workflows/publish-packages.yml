@@ -137,6 +137,13 @@ jobs:
           [[ -n "${NODE_AUTH_TOKEN:-}" ]] || { echo "NPM_TOKEN is required for the first-release npm publisher."; exit 1; }
           npm config set //registry.npmjs.org/:_authToken "$NODE_AUTH_TOKEN"
           CANDIDATE="$RUNNER_TEMP/tidelight-package-candidate/npm"
+          is_pending_stage() {
+            local package_name="$1"
+            local latest_version description
+            latest_version="$(npm view "$package_name" version 2>/dev/null || true)"
+            description="$(npm view "$package_name" description 2>/dev/null || true)"
+            [[ "$latest_version" == "0.0.0-stage" && "$description" == "Temporary package placeholder for staged publishing" ]]
+          }
           publish_or_verify() {
             local package_name="$1"
             local archive_name="$2"
@@ -149,13 +156,25 @@ jobs:
               echo "$package_name@$RELEASE_VERSION already matches the approved archive; skipping."
               return 0
             fi
+            if is_pending_stage "$package_name"; then
+              echo "$package_name@$RELEASE_VERSION is staged and awaiting maintainer approval; skipping duplicate submission."
+              return 0
+            fi
             npm publish "$archive" --access public --provenance
             for attempt in {1..12}; do
               actual_integrity="$(npm view "$package_name@$RELEASE_VERSION" dist.integrity 2>/dev/null || true)"
               [[ -n "$actual_integrity" ]] && break
               sleep 5
             done
-            [[ "$actual_integrity" == "$expected_integrity" ]] || { echo "Could not verify the published integrity for $package_name@$RELEASE_VERSION."; return 1; }
+            if [[ "$actual_integrity" == "$expected_integrity" ]]; then
+              return 0
+            fi
+            if is_pending_stage "$package_name"; then
+              echo "$package_name@$RELEASE_VERSION was accepted into npm staging and awaits maintainer approval."
+              return 0
+            fi
+            echo "Could not verify the published integrity for $package_name@$RELEASE_VERSION."
+            return 1
           }
           publish_or_verify "@tidelight/sdk" "tidelight-sdk"
           publish_or_verify "@tidelight/mcp" "tidelight-mcp"
