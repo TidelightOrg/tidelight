@@ -15,7 +15,7 @@ export async function createClient() {
       setAll(cookiesToSet) {
         try {
           cookiesToSet.forEach(({ name, value, options }) =>
-            cookieStore.set(name, value, options),
+            cookieStore.set(name, value, process.env.NODE_ENV === "production" ? { ...options, domain: ".tidelight.app" } : options),
           );
         } catch {
           // Server components cannot write cookies; proxy refreshes the session.

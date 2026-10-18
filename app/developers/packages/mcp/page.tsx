@@ -11,14 +11,14 @@ import "../registry-live.css";
 export const metadata: Metadata = {
   title: { absolute: "@tidelight/mcp — Official packages" },
   description: "Guide to the published Tidelight MCP stdio bridge, scopes, setup, security, and client compatibility.",
-  alternates: { canonical: "https://tidelight.app/developers/packages/mcp" },
+  alternates: { canonical: "https://package.tidelight.app/mcp" },
 };
 
 export default function McpPackagePage() {
  return <main className="tic tic-packages-page tic-package-detail-page">
  <PlatformNav active="packages" />
-  <div className="tic-package-breadcrumb"><Link href="/developers/packages">Packages</Link><span>/</span><span>@tidelight/mcp</span></div>
+  <div className="tic-package-breadcrumb"><Link href="https://package.tidelight.app">Packages</Link><span>/</span><span>@tidelight/mcp</span></div>
   <McpPackageDetail />
-  <footer className="tic-footer"><Link href="/developers" className="tic-brand"><Image src="/tidelight-mark.svg" alt="" width={23} height={23}/><span className="tic-brand-name">Tidelight</span><span>Intelligence Cloud</span></Link><Link href="/developers/packages">All packages →</Link></footer>
+  <footer className="tic-footer"><Link href="https://tidelight.app/developers" className="tic-brand"><Image src="/tidelight-mark.svg" alt="" width={23} height={23}/><span className="tic-brand-name">Tidelight</span><span>Intelligence Cloud</span></Link><Link href="https://package.tidelight.app">All packages →</Link></footer>
  </main>;
 }

@@ -11,14 +11,14 @@ import "../registry-live.css";
 export const metadata: Metadata = {
   title: { absolute: "@tidelight/react — Official packages" },
   description: "Guide to the published Tidelight React hooks and accessible, server-safe UI components.",
-  alternates: { canonical: "https://tidelight.app/developers/packages/react" },
+  alternates: { canonical: "https://package.tidelight.app/react" },
 };
 
 export default function ReactPackagePage() {
   return <main className="tic tic-packages-page tic-package-detail-page">
     <PlatformNav active="packages" />
-    <div className="tic-package-breadcrumb"><Link href="/developers/packages">Packages</Link><span>/</span><span>@tidelight/react</span></div>
+    <div className="tic-package-breadcrumb"><Link href="https://package.tidelight.app">Packages</Link><span>/</span><span>@tidelight/react</span></div>
     <ReactPackageDetail />
-    <footer className="tic-footer"><Link href="/developers" className="tic-brand"><Image src="/tidelight-mark.svg" alt="" width={23} height={23}/><span className="tic-brand-name">Tidelight</span><span>Intelligence Cloud</span></Link><Link href="/developers/packages">All packages →</Link></footer>
+    <footer className="tic-footer"><Link href="https://tidelight.app/developers" className="tic-brand"><Image src="/tidelight-mark.svg" alt="" width={23} height={23}/><span className="tic-brand-name">Tidelight</span><span>Intelligence Cloud</span></Link><Link href="https://package.tidelight.app">All packages →</Link></footer>
   </main>;
 }

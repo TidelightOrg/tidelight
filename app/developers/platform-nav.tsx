@@ -10,9 +10,9 @@ type PlatformNavProps = {
 };
 
 const menuItems = [
-  { href: "/developers", title: "Developer platform", note: "Build on Tidelight Intelligence Cloud", key: "platform" },
+  { href: "https://tidelight.app/developers", title: "Developer platform", note: "Build on Tidelight Intelligence Cloud", key: "platform" },
   { href: "https://dev.tidelight.app", title: "Documentation", note: "Guides, API reference, and quickstarts", key: "docs" },
-  { href: "/developers/packages", title: "Packages", note: "SDK, MCP, Python, React, and CLI", key: "packages" },
+  { href: "https://package.tidelight.app", title: "Packages", note: "SDK, MCP, Python, React, and CLI", key: "packages" },
 ] as const;
 
 export function PlatformNav({ active = "platform" }: PlatformNavProps) {
@@ -62,7 +62,7 @@ export function PlatformNav({ active = "platform" }: PlatformNavProps) {
   }, [menuOpen]);
 
   return <nav className="tic-top tic-premium-top tic-platform-nav" aria-label="Developer navigation">
-    <Link href="/developers" className="tic-brand">
+    <Link href="https://tidelight.app/developers" className="tic-brand">
       <Image src="/tidelight-mark.svg" alt="" width={30} height={30} priority />
       <span className="tic-brand-name">Tidelight</span>
       <span className="tic-brand-divider" aria-hidden="true" />
@@ -70,9 +70,9 @@ export function PlatformNav({ active = "platform" }: PlatformNavProps) {
     </Link>
     <div className="tic-platform-nav-links">
       <Link href="https://dev.tidelight.app">Docs</Link>
-      <Link href="/developers/packages" aria-current={active === "packages" ? "page" : undefined}>Packages</Link>
+      <Link href="https://package.tidelight.app" aria-current={active === "packages" ? "page" : undefined}>Packages</Link>
       <ThemeQuickSwitch />
-      <Link href="/developers/console" className="tic-button tic-nav-cta">Open console <span aria-hidden="true">↗</span></Link>
+      <Link href="https://tidelight.app/developers/console" className="tic-button tic-nav-cta">Open console <span aria-hidden="true">↗</span></Link>
     </div>
     <div className={`tic-mobile-menu${menuOpen ? " is-open" : ""}`}>
       <button
@@ -127,7 +127,7 @@ export function PlatformNav({ active = "platform" }: PlatformNavProps) {
           <span>Appearance</span>
           <ThemeQuickSwitch />
         </div>
-        <Link href="/developers/console" className="tic-button tic-primary tic-mobile-menu-cta" onClick={() => setMenuOpen(false)}>Open console <span aria-hidden="true">→</span></Link>
+        <Link href="https://tidelight.app/developers/console" className="tic-button tic-primary tic-mobile-menu-cta" onClick={() => setMenuOpen(false)}>Open console <span aria-hidden="true">→</span></Link>
         <p className="tic-mobile-menu-foot">Source-aware market and research infrastructure.</p>
       </div>
     </div>

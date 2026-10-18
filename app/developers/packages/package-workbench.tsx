@@ -37,7 +37,7 @@ const result = await client.waitForResearchJob(
   accepted.job_id,
   { intervalMs: 2000, timeoutMs: 120000 },
 );`,
-    href: "/developers/packages/sdk",
+    href: "/sdk",
   },
   mcp: {
     name: "@tidelight/mcp",
@@ -56,7 +56,7 @@ const result = await client.waitForResearchJob(
     }
   }
 }`,
-    href: "/developers/packages/mcp",
+    href: "/mcp",
   },
   python: {
     name: "tidelight",
@@ -75,7 +75,7 @@ page = client.list_tokenized_equities(
 
 for instrument in page.data:
     print(instrument.symbol, instrument.underlying_ticker)`,
-    href: "/developers/packages/python",
+    href: "/python",
   },
   react: {
     name: "@tidelight/react",
@@ -104,7 +104,7 @@ function MarketPanel() {
     />
   );
 }`,
-    href: "/developers/packages/react",
+    href: "/react",
   },
   cli: {
     name: "@tidelight/cli",
@@ -117,7 +117,7 @@ cd sdk/typescript && npm ci && npm test
 cd ../../packages/cli
 npm ci && npm test
 node dist/bin.js --help`,
-    href: "/developers/packages/cli",
+    href: "/cli",
   },
 };
 
