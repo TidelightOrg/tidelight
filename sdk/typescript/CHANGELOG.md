@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+- Publish the coordinated package set at `0.1.1` with no API contract changes.
+
 ## 0.1.0
 
 - Add a typed TypeScript client for supported Tidelight API v1 market, research job, and webhook operations.

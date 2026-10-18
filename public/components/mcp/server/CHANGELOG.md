@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+- Publish the coordinated package set at `0.1.1` with no API contract changes.
+
 This file records changes to the `@tidelight/mcp` package source.
 
 ## 0.1.0

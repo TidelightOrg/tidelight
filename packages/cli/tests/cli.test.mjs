@@ -42,7 +42,8 @@ test("help and version work without credentials", async () => {
   assert.equal(await runCli(["--help"], h.deps), 0);
   assert.match(h.out.join(""), /market instruments/);
   assert.equal(await runCli(["--version"], h.deps), 0);
-  assert.match(h.out.join(""), /0\.1\.0.*unpublished/);
+  assert.match(h.out.join(""), /0\.1\.1/);
+  assert.doesNotMatch(h.out.join(""), /unpublished/);
   assert.equal(h.calls.length, 0);
 });
 
