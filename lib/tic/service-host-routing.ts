@@ -10,15 +10,17 @@ const sharedPageResources = new Set([
 export function resolveServiceHostRoute(hostname: string, pathname: string): ServiceHostRoute {
   const host = hostname.toLowerCase();
   if (host === "package.tidelight.app") {
-    if (sharedPageResources.has(pathname) || pathname === "/api/developers/packages" || pathname.startsWith("/api/")) return null;
+    if (pathname === "/icon.svg" || pathname === "/tidelight-mark.svg" || pathname === "/manifest.webmanifest" || pathname === "/api/developers/packages") return null;
     if (pathname === "/") return { kind: "rewrite", pathname: "/developers/packages" };
     const packageRoutes: Record<string, string> = {
+      "/dashboard": "/developers/packages/dashboard",
       "/sdk": "/developers/packages/sdk",
       "/mcp": "/developers/packages/mcp",
       "/python": "/developers/packages/python",
       "/react": "/developers/packages/react",
       "/cli": "/developers/packages/cli",
       "/developers/packages": "/developers/packages",
+      "/developers/packages/dashboard": "/developers/packages/dashboard",
     };
     if (packageRoutes[pathname]) return { kind: "rewrite", pathname: packageRoutes[pathname] };
     if (pathname.startsWith("/developers/packages/")) return { kind: "rewrite", pathname };

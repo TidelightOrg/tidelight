@@ -43,17 +43,25 @@ test("public package cards and all detail pages expose live registry facts and i
   }
 });
 
-test("Packages navigation works from the package pages and signed-in console", async () => {
+test("Packages and ecosystem navigation work without sharing auth cookies with unrelated subdomains", async () => {
   const platformNav = await readFile(new URL("app/developers/platform-nav.tsx", root), "utf8");
   const consoleUi = await readFile(new URL("app/developers/console/ui.tsx", root), "utf8");
+  const switcher = await readFile(new URL("app/developers/ecosystem-switcher.tsx", root), "utf8");
+  const packageDashboard = await readFile(new URL("app/developers/packages/dashboard/page.tsx", root), "utf8");
   assert.match(platformNav, /href="https:\/\/package\.tidelight\.app"/);
+  assert.match(platformNav, /EcosystemSwitcher current=/);
   assert.match(consoleUi, /href="https:\/\/package\.tidelight\.app">Packages/);
+  assert.match(consoleUi, /EcosystemSwitcher current="intelligence"/);
   assert.match(consoleUi, /<Image src="\/tidelight-mark\.svg"/);
   assert.doesNotMatch(consoleUi, /tic-console-mark|∿/);
+  assert.match(switcher, /https:\/\/tidelight\.app\/overview/);
+  assert.match(switcher, /https:\/\/tidelight\.app\/developers\/console/);
+  assert.match(switcher, /https:\/\/package\.tidelight\.app\/dashboard/);
+  assert.match(packageDashboard, /PackageWorkbench/);
   const authServer = await readFile(new URL("lib/supabase/server.ts", root), "utf8");
   const authBrowser = await readFile(new URL("lib/supabase/client.ts", root), "utf8");
-  assert.match(authServer, /domain: "\.tidelight\.app"/);
-  assert.match(authBrowser, /domain: "\.tidelight\.app"/);
+  assert.doesNotMatch(authServer, /domain:\s*["']\.tidelight\.app/);
+  assert.doesNotMatch(authBrowser, /domain:\s*["']\.tidelight\.app/);
 });
 
 test("manifest versions and published registry facts are represented separately", async () => {

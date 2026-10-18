@@ -95,6 +95,8 @@
   .tic-mobile-menu-heading .tic-brand span{display:inline;color:var(--muted)}
   .tic-mobile-menu-heading .tic-brand .tic-brand-name{color:var(--text)}
   .tic-mobile-menu-heading .tic-eyebrow{margin:0;font-size:8px}
+  .tic-mobile-ecosystem{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding-top:2px;color:var(--muted);font:8px var(--mono);letter-spacing:.1em}
+  .tic-mobile-ecosystem .tic-ecosystem-panel{z-index:1300}
   .tic-mobile-menu-items{display:flex;flex:1;flex-direction:column;justify-content:space-evenly}
   .tic-mobile-menu-items>a{display:flex;align-items:center;justify-content:space-between;gap:15px;min-height:69px;border-bottom:1px solid color-mix(in srgb,var(--line) 76%,transparent);color:var(--text)}
   .tic-mobile-menu-items>a>span:first-child{display:grid;gap:5px}

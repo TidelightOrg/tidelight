@@ -4,13 +4,14 @@ import { useEffect, useId, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ThemeQuickSwitch } from "@/app/ui/theme-provider";
+import { EcosystemSwitcher } from "./ecosystem-switcher";
 
 type PlatformNavProps = {
   active?: "platform" | "packages";
 };
 
 const menuItems = [
-  { href: "https://tidelight.app/developers", title: "Developer platform", note: "Build on Tidelight Intelligence Cloud", key: "platform" },
+  { href: "https://tidelight.app/developers", title: "Intelligence Cloud", note: "Build on Tidelight market intelligence", key: "platform" },
   { href: "https://dev.tidelight.app", title: "Documentation", note: "Guides, API reference, and quickstarts", key: "docs" },
   { href: "https://package.tidelight.app", title: "Packages", note: "SDK, MCP, Python, React, and CLI", key: "packages" },
 ] as const;
@@ -21,6 +22,7 @@ export function PlatformNav({ active = "platform" }: PlatformNavProps) {
   const menuTitleId = useId();
   const toggleRef = useRef<HTMLButtonElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
+  const homeHref = active === "packages" ? "https://package.tidelight.app/" : "https://tidelight.app/developers";
 
   useEffect(() => {
     if (!menuOpen) return;
@@ -62,15 +64,16 @@ export function PlatformNav({ active = "platform" }: PlatformNavProps) {
   }, [menuOpen]);
 
   return <nav className="tic-top tic-premium-top tic-platform-nav" aria-label="Developer navigation">
-    <Link href="https://tidelight.app/developers" className="tic-brand">
+    <Link href={homeHref} className="tic-brand">
       <Image src="/tidelight-mark.svg" alt="" width={30} height={30} priority />
       <span className="tic-brand-name">Tidelight</span>
       <span className="tic-brand-divider" aria-hidden="true" />
-      <span>Intelligence Cloud</span>
+      <span>{active === "packages" ? "Packages" : "Intelligence Cloud"}</span>
     </Link>
     <div className="tic-platform-nav-links">
       <Link href="https://dev.tidelight.app">Docs</Link>
       <Link href="https://package.tidelight.app" aria-current={active === "packages" ? "page" : undefined}>Packages</Link>
+      <EcosystemSwitcher current={active === "packages" ? "packages" : "intelligence"} />
       <ThemeQuickSwitch />
       <Link href="https://tidelight.app/developers/console" className="tic-button tic-nav-cta">Open console <span aria-hidden="true">↗</span></Link>
     </div>
@@ -101,16 +104,17 @@ export function PlatformNav({ active = "platform" }: PlatformNavProps) {
       >
         <div className="tic-mobile-menu-heading">
           <div className="tic-mobile-menu-brand-row">
-            <Link href="/developers" className="tic-brand" onClick={() => setMenuOpen(false)}>
+            <Link href={homeHref} className="tic-brand" onClick={() => setMenuOpen(false)}>
               <Image src="/tidelight-mark.svg" alt="" width={30} height={30} />
               <span className="tic-brand-name">Tidelight</span>
-              <span>Intelligence Cloud</span>
+              <span>{active === "packages" ? "Packages" : "Intelligence Cloud"}</span>
             </Link>
             <button className="tic-mobile-menu-close" type="button" aria-label="Close developer navigation" onClick={() => setMenuOpen(false)}>
               <span className="tic-mobile-menu-icon" aria-hidden="true"><i /><i /></span>
             </button>
           </div>
           <p className="tic-eyebrow" id={menuTitleId}>DEVELOPER PLATFORM</p>
+          <div className="tic-mobile-ecosystem"><span>MOVE BETWEEN SYSTEMS</span><EcosystemSwitcher current={active === "packages" ? "packages" : "intelligence"} /></div>
         </div>
         <div className="tic-mobile-menu-items">
           {menuItems.map(item => <Link
