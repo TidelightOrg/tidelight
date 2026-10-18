@@ -13,7 +13,12 @@ export function PackageOrbit3D() {
     camera.position.set(0, 0, 8.5);
     let renderer: THREE.WebGLRenderer;
     try {
-      renderer = new THREE.WebGLRenderer({ alpha: true, antialias: true, powerPreference: "low-power" });
+      // Probe WebGL2 first so unsupported browsers keep the static constellation
+      // without Three.js emitting a renderer initialization error.
+      const canvas = document.createElement("canvas");
+      const context = canvas.getContext("webgl2", { alpha: true, antialias: true, powerPreference: "low-power" });
+      if (!context) return;
+      renderer = new THREE.WebGLRenderer({ canvas, context, alpha: true, antialias: true, powerPreference: "low-power" });
     } catch {
       return;
     }
@@ -54,34 +59,79 @@ export function PackageOrbit3D() {
     observer.observe(container);
     const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)");
     let frame = 0;
+    let inView = false;
+    let pointerX = 0;
+    let pointerZ = 0;
+    let spin = 0;
+    const motionTarget = container.closest<HTMLElement>(".tic-package-constellation");
+    const onPointerMove = (event: PointerEvent) => {
+      if (!motionTarget) return;
+      const bounds = motionTarget.getBoundingClientRect();
+      pointerX = -((event.clientY - bounds.top) / Math.max(bounds.height, 1) - 0.5) * 0.24;
+      pointerZ = ((event.clientX - bounds.left) / Math.max(bounds.width, 1) - 0.5) * 0.32;
+      if (reduceMotion.matches) {
+        group.rotation.x = pointerX;
+        group.rotation.z = pointerZ;
+        renderer.render(scene, camera);
+      }
+    };
+    const onPointerLeave = () => { pointerX = 0; pointerZ = 0; };
+    motionTarget?.addEventListener("pointermove", onPointerMove, { passive: true });
+    motionTarget?.addEventListener("pointerleave", onPointerLeave, { passive: true });
+    const inViewport = new IntersectionObserver(entries => {
+      inView = Boolean(entries[0]?.isIntersecting);
+      if (inView && !document.hidden && !reduceMotion.matches) startAnimation();
+      else if (frame) { window.cancelAnimationFrame(frame); frame = 0; }
+    }, { threshold: 0.01 });
+    inViewport.observe(container);
+    const onVisibilityChange = () => {
+      if (!document.hidden && inView && !reduceMotion.matches) render();
+      else if (frame) { window.cancelAnimationFrame(frame); frame = 0; }
+    };
+    document.addEventListener("visibilitychange", onVisibilityChange);
     const render = () => {
       frame = 0;
+      spin += 0.0014;
+      group.rotation.y = spin;
+      group.rotation.x += (pointerX - group.rotation.x) * 0.035;
+      group.rotation.z += (pointerZ - group.rotation.z) * 0.035;
       renderer.render(scene, camera);
-      if (!reduceMotion.matches) {
-        group.rotation.y += 0.0014;
-        group.rotation.z += 0.0003;
+      if (!reduceMotion.matches && inView && !document.hidden) {
         frame = window.requestAnimationFrame(render);
       }
     };
-    render();
+    const startAnimation = () => {
+      if (!frame && inView && !document.hidden && !reduceMotion.matches) render();
+    };
+    // Paint a still frame immediately; animation starts only while visible.
+    renderer.render(scene, camera);
     const onMotion = () => {
       if (frame) window.cancelAnimationFrame(frame);
       frame = 0;
-      render();
+      if (reduceMotion.matches) renderer.render(scene, camera);
+      else if (inView && !document.hidden) startAnimation();
     };
     reduceMotion.addEventListener("change", onMotion);
     return () => {
       if (frame) window.cancelAnimationFrame(frame);
       observer.disconnect();
+      inViewport.disconnect();
+      document.removeEventListener("visibilitychange", onVisibilityChange);
+      motionTarget?.removeEventListener("pointermove", onPointerMove);
+      motionTarget?.removeEventListener("pointerleave", onPointerLeave);
       reduceMotion.removeEventListener("change", onMotion);
+      const geometries = new Set<THREE.BufferGeometry>();
+      const materials = new Set<THREE.Material>();
       scene.traverse(object => {
         if (object instanceof THREE.Mesh) {
-          object.geometry.dispose();
+          geometries.add(object.geometry);
           const material = object.material;
-          if (Array.isArray(material)) material.forEach(item => item.dispose());
-          else material.dispose();
+          if (Array.isArray(material)) material.forEach(item => materials.add(item));
+          else materials.add(material);
         }
       });
+      geometries.forEach(geometry => geometry.dispose());
+      materials.forEach(material => material.dispose());
       renderer.dispose();
       renderer.domElement.remove();
     };
