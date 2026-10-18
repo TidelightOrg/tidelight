@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { RegistryFacts, useRegistryPackage } from "./registry-facts";
+import { packageCatalog, type DeveloperPackage } from "./catalog.generated";
 
 type PackageId = "sdk" | "mcp" | "python" | "react" | "cli";
 
@@ -62,7 +63,7 @@ const result = await client.waitForResearchJob(
     type: "Python SDK",
     glyph: "Py",
     description: "Call supported Tidelight endpoints from Python with typed response models and bounded retries.",
-    command: "PYTHONPATH=sdk/python/src python -m unittest discover -s sdk/python/tests -v",
+    command: "cd sdk/python && PYTHONPATH=src python -m unittest discover -s tests -v",
     source: `import os
 from tidelight import Client
 
@@ -127,19 +128,18 @@ export function PackageWorkbench() {
   const [surface, setSurface] = useState<"install" | "example" | "verify">("install");
   const [copied, setCopied] = useState(false);
   const current = previews[selected];
-  const registry = useRegistryPackage(selected);
+  const { entry: registry, checking } = useRegistryPackage(selected);
   const exactInstall = registry.version
     ? registry.registry === "npm"
       ? `npm install ${registry.name}@${registry.version}`
       : `python -m pip install ${registry.name}==${registry.version}`
     : registry.install;
-  const compatibility: Record<PackageId, string[]> = {
-    sdk: ["Tested on Node 22.x", "ES modules", "TypeScript declarations"],
-    mcp: ["Node.js 22+", "Tested on Node 22.x", "Hosted API key required"],
-    python: ["Python 3.10+", "Tested on 3.10 & 3.12", "pip / virtualenv"],
-    react: ["React 18 or 19", "Tested on React 19.2.8", "SDK ^0.1.1 peer"],
-    cli: ["Node.js 22+", "Tested on Node 22", "OS keychain integration"],
-  };
+  const compatibility: DeveloperPackage["compatibility"] | undefined = packageCatalog.find(item => item.id === selected)?.compatibility;
+  const compatibilityFacts = compatibility?.declaredPython
+    ? [`Python ${compatibility.declaredPython} declared`, `CI tested: ${compatibility.testedPython?.join(" · ") ?? "not listed"}`]
+    : selected === "react"
+      ? [`React peers: ${compatibility?.peerDependencies?.react ?? "not declared"}`, `CI tested: ${compatibility?.testedReact?.join(" · ") ?? "not listed"}`, `Node ${compatibility?.declaredNode ?? "support not declared"} · CI ${compatibility?.testedNode?.join(" · ") ?? "not listed"}`]
+      : [`Node ${compatibility?.declaredNode ? `${compatibility.declaredNode} declared` : "support not declared"}`, `CI tested: ${compatibility?.testedNode?.join(" · ") ?? "not listed"}`];
   const preview = surface === "install" ? exactInstall : surface === "verify" ? current.command : current.source;
 
   async function copySource() {
@@ -160,7 +160,7 @@ export function PackageWorkbench() {
           <h2 id="package-workbench-title">One platform. Five ways in.</h2>
           <p>Preview package interfaces, install the published release, or run source checks in the mother repository.</p>
         </div>
-          <span className={`tic-package-workbench-status ${registry.status === "published" && registry.version ? "is-verified" : "is-pending"}`}><i aria-hidden="true"/>{registry.status === "published" && registry.version ? "Registry release verified" : registry.version ? "Using last verified release" : "Checking public registry"}</span>
+          <span className={`tic-package-workbench-status ${registry.status === "published" && registry.version ? "is-verified" : "is-pending"}`}><i aria-hidden="true"/>{registry.status === "published" && registry.version ? "Registry verified" : checking ? "Checking registry…" : registry.version ? "Using last verified" : "Registry unavailable"}</span>
       </div>
 
       <div className="tic-package-workbench-shell">
@@ -186,19 +186,19 @@ export function PackageWorkbench() {
             <p className="tic-package-workbench-type">{current.type}</p>
             <h3>{current.name}</h3>
             <p>{current.description}</p>
-            <div className="tic-package-workbench-state"><span>{registry.status === "published" && registry.version ? `Published · v${registry.version}` : "Registry status unavailable"}</span><span>{registry.registry === "npm" ? "npm registry" : "PyPI registry"}</span></div>
+            <div className="tic-package-workbench-state"><span>{registry.status === "published" && registry.version ? `Published · v${registry.version}` : checking ? "Checking registry…" : registry.version ? `Last verified · v${registry.version}` : "Registry unavailable"}</span><span>{registry.registry === "npm" ? "npm registry" : "PyPI registry"}</span></div>
             <RegistryFacts packageId={selected} compact />
 
             <div className="tic-package-compatibility" aria-label={`${current.name} compatibility`}>
               <span>COMPATIBILITY</span>
-              <div>{compatibility[selected].map(item => <span key={item}>{item}</span>)}</div>
+              <div>{compatibilityFacts.map(item => <span key={item}>{item}</span>)}</div>
             </div>
 
             <div className="tic-package-workbench-actions">
               <Link href={current.href}>View package details <span aria-hidden="true">→</span></Link>
               <a href={registry.url} target="_blank" rel="noreferrer">Open registry <span aria-hidden="true">↗</span></a>
             </div>
-            <p className="tic-package-workbench-note" role="status" aria-live="polite">{copied ? `${surface === "install" ? "Install command" : surface === "verify" ? "Source check" : "Example"} copied.` : registry.status !== "published" ? `Live registry check unavailable. Install is pinned to the last verified version ${registry.version ?? "not yet verified"}.` : registry.integrity ? "Archive integrity is published by the registry and linked in package details." : "Examples show the source interface; they do not include sample market results."}</p>
+            <p className="tic-package-workbench-note" role="status" aria-live="polite">{copied ? `${surface === "install" ? "Install command" : surface === "verify" ? "Source check" : "Example"} copied.` : checking ? `Checking ${registry.registry} for updates; the command stays pinned to v${registry.version ?? "the latest verified release"}.` : registry.status !== "published" ? `Live registry check unavailable. Install is pinned to the last verified version ${registry.version ?? "not yet verified"}.` : registry.integrity ? "Archive integrity is published by the registry and linked in package details." : "Examples show the source interface; they do not include sample market results."}</p>
           </div>
 
           <div className="tic-package-workbench-preview" aria-label={`${current.name} package workbench`} key={`${selected}-${surface}`}>

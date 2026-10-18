@@ -12,7 +12,7 @@ cd tidelight
 python -m venv .venv
 . .venv/bin/activate
 pip install -e ./sdk/python
-PYTHONPATH=sdk/python/src python -m unittest discover -s sdk/python/tests -v`,
+cd sdk/python && PYTHONPATH=src python -m unittest discover -s tests -v`,
   market: `import os
 from tidelight import Client
 
