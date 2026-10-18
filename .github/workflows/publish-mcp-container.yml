@@ -20,12 +20,11 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  test-and-build:
+  verify:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     permissions:
       contents: read
-      packages: write
     steps:
       - uses: actions/checkout@v4
         with:
@@ -40,25 +39,8 @@ jobs:
         run: |
           npm ci
           npm test
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-      - name: Read package version
-        id: version
-        working-directory: public/components/mcp/server
-        run: echo "value=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
-      - name: Extract image metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ghcr.io/${{ github.repository_owner }}/tidelight-mcp
-          tags: |
-            type=raw,value=${{ steps.version.outputs.value }}
-            type=sha,prefix=sha-
-            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
+      - uses: docker/setup-buildx-action@v3
       - name: Build and smoke-test container
-        if: github.event_name == 'pull_request'
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -69,21 +51,46 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Smoke-test container entrypoint without credentials
-        if: github.event_name == 'pull_request'
         run: |
           set -euo pipefail
           output="$(docker run --rm ghcr.io/${{ github.repository_owner }}/tidelight-mcp:ci 2>&1 || true)"
           printf '%s\n' "$output"
           [[ "$output" == *"TIDELIGHT_API_KEY is required"* ]]
+
+  publish:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: verify
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
+      - name: Read package version
+        id: version
+        working-directory: public/components/mcp/server
+        run: node -p "require('./package.json').version" | sed 's/^/value=/' >> "$GITHUB_OUTPUT"
+      - name: Extract image metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository_owner }}/tidelight-mcp
+          tags: |
+            type=raw,value=${{ steps.version.outputs.value }}
+            type=sha,prefix=sha-
+            type=raw,value=latest,enable=${{ github.ref == 'refs/heads/main' }}
       - name: Log in to GitHub Container Registry
-        if: github.event_name != 'pull_request'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
       - name: Publish versioned, commit, and latest tags
-        if: github.event_name != 'pull_request'
         uses: docker/build-push-action@v6
         with:
           context: .
