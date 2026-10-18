@@ -15,7 +15,7 @@ test("package publisher is a manual main-branch workflow with protected release 
   assert.match(source, /sha256sum -c SHA256SUMS/);
   assert.match(source, /TIDELIGHT_REGISTRY_PUBLISHING_ENABLED == 'true'/);
   assert.match(source, /NODE_AUTH_TOKEN:.*secrets\.NPM_TOKEN/);
-  assert.match(source, /npm config set \/\/registry\\.npmjs\\.org\/:_authToken/);
+  assert.ok(source.includes('npm config set //registry.npmjs.org/:_authToken'));
   assert.match(source, /NODE_AUTH_TOKEN is required for the first-release npm publisher/);
   assert.match(source, /id: pypi-check/);
   assert.match(source, /steps\.pypi-check\.outputs\.publish == 'true'/);
