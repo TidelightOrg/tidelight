@@ -38,10 +38,21 @@ export function IntelligenceUiPreview() {
         </> : <>
           <div className="tic-intelligence-ui-summary"><div><span>DEVELOPER RESPONSE</span><h3>One contract. Interfaces that feel native.</h3><p>Bring the same scoped service into a custom interface or the official React package.</p></div><span className="tic-intelligence-ui-state">API V1</span></div>
           <pre className="tic-intelligence-ui-code"><code>{`{
+  "job_id": "job_…",
+  "ticker": "AAPL",
   "status": "complete",
-  "sources": [{ "kind": "primary", "published_at": "…" }],
-  "context": { "claims": [], "limitations": [] },
-  "request_id": "…"
+  "attempts": 1,
+  "max_attempts": 3,
+  "result": { "type": "company_snapshot", "generated_at": "…",
+    "market": { "tokenized_equity_spot": null, "stock_perpetual": null },
+    "evidence": { "mode": "headline_discovery", "items": [
+      { "title": "…", "publisher": "…", "url": "…" }] },
+    "limitations": ["…"] },
+  "error": null,
+  "created_at": "…",
+  "started_at": "…",
+  "completed_at": "…",
+  "request_id": "req_…"
 }`}</code></pre>
           <div className="tic-intelligence-ui-foot"><span><i/> Scoped access · Inspectable output</span><span>ILLUSTRATIVE SCHEMA</span></div>
         </>}
