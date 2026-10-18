@@ -47,7 +47,13 @@ test("Packages navigation works from the package pages and signed-in console", a
   const platformNav = await readFile(new URL("app/developers/platform-nav.tsx", root), "utf8");
   const consoleUi = await readFile(new URL("app/developers/console/ui.tsx", root), "utf8");
   assert.match(platformNav, /href="https:\/\/package\.tidelight\.app"/);
-  assert.match(consoleUi, /href="https:\/\/package\.tidelight\.app">Packages/);\n  assert.match(consoleUi, /src="\/tidelight-mark\.svg"/);\n  assert.doesNotMatch(consoleUi, /tic-console-mark|∿/);\n  const authServer = await readFile(new URL("lib/supabase/server.ts", root), "utf8");\n  const authBrowser = await readFile(new URL("lib/supabase/client.ts", root), "utf8");\n  assert.match(authServer, /domain: "\\.tidelight\\.app"/);\n  assert.match(authBrowser, /domain: "\\.tidelight\\.app"/);
+  assert.match(consoleUi, /href="https:\/\/package\.tidelight\.app">Packages/);
+  assert.match(consoleUi, /<Image src="\/tidelight-mark\.svg"/);
+  assert.doesNotMatch(consoleUi, /tic-console-mark|∿/);
+  const authServer = await readFile(new URL("lib/supabase/server.ts", root), "utf8");
+  const authBrowser = await readFile(new URL("lib/supabase/client.ts", root), "utf8");
+  assert.match(authServer, /domain: "\.tidelight\.app"/);
+  assert.match(authBrowser, /domain: "\.tidelight\.app"/);
 });
 
 test("manifest versions and published registry facts are represented separately", async () => {
