@@ -41,7 +41,7 @@ export const packageCatalog = [
       "summary": "Typed client for supported Tidelight API v1 endpoints, async research jobs, and webhooks.",
       "stateLabel": "npm · published 0.1.1",
       "versionLabel": "Registry: 0.1.1 · source manifest: 0.1.1",
-      "href": "/developers/packages/sdk",
+      "href": "/sdk",
       "glyph": "TS"
     }
   },
@@ -77,7 +77,7 @@ export const packageCatalog = [
       "summary": "Bridge stdio-only MCP clients to Tidelight's hosted, scope-filtered Streamable HTTP service.",
       "stateLabel": "npm · published 0.1.1",
       "versionLabel": "Registry: 0.1.1 · source manifest: 0.1.1",
-      "href": "/developers/packages/mcp",
+      "href": "/mcp",
       "glyph": "M"
     }
   },
@@ -112,7 +112,7 @@ export const packageCatalog = [
       "summary": "Python client for supported market, research-job, and webhook workflows.",
       "stateLabel": "pypi · published 0.1.1",
       "versionLabel": "Registry: 0.1.1 · source manifest: 0.1.1",
-      "href": "/developers/packages/python",
+      "href": "/python",
       "glyph": "Py"
     }
   },
@@ -154,7 +154,7 @@ export const packageCatalog = [
       "summary": "Typed hooks and accessible market components backed by the official SDK contract.",
       "stateLabel": "npm · published 0.1.1",
       "versionLabel": "Registry: 0.1.1 · source manifest: 0.1.1",
-      "href": "/developers/packages/react",
+      "href": "/react",
       "glyph": "R"
     }
   },
@@ -190,7 +190,7 @@ export const packageCatalog = [
       "summary": "Keychain-backed terminal workflows for supported market, research-job, and webhook API operations.",
       "stateLabel": "npm · published 0.1.1",
       "versionLabel": "Registry: 0.1.1 · source manifest: 0.1.1",
-      "href": "/developers/packages/cli",
+      "href": "/cli",
       "glyph": "$"
     }
   }

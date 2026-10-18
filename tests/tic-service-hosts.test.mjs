@@ -37,3 +37,13 @@ test("the developer docs hostname serves only the existing documentation page", 
   assert.deepEqual(resolveServiceHostRoute("dev.tidelight.app", "/private.svg"), { kind: "not-found" });
   assert.equal(resolveServiceHostRoute("docs.tidelight.app", "/"), null);
 });
+
+
+test("the package hostname maps clean package slugs and keeps registry facts available", () => {
+  assert.deepEqual(resolveServiceHostRoute("package.tidelight.app", "/"), { kind: "rewrite", pathname: "/developers/packages" });
+  for (const slug of ["sdk", "mcp", "python", "react", "cli"]) {
+    assert.deepEqual(resolveServiceHostRoute("package.tidelight.app", `/${slug}`), { kind: "rewrite", pathname: `/developers/packages/${slug}` });
+  }
+  assert.equal(resolveServiceHostRoute("package.tidelight.app", "/api/developers/packages"), null);
+  assert.deepEqual(resolveServiceHostRoute("package.tidelight.app", "/account"), { kind: "not-found" });
+});

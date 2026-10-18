@@ -20,7 +20,7 @@ test("the directory lists each source distribution once and links its matching d
   for (const entry of entries) {
     assert.equal(entry.source.present, true);
     assert.equal(entry.display.name, entry.distribution.intendedName);
-    assert.equal(entry.display.href, `/developers/packages/${entry.id}`);
+    assert.equal(entry.display.href, `/${entry.id}`);
   }
 });
 
@@ -46,8 +46,14 @@ test("public package cards and all detail pages expose live registry facts and i
 test("Packages navigation works from the package pages and signed-in console", async () => {
   const platformNav = await readFile(new URL("app/developers/platform-nav.tsx", root), "utf8");
   const consoleUi = await readFile(new URL("app/developers/console/ui.tsx", root), "utf8");
-  assert.match(platformNav, /href="\/developers\/packages"/);
-  assert.match(consoleUi, /href="\/developers\/packages">Packages/);
+  assert.match(platformNav, /href="https:\/\/package\.tidelight\.app"/);
+  assert.match(consoleUi, /href="https:\/\/package\.tidelight\.app">Packages/);
+  assert.match(consoleUi, /<Image src="\/tidelight-mark\.svg"/);
+  assert.doesNotMatch(consoleUi, /tic-console-mark|∿/);
+  const authServer = await readFile(new URL("lib/supabase/server.ts", root), "utf8");
+  const authBrowser = await readFile(new URL("lib/supabase/client.ts", root), "utf8");
+  assert.match(authServer, /domain: "\.tidelight\.app"/);
+  assert.match(authBrowser, /domain: "\.tidelight\.app"/);
 });
 
 test("manifest versions and published registry facts are represented separately", async () => {

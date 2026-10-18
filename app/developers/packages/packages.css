@@ -210,3 +210,8 @@
   .tic-package-hero-actions .tic-button{width:100%;justify-content:space-between}
 }
 @media(max-width:400px){.tic-package-constellation{min-height:270px}}
+
+/* Package surfaces use the same translucent, branded card material as Tidelight. */
+.tic-packages-page .tic-package-card,.tic-packages-page .tic-package-workbench,.tic-packages-page .tic-package-lifecycle-panel,.tic-packages-page .tic-package-detail-hero{border-color:color-mix(in srgb,var(--tic-accent) 18%,var(--tic-line));background:linear-gradient(145deg,color-mix(in srgb,var(--tic-panel) 90%,transparent),color-mix(in srgb,var(--tic-accent) 3%,var(--tic-panel)));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 18px 48px color-mix(in srgb,#071d16 7%,transparent),inset 0 1px color-mix(in srgb,#fff 45%,transparent)}
+.tic-packages-page .tic-package-card{transition:transform .22s,border-color .22s,box-shadow .22s}
+.tic-packages-page .tic-package-card:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--tic-accent) 38%,var(--tic-line));box-shadow:0 22px 56px color-mix(in srgb,#071d16 11%,transparent),inset 0 1px color-mix(in srgb,#fff 55%,transparent)}
