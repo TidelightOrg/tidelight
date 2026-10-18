@@ -169,11 +169,15 @@ jobs:
             if [[ "$actual_integrity" == "$expected_integrity" ]]; then
               return 0
             fi
+            if [[ -n "$actual_integrity" ]]; then
+              echo "$package_name@$RELEASE_VERSION is public with unexpected integrity."
+              return 1
+            fi
             if is_pending_stage "$package_name"; then
               echo "$package_name@$RELEASE_VERSION was accepted into npm staging and awaits maintainer approval."
               return 0
             fi
-            echo "$package_name@$RELEASE_VERSION was accepted by npm; public integrity is pending registry processing or staged-package approval."
+            echo "$package_name@$RELEASE_VERSION was accepted by npm; public integrity is pending registry processing."
             return 0
           }
           publish_or_verify "@tidelight/sdk" "tidelight-sdk"
