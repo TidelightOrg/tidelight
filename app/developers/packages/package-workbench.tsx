@@ -195,7 +195,7 @@ export function PackageWorkbench() {
             </div>
 
             <div className="tic-package-workbench-actions">
-              <Link href={current.href}>View package details <span aria-hidden="true">→</span></Link>
+              <Link href={current.href.startsWith("http") ? current.href : `https://package.tidelight.app${current.href}`}>View package details <span aria-hidden="true">→</span></Link>
               <a href={registry.url} target="_blank" rel="noreferrer">Open registry <span aria-hidden="true">↗</span></a>
             </div>
             <p className="tic-package-workbench-note" role="status" aria-live="polite">{copied ? `${surface === "install" ? "Install command" : surface === "verify" ? "Source check" : "Example"} copied.` : checking ? `Checking ${registry.registry} for updates; the command stays pinned to v${registry.version ?? "the latest verified release"}.` : registry.status !== "published" ? `Live registry check unavailable. Install is pinned to the last verified version ${registry.version ?? "not yet verified"}.` : registry.integrity ? "Archive integrity is published by the registry and linked in package details." : "Examples show the source interface; they do not include sample market results."}</p>

@@ -83,7 +83,7 @@ export default function ProductQuickActions() {
     return () => window.removeEventListener("keydown", onKeyDown);
   }, [busy, open]);
 
-  if (pathname.startsWith("/login") || pathname.startsWith("/auth/")) return null;
+  if (pathname.startsWith("/login") || pathname.startsWith("/auth/") || pathname.startsWith("/developers/support")) return null;
 
   function askForHelp() {
     if (pathname === "/") window.dispatchEvent(new Event("tidelight:open-docs"));

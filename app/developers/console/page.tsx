@@ -4,6 +4,8 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import DeveloperConsole from "./ui";
 import { ThemeQuickSwitch } from "@/app/ui/theme-provider";
+import { EcosystemSwitcher } from "../ecosystem-switcher";
+import { DeveloperMobileDock } from "../platform-nav";
 import "../tidelight-developers.css";
 import "../platform-polish.css";
 import "./console-premium.css";
@@ -18,11 +20,12 @@ export default async function ConsolePage() {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return <main className="tic tic-console tic-console-entry">
     <header className="tic-console-header">
-      <Link href="/developers" className="tic-brand">
+      <Link href="https://tidelight.app/developers" className="tic-brand">
         <Image src="/tidelight-mark.svg" alt="" width={28} height={28} priority />
         <strong>Tidelight</strong><span>Intelligence Cloud</span>
       </Link>
       <div className="tic-console-header-actions">
+        <EcosystemSwitcher current="intelligence" />
         <Link href="https://package.tidelight.app">Packages <span aria-hidden="true">→</span></Link>
         <Link href="https://dev.tidelight.app">Developer docs <span aria-hidden="true">→</span></Link>
         <ThemeQuickSwitch />
@@ -49,6 +52,7 @@ export default async function ConsolePage() {
         <div className="tic-signin-preview-foot"><span>REST API</span><span>MCP</span><span>Research jobs</span></div>
       </aside>
     </div>
+    <DeveloperMobileDock current="console" />
   </main>;
   return <DeveloperConsole userId={user.id} />;
 }
