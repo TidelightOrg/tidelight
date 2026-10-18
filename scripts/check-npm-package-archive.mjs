@@ -64,7 +64,8 @@ export function validatePackageArchiveListing(manifest, packedFiles, tarEntries)
   }
 
   const files = new Set(archived);
-  for (const required of ["package.json", "README.md", ...collectManifestTargets(manifest.exports), ...collectManifestTargets(manifest.bin)]) {
+  const licenseFiles = manifest.license === "Apache-2.0" ? ["LICENSE", "NOTICE"] : [];
+  for (const required of ["package.json", "README.md", ...licenseFiles, ...collectManifestTargets(manifest.exports), ...collectManifestTargets(manifest.bin)]) {
     if (required.includes("*") || required.includes("[")) continue;
     if (!files.has(normalizeArchivePath(required))) fail(`archive is missing declared package file ${required}.`);
   }

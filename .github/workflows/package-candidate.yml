@@ -70,22 +70,26 @@ jobs:
         run: |
           npm ci --prefix sdk/typescript
           npm test --prefix sdk/typescript
-          node scripts/check-npm-package-archive.mjs sdk/typescript "$RUNNER_TEMP/tidelight-candidate/npm"
+          node scripts/prepare-npm-package-release.mjs sdk/typescript "$RUNNER_TEMP/tidelight-candidate/staged/sdk"
+          node scripts/check-npm-package-archive.mjs "$RUNNER_TEMP/tidelight-candidate/staged/sdk" "$RUNNER_TEMP/tidelight-candidate/npm"
       - name: Test and validate React package archive
         run: |
           npm ci --prefix packages/react
           npm test --prefix packages/react
-          node scripts/check-npm-package-archive.mjs packages/react "$RUNNER_TEMP/tidelight-candidate/npm"
+          node scripts/prepare-npm-package-release.mjs packages/react "$RUNNER_TEMP/tidelight-candidate/staged/react"
+          node scripts/check-npm-package-archive.mjs "$RUNNER_TEMP/tidelight-candidate/staged/react" "$RUNNER_TEMP/tidelight-candidate/npm"
       - name: Test and validate CLI package archive
         run: |
           npm ci --prefix packages/cli
           npm test --prefix packages/cli
-          node scripts/check-npm-package-archive.mjs packages/cli "$RUNNER_TEMP/tidelight-candidate/npm"
+          node scripts/prepare-npm-package-release.mjs packages/cli "$RUNNER_TEMP/tidelight-candidate/staged/cli"
+          node scripts/check-npm-package-archive.mjs "$RUNNER_TEMP/tidelight-candidate/staged/cli" "$RUNNER_TEMP/tidelight-candidate/npm"
       - name: Test and validate MCP package archive
         run: |
           npm ci --prefix public/components/mcp/server
           npm test --prefix public/components/mcp/server
-          node scripts/check-npm-package-archive.mjs public/components/mcp/server "$RUNNER_TEMP/tidelight-candidate/npm"
+          node scripts/prepare-npm-package-release.mjs public/components/mcp/server "$RUNNER_TEMP/tidelight-candidate/staged/mcp"
+          node scripts/check-npm-package-archive.mjs "$RUNNER_TEMP/tidelight-candidate/staged/mcp" "$RUNNER_TEMP/tidelight-candidate/npm"
       - name: Test Python SDK and preserve the validated wheel
         run: |
           PYTHONPATH=sdk/python/src python -m unittest discover -s sdk/python/tests -v
@@ -96,7 +100,7 @@ jobs:
         run: |
           set -euo pipefail
           OUT="$RUNNER_TEMP/tidelight-candidate"
-          mkdir -p "$OUT"
+          mkdir -p "$OUT" "$OUT/staged"
           {
             printf 'Tidelight internal package candidate %s\n' "$CANDIDATE_VERSION"
             printf 'Source repository: %s\n' "$GITHUB_REPOSITORY"

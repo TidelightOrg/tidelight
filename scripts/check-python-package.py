@@ -69,6 +69,11 @@ def main() -> None:
                 fail(f"wheel version {metadata.get('Version')!r} does not match project version {expected_version!r}.")
             if metadata.get("Requires-Python") != expected_python:
                 fail("wheel Python compatibility metadata differs from pyproject.toml.")
+            if metadata.get("License-Expression") != "Apache-2.0":
+                fail("wheel must declare the package-scoped Apache-2.0 license expression.")
+            license_files = {value.rsplit("/", 1)[-1] for value in metadata.get_all("License-File", [])}
+            if not {"LICENSE", "NOTICE"}.issubset(license_files):
+                fail("wheel must record both package LICENSE and NOTICE files.")
             if "Unpublished client" not in metadata.get_payload():
                 fail("wheel must embed the source README as its package description.")
             project_urls = metadata.get_all("Project-URL", [])

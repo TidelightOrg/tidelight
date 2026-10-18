@@ -2,12 +2,12 @@
 
 This document is the source-of-truth plan for developer packages. Package source belongs in the Tidelight mother repository (`TidelightOrg/tidelight`) and public mirrors are derived artifacts. Package names shown in the Developer Center do not imply registry publication.
 
-## Current architecture and verified state (2026-10-16)
+## Current architecture and verified state (2026-10-18)
 
 | Target | Canonical source | Intended public name | Current state | Registry |
 |---|---|---|---|---|
 | TypeScript / JavaScript SDK | `sdk/typescript` | `@tidelight/sdk` | Implemented source, tests and build; private manifest `0.1.0` | npm lookup returned 404; unpublished |
-| Python SDK | `sdk/python` | `tidelight` | Implemented source and tests; project metadata currently says `tidelight-sdk` `0.1.0` | PyPI lookups for `tidelight` and `tidelight-sdk` found no distribution; unpublished. Align metadata only after name and mirror ownership are verified |
+| Python SDK | `sdk/python` | `tidelight` | Implemented source and tests; project metadata says `tidelight` `0.1.0` | PyPI lookups for `tidelight` and `tidelight-sdk` found no distribution; unpublished. PyPI project ownership and trusted publishing still need manual setup |
 | MCP integration | `public/components/mcp/server` | `@tidelight/mcp` | MCP protocol core plus local stdio-to-remote bridge, tests, package metadata, and dry-run tarball; manifest stays private | npm lookup returned 404; unpublished |
 | API contract | `public/components/api` and `docs/tic-openapi.yaml` | no npm package promised yet | Private contract validation package and OpenAPI document | No public package |
 | React integration | `packages/react` | `@tidelight/react` | Typed client-context hooks and accessible tokenized-instrument component; private manifest `0.1.0` | npm lookup returned 404; unpublished |
@@ -42,7 +42,7 @@ See [PUBLISHING.md](./PUBLISHING.md) for the exact first-release blockers, npm/P
 ## First-release gates
 
 1. Confirm `TidelightOrg/tidelight` owns each registry namespace and publish access is correctly configured.
-2. Decide whether the Python distribution should be named `tidelight` or retain `tidelight-sdk`; no silent rename.
+2. Claim and configure the `tidelight` PyPI project before its first release.
 3. Extend MCP interoperability tests to named external clients before certifying them; the local stdio proxy currently has official SDK protocol coverage only.
 4. Before CLI release, replace the local SDK file dependency with the approved published SDK version, verify npm OIDC/provenance, and run a clean external install test. The CLI source is implemented, but remains private and unavailable from npm.
 5. Add package-specific changelogs, security policy links, licenses, release compatibility matrices, SBOM and provenance checks.
@@ -51,9 +51,12 @@ See [PUBLISHING.md](./PUBLISHING.md) for the exact first-release blockers, npm/P
 
 ## Verification performed for this milestone
 
-Read-only registry checks on 2026-10-16: `npm view` returned 404 for `@tidelight/sdk`, `@tidelight/mcp`, `@tidelight/react`, and `@tidelight/cli`; `python -m pip index versions` found no distribution for `tidelight` or `tidelight-sdk`. These establish that the checked names are not presently installable, not that all other names are available. The UI uses source state rather than fabricated release dates or versions. MCP source verification: `npm test` passed 7 protocol/proxy/package-gate tests; its tarball contains only README, changelog, executable CLI wrapper, compiled code, and manifest, and local install plus missing-key CLI check passed. React source verification: 6 test cases passed in the latest pre-merge run; package tarball contains only README, changelog, compiled entry point, styles, and manifest; local install and server-rendered empty-state/CSS export checks passed; `npm audit --omit=dev` reported 0 vulnerabilities. CLI source verification: 9 tests passed, including credential-status wording and recovery of a queued research job when JSON polling times out, its dry-run tarball contains only README, changelog, compiled JavaScript/declarations and manifest, and its production dependency audit reported 0 vulnerabilities. The CLI delegates API transport to `@tidelight/sdk`; its local `file:` dependency intentionally limits this private source preview to the mother repository. The SDK now has a lockfile and builds on pack. SDK, React and CLI manifests remain private; MCP client certification remains limited to official SDK protocol tests.
+Read-only registry checks on 2026-10-18: `npm view` returned 404 for `@tidelight/sdk`, `@tidelight/mcp`, `@tidelight/react`, and `@tidelight/cli`; PyPI JSON returned 404 for `tidelight`. These establish that the checked names are not presently installable, not that all other names are available. The UI uses source state rather than fabricated release dates or versions. MCP source verification: `npm test` passed 7 protocol/proxy/package-gate tests; its tarball contains only README, changelog, executable CLI wrapper, compiled code, and manifest, and local install plus missing-key CLI check passed. React source verification: 6 test cases passed in the latest pre-merge run; package tarball contains only README, changelog, compiled entry point, styles, and manifest; local install and server-rendered empty-state/CSS export checks passed; `npm audit --omit=dev` reported 0 vulnerabilities. CLI source verification: 9 tests passed, including credential-status wording and recovery of a queued research job when JSON polling times out, its dry-run tarball contains only README, changelog, compiled JavaScript/declarations and manifest, and its production dependency audit reported 0 vulnerabilities. The CLI delegates API transport to `@tidelight/sdk`; its local `file:` dependency intentionally limits this private source preview to the mother repository. The SDK now has a lockfile and builds on pack. SDK, React and CLI manifests remain private; MCP client certification remains limited to official SDK protocol tests.
 
 
-Python SDK artifact gate (2026-10-16): `python scripts/check-python-package.py sdk/python` built `tidelight_sdk-0.1.0-py3-none-any.whl`, matched its metadata against the project, checked archive paths and isolated imports, and did not publish the artifact. Public mirror validation, sync, and manual source-release workflows run this check for canonical source and the Python mirror. Pull request validation also runs the Python suite and wheel check on Python 3.10 and 3.12.
+Python SDK artifact gate (2026-10-18): `python scripts/check-python-package.py sdk/python` built `tidelight_sdk-0.1.0-py3-none-any.whl`, matched its metadata against the project, checked archive paths and isolated imports, and did not publish the artifact. Public mirror validation, sync, and manual source-release workflows run this check for canonical source and the Python mirror. Pull request validation also runs the Python suite and wheel check on Python 3.10 and 3.12.
 
-Python SDK follow-up (2026-10-16): `PYTHONPATH=sdk/python/src python -m unittest discover -s sdk/python/tests -v` passed 11 tests, including a local HTTP redirect check that confirms the default transport stops at the first 302, API-host allowlisting, and a single-attempt `provider_terms_unconfirmed` response. This is source verification only; the Python package remains unpublished.
+Python SDK follow-up (2026-10-18): `PYTHONPATH=sdk/python/src python -m unittest discover -s sdk/python/tests -v` passed 11 tests, including a local HTTP redirect check that confirms the default transport stops at the first 302, API-host allowlisting, and a single-attempt `provider_terms_unconfirmed` response. This is source verification only; the Python package remains unpublished.
+
+
+The repository roadmap is maintained in [the project plan](../planning/PROJECT_PLAN.md).

@@ -1,6 +1,6 @@
 # Tidelight · Hackathon build plan
 
-**Track coverage:** AI Trading Desk + Alpha Factory + Agentic Trading. Evidence-bounded research, a deterministic historical strategy baseline, and a paper-only Nightwatch control surface are implemented. The next build priority is continuity between those workflows, followed by stronger research and strategy validation. The product owner confirms security and sign-in proof as complete. See the sequenced [product evolution roadmap](docs/PRODUCT_EVOLUTION_ROADMAP.md) and detailed [hackathon product plan](docs/HACKATHON_PRODUCT_PLAN.md).
+**Track coverage:** AI Trading Desk + Alpha Factory + Agentic Trading. Evidence-bounded research, a deterministic historical strategy baseline, and a paper-only Nightwatch control surface are implemented. The next build priority is continuity between those workflows, followed by stronger research and strategy validation. The product owner confirms security and sign-in proof as complete. See the sequenced [product evolution roadmap](../PRODUCT_EVOLUTION_ROADMAP.md) and detailed [hackathon product plan](../HACKATHON_PRODUCT_PLAN.md).
 
 **Target user:** active retail traders who hold or follow tokenized US equities and want to review weekend or after-hours events before deciding whether to act. The human trader makes the decision; Tidelight supplies traceable evidence and scenarios.
 

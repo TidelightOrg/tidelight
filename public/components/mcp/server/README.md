@@ -80,6 +80,6 @@ The protocol server is exported from the package root. The local-to-remote bridg
 
 ## Release and security status
 
-The package is not published and cannot be installed from npm. Version changes follow SemVer after the first approved release; the current `0.1.0` changelog records preparation only. The mother repository does not yet publish a package-specific security policy or license grant. Both must be selected and reviewed before public distribution. Do not include keys in examples, logs, issue reports, or source control.
+The package is not published and cannot be installed from npm. Version changes follow SemVer after the first approved release; the current `0.1.0` changelog records preparation only. The package source and included documentation are licensed under Apache-2.0. See LICENSE and NOTICE in this directory. The grant applies only to this package, not the proprietary application/backend or other mother-repository paths. Do not include keys in examples, logs, issue reports, or source control.
 
 See the [hosted MCP connection guide](https://dev.tidelight.app#mcp) and [package status](https://tidelight.app/developers/packages). Registry publication, npm trusted publishing, provenance, and client-specific certification are pending.

@@ -1,68 +1,128 @@
-# First public package release runbook
+# Official package publication runbook
 
-This runbook describes the release steps after the first-release gates in [README.md](./README.md) are cleared. **No package is currently available from npm or PyPI.** Do not present a source archive or an internal candidate artifact as a registry release.
+Checked on 2026-10-18. Registry lookups returned 404 for the four npm package names and for the PyPI project named tidelight. A 404 means no public project was returned by that lookup; it does not establish namespace ownership or reserve a name.
 
-## Current release blockers
+No registry package has been published. The source package manifests remain private. Do not run the publishing workflow until the manual account, ownership, and release checks below are complete.
 
-- `@tidelight/sdk`, `@tidelight/mcp`, `@tidelight/react`, and `@tidelight/cli` are all marked `private: true`.
-- MCP, React, and CLI use `UNLICENSED`; the SDK and Python metadata also need an approved license and repository metadata.
-- The CLI declares `@tidelight/sdk` through `file:../../sdk/typescript`, which cannot work for a consumer installing a registry package. Replace it with the approved published SDK version and prove a clean tarball install.
-- Python currently builds the distribution `tidelight-sdk` with a proprietary license while the intended directory name is `tidelight`. Confirm namespace ownership and make the project, docs, mirror, and PyPI project agree before choosing either name.
-- Organization ownership and publisher access for every npm scope and PyPI project have not been verified. No trusted publisher relationship is confirmed.
-- Security policy links, package compatibility tables, package changelogs, release provenance/SBOM checks, and release approval rules still need completion.
+## Package names and release state
 
-Registry absence is not proof that a namespace is safe to claim. Verify each package owner and account configuration while signed in to the organization’s registry accounts.
+| Registry | Name | Source path | Source license |
+| --- | --- | --- | --- |
+| npm | @tidelight/sdk | sdk/typescript | Apache-2.0 |
+| npm | @tidelight/mcp | public/components/mcp/server | Apache-2.0 |
+| npm | @tidelight/react | packages/react | Apache-2.0 |
+| npm | @tidelight/cli | packages/cli | Apache-2.0 |
+| PyPI | tidelight | sdk/python | Apache-2.0 |
 
-## Build an internal candidate
+These licenses cover only each package distribution. The mother repository does not have a root license grant. Its proprietary application, API implementation, research engines, provider integrations, operational code, credentials, and commercial infrastructure are outside this package license.
 
-After merging source changes to `main`:
+## What is prepared
 
-1. Open **Actions → Build internal package candidate → Run workflow** on `main`.
-2. Enter the exact version shared by all five package manifests. The workflow stops if any manifest differs.
-3. Enter `BUILD PACKAGE CANDIDATE` in the confirmation field.
-4. Wait for the TypeScript SDK, React, CLI, MCP, and Python source tests and archive checks to pass.
-5. Download the workflow artifact named `tidelight-package-candidate-<version>-<commit>-<run-id>-<attempt>`.
-6. From the artifact root, run `sha256sum -c SHA256SUMS` and verify `SOURCE.txt` identifies the intended mother-repository commit.
-7. Review all four `.tgz` files and the `.whl` contents before any registry release.
+- Each public package source directory contains the complete Apache License 2.0 text and a package-scoped NOTICE file.
+- npm manifests declare SPDX license Apache-2.0 and include LICENSE and NOTICE in the files allowlist. They stay private in the source tree.
+- The Python project metadata uses the tidelight distribution name, SPDX Apache-2.0, and includes its license files in the wheel metadata.
+- Source code review found purpose-built Tidelight package code and no vendored third-party implementation in the package directories. Third-party dependencies remain separately licensed and are not re-licensed by the package NOTICE.
+- npm package release staging removes source-only private and development metadata. It maps the CLI’s internal file dependency to the matching published SDK semver. Mother repository source manifests continue to use the local SDK path for development and tests.
+- The manual candidate workflow builds packages and checks exact archives. The separate publishing workflow requires the explicit publication phrase and approval of the protected registry environments. It publishes the already-built candidate artifact, not a rebuilt tree.
+- The UI never shows registry installation commands as available before release.
 
-The workflow has `contents: read` permission only. It does not use registry credentials or OIDC and does not upload to npm, PyPI, or GitHub Releases. Artifacts expire after 30 days.
+The direct npm runtime dependencies inspected are the MCP SDK, Zod, and the Node keyring module; their own registry licenses remain in force. Python runtime code uses the standard library. Re-run the automated dependency license and vulnerability audit on the locked full dependency trees immediately before the first publication. Do not vendor or bundle dependency source without adding its required notices.
 
-## Configure publisher trust
+## Manual setup you must complete
 
-Do this only after namespace ownership and legal metadata are resolved.
+These are owner-account actions. Do them in the organization’s registry accounts; do not paste tokens or passwords into chat.
 
-### npm
+### 1. Confirm package rights and the Apache grant
 
-For each package, configure npm Trusted Publishing to the exact GitHub organization, mother repository, workflow file, and protected GitHub `publish` environment. Require approval for that environment and restrict it to protected release tags. Verify the package’s npm owner list and publisher settings using the organization’s npm account. Do not put a long-lived npm token in repository secrets when OIDC trusted publishing is available.
+1. Review the five package source directories and verify that Tidelight owns the code or has written rights to license it under Apache-2.0.
+2. Confirm that no copied code, design asset, generated SDK, or contributor contribution is missing an attribution or license obligation.
+3. Review package-scoped LICENSE and NOTICE files. They grant Apache-2.0 only to the contents of that one package distribution and make no grant over Tidelight names or marks.
+4. Keep third-party dependencies under their original licenses. If any dependency is later bundled into an archive, add the notices required by that dependency before release.
+5. Ask counsel or the organization’s license reviewer if the package ownership records or contributor grants are incomplete.
 
-### PyPI
+Do not add a root LICENSE to the mother repository. It would be read as applying to proprietary paths that are intentionally excluded.
 
-Create or verify the approved PyPI project, then configure its Trusted Publisher for `TidelightOrg/tidelight`, the dedicated publishing workflow, and the protected `publish` environment. Confirm the project name and owner before adding the workflow relationship. Do not put a PyPI API token in repository secrets when Trusted Publishing is available.
+### 2. Claim and secure the npm scope
 
-GitHub `id-token: write` is required only in a future dedicated publishing job that uploads artifacts. Keep it out of candidate and test jobs. Publish the exact candidate artifacts that passed review; do not rebuild packages in the publishing job.
+1. Sign in to the organization’s npm account at npmjs.com. Use an organization owner account and enforce two-factor authentication.
+2. Open the npm organization settings and verify that the organization owns the @tidelight scope. The package-name 404 results do not claim the scope.
+3. Confirm that the organization can create and maintain all four names: @tidelight/sdk, @tidelight/mcp, @tidelight/react, and @tidelight/cli. Do not silently substitute another scope.
+4. Add only the release maintainers who need publish access. Confirm package owner access after the first approved release.
+5. After the publishing workflow is present on the protected main branch, open each package’s npm settings and add a Trusted Publisher:
+   - Owner: TidelightOrg
+   - Repository: tidelight
+   - Workflow: publish-packages.yml
+   - GitHub environment: npm-publish
+6. Repeat that exact publisher relationship for all four npm package names. Require a reviewer for the GitHub npm-publish environment and restrict publishing to the main branch and an approved release window.
+7. Do not add an npm token to GitHub Actions. The publishing job uses GitHub OIDC and npm provenance. If npm requires a one-time first-package creation step before it exposes Trusted Publisher settings, stop and follow npm’s current first-publish flow using an owner-controlled, package-scoped credential. Never send that credential in chat; revoke it immediately after trusted publishing is active.
 
-## Release order and consumer verification
+### 3. Claim and secure the PyPI project
 
-1. Release `@tidelight/sdk` first.
-2. Release `@tidelight/mcp` and `@tidelight/react` after their namespace, license, compatibility, and client-security checks are approved.
-3. Release Python only after the `tidelight` versus `tidelight-sdk` decision is recorded and the matching PyPI project is controlled by Tidelight.
-4. Release `@tidelight/cli` only after it depends on the published SDK by an exact supported semver range, then passes an isolated install and smoke test.
-5. Publish checksums, provenance/attestations, release notes, compatibility details, and changelog links with each version. Use the same version in the mother repository, registry manifest, and corresponding public mirror.
+1. Sign in to the organization-controlled PyPI account and confirm that Tidelight is authorized to claim the tidelight project name. The 404 lookup is not a reservation.
+2. Add the organization’s release maintainers and require strong account security.
+3. After the publishing workflow is present on the protected main branch, open PyPI’s project publishing settings and add a pending Trusted Publisher:
+   - Owner: TidelightOrg
+   - Repository: tidelight
+   - Workflow: publish-packages.yml
+   - Environment: pypi-publish
+4. Configure the GitHub pypi-publish environment with a required owner review. The PyPI job uses OIDC; do not create or store a PyPI API token in GitHub Actions.
+5. If PyPI shows that tidelight has already been claimed, stop and do not upload. Resolve ownership or choose a new public name only after an explicit product decision.
 
-After publishing each npm package, verify it from a clean temporary directory:
+### 4. Configure GitHub release controls
 
-```sh
-npm view @tidelight/sdk version dist.tarball
-npm pack @tidelight/sdk@<version>
-mkdir package-install-check && cd package-install-check
-npm init -y
-npm install @tidelight/sdk@<version>
-```
+1. Protect main and require the repository checks to pass before merging.
+2. In Settings → Environments, create npm-publish and pypi-publish. Add required reviewers from the package-owning organization.
+3. Restrict both environments to the protected main branch. Keep registry publishing permission out of tests and candidate builds.
+4. Confirm the GitHub Actions workflow identity exactly matches the registry Trusted Publisher settings, including the file name and environment.
+5. Do not create long-lived registry secrets. The workflow only gets id-token: write in the publication jobs after the protected environment approval.
 
-Import the declared public entry point in a small Node.js smoke test and confirm the packed archive matches the reviewed candidate. For Python, query the approved distribution name on PyPI, install the exact version into a fresh virtual environment, and import `Client` and `ApiError` from `tidelight`. Verify the project page, source link, license, and release files.
+### 5. First release checklist
 
-Record the registry URL, exact version, artifact checksum, workflow run, GitHub commit, provenance result, and clean-install result in the package changelog/release notes and update the Developer Center catalog only after those checks pass.
+Before running the workflow:
 
-## Existing GitHub source-release workflow
+- Confirm namespace ownership in npm and PyPI.
+- Review the staged candidate artifacts and checksums.
+- Confirm the required scopes, API behavior, data-provider redistribution terms, package security contact, and compatibility table.
+- Confirm all five source versions match the version you intend to publish.
+- Confirm the staged CLI manifest references the published @tidelight/sdk version, not a file path.
+- Confirm the source and package mirrors are synchronized to the same mother repository commit.
+- Verify the manual GitHub source release is not being mistaken for npm/PyPI publication.
+- Obtain a final release approval from a Tidelight organization owner.
 
-`.github/workflows/release-sdk.yml` creates GitHub Releases in the TypeScript, Python, and MCP source mirrors after exact mirror parity and tests pass. It does **not** publish registry packages. Keep source releases distinct from npm/PyPI publishing in the UI, docs, and release notes.
+Then, from GitHub Actions on main:
+
+1. Select Publish official packages.
+2. Enter the exact version that appears in all five package manifests.
+3. Enter PUBLISH OFFICIAL PACKAGES in the confirmation field.
+4. Review the candidate test/build job and its checksum manifest.
+5. Approve the npm-publish environment when the SDK, MCP, React, and CLI job pauses for review.
+6. Approve the pypi-publish environment when the Python job pauses for review.
+7. Verify each registry package from a clean environment using the commands below. A green workflow alone is not proof that the published tarball installs correctly.
+
+## Clean consumer checks after publication
+
+Use a fresh temporary directory and the exact version from the approved release.
+
+~~~sh
+npm view @tidelight/sdk@VERSION version license dist.tarball
+npm pack @tidelight/sdk@VERSION
+npm install @tidelight/sdk@VERSION
+~~~
+
+Repeat for @tidelight/mcp, @tidelight/react, and @tidelight/cli. Import or invoke each public entry point in a clean Node.js 22 environment. For CLI, verify the SDK dependency resolves from npm and that the executable starts without source-tree paths.
+
+For Python:
+
+~~~sh
+python -m venv .venv
+. .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install tidelight==VERSION
+python -c "from tidelight import ApiError, Client; print('Tidelight SDK import passed')"
+~~~
+
+Check the PyPI project links, license expression, wheel LICENSE/NOTICE metadata, and artifact digest. Record the source commit, workflow run, npm provenance/PyPI publisher result, SHA-256, and clean-install test in the release notes.
+
+## Rollback and corrections
+
+Never overwrite an npm version. For a defective release, deprecate the affected version with a clear message, publish a corrected SemVer version, and document a migration. Follow PyPI’s project policy for yanking a defective release; do not delete a release that users may already depend on. Revoke the compromised publisher relationship and rotate organization access if a publishing credential is exposed.

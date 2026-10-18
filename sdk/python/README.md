@@ -1,6 +1,6 @@
 # Tidelight Python SDK
 
-Unpublished client for the implemented Tidelight Intelligence Cloud v1 market, asynchronous company snapshot, and research webhook endpoints. Market calls require `market:read`; research calls require `research:run`; webhook calls require `alerts:manage`. Market responses can be denied with `provider_terms_unconfirmed` until redistribution terms are confirmed. The client surfaces that gate without retrying it. The package will be released after package ownership and release integration are configured.
+Unpublished client for the implemented Tidelight Intelligence Cloud v1 market, asynchronous company snapshot, and research webhook endpoints. Market calls require `market:read`; research calls require `research:run`; webhook calls require `alerts:manage`. Market responses can be denied with `provider_terms_unconfirmed` until redistribution terms are confirmed. The client surfaces that gate without retrying it. The source distribution is named tidelight; no PyPI release is available until project ownership and release integration are configured.
 
 Install locally with `pip install ./sdk/python`. Keep the API key on your server.
 

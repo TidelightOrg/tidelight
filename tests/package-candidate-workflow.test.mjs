@@ -28,7 +28,7 @@ test("candidate build validates all five intended package distributions", async 
   ]) assert.ok(source.includes(file), `candidate workflow is missing ${file}`);
   for (const packageDirectory of ["sdk/typescript", "packages/react", "packages/cli", "public/components/mcp/server"]) {
     assert.ok(source.includes(`npm test --prefix ${packageDirectory}`), `candidate workflow does not test ${packageDirectory}`);
-    assert.ok(source.includes(`check-npm-package-archive.mjs ${packageDirectory}`), `candidate workflow does not archive-check ${packageDirectory}`);
+    assert.ok(source.includes(`prepare-npm-package-release.mjs ${packageDirectory}`), `candidate workflow does not stage ${packageDirectory}`);
   }
   assert.match(source, /check-python-package\.py sdk\/python/);
   assert.match(source, /SHA256SUMS/);

@@ -26,6 +26,17 @@ test("npm archive listing includes only the files npm reported and declared entr
   assert.deepEqual(validatePackageArchiveListing(manifest, packed, tar), packed.map(file => file.path).sort());
 });
 
+test("Apache package archives must include the scoped license and notice", () => {
+  assert.throws(
+    () => validatePackageArchiveListing(
+      { files: ["README.md"], license: "Apache-2.0" },
+      [{ path: "package.json" }, { path: "README.md" }],
+      ["package/package.json", "package/README.md"],
+    ),
+    /missing declared package file LICENSE/,
+  );
+});
+
 test("npm archive validator rejects package-to-tarball drift", () => {
   assert.throws(
     () => validatePackageArchiveListing(manifest, [{ path: "package.json" }], ["package/package.json", "package/.env"]),
