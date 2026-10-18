@@ -140,3 +140,35 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261016093746_advisor_policy_and_index_fixes.sql
       - name: Verify policy boundaries, privileged RPCs, and foreign-key indexes
         run: psql -v ON_ERROR_STOP=1 -f tests/postgres/advisor-remediation.sql
+
+  developer-support-database:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tidelight_support_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d tidelight_support_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: tidelight_support_test
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare isolated Auth roles
+        run: psql -v ON_ERROR_STOP=1 -f tests/postgres/developer-support-prerequisites.sql
+      - name: Apply developer support migration
+        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261018170000_developer_support_tickets.sql
+      - name: Verify private storage, valid tickets, and service access
+        run: psql -v ON_ERROR_STOP=1 -f tests/postgres/developer-support.sql
