@@ -27,7 +27,7 @@ async function consumer(name, packages) {
   return directory;
 }
 try {
-  for (const packagePath of ["sdk/typescript", "packages/react", "packages/cli"]) {
+  for (const packagePath of ["sdk/typescript", "public/components/mcp/server", "packages/react", "packages/cli"]) {
     run("npm", ["ci", "--prefix", packagePath], root);
     run("npm", ["run", "build", "--prefix", packagePath], root);
   }
@@ -36,6 +36,12 @@ try {
   const sdkArchive = pack(path.join(root, "sdk/typescript"), temporary);
   const sdkOnly = await consumer("sdk", [sdkArchive]);
   run(process.execPath, ["--input-type=module", "-e", `import { TidelightClient, TidelightApiError } from '@tidelight/sdk'; if (typeof TidelightClient !== 'function' || typeof TidelightApiError !== 'function') process.exit(1);`], sdkOnly);
+
+  const mcpStage = path.join(temporary, "mcp-stage");
+  run(process.execPath, ["scripts/prepare-npm-package-release.mjs", "public/components/mcp/server", mcpStage], root);
+  const mcpArchive = pack(mcpStage, temporary, ["--ignore-scripts"]);
+  const mcpOnly = await consumer("mcp", [mcpArchive]);
+  run(process.execPath, ["--input-type=module", "-e", `import { TIC_MCP_SERVER, createTidelightMcpServer } from '@tidelight/mcp'; if (TIC_MCP_SERVER.name !== 'tidelight-intelligence-cloud' || typeof createTidelightMcpServer !== 'function') process.exit(1);`], mcpOnly);
 
   const reactArchive = pack(path.join(root, "packages/react"), temporary);
   const reactConsumer = await consumer("react", [sdkArchive, reactArchive, "react@19.2.8", "react-dom@19.2.8"]);
@@ -58,7 +64,7 @@ try {
   const unauthenticated = spawnSync(process.execPath, [cliBin, "research", "start", "NVDA"], { cwd: cliConsumer, env: { ...env, TIDELIGHT_API_KEY: "" }, encoding: "utf8" });
   if (unauthenticated.status !== 2 || !/No API key is configured/i.test(unauthenticated.stderr)) throw new Error(`Installed CLI did not stop safely without credentials (exit ${unauthenticated.status}): ${unauthenticated.stderr}`);
 
-  console.log(`Validated clean local consumer installs for @tidelight/sdk@${sdkManifest.version}, @tidelight/react@${JSON.parse(await readFile(path.join(root, "packages/react/package.json"), "utf8")).version}, and staged @tidelight/cli@${cliManifest.version}; exercised SDK imports, React SSR/CSS, CLI help and pre-network no-credential rejection. No package was published.`);
+  console.log(`Validated clean local consumer installs for @tidelight/sdk@${sdkManifest.version}, staged @tidelight/mcp, @tidelight/react@${JSON.parse(await readFile(path.join(root, "packages/react/package.json"), "utf8")).version}, and staged @tidelight/cli@${cliManifest.version}; exercised SDK and MCP imports, React SSR/CSS, CLI help and pre-network no-credential rejection. No package was published.`);
 } finally {
   await rm(temporary, { recursive: true, force: true });
 }
