@@ -99,7 +99,7 @@ jobs:
           (cd "$OUT" && find . -type f ! -name SHA256SUMS -print0 | sort -z | xargs -0 sha256sum > SHA256SUMS)
       - uses: actions/upload-artifact@v4
         with:
-          name: tidelight-public-packages-${{ inputs.version }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          name: tidelight-public-packages-${{ inputs.version }}-${{ github.sha }}-${{ github.run_id }}
           path: ${{ runner.temp }}/tidelight-package-candidate/
           if-no-files-found: error
           retention-days: 30
@@ -123,7 +123,7 @@ jobs:
           npm config set registry https://registry.npmjs.org
       - uses: actions/download-artifact@v4
         with:
-          name: tidelight-public-packages-${{ inputs.version }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          name: tidelight-public-packages-${{ inputs.version }}-${{ github.sha }}-${{ github.run_id }}
           path: ${{ runner.temp }}/tidelight-package-candidate
       - name: Verify checksums
         working-directory: ${{ runner.temp }}/tidelight-package-candidate
@@ -197,7 +197,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@v4
         with:
-          name: tidelight-public-packages-${{ inputs.version }}-${{ github.sha }}-${{ github.run_id }}-${{ github.run_attempt }}
+          name: tidelight-public-packages-${{ inputs.version }}-${{ github.sha }}-${{ github.run_id }}
           path: ${{ runner.temp }}/tidelight-package-candidate
       - name: Verify checksums
         working-directory: ${{ runner.temp }}/tidelight-package-candidate
