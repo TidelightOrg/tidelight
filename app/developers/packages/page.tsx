@@ -11,7 +11,7 @@ import "./packages.css";
 import "./registry-live.css";
 
 export const metadata: Metadata = {
-  title: { absolute: "Official packages — Tidelight Intelligence Cloud" },
+  title: { absolute: "Tidelight Packages — Official integrations" },
   description: "Explore Tidelight's official developer packages, their current release status, and source-backed installation guidance.",
   alternates: { canonical: "https://package.tidelight.app" },
 };
