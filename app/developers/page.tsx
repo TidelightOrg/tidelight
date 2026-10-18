@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
-import { ThemeQuickSwitch } from "@/app/ui/theme-provider";
+import { PlatformNav } from "./platform-nav";
 import "./tidelight-developers.css";
 import "./platform-polish.css";
 
@@ -19,10 +19,7 @@ const routeCards = [
 
 export default function DevelopersPage() {
   return <main className="tic tic-landing tic-premium-landing">
-    <nav className="tic-top tic-premium-top" aria-label="Developer navigation">
-      <Link href="/developers" className="tic-brand"><Image src="/tidelight-mark.svg" alt="" width={30} height={30} priority /> <span className="tic-brand-name">Tidelight</span><span className="tic-brand-divider" aria-hidden="true"/><span>Intelligence Cloud</span></Link>
-      <div><Link href="https://dev.tidelight.app">Docs</Link><Link href="/developers/packages">Packages</Link><ThemeQuickSwitch/><Link href="/developers/console" className="tic-button tic-nav-cta">Open console <span aria-hidden="true">↗</span></Link></div>
-    </nav>
+    <PlatformNav active="platform" />
 
     <section className="tic-premium-hero">
       <div className="tic-hero-copy">
