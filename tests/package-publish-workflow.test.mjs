@@ -14,7 +14,7 @@ test("package publisher is a manual main-branch workflow with protected release 
   assert.match(source, /actions\/download-artifact@v4/);
   assert.match(source, /sha256sum -c SHA256SUMS/);
   assert.match(source, /TIDELIGHT_REGISTRY_PUBLISHING_ENABLED == 'true'/);
-  assert.doesNotMatch(source, /NPM_TOKEN|PYPI_API_TOKEN|twine upload/);
+  assert.match(source, /NODE_AUTH_TOKEN: \\$\{\\{ secrets\\.NPM_TOKEN \\}\\}/);\n  assert.doesNotMatch(source, /PYPI_API_TOKEN|twine upload/);
 });
 
 test("registry write permission is limited to protected OIDC jobs and release order", async () => {
