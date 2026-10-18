@@ -3,7 +3,9 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "Tidelight Intelligence Cloud TypeScript client (unpublished)",
+  "description": "Official TypeScript client for Tidelight Intelligence Cloud API v1.",
+  "homepage": "https://tidelight.app/developers/packages/sdk",
+  "bugs": { "url": "https://github.com/TidelightOrg/tidelight/issues" },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
@@ -12,7 +14,10 @@
   },
   "files": [
     "dist",
-    "README.md"
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "NOTICE"
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
@@ -21,5 +26,18 @@
   },
   "devDependencies": {
     "typescript": "^5"
-  }
+  },
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TidelightOrg/tidelight.git",
+    "directory": "sdk/typescript"
+  },
+  "keywords": [
+    "tidelight",
+    "sdk",
+    "market-intelligence",
+    "research",
+    "webhooks"
+  ]
 }

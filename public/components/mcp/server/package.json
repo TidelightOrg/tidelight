@@ -4,17 +4,50 @@
   "private": true,
   "type": "module",
   "description": "Local stdio bridge to the authenticated Tidelight Intelligence Cloud MCP service.",
-  "keywords": ["tidelight", "mcp", "model-context-protocol", "market-intelligence", "research"],
-  "license": "UNLICENSED",
-  "repository": { "type": "git", "url": "https://github.com/TidelightOrg/tidelight.git", "directory": "public/components/mcp/server" },
-  "engines": { "node": ">=22" },
-  "bin": { "tidelight-mcp": "bin/tidelight-mcp.mjs" },
-  "exports": {
-    ".": { "types": "./dist/index.d.ts", "import": "./dist/index.js" },
-    "./proxy": { "types": "./dist/proxy.d.ts", "import": "./dist/proxy.js" }
+  "keywords": [
+    "tidelight",
+    "mcp",
+    "model-context-protocol",
+    "market-intelligence",
+    "research"
+  ],
+  "license": "Apache-2.0",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/TidelightOrg/tidelight.git",
+    "directory": "public/components/mcp/server"
   },
-  "files": ["dist", "bin", "README.md", "CHANGELOG.md"],
-  "scripts": { "build": "tsc -p tsconfig.json", "test": "npm run build && node --test tests/*.test.mjs", "prepack": "npm run build" },
+  "homepage": "https://tidelight.app/developers/packages/mcp",
+  "bugs": { "url": "https://github.com/TidelightOrg/tidelight/issues" },
+  "engines": {
+    "node": ">=22"
+  },
+  "bin": {
+    "tidelight-mcp": "bin/tidelight-mcp.mjs"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./proxy": {
+      "types": "./dist/proxy.d.ts",
+      "import": "./dist/proxy.js"
+    }
+  },
+  "files": [
+    "dist",
+    "bin",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "NOTICE"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "npm run build && node --test tests/*.test.mjs",
+    "prepack": "npm run build"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.1",
     "zod": "4.6.7"

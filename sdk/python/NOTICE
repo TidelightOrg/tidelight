@@ -1,0 +1,5 @@
+Copyright 2026 TidelightOrg
+
+This package contains Tidelight-authored package source and documentation in this package directory. Those package files are licensed under the Apache License, Version 2.0 (see LICENSE).
+
+This package-scoped license does not apply to the mother repository as a whole, Tidelight's proprietary application or backend, research engines, provider integrations, server secrets, or commercial infrastructure. Third-party dependencies retain their own licenses. Tidelight names and marks are not licensed by this notice.

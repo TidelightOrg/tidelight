@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { copyFile, mkdir, mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -64,7 +64,8 @@ export function validatePackageArchiveListing(manifest, packedFiles, tarEntries)
   }
 
   const files = new Set(archived);
-  for (const required of ["package.json", "README.md", ...collectManifestTargets(manifest.exports), ...collectManifestTargets(manifest.bin)]) {
+  const licenseFiles = manifest.license === "Apache-2.0" ? ["LICENSE", "NOTICE"] : [];
+  for (const required of ["package.json", "README.md", ...licenseFiles, ...collectManifestTargets(manifest.exports), ...collectManifestTargets(manifest.bin)]) {
     if (required.includes("*") || required.includes("[")) continue;
     if (!files.has(normalizeArchivePath(required))) fail(`archive is missing declared package file ${required}.`);
   }
@@ -83,7 +84,7 @@ export function containsSecretMaterial(content) {
   return secretContent.some(pattern => pattern.test(content));
 }
 
-async function validatePackage(packageDirectory) {
+export async function validatePackage(packageDirectory, outputDirectory = null) {
   const root = path.resolve(packageDirectory);
   const manifest = JSON.parse(await readFile(path.join(root, "package.json"), "utf8"));
   const temporary = await mkdtemp(path.join(tmpdir(), "tidelight-npm-archive-"));
@@ -110,7 +111,12 @@ async function validatePackage(packageDirectory) {
       });
       if (containsSecretMaterial(content)) fail(`archive member contains credential-like material: ${relativePath}.`);
     }
-    console.log(`Validated ${manifest.name}@${manifest.version}: ${paths.length} archive files, declared entry points, and secret-material scan. Nothing was published.`);
+    if (outputDirectory) {
+      const destination = path.resolve(outputDirectory);
+      await mkdir(destination, { recursive: true });
+      await copyFile(archive, path.join(destination, result.filename));
+    }
+    console.log(`Validated ${manifest.name}@${manifest.version}: ${paths.length} archive files, declared entry points, and secret-material scan.${outputDirectory ? ` Verified archive saved to ${path.resolve(outputDirectory)}.` : " Nothing was published."}`);
   } finally {
     await rm(temporary, { recursive: true, force: true });
   }
@@ -118,8 +124,9 @@ async function validatePackage(packageDirectory) {
 
 if (process.argv[1] && path.resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const packageDirectory = process.argv[2];
-  if (!packageDirectory) fail("usage: node scripts/check-npm-package-archive.mjs <package-directory>.");
-  validatePackage(packageDirectory).catch(error => {
+  const outputDirectory = process.argv[3] ?? null;
+  if (!packageDirectory) fail("usage: node scripts/check-npm-package-archive.mjs <package-directory> [output-directory].");
+  validatePackage(packageDirectory, outputDirectory).catch(error => {
     console.error(error.message);
     process.exitCode = 1;
   });

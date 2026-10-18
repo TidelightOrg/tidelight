@@ -47,5 +47,3 @@ __pycache__/
 *.pyc
 *.egg-info/
 /sdk/python/build/
-
-/sdk/typescript/node_modules/

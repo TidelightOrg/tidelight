@@ -2,7 +2,7 @@
 
 Typed React hooks and accessible, themeable UI helpers for Tidelight market and research workflows. The source package wraps the official SDK’s typed methods; it does not duplicate API requests, authorization, billing, or research logic.
 
-**Release state:** source is prepared at `0.1.0`, remains private, and is not published to npm. `npm install @tidelight/react` is not available.
+Install with `npm install @tidelight/react @tidelight/sdk react react-dom`.
 
 ## Local development
 
@@ -59,7 +59,7 @@ export function App({ applicationServerClient }) {
 | Runtime | Browser or React server/client application with an injected compatible transport |
 | API operations | SDK tokenized-equity listing and company research job methods |
 | Styling | Optional CSS file; custom properties can be themed |
-| Publication | Not published; package cannot currently be installed from npm |
+| Peer dependencies | `@tidelight/sdk`, React 18 or 19, and React DOM 18 or 19 |
 
 No hosted client-side credential flow or browser direct API usage is provided. API responses retain their normal Tidelight scopes, quota, provider and data-availability behavior. Retry behavior belongs to the supplied server-side SDK client.
 
@@ -73,4 +73,4 @@ No hosted client-side credential flow or browser direct API usage is provided. A
 
 ## Release and security
 
-The package uses SemVer after its first approved release. See [CHANGELOG.md](./CHANGELOG.md). A package-specific license grant, security policy, npm namespace confirmation, trusted-publishing/provenance setup, and explicit approval are release gates. Do not put credentials in UI props, error messages, logs, or examples.
+See [CHANGELOG.md](./CHANGELOG.md) for release history. Do not put credentials in UI props, error messages, logs, or examples.

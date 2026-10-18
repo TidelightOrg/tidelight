@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
+import { mkdtemp, mkdir, readFile, readdir, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -24,6 +24,17 @@ test("npm archive listing includes only the files npm reported and declared entr
   ];
   const tar = packed.map(file => `package/${file.path}`);
   assert.deepEqual(validatePackageArchiveListing(manifest, packed, tar), packed.map(file => file.path).sort());
+});
+
+test("Apache package archives must include the scoped license and notice", () => {
+  assert.throws(
+    () => validatePackageArchiveListing(
+      { files: ["README.md"], license: "Apache-2.0" },
+      [{ path: "package.json" }, { path: "README.md" }],
+      ["package/package.json", "package/README.md"],
+    ),
+    /missing declared package file LICENSE/,
+  );
 });
 
 test("npm archive validator rejects package-to-tarball drift", () => {
@@ -87,10 +98,15 @@ test("CLI inspects a real npm tarball and rejects private-key text", async () =>
     await writeFile(path.join(packageDirectory, "README.md"), "Local archive test fixture.\n");
     await writeFile(path.join(packageDirectory, "dist/index.js"), "export const ok = true;\n");
     const checker = fileURLToPath(new URL("../scripts/check-npm-package-archive.mjs", import.meta.url));
-    const run = () => spawnSync(process.execPath, [checker, packageDirectory], { encoding: "utf8" });
+    const artifactDirectory = path.join(temporary, "verified-artifacts");
+    const run = (withOutput = false) => spawnSync(process.execPath, [checker, packageDirectory, ...(withOutput ? [artifactDirectory] : [])], { encoding: "utf8" });
     const valid = run();
     assert.equal(valid.status, 0, valid.stderr);
     assert.match(valid.stdout, /archive files.*Nothing was published/);
+    const saved = run(true);
+    assert.equal(saved.status, 0, saved.stderr);
+    assert.match(saved.stdout, /Verified archive saved/);
+    assert.deepEqual(await readdir(artifactDirectory), ["tidelight-archive-fixture-0.0.0-test.tgz"]);
 
     await writeFile(path.join(packageDirectory, "README.md"), "-----BEGIN PRIVATE KEY-----\n");
     const unsafe = run();

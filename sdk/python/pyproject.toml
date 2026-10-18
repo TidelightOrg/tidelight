@@ -1,22 +1,28 @@
 [build-system]
-requires = ["setuptools>=70"]
+requires = ["setuptools>=77"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "tidelight-sdk"
+name = "tidelight"
 version = "0.1.0"
-description = "Tidelight Intelligence Cloud Python client (unpublished)"
+description = "Official Tidelight Intelligence Cloud Python client"
 requires-python = ">=3.10"
 readme = "README.md"
 keywords = ["tidelight", "research", "market-intelligence", "webhooks"]
-classifiers = ["Programming Language :: Python :: 3 :: Only"]
-license = { text = "Proprietary" }
+authors = [{ name = "TidelightOrg" }]
+classifiers = [
+  "Programming Language :: Python :: 3 :: Only",
+]
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
 
 [project.urls]
 Homepage = "https://tidelight.app/developers/packages/python"
 Documentation = "https://dev.tidelight.app/api"
 Repository = "https://github.com/TidelightOrg/tidelight/tree/main/sdk/python"
+Source = "https://github.com/TidelightOrg/tidelight/tree/main/sdk/python"
 Issues = "https://github.com/TidelightOrg/tidelight/issues"
+Security = "https://github.com/TidelightOrg/tidelight/security/policy"
 
 [tool.setuptools.packages.find]
 where = ["src"]

@@ -1,8 +1,8 @@
 # Tidelight Python SDK
 
-Unpublished client for the implemented Tidelight Intelligence Cloud v1 market, asynchronous company snapshot, and research webhook endpoints. Market calls require `market:read`; research calls require `research:run`; webhook calls require `alerts:manage`. Market responses can be denied with `provider_terms_unconfirmed` until redistribution terms are confirmed. The client surfaces that gate without retrying it. The package will be released after package ownership and release integration are configured.
+Official Python client for supported Tidelight Intelligence Cloud v1 market, asynchronous company research, and webhook endpoints. Market calls require `market:read`; research calls require `research:run`; webhook calls require `alerts:manage`. Market responses can be denied with `provider_terms_unconfirmed` until redistribution terms are confirmed. The client surfaces that gate without retrying it.
 
-Install locally with `pip install ./sdk/python`. Keep the API key on your server.
+Install with `python -m pip install tidelight`. Keep the API key on your server.
 
 ```python
 import os
@@ -44,8 +44,8 @@ The client retries network errors, 429, and transient 5xx statuses at most twice
 From a mother-repository checkout:
 
 ```sh
-python -m pip install ./sdk/python
+python -m pip install -e ./sdk/python
 PYTHONPATH=sdk/python/src python sdk/python/examples/research.py NVDA
 ```
 
-The example calls the SDK company snapshot job flow and prints a result only after the API reports `complete`. It preserves job and request IDs and never prints the key. CI injects a mock transport and makes no network calls. A live run requires `research:run` and consumes project quota (10 jobs per rolling hour). This package is not available from PyPI; run from the repository source.
+The example calls the SDK company snapshot job flow and prints a result only after the API reports `complete`. It preserves job and request IDs and never prints the key. CI injects a mock transport and makes no network calls. A live run requires `research:run` and consumes project quota (10 jobs per rolling hour).

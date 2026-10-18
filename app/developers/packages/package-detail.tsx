@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { PackageLifecycleDemo } from "./package-lifecycle-demo";
-import { PackageSectionNav } from "./package-section-nav";
-import { PackageSourceBadges } from "./package-source-badges";
 
+import { PackageLifecycleDemo } from "./package-lifecycle-demo";
+import { PackageSectionNav, packageSections } from "./package-section-nav";
+import { PackageSourceBadges } from "./package-source-badges";
 const snippets = {
   typescript: `import { TidelightClient } from "@tidelight/sdk";\n\nconst client = new TidelightClient({\n  apiKey: process.env.TIDELIGHT_API_KEY!,\n});\n\nconst page = await client.listTokenizedEquities({\n  limit: 20,\n  underlyingTicker: "AAPL",\n});\n\nfor (const instrument of page.data) {\n  console.log(instrument.symbol, instrument.underlying_ticker);\n}`,
   research: `const accepted = await client.startCompanyResearch(\n  "NVDA",\n  crypto.randomUUID(),\n);\n\nconst result = await client.waitForResearchJob(\n  accepted.job_id,\n  { intervalMs: 2_000, timeoutMs: 120_000 },\n);\n\nif (result.status === "complete") {\n  console.log(result.result);\n}`,
@@ -46,7 +46,7 @@ export function PackageDetail() {
     </header>
     <PackageLifecycleDemo packageName="sdk" />
     <div className="tic-package-detail-layout">
-      <PackageSectionNav sections={[{ id: "overview", label: "Overview" }, { id: "quickstart", label: "Quickstart" }, { id: "api", label: "API surface" }, { id: "compatibility", label: "Compatibility" }, { id: "security", label: "Security" }, { id: "releases", label: "Releases" }]} />
+      <PackageSectionNav sections={packageSections.sdk} />
       <article className="tic-package-detail-content">
         <section id="overview"><p className="tic-eyebrow">01 / OVERVIEW</p><h2>Designed around the real API contract.</h2><p>The SDK source lives at <code>sdk/typescript</code> in the Tidelight mother repository. It currently supports tokenized equity instrument listing and pagination, company research jobs (start, status, cancellation, bounded polling), and project webhook management and delivery history.</p><p>Use it from trusted server environments that can protect an API key. The API applies the same project authorization, scopes, quotas, and request accounting as direct REST calls.</p></section>
         <section id="quickstart" className="tic-package-code-section"><p className="tic-eyebrow">02 / QUICKSTART</p><h2>Try the source version locally.</h2><p>Until the first npm release is approved and published, clone the mother repository and run the SDK tests. The TypeScript usage example is for the published package after release.</p><div className="tic-package-snippet"><div className="tic-package-snippet-head"><div role="group" aria-label="Quickstart examples">{(Object.keys(snippets) as Snippet[]).map(key => <button type="button" aria-pressed={selected === key} key={key} onClick={() => { setSelected(key); setCopyStatus(null); }}>{labels[key]}</button>)}</div><button className="tic-package-copy" type="button" onClick={copy} aria-live="polite">{copyStatus === "copied" ? "Copied" : copyStatus === "failed" ? "Copy unavailable" : "Copy"}</button></div><pre tabIndex={0} aria-label={`${labels[selected]} code example`}><code>{snippets[selected]}</code></pre></div>

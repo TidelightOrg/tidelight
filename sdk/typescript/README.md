@@ -1,8 +1,10 @@
 # Tidelight TypeScript SDK
 
-Unpublished client for the implemented Tidelight Intelligence Cloud v1 market, asynchronous company snapshot, and research webhook endpoints. Research calls require `research:run`; webhook calls require `alerts:manage`. The package will be released after package ownership and release integration are configured.
+Official TypeScript client for supported Tidelight Intelligence Cloud v1 market, asynchronous company research, and webhook endpoints. Research calls require `research:run`; webhook calls require `alerts:manage`.
 
-Build locally with `npm run build` in this directory. Keep the API key on your server.
+Install with `npm install @tidelight/sdk`. Keep the API key on your server.
+
+Build locally with `npm run build` in this directory.
 
 ```ts
 import { TidelightClient } from "@tidelight/sdk";
@@ -46,4 +48,4 @@ export TIDELIGHT_API_KEY='tl_test_…'
 node sdk/typescript/examples/research.mjs NVDA
 ```
 
-The example calls the SDK company snapshot job flow and prints a result only after the API reports `complete`. It preserves job and request IDs and never prints the key. CI injects a mock transport and makes no network calls. A live run requires `research:run` and consumes project quota (10 jobs per rolling hour). This package is not available from npm; run from the repository source.
+The example calls the SDK company snapshot job flow and prints a result only after the API reports `complete`. It preserves job and request IDs and never prints the key. CI injects a mock transport and makes no network calls. A live run requires `research:run` and consumes project quota (10 jobs per rolling hour).

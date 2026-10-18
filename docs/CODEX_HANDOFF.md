@@ -125,7 +125,7 @@ Publish Python/TypeScript SDK packages only after their owners, credentials, CI/
 ## Repository map and source of truth
 
 - `AGENTS.md` — instructions and pointer to this handoff.
-- `PROJECT_PLAN.md` — product intent, architecture, guardrails, and legacy build milestones.
+- `docs/planning/PROJECT_PLAN.md` — product intent, architecture, guardrails, and legacy build milestones.
 - `docs/TIC_IMPLEMENTATION.md` — detailed TIC audit, ordered feature work, migration/application/test and production evidence.
 - `docs/NEXT_BUILD_MILESTONES.md` — original build program.
 - `docs/PRODUCT_EVOLUTION_ROADMAP.md` — current product priorities and acceptance evidence.

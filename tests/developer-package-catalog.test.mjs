@@ -42,11 +42,11 @@ test("manifest versions and npm private flags feed the source label", async () =
   }
 });
 
-test("Python distribution name conflict and compatibility are explicit", () => {
+test("Python distribution identity and compatibility match approved package metadata", () => {
   const python = entries.find(entry => entry.id === "python");
-  assert.equal(python.source.manifestName, "tidelight-sdk");
+  assert.equal(python.source.manifestName, "tidelight");
   assert.equal(python.distribution.intendedName, "tidelight");
-  assert.equal(python.distribution.state.kind, "name_unresolved");
+  assert.equal(python.distribution.state.kind, "source_only");
   assert.equal(python.compatibility.declaredPython, ">=3.10");
   assert.deepEqual(python.compatibility.testedPython, ["3.10", "3.12"]);
 });
@@ -103,21 +103,24 @@ test("detail headers share generated source, release, and compatibility metadata
   const badges = await readFile(new URL("app/developers/packages/package-source-badges.tsx", root), "utf8");
   assert.match(badges, /packageCatalog\.find/);
   assert.match(badges, /compatibilityLabel/);
-  assert.match(badges, /name unresolved/);
-  assert.match(badges, /Source present · unpublished/);
+  assert.match(badges, /unpublished/);
+  assert.doesNotMatch(badges, /name unresolved/);
   assert.doesNotMatch(badges, /Source available|source ready/i);
 });
 
 test("package section navigation follows visible sections and exposes the current location", async () => {
   const routes = ["package-detail.tsx", "mcp-detail.tsx", "python-detail.tsx", "react-detail.tsx", "cli-detail.tsx"];
+  const component = await readFile(new URL("app/developers/packages/package-section-nav.tsx", root), "utf8");
   for (const file of routes) {
     const source = await readFile(new URL(`app/developers/packages/${file}`, root), "utf8");
     assert.match(source, /<PackageSectionNav sections=\{/);
-    const ids = [...source.matchAll(/\{ id: "([^"]+)", label:/g)].map(match => match[1]);
+    const key = file === "package-detail.tsx" ? "sdk" : file.replace("-detail.tsx", "");
+    const sectionList = component.match(new RegExp(`${key}: \\[([\\s\\S]*?)\\n  \\]`))?.[1];
+    assert.ok(sectionList, `${file} should have a package section map`);
+    const ids = [...sectionList.matchAll(/id: "([^"]+)", label:/g)].map(match => match[1]);
     assert.ok(ids.length >= 5, `${file} should expose its package sections`);
     for (const id of ids) assert.match(source, new RegExp(`<section id=["']${id}["']`), `${file} links to missing #${id}`);
   }
-  const component = await readFile(new URL("app/developers/packages/package-section-nav.tsx", root), "utf8");
   assert.match(component, /new IntersectionObserver/);
   assert.match(component, /aria-current=\{ids\[index\] === activeSection \? "location" : undefined\}/);
   assert.match(component, /hashchange/);

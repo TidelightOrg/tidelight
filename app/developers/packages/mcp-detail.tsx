@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { PackageLifecycleDemo } from "./package-lifecycle-demo";
-import { PackageSectionNav } from "./package-section-nav";
-import { PackageSourceBadges } from "./package-source-badges";
 
+import { PackageLifecycleDemo } from "./package-lifecycle-demo";
+import { PackageSectionNav, packageSections } from "./package-section-nav";
+import { PackageSourceBadges } from "./package-source-badges";
 const snippets = {
   source: `cd public/components/mcp/server\nnpm ci\nnpm test\nnpm run build\n\nexport TIDELIGHT_API_KEY='YOUR_TIDELIGHT_PROJECT_KEY'\nnode ./dist/cli.js`,
   client: `// General stdio client shape from the built source package\n{\n  "mcpServers": {\n    "tidelight": {\n      "command": "node",\n      "args": ["/absolute/path/to/tidelight/public/components/mcp/server/dist/cli.js"],\n      "env": {\n        "TIDELIGHT_API_KEY": "YOUR_TIDELIGHT_PROJECT_KEY"\n      }\n    }\n  }\n}`,
@@ -29,7 +29,7 @@ export function McpPackageDetail() {
     </header>
     <PackageLifecycleDemo packageName="mcp" />
     <div className="tic-package-detail-layout">
-      <PackageSectionNav sections={[{ id: "overview", label: "Overview" }, { id: "quickstart", label: "Quickstart" }, { id: "tools", label: "API & tools" }, { id: "examples", label: "Examples" }, { id: "compatibility", label: "Compatibility" }, { id: "security", label: "Security" }, { id: "releases", label: "Releases" }]} />
+      <PackageSectionNav sections={packageSections.mcp} />
       <article className="tic-package-detail-content">
         <section id="overview"><p className="tic-eyebrow">01 / OVERVIEW</p><h2>A thin adapter to Tidelight’s hosted MCP.</h2><p>The package source lives in <code>public/components/mcp/server</code> in the mother repository. It implements a local stdio server that forwards MCP tool discovery and calls to <code>https://mcp.tidelight.app/mcp</code> over the official Streamable HTTP transport.</p><p>It carries no research logic or provider access. The remote Tidelight service validates the project key and scopes, filters available tools, applies quotas, and returns the structured result. Use direct remote MCP with OAuth where your client supports it; use this bridge for local stdio-only integrations.</p></section>
         <section id="quickstart" className="tic-package-code-section"><p className="tic-eyebrow">02 / QUICKSTART</p><h2>Try the bridge source locally.</h2><p>The npm package is unpublished. These commands build and test the canonical source. The client config uses an absolute path to the built CLI.</p><div className="tic-package-snippet"><div className="tic-package-snippet-head"><div role="group" aria-label="MCP setup examples">{(Object.keys(snippets) as Snippet[]).map(key => <button type="button" aria-pressed={selected === key} key={key} onClick={() => { setSelected(key); setCopyStatus(null); }}>{labels[key]}</button>)}</div><button className="tic-package-copy" type="button" onClick={copy} aria-live="polite">{copyStatus === "copied" ? "Copied" : copyStatus === "failed" ? "Copy unavailable" : "Copy"}</button></div><pre tabIndex={0} aria-label={`${labels[selected]} code example`}><code>{snippets[selected]}</code></pre></div><div className="tic-package-callout"><span aria-hidden="true">i</span><p><strong>Keep the project key in your MCP client’s protected environment.</strong> The bridge reads <code>TIDELIGHT_API_KEY</code>, never writes the credential into MCP tool results, and reports connection errors to stderr without including the key.</p></div></section>

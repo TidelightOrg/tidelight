@@ -3,6 +3,7 @@ import Image from "next/image";
 import type { Metadata } from "next";
 import { ThemeQuickSwitch } from "@/app/ui/theme-provider";
 import { packageCatalog } from "./catalog.generated";
+import { PackageWorkbench } from "./package-workbench";
 import "../tidelight-developers.css";
 import "../platform-polish.css";
 import "./packages.css";
@@ -28,6 +29,7 @@ export default function DeveloperPackagesPage() {
         <span className="tic-package-connector connector-a"/><span className="tic-package-connector connector-b"/><span className="tic-package-connector connector-c"/><span className="tic-package-connector connector-d"/><span className="tic-package-connector connector-e"/>
       </div>
     </header>
+    <PackageWorkbench />
     <section className="tic-package-directory" aria-labelledby="package-directory-title">
       <div className="tic-package-section-head"><div><p className="tic-eyebrow">PACKAGE DIRECTORY / 05</p><h2 id="package-directory-title">Choose your entry point</h2><p>Source files, manifest metadata, and registry publication are separate facts. No package below is currently presented as published.</p></div><span className="tic-package-live-label"><i/> Registry status · not checked live</span></div>
       <div className="tic-package-grid">{packageCatalog.map((item, index) => <article className={`tic-package-card${item.source.present ? " is-source-present" : " is-planned"}`} key={item.id}>

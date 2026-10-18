@@ -4,7 +4,37 @@ import { useEffect, useState } from "react";
 
 export type PackageSection = { id: string; label: string };
 
-export function PackageSectionNav({ sections }: { sections: PackageSection[] }) {
+export const packageSections = {
+  sdk: [
+    { id: "overview", label: "Overview" }, { id: "quickstart", label: "Quickstart" },
+    { id: "api", label: "API surface" }, { id: "compatibility", label: "Compatibility" },
+    { id: "security", label: "Security" }, { id: "releases", label: "Releases" },
+  ],
+  mcp: [
+    { id: "overview", label: "Overview" }, { id: "quickstart", label: "Quickstart" },
+    { id: "tools", label: "API & tools" }, { id: "examples", label: "Examples" },
+    { id: "compatibility", label: "Compatibility" }, { id: "security", label: "Security" },
+    { id: "releases", label: "Releases" },
+  ],
+  python: [
+    { id: "overview", label: "Overview" }, { id: "quickstart", label: "Quickstart" },
+    { id: "api", label: "API surface" }, { id: "compatibility", label: "Compatibility" },
+    { id: "security", label: "Security" }, { id: "releases", label: "Releases" },
+  ],
+  react: [
+    { id: "overview", label: "Overview" }, { id: "quickstart", label: "Quickstart" },
+    { id: "hooks", label: "Hooks" }, { id: "components", label: "Components" },
+    { id: "examples", label: "Examples" }, { id: "security", label: "Security" },
+    { id: "releases", label: "Releases" },
+  ],
+  cli: [
+    { id: "overview", label: "Overview" }, { id: "quickstart", label: "Quickstart" },
+    { id: "commands", label: "Commands" }, { id: "security", label: "Security" },
+    { id: "examples", label: "Examples" }, { id: "releases", label: "Releases" },
+  ],
+} as const satisfies Record<string, readonly PackageSection[]>;
+
+export function PackageSectionNav({ sections }: { sections: readonly PackageSection[] }) {
   const [activeSection, setActiveSection] = useState(sections[0]?.id ?? "");
   const sectionIds = sections.map(section => section.id).join("|");
 
@@ -17,8 +47,13 @@ export function PackageSectionNav({ sections }: { sections: PackageSection[] }) 
     if (!targets.length) return;
 
     const syncFromHash = () => {
-      const hash = decodeURIComponent(window.location.hash.slice(1));
-      if (ids.includes(hash)) setActiveSection(hash);
+      let hash = "";
+      try { hash = decodeURIComponent(window.location.hash.slice(1)); }
+      catch { return; }
+      if (ids.includes(hash)) {
+        setActiveSection(hash);
+        document.getElementById(hash)?.scrollIntoView({ block: "start" });
+      }
     };
     const syncFromScroll = () => {
       const marker = window.innerHeight * 0.24;
@@ -57,6 +92,7 @@ export function PackageSectionNav({ sections }: { sections: PackageSection[] }) 
     {sections.map((section, index) => <a
       key={section.id}
       href={`#${section.id}`}
+      className={ids[index] === activeSection ? "is-active" : undefined}
       aria-current={ids[index] === activeSection ? "location" : undefined}
       onClick={() => setActiveSection(section.id)}
     >{section.label}</a>)}

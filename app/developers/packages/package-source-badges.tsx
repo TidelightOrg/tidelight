@@ -22,9 +22,7 @@ export function PackageSourceBadges({ packageId }: { packageId: PackageId }) {
   const item: DeveloperPackage | undefined = packageCatalog.find((entry) => entry.id === packageId);
   if (!item) return null;
 
-  const status = item.distribution.state.kind === "name_unresolved"
-    ? `${item.distribution.registry.toUpperCase()} name unresolved · unpublished`
-    : "Source present · unpublished";
+  const status = `Source present · ${item.distribution.registry.toUpperCase()} unpublished`;
 
   return <div className="tic-package-detail-badges" aria-label="Package source and compatibility facts">
     <span className="tic-package-state-pill"><i aria-hidden="true"/> {status}</span>
