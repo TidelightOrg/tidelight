@@ -134,6 +134,8 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -euo pipefail
+          [[ -n "${NODE_AUTH_TOKEN:-}" ]] || { echo "NPM_TOKEN is required for the first-release npm publisher."; exit 1; }
+          npm config set //registry.npmjs.org/:_authToken "$NODE_AUTH_TOKEN"
           CANDIDATE="$RUNNER_TEMP/tidelight-package-candidate/npm"
           publish_or_verify() {
             local package_name="$1"
@@ -177,7 +179,50 @@ jobs:
       - name: Verify checksums
         working-directory: ${{ runner.temp }}/tidelight-package-candidate
         run: sha256sum -c SHA256SUMS
+      - name: Verify existing PyPI release or select upload
+        id: pypi-check
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          wheel="$RUNNER_TEMP/tidelight-package-candidate/python/tidelight-$RELEASE_VERSION-py3-none-any.whl"
+          api="https://pypi.org/pypi/tidelight/$RELEASE_VERSION/json"
+          status="$(curl -sS -o "$RUNNER_TEMP/pypi-release.json" -w "%{http_code}" "$api")"
+          if [[ "$status" == "404" ]]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          [[ "$status" == "200" ]] || { echo "PyPI release lookup returned HTTP $status."; exit 1; }
+          python - "$RUNNER_TEMP/pypi-release.json" "$wheel" <<'PY'
+          import hashlib, io, json, sys, urllib.request, zipfile
+          from pathlib import Path
+          from urllib.parse import urlparse
+
+          data = json.loads(Path(sys.argv[1]).read_text())
+          candidate_path = Path(sys.argv[2])
+          matches = [item for item in data.get("urls", []) if item.get("filename") == candidate_path.name]
+          if len(matches) != 1:
+              raise SystemExit("PyPI does not expose exactly one wheel matching the candidate filename.")
+          item = matches[0]
+          url = urlparse(item.get("url", ""))
+          if url.scheme != "https" or url.hostname != "files.pythonhosted.org":
+              raise SystemExit("PyPI returned an unexpected wheel download host.")
+          with urllib.request.urlopen(item["url"], timeout=30) as response:
+              published_bytes = response.read()
+          if hashlib.sha256(published_bytes).hexdigest() != item.get("digests", {}).get("sha256"):
+              raise SystemExit("Downloaded PyPI wheel does not match the registry SHA-256 digest.")
+
+          def wheel_members(contents):
+              with zipfile.ZipFile(io.BytesIO(contents)) as archive:
+                  return {name: hashlib.sha256(archive.read(name)).hexdigest() for name in archive.namelist()}
+
+          if wheel_members(published_bytes) != wheel_members(candidate_path.read_bytes()):
+              raise SystemExit("Existing PyPI wheel contents differ from the verified release candidate.")
+          print("Existing PyPI wheel contents and registry digest match the verified candidate.")
+          PY
+          echo "publish=false" >> "$GITHUB_OUTPUT"
       - name: Publish Python wheel using PyPI Trusted Publishing
+        if: steps.pypi-check.outputs.publish == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: ${{ runner.temp }}/tidelight-package-candidate/python/
