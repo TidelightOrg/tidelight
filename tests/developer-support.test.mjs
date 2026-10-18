@@ -43,7 +43,7 @@ test("operator routes are server-guarded and requester reads remain account-scop
   const adminApi = await readFile(new URL("app/api/admin/developer-support/tickets/route.ts", root), "utf8");
   const ticketsApi = await readFile(new URL("app/api/developer-support/tickets/route.ts", root), "utf8");
   const threadApi = await readFile(new URL("app/api/developer-support/tickets/[ticketId]/route.ts", root), "utf8");
-  const schema = await readFile(new URL("supabase/migrations/20261018170000_developer_support_tickets.sql", root), "utf8");
+  const schema = await readFile(new URL("supabase/migrations/20261018153216_developer_support_tickets.sql", root), "utf8");
   assert.match(adminPage, /isTidelightOperator\(user\)/);
   assert.match(adminApi, /isTidelightOperator\(user\)/);
   assert.match(ticketsApi, /eq\("requester_user_id", user\.id\)/);
