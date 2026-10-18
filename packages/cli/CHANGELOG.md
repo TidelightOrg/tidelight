@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+- Report the installed package version accurately from its published metadata.
+
 ## 0.1.0
 
 - Add keychain-backed authentication with process-scoped environment key support.
