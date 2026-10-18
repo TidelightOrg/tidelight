@@ -6,6 +6,7 @@ import "./nightwatch.css";
 import { createClient } from "@/lib/supabase/server";
 import { isTidelightOperator } from "@/lib/auth/operator-access";
 import WorkspaceShell from "./ui/workspace-shell";
+import AnalyticsConsent from "./ui/analytics-consent";
 import { ThemeProvider } from "./ui/theme-provider";
 import { LanguageProvider } from "./ui/language-provider";
 import SupportCompanion from "./ui/support-companion";
@@ -82,6 +83,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     || user?.email?.split("@")[0]
     || null;
 
-  return <html lang={language} data-language={language} data-theme="daylight" suppressHydrationWarning><body><ThemeProvider><LanguageProvider initialLanguage={language}><IntelligenceProvider><WorkspaceShell email={user?.email ?? null} avatarUrl={profile?.avatar_url ?? metadataAvatar} displayName={displayName} isOperator={isTidelightOperator(user)}>{children}</WorkspaceShell>{isPublicPackageHost ? null : <><SupportCompanion /><ProductQuickActions /></>}</IntelligenceProvider></LanguageProvider></ThemeProvider></body></html>;
+  return <html lang={language} data-language={language} data-theme="daylight" suppressHydrationWarning><body><ThemeProvider><LanguageProvider initialLanguage={language}><IntelligenceProvider>{isPublicPackageHost ? <>{children}<AnalyticsConsent /></> : <WorkspaceShell email={user?.email ?? null} avatarUrl={profile?.avatar_url ?? metadataAvatar} displayName={displayName} isOperator={isTidelightOperator(user)}>{children}</WorkspaceShell>}{isPublicPackageHost ? null : <><SupportCompanion /><ProductQuickActions /></>}</IntelligenceProvider></LanguageProvider></ThemeProvider></body></html>;
 }
 
