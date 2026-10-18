@@ -43,5 +43,7 @@ test("registry write permission is limited to protected OIDC jobs and release or
   assert.match(source, /Temporary package placeholder for staged publishing/);
   assert.match(source, /is staged and awaiting maintainer approval/);
   assert.match(source, /accepted into npm staging and awaits maintainer approval/);
+  assert.match(source, /is public with unexpected integrity/);
+  assert.match(source, /was accepted by npm; public integrity is pending registry processing/);
   assert.match(source, /group: publish-official-packages-\$\{\{ github\.repository \}\}/);
 });
