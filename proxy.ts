@@ -25,10 +25,13 @@ export function proxy(request: NextRequest) {
   // to the first-party app host, then expire the parent-domain cookie.
   if (shouldMigrateSharedAuthCookies(request.nextUrl.hostname)) {
     const secure = request.nextUrl.protocol === "https:";
+    const authCookies = new Map<string, string>();
     for (const cookie of request.cookies.getAll()) {
-      if (!isSupabaseAuthCookie(cookie.name)) continue;
-      response.cookies.set(cookie.name, cookie.value, { path: "/", sameSite: "lax", secure });
-      response.cookies.set(cookie.name, "", { domain: ".tidelight.app", path: "/", sameSite: "lax", secure, maxAge: 0, expires: new Date(0) });
+      if (isSupabaseAuthCookie(cookie.name)) authCookies.set(cookie.name, cookie.value);
+    }
+    for (const [name, value] of authCookies) {
+      response.cookies.set(name, value, { path: "/", sameSite: "lax", secure, httpOnly: false, maxAge: 400 * 24 * 60 * 60 });
+      response.cookies.set(name, "", { domain: ".tidelight.app", path: "/", sameSite: "lax", secure, maxAge: 0, expires: new Date(0) });
     }
   }
   return response;
