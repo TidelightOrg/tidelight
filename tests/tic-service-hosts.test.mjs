@@ -47,7 +47,9 @@ test("the package hostname maps clean package slugs and keeps registry facts ava
     assert.deepEqual(resolveServiceHostRoute("package.tidelight.app", `/${slug}`), { kind: "rewrite", pathname: `/developers/packages/${slug}` });
   }
   assert.equal(resolveServiceHostRoute("package.tidelight.app", "/api/developers/packages"), null);
+  assert.equal(resolveServiceHostRoute("package.tidelight.app", "/api/privacy/analytics-consent"), null);
   assert.deepEqual(resolveServiceHostRoute("package.tidelight.app", "/api/developers/keys"), { kind: "not-found" });
+  assert.deepEqual(resolveServiceHostRoute("package.tidelight.app", "/api/developer-support/tickets"), { kind: "not-found" });
   assert.deepEqual(resolveServiceHostRoute("package.tidelight.app", "/api/admin/users"), { kind: "not-found" });
   assert.deepEqual(resolveServiceHostRoute("package.tidelight.app", "/account"), { kind: "not-found" });
 });

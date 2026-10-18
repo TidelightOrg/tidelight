@@ -8,6 +8,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Operator console | Tidelight" };
 
 const controls = [
+  { eyebrow: "CUSTOMER EXPERIENCE", title: "Ecosystem support", detail: "Review and reply to user conversations across Tidelight, Intelligence Cloud, and Packages.", href: "/operator/developer-support", action: "Open support inbox" },
   { eyebrow: "ACCESS GOVERNANCE", title: "Futures live access", detail: "Review requests, terms acceptance, and operator decisions.", href: "/settings/futures-access", action: "Open review queue" },
   { eyebrow: "PRODUCT OPERATIONS", title: "Core workspace controls", detail: "Manage the existing research, account, and execution settings.", href: "/settings", action: "Open settings" },
   { eyebrow: "EXECUTION OVERSIGHT", title: "Stocks perpetual desk", detail: "Inspect the stock perpetual workstation and current execution mode.", href: "/futures", action: "Open Stocks perpetual desk" },

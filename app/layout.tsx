@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import "./globals.css";
 import "./theme-polish.css";
 import "./nightwatch.css";
@@ -64,10 +64,13 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const cookieStore = await cookies();
+  const requestHeaders = await headers();
+  const requestHost = (requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host") ?? "").split(",")[0].trim().toLowerCase().replace(/:\d+$/, "");
+  const isPublicPackageHost = requestHost === "package.tidelight.app";
   const language = cookieStore.get("tidelight-language")?.value === "zh-CN" ? "zh-CN" : "en";
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  const { data: profile } = user
+  const supabase = isPublicPackageHost ? null : await createClient();
+  const { data: { user } } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
+  const { data: profile } = user && supabase
     ? await supabase.from("community_profiles").select("display_name,avatar_url").eq("id", user.id).maybeSingle()
     : { data: null };
   const metadata = user?.user_metadata ?? {};
@@ -79,6 +82,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     || user?.email?.split("@")[0]
     || null;
 
-  return <html lang={language} data-language={language} data-theme="daylight" suppressHydrationWarning><body><ThemeProvider><LanguageProvider initialLanguage={language}><IntelligenceProvider><WorkspaceShell email={user?.email ?? null} avatarUrl={profile?.avatar_url ?? metadataAvatar} displayName={displayName} isOperator={isTidelightOperator(user)}>{children}</WorkspaceShell><SupportCompanion /><ProductQuickActions /></IntelligenceProvider></LanguageProvider></ThemeProvider></body></html>;
+  return <html lang={language} data-language={language} data-theme="daylight" suppressHydrationWarning><body><ThemeProvider><LanguageProvider initialLanguage={language}><IntelligenceProvider><WorkspaceShell email={user?.email ?? null} avatarUrl={profile?.avatar_url ?? metadataAvatar} displayName={displayName} isOperator={isTidelightOperator(user)}>{children}</WorkspaceShell>{isPublicPackageHost ? null : <><SupportCompanion /><ProductQuickActions /></>}</IntelligenceProvider></LanguageProvider></ThemeProvider></body></html>;
 }
 

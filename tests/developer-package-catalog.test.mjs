@@ -58,6 +58,10 @@ test("Packages and ecosystem navigation work without sharing auth cookies with u
   assert.match(switcher, /https:\/\/tidelight\.app\/developers\/console/);
   assert.match(switcher, /https:\/\/package\.tidelight\.app\/dashboard/);
   assert.match(packageDashboard, /PackageWorkbench/);
+  const packageHome = await readFile(new URL("app/developers/packages/page.tsx", root), "utf8");
+  assert.match(packageHome, /\.\/dashboard\/dashboard\.css/);
+  assert.match(packageHome, /Tidelight Packages — Official integrations/);
+  assert.match(switcher, /triggerRef\.current\?\.focus\(\)/);
   const authServer = await readFile(new URL("lib/supabase/server.ts", root), "utf8");
   const authBrowser = await readFile(new URL("lib/supabase/client.ts", root), "utf8");
   assert.doesNotMatch(authServer, /domain:\s*["']\.tidelight\.app/);

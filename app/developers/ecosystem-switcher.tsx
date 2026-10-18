@@ -35,6 +35,7 @@ export function EcosystemSwitcher({ current }: EcosystemSwitcherProps) {
   const [open, setOpen] = useState(false);
   const id = useId();
   const rootRef = useRef<HTMLDivElement>(null);
+  const triggerRef = useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     if (!open) return;
@@ -42,7 +43,10 @@ export function EcosystemSwitcher({ current }: EcosystemSwitcherProps) {
       if (event.target instanceof Node && !rootRef.current?.contains(event.target)) setOpen(false);
     };
     const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setOpen(false);
+      if (event.key === "Escape") {
+        setOpen(false);
+        triggerRef.current?.focus();
+      }
     };
     document.addEventListener("pointerdown", onPointerDown);
     document.addEventListener("keydown", onKeyDown);
@@ -53,7 +57,7 @@ export function EcosystemSwitcher({ current }: EcosystemSwitcherProps) {
   }, [open]);
 
   return <div className={`tic-ecosystem-switcher${open ? " is-open" : ""}`} ref={rootRef}>
-    <button className="tic-ecosystem-trigger" type="button" aria-expanded={open} aria-controls={id} onClick={() => setOpen(value => !value)}>
+    <button ref={triggerRef} className="tic-ecosystem-trigger" type="button" aria-expanded={open} aria-controls={id} onClick={() => setOpen(value => !value)}>
       <span className="tic-ecosystem-trigger-mark" aria-hidden="true"><i/><i/><i/></span>
       <span>Ecosystem</span><span className="tic-ecosystem-chevron" aria-hidden="true">⌄</span>
     </button>

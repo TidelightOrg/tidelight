@@ -10,7 +10,7 @@ const sharedPageResources = new Set([
 export function resolveServiceHostRoute(hostname: string, pathname: string): ServiceHostRoute {
   const host = hostname.toLowerCase();
   if (host === "package.tidelight.app") {
-    if (pathname === "/icon.svg" || pathname === "/tidelight-mark.svg" || pathname === "/manifest.webmanifest" || pathname === "/api/developers/packages") return null;
+    if (pathname === "/icon.svg" || pathname === "/tidelight-mark.svg" || pathname === "/manifest.webmanifest" || pathname === "/api/developers/packages" || pathname === "/api/privacy/analytics-consent") return null;
     if (pathname === "/") return { kind: "rewrite", pathname: "/developers/packages" };
     const packageRoutes: Record<string, string> = {
       "/dashboard": "/developers/packages/dashboard",

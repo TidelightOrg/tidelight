@@ -5,6 +5,7 @@ import type { Metadata } from "next";
 import DeveloperConsole from "./ui";
 import { ThemeQuickSwitch } from "@/app/ui/theme-provider";
 import { EcosystemSwitcher } from "../ecosystem-switcher";
+import { DeveloperMobileDock } from "../platform-nav";
 import "../tidelight-developers.css";
 import "../platform-polish.css";
 import "./console-premium.css";
@@ -51,6 +52,7 @@ export default async function ConsolePage() {
         <div className="tic-signin-preview-foot"><span>REST API</span><span>MCP</span><span>Research jobs</span></div>
       </aside>
     </div>
+    <DeveloperMobileDock current="console" />
   </main>;
   return <DeveloperConsole userId={user.id} />;
 }

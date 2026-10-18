@@ -9,6 +9,7 @@ import "../tidelight-developers.css";
 import "../platform-polish.css";
 import "./packages.css";
 import "./registry-live.css";
+import "./dashboard/dashboard.css";
 
 export const metadata: Metadata = {
   title: { absolute: "Tidelight Packages — Official integrations" },
