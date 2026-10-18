@@ -57,6 +57,20 @@ The upstream Tidelight service returns only tools allowed by the key’s current
 
 Instrument results identify supported Reality tokenized-equity spot products; they are not direct US shares or stock perpetual contracts. Research results preserve source context and do not expose private model reasoning.
 
+## Run the published container
+
+The official container image is built from this repository's MCP server source and published to GitHub Container Registry. It uses the same stdio bridge as the npm package; the API key is supplied at runtime and is never baked into the image.
+
+```sh
+docker pull ghcr.io/tidelightorg/tidelight-mcp:0.1.1
+export TIDELIGHT_API_KEY='YOUR_TIDELIGHT_PROJECT_KEY'
+docker run --rm -i -e TIDELIGHT_API_KEY ghcr.io/tidelightorg/tidelight-mcp:0.1.1
+```
+
+Use a scoped project key with `market:read`, `research:run`, or both. For an MCP client that supports Docker-backed stdio servers, configure `docker` as the command, `run`, `--rm`, `-i`, `-e`, `TIDELIGHT_API_KEY`, and `ghcr.io/tidelightorg/tidelight-mcp:0.1.1` as arguments, with the key held in the client's protected environment. Pin a version tag for reproducible deployments; `latest` tracks the most recent main-branch build.
+
+The image supports `linux/amd64` and `linux/arm64`.
+
 ## Library interface
 
 The protocol server is exported from the package root. The local-to-remote bridge is available at `@tidelight/mcp/proxy` and exports `createTidelightMcpProxy({ apiKey, endpoint? })`, `validateTidelightMcpProxyOptions`, and `DEFAULT_TIDELIGHT_MCP_URL`. The proxy resolves after authenticated upstream MCP initialization and returns `{ server, close }`; connect its `server` to a client transport and call `close()` when the client session ends. The CLI performs this lifecycle for stdio clients.
