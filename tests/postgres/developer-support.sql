@@ -16,6 +16,9 @@ begin
   if not (select relrowsecurity from pg_class where oid = 'public.developer_support_messages'::regclass) then
     raise exception 'Message RLS must be enabled';
   end if;
+  if to_regclass('public.developer_support_messages_author_idx') is null then
+    raise exception 'Message author foreign key needs an index';
+  end if;
   if has_table_privilege('anon', 'public.developer_support_tickets', 'select')
     or has_table_privilege('authenticated', 'public.developer_support_tickets', 'select') then
     raise exception 'Client roles must not read ticket rows directly';

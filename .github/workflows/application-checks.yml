@@ -170,5 +170,7 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f tests/postgres/developer-support-prerequisites.sql
       - name: Apply developer support migration
         run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261018153216_developer_support_tickets.sql
+      - name: Apply developer support author index
+        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261018153535_developer_support_message_author_index.sql
       - name: Verify private storage, valid tickets, and service access
         run: psql -v ON_ERROR_STOP=1 -f tests/postgres/developer-support.sql
