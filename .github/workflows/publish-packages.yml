@@ -193,16 +193,32 @@ jobs:
             exit 0
           fi
           [[ "$status" == "200" ]] || { echo "PyPI release lookup returned HTTP $status."; exit 1; }
-          expected="$(sha256sum "$wheel" | cut -d ' ' -f1)"
-          python - "$RUNNER_TEMP/pypi-release.json" "$expected" <<'PY'
-          import json, sys
+          python - "$RUNNER_TEMP/pypi-release.json" "$wheel" <<'PY'
+          import hashlib, io, json, sys, urllib.request, zipfile
           from pathlib import Path
+          from urllib.parse import urlparse
+
           data = json.loads(Path(sys.argv[1]).read_text())
-          expected = sys.argv[2]
-          matching = [item for item in data.get("urls", []) if item.get("filename", "").endswith(".whl")]
-          if not matching or any(item.get("digests", {}).get("sha256") != expected for item in matching):
-              raise SystemExit("Existing PyPI release has different wheel content.")
-          print("Existing PyPI wheel matches the verified release candidate.")
+          candidate_path = Path(sys.argv[2])
+          matches = [item for item in data.get("urls", []) if item.get("filename") == candidate_path.name]
+          if len(matches) != 1:
+              raise SystemExit("PyPI does not expose exactly one wheel matching the candidate filename.")
+          item = matches[0]
+          url = urlparse(item.get("url", ""))
+          if url.scheme != "https" or url.hostname != "files.pythonhosted.org":
+              raise SystemExit("PyPI returned an unexpected wheel download host.")
+          with urllib.request.urlopen(item["url"], timeout=30) as response:
+              published_bytes = response.read()
+          if hashlib.sha256(published_bytes).hexdigest() != item.get("digests", {}).get("sha256"):
+              raise SystemExit("Downloaded PyPI wheel does not match the registry SHA-256 digest.")
+
+          def wheel_members(contents):
+              with zipfile.ZipFile(io.BytesIO(contents)) as archive:
+                  return {name: hashlib.sha256(archive.read(name)).hexdigest() for name in archive.namelist()}
+
+          if wheel_members(published_bytes) != wheel_members(candidate_path.read_bytes()):
+              raise SystemExit("Existing PyPI wheel contents differ from the verified release candidate.")
+          print("Existing PyPI wheel contents and registry digest match the verified candidate.")
           PY
           echo "publish=false" >> "$GITHUB_OUTPUT"
       - name: Publish Python wheel using PyPI Trusted Publishing
