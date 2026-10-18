@@ -6,6 +6,7 @@ import DeveloperConsole from "./ui";
 import { ThemeQuickSwitch } from "@/app/ui/theme-provider";
 import "../tidelight-developers.css";
 import "../platform-polish.css";
+import "./console-premium.css";
 
 export const metadata: Metadata = {
   title: { absolute: "Tidelight Developer Console" },
