@@ -113,7 +113,7 @@ Quarterly and annual issuer facts come from SEC EDGAR. Finnhub analyst-target ag
 
 ## The work ahead
 
-Tidelight is being built with a simple standard: show the evidence, label assumptions, preserve uncertainty, and keep simulations visibly separate from real trading. Follow the [product plan](./PROJECT_PLAN.md) and [current milestones](./docs/NEXT_BUILD_MILESTONES.md), or [open an issue](https://github.com/TidelightOrg/tidelight/issues) with a confusing moment, a missing source, or an idea that would make the desk more useful.
+Tidelight is being built with a simple standard: show the evidence, label assumptions, preserve uncertainty, and keep simulations visibly separate from real trading. Follow the [product plan](./docs/planning/PROJECT_PLAN.md) and [current milestones](./docs/NEXT_BUILD_MILESTONES.md), or [open an issue](https://github.com/TidelightOrg/tidelight/issues) with a confusing moment, a missing source, or an idea that would make the desk more useful.
 
 <div align="center">
   <br />

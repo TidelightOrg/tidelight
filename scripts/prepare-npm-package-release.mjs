@@ -48,6 +48,10 @@ export async function stageNpmReleasePackage(sourceDirectory, outputDirectory, r
     }
     manifest.dependencies["@tidelight/sdk"] = `^${sdkManifest.version}`;
   }
+  if (source === "packages/react") {
+    manifest.peerDependencies ??= {};
+    manifest.peerDependencies["@tidelight/sdk"] = `^${sdkManifest.version}`;
+  }
 
   for (const group of ["dependencies", "optionalDependencies", "peerDependencies"]) {
     for (const [name, version] of Object.entries(manifest[group] ?? {})) {

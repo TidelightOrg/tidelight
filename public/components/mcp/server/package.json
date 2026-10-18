@@ -17,6 +17,8 @@
     "url": "https://github.com/TidelightOrg/tidelight.git",
     "directory": "public/components/mcp/server"
   },
+  "homepage": "https://tidelight.app/developers/packages/mcp",
+  "bugs": { "url": "https://github.com/TidelightOrg/tidelight/issues" },
   "engines": {
     "node": ">=22"
   },

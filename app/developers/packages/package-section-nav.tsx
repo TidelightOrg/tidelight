@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 export type PackageSection = { id: string; label: string };
 
@@ -36,79 +36,65 @@ export const packageSections = {
 
 export function PackageSectionNav({ sections }: { sections: readonly PackageSection[] }) {
   const [activeSection, setActiveSection] = useState(sections[0]?.id ?? "");
-  const userScroll = useRef(false);
+  const sectionIds = sections.map(section => section.id).join("|");
 
   useEffect(() => {
-    if (!sections.length) return;
+    const ids = sectionIds.split("|").filter(Boolean);
+    const targets = ids
+      .map(id => document.getElementById(id))
+      .filter((target): target is HTMLElement => target instanceof HTMLElement);
 
-    const validIds = new Set(sections.map(({ id }) => id));
-    const updateFromScroll = () => {
-      const activationLine = Math.min(300, Math.max(180, window.innerHeight * 0.3));
-      let current = sections[0].id;
-      for (const { id } of sections) {
-        const section = document.getElementById(id);
-        if (section && section.getBoundingClientRect().top <= activationLine) current = id;
+    if (!targets.length) return;
+
+    const syncFromHash = () => {
+      let hash = "";
+      try { hash = decodeURIComponent(window.location.hash.slice(1)); }
+      catch { return; }
+      if (ids.includes(hash)) {
+        setActiveSection(hash);
+        document.getElementById(hash)?.scrollIntoView({ block: "start" });
       }
-      setActiveSection(current);
+    };
+    const syncFromScroll = () => {
+      const marker = window.innerHeight * 0.24;
+      const ordered = targets
+        .map(target => ({ target, top: target.getBoundingClientRect().top, bottom: target.getBoundingClientRect().bottom }))
+        .filter(item => item.bottom > marker)
+        .sort((left, right) => left.top - right.top);
+      const current = [...ordered].reverse().find(item => item.top <= marker) ?? ordered[0];
+      const atPageEnd = window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 4;
+      setActiveSection((atPageEnd ? targets.at(-1) : current?.target)?.id ?? targets[0].id);
     };
 
     let frame = 0;
-    const scheduleScrollUpdate = () => {
-      if (!userScroll.current) return;
-      if (frame) return;
-      frame = window.requestAnimationFrame(() => {
-        frame = 0;
-        updateFromScroll();
-      });
+    const onScroll = () => {
+      cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(syncFromScroll);
     };
-    const markUserScrollIntent = () => { userScroll.current = true; };
-    const updateFromHash = () => {
-      userScroll.current = false;
-      const hash = decodeURIComponent(window.location.hash.slice(1));
-      if (validIds.has(hash)) setActiveSection(hash);
-    };
+    const observer = new IntersectionObserver(syncFromScroll, { rootMargin: "-18% 0px -68% 0px", threshold: [0, 0.1] });
 
-    window.addEventListener("hashchange", updateFromHash);
-    window.addEventListener("scroll", scheduleScrollUpdate, { passive: true });
-    window.addEventListener("resize", scheduleScrollUpdate, { passive: true });
-    window.addEventListener("wheel", markUserScrollIntent, { passive: true });
-    window.addEventListener("touchmove", markUserScrollIntent, { passive: true });
-    window.addEventListener("keydown", markUserScrollIntent);
-    const initialHash = decodeURIComponent(window.location.hash.slice(1));
-    frame = window.requestAnimationFrame(() => {
-      frame = 0;
-      if (validIds.has(initialHash)) {
-        setActiveSection(initialHash);
-        document.getElementById(initialHash)?.scrollIntoView({ block: "start" });
-      } else {
-        updateFromScroll();
-      }
-    });
+    targets.forEach(target => observer.observe(target));
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("hashchange", syncFromHash);
+    syncFromHash();
+    syncFromScroll();
     return () => {
-      window.removeEventListener("hashchange", updateFromHash);
-      window.removeEventListener("scroll", scheduleScrollUpdate);
-      window.removeEventListener("resize", scheduleScrollUpdate);
-      window.removeEventListener("wheel", markUserScrollIntent);
-      window.removeEventListener("touchmove", markUserScrollIntent);
-      window.removeEventListener("keydown", markUserScrollIntent);
-      if (frame) window.cancelAnimationFrame(frame);
+      observer.disconnect();
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("hashchange", syncFromHash);
+      cancelAnimationFrame(frame);
     };
-  }, [sections]);
+  }, [sectionIds]);
 
-  return (
-    <nav className="tic-package-detail-nav" aria-label="Package sections">
-      <span>ON THIS PAGE</span>
-      {sections.map(({ id, label }) => (
-        <a
-          key={id}
-          href={`#${id}`}
-          className={activeSection === id ? "is-active" : undefined}
-          aria-current={activeSection === id ? "location" : undefined}
-          onClick={() => { userScroll.current = false; setActiveSection(id); }}
-        >
-          {label}
-        </a>
-      ))}
-    </nav>
-  );
+  const ids = sectionIds.split("|");
+  return <nav className="tic-package-detail-nav" aria-label="Package sections">
+    <span>ON THIS PAGE</span>
+    {sections.map((section, index) => <a
+      key={section.id}
+      href={`#${section.id}`}
+      className={ids[index] === activeSection ? "is-active" : undefined}
+      aria-current={ids[index] === activeSection ? "location" : undefined}
+      onClick={() => setActiveSection(section.id)}
+    >{section.label}</a>)}
+  </nav>;
 }

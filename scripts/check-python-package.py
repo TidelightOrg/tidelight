@@ -12,6 +12,7 @@ import tempfile
 import shutil
 import zipfile
 from pathlib import Path
+from pip._vendor.packaging.version import Version
 
 
 def fail(message: str) -> None:
@@ -65,7 +66,12 @@ def main() -> None:
             normalize = lambda name: re.sub(r"[-_.]+", "-", name).lower()
             if normalize(metadata.get("Name", "")) != normalize(expected_name):
                 fail(f"wheel name {metadata.get('Name')!r} does not match project name {expected_name!r}.")
-            if metadata.get("Version") != expected_version:
+            try:
+                wheel_version = Version(metadata.get("Version", ""))
+                source_version = Version(expected_version)
+            except Exception as error:
+                fail(f"wheel or project version is invalid: {error}.")
+            if wheel_version != source_version:
                 fail(f"wheel version {metadata.get('Version')!r} does not match project version {expected_version!r}.")
             if metadata.get("Requires-Python") != expected_python:
                 fail("wheel Python compatibility metadata differs from pyproject.toml.")
@@ -74,8 +80,8 @@ def main() -> None:
             license_files = {value.rsplit("/", 1)[-1] for value in metadata.get_all("License-File", [])}
             if not {"LICENSE", "NOTICE"}.issubset(license_files):
                 fail("wheel must record both package LICENSE and NOTICE files.")
-            if "Unpublished client" not in metadata.get_payload():
-                fail("wheel must embed the source README as its package description.")
+            if not metadata.get_payload().strip():
+                fail("wheel must embed a non-empty source README as its package description.")
             project_urls = metadata.get_all("Project-URL", [])
             if not any("Repository, https://github.com/TidelightOrg/tidelight" in value for value in project_urls):
                 fail("wheel must advertise its canonical source repository.")

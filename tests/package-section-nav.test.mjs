@@ -13,10 +13,12 @@ const routes = {
 
 test("all package detail routes use the shared section navigation and valid section IDs", async () => {
   const component = await readFile(new URL("package-section-nav.tsx", root), "utf8");
-  assert.match(component, /aria-current=\{activeSection === id \? "location" : undefined\}/);
+  assert.match(component, /aria-current=\{ids\[index\] === activeSection \? "location" : undefined\}/);
   assert.match(component, /window\.addEventListener\("hashchange"/);
-  assert.match(component, /window\.addEventListener\("wheel"/);
-  assert.match(component, /window\.addEventListener\("touchmove"/);
+  assert.match(component, /window\.addEventListener\("scroll", onScroll/);
+  assert.match(component, /new IntersectionObserver/);
+  assert.doesNotMatch(component, /userScroll/);
+  assert.match(component, /try \{ hash = decodeURIComponent/);
   assert.match(component, /requestAnimationFrame/);
   assert.match(component, /scrollIntoView\(\{ block: "start" \}\)/);
   for (const [key, file] of Object.entries(routes)) {

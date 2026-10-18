@@ -7,7 +7,7 @@ This document is the source-of-truth plan for developer packages. Package source
 | Target | Canonical source | Intended public name | Current state | Registry |
 |---|---|---|---|---|
 | TypeScript / JavaScript SDK | `sdk/typescript` | `@tidelight/sdk` | Implemented source, tests and build; private manifest `0.1.0` | npm lookup returned 404; unpublished |
-| Python SDK | `sdk/python` | `tidelight` | Implemented source and tests; project metadata says `tidelight` `0.1.0` | PyPI lookups for `tidelight` and `tidelight-sdk` found no distribution; unpublished. PyPI project ownership and trusted publishing still need manual setup |
+| Python SDK | `sdk/python` | `tidelight` | Implemented source and tests; project metadata `tidelight` `0.1.0` | PyPI lookup for `tidelight` returned 404; unpublished. Project ownership and trusted publishing still need manual setup |
 | MCP integration | `public/components/mcp/server` | `@tidelight/mcp` | MCP protocol core plus local stdio-to-remote bridge, tests, package metadata, and dry-run tarball; manifest stays private | npm lookup returned 404; unpublished |
 | API contract | `public/components/api` and `docs/tic-openapi.yaml` | no npm package promised yet | Private contract validation package and OpenAPI document | No public package |
 | React integration | `packages/react` | `@tidelight/react` | Typed client-context hooks and accessible tokenized-instrument component; private manifest `0.1.0` | npm lookup returned 404; unpublished |

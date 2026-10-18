@@ -17,6 +17,8 @@
     "url": "https://github.com/TidelightOrg/tidelight.git",
     "directory": "packages/react"
   },
+  "homepage": "https://tidelight.app/developers/packages/react",
+  "bugs": { "url": "https://github.com/TidelightOrg/tidelight/issues" },
   "engines": {
     "node": ">=22"
   },

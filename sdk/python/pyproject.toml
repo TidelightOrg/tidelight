@@ -11,7 +11,6 @@ readme = "README.md"
 keywords = ["tidelight", "research", "market-intelligence", "webhooks"]
 authors = [{ name = "TidelightOrg" }]
 classifiers = [
-  "License :: OSI Approved :: Apache Software License",
   "Programming Language :: Python :: 3 :: Only",
 ]
 license = "Apache-2.0"
@@ -23,6 +22,7 @@ Documentation = "https://dev.tidelight.app/api"
 Repository = "https://github.com/TidelightOrg/tidelight/tree/main/sdk/python"
 Source = "https://github.com/TidelightOrg/tidelight/tree/main/sdk/python"
 Issues = "https://github.com/TidelightOrg/tidelight/issues"
+Security = "https://github.com/TidelightOrg/tidelight/security/policy"
 
 [tool.setuptools.packages.find]
 where = ["src"]

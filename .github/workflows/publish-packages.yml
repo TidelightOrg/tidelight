@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: publish-official-packages-${{ github.ref }}-${{ inputs.version }}
+  group: publish-official-packages-${{ github.repository }}
   cancel-in-progress: false
 
 jobs:
@@ -106,7 +106,7 @@ jobs:
 
   publish-npm:
     needs: build
-    if: github.ref == 'refs/heads/main' && inputs.confirmation == 'PUBLISH OFFICIAL PACKAGES'
+    if: github.ref == 'refs/heads/main' && inputs.confirmation == 'PUBLISH OFFICIAL PACKAGES' && vars.TIDELIGHT_REGISTRY_PUBLISHING_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     environment: npm-publish
@@ -128,25 +128,40 @@ jobs:
       - name: Verify checksums
         working-directory: ${{ runner.temp }}/tidelight-package-candidate
         run: sha256sum -c SHA256SUMS
-      - name: Publish npm packages in dependency order
+      - name: Publish or verify npm packages in dependency order
         env:
           RELEASE_VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
           CANDIDATE="$RUNNER_TEMP/tidelight-package-candidate/npm"
-          npm publish "$CANDIDATE/tidelight-sdk-$RELEASE_VERSION.tgz" --access public --provenance
-          for attempt in {1..12}; do
-            npm view "@tidelight/sdk@$RELEASE_VERSION" version >/dev/null 2>&1 && break
-            sleep 5
-          done
-          npm view "@tidelight/sdk@$RELEASE_VERSION" version >/dev/null
-          npm publish "$CANDIDATE/tidelight-mcp-$RELEASE_VERSION.tgz" --access public --provenance
-          npm publish "$CANDIDATE/tidelight-react-$RELEASE_VERSION.tgz" --access public --provenance
-          npm publish "$CANDIDATE/tidelight-cli-$RELEASE_VERSION.tgz" --access public --provenance
+          publish_or_verify() {
+            local package_name="$1"
+            local archive_name="$2"
+            local archive="$CANDIDATE/$archive_name-$RELEASE_VERSION.tgz"
+            local expected_integrity actual_integrity
+            expected_integrity="sha512-$(openssl dgst -sha512 -binary "$archive" | openssl base64 -A)"
+            actual_integrity="$(npm view "$package_name@$RELEASE_VERSION" dist.integrity 2>/dev/null || true)"
+            if [[ -n "$actual_integrity" ]]; then
+              [[ "$actual_integrity" == "$expected_integrity" ]] || { echo "Existing $package_name@$RELEASE_VERSION has different content."; return 1; }
+              echo "$package_name@$RELEASE_VERSION already matches the approved archive; skipping."
+              return 0
+            fi
+            npm publish "$archive" --access public --provenance
+            for attempt in {1..12}; do
+              actual_integrity="$(npm view "$package_name@$RELEASE_VERSION" dist.integrity 2>/dev/null || true)"
+              [[ -n "$actual_integrity" ]] && break
+              sleep 5
+            done
+            [[ "$actual_integrity" == "$expected_integrity" ]] || { echo "Could not verify the published integrity for $package_name@$RELEASE_VERSION."; return 1; }
+          }
+          publish_or_verify "@tidelight/sdk" "tidelight-sdk"
+          publish_or_verify "@tidelight/mcp" "tidelight-mcp"
+          publish_or_verify "@tidelight/react" "tidelight-react"
+          publish_or_verify "@tidelight/cli" "tidelight-cli"
 
   publish-pypi:
     needs: build
-    if: github.ref == 'refs/heads/main' && inputs.confirmation == 'PUBLISH OFFICIAL PACKAGES'
+    if: github.ref == 'refs/heads/main' && inputs.confirmation == 'PUBLISH OFFICIAL PACKAGES' && vars.TIDELIGHT_REGISTRY_PUBLISHING_ENABLED == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     environment: pypi-publish
