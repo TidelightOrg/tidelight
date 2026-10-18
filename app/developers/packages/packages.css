@@ -215,3 +215,22 @@
 .tic-packages-page .tic-package-card,.tic-packages-page .tic-package-workbench,.tic-packages-page .tic-package-lifecycle-panel,.tic-packages-page .tic-package-detail-hero{border-color:color-mix(in srgb,var(--tic-accent) 18%,var(--tic-line));background:linear-gradient(145deg,color-mix(in srgb,var(--tic-panel) 90%,transparent),color-mix(in srgb,var(--tic-accent) 3%,var(--tic-panel)));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);box-shadow:0 18px 48px color-mix(in srgb,#071d16 7%,transparent),inset 0 1px color-mix(in srgb,#fff 45%,transparent)}
 .tic-packages-page .tic-package-card{transition:transform .22s,border-color .22s,box-shadow .22s}
 .tic-packages-page .tic-package-card:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--tic-accent) 38%,var(--tic-line));box-shadow:0 22px 56px color-mix(in srgb,#071d16 11%,transparent),inset 0 1px color-mix(in srgb,#fff 55%,transparent)}
+
+/* Mobile controls remain easy to find on long package guides. */
+.tic-package-detail-select-label{display:none}
+.tic-sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+@media(max-width:700px){
+  .tic-package-detail-nav{display:grid;grid-template-columns:1fr;gap:8px;padding:12px 16px;margin:0 -20px 26px;border-radius:0 0 16px 16px;box-shadow:0 12px 26px color-mix(in srgb,var(--tic-text) 7%,transparent)}
+  .tic-package-detail-nav>span{font-size:8px;letter-spacing:.13em}
+  .tic-package-detail-nav>a{display:none}
+  .tic-package-detail-select-label{display:block;position:relative}
+  .tic-package-detail-select-label:after{content:"⌄";position:absolute;right:15px;top:50%;transform:translateY(-55%);color:var(--tic-accent);pointer-events:none}
+  .tic-package-detail-select-label select{appearance:none;width:100%;min-height:46px;padding:0 42px 0 13px;border:1px solid color-mix(in srgb,var(--tic-accent) 28%,var(--tic-line));border-radius:10px;background:color-mix(in srgb,var(--tic-panel) 94%,transparent);color:var(--tic-text);font:600 12px var(--font)}
+  .tic-package-detail-select-label select:focus-visible{outline:2px solid var(--tic-accent);outline-offset:2px}
+  .tic-package-detail-hero{gap:25px}
+  .tic-package-detail-actions{display:grid;grid-template-columns:1fr;gap:9px}
+  .tic-package-detail-actions .tic-button{width:100%;min-height:46px;justify-content:space-between}
+}
+
+/* Keep detail content clear of the mobile package dock. */
+@media(max-width:700px){.tic-package-detail-page{padding-bottom:calc(78px + env(safe-area-inset-bottom))}}

@@ -89,6 +89,16 @@ export function PackageSectionNav({ sections }: { sections: readonly PackageSect
   const ids = sectionIds.split("|");
   return <nav className="tic-package-detail-nav" aria-label="Package sections">
     <span>ON THIS PAGE</span>
+    <label className="tic-package-detail-select-label">
+      <span className="tic-sr-only">Jump to package section</span>
+      <select aria-label="Jump to package section" value={activeSection} onChange={(event) => {
+        const id = event.currentTarget.value;
+        setActiveSection(id);
+        window.location.hash = id;
+      }}>
+        {sections.map((section) => <option key={section.id} value={section.id}>{section.label}</option>)}
+      </select>
+    </label>
     {sections.map((section, index) => <a
       key={section.id}
       href={`#${section.id}`}

@@ -9,6 +9,15 @@ const sharedPageResources = new Set([
 
 export function resolveServiceHostRoute(hostname: string, pathname: string): ServiceHostRoute {
   const host = hostname.toLowerCase();
+  if (host === "blogs.tidelight.app") {
+    // Blog content has a dedicated host with concise article URLs. Keep shared
+    // static assets and Next's internal assets on their original paths.
+    if (sharedPageResources.has(pathname) || pathname === "/tidelight-social.png" || pathname === "/tidelight-social.svg") return null;
+    if (pathname === "/") return { kind: "rewrite", pathname: "/blog" };
+    if (pathname === "/blog" || pathname.startsWith("/blog/")) return null;
+    if (/\.[a-z0-9]{2,8}$/i.test(pathname)) return null;
+    return { kind: "rewrite", pathname: `/blog${pathname}` };
+  }
   if (host === "package.tidelight.app") {
     if (pathname === "/icon.svg" || pathname === "/tidelight-mark.svg" || pathname === "/manifest.webmanifest" || pathname === "/api/developers/packages" || pathname === "/api/privacy/analytics-consent") return null;
     if (pathname === "/") return { kind: "rewrite", pathname: "/developers/packages" };

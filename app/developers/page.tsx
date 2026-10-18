@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { PlatformNav } from "./platform-nav";
 import "./tidelight-developers.css";
 import "./platform-polish.css";
+import "./cloud-landing.css";
 
 export const metadata: Metadata = {
   title: { absolute: "Tidelight Intelligence Cloud — Market intelligence infrastructure" },
@@ -41,6 +42,26 @@ export default function DevelopersPage() {
     <section className="tic-platform-strip" aria-label="Platform services">
       <p>THREE CLEAR ENTRY POINTS</p>
       <div>{routeCards.map(card => <Link href={card.label === "DOCUMENTATION" ? "https://dev.tidelight.app" : card.label === "REMOTE MCP" ? "https://mcp.tidelight.app/mcp" : "https://api.tidelight.app/v1"} key={card.number} className="tic-route-card"><span className="tic-route-number">{card.number}</span><div><strong>{card.label}</strong><code>{card.host}{card.path}</code><small>{card.note}</small></div><span className="tic-route-arrow" aria-hidden="true">↗</span></Link>)}</div>
+    </section>
+
+    <section className="tic-cloud-workspace" aria-labelledby="tic-cloud-workspace-title">
+      <div className="tic-cloud-workspace-copy">
+        <p className="tic-eyebrow">THE DEVELOPER WORKSPACE</p>
+        <h2 id="tic-cloud-workspace-title">From first key to every request, in view.</h2>
+        <p>Projects, scoped credentials, research jobs, MCP access, and webhook delivery live in one considered workspace. Each area keeps its controls close to the evidence you need to review.</p>
+        <Link href="https://tidelight.app/developers/console">Explore the Intelligence Cloud console <span aria-hidden="true">→</span></Link>
+      </div>
+      <figure className="tic-workspace-preview" aria-label="Illustrative preview of the Tidelight Intelligence Cloud developer console; no account data is shown">
+        <figcaption><span>INTELLIGENCE CLOUD</span><span className="tic-workspace-demo">ILLUSTRATIVE PREVIEW</span></figcaption>
+        <div className="tic-workspace-frame">
+          <aside aria-hidden="true"><span className="tic-workspace-mark">t.</span><span className="is-current">Overview</span><span>Projects</span><span>Credentials</span><span>Research jobs</span><span>Request usage</span><span>Security</span></aside>
+          <div className="tic-workspace-content">
+            <div className="tic-workspace-heading"><div><small>WORKSPACE / OVERVIEW</small><strong>Your developer workspace</strong></div><span>PRIVATE</span></div>
+            <div className="tic-workspace-summary"><div><small>PROJECTS</small><b>Organize integrations</b><i>Separate access by application</i></div><div><small>ACCESS</small><b>Scoped by project</b><i>Rotate or revoke credentials</i></div><div><small>OBSERVABILITY</small><b>Review actual activity</b><i>Requests, jobs, and delivery</i></div></div>
+            <div className="tic-workspace-lower"><div><small>BUILD FLOW</small><b><span>01</span> Create a project</b><b><span>02</span> Select access scopes</b><b><span>03</span> Make an authorized request</b></div><div className="tic-workspace-orbit"><i/><i/><i/><span>ONE<br/>SHARED<br/>CORE</span></div></div>
+          </div>
+        </div>
+      </figure>
     </section>
 
     <section className="tic-premium-showcase">

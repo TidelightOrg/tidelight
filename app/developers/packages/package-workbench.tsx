@@ -164,6 +164,12 @@ export function PackageWorkbench() {
       </div>
 
       <div className="tic-package-workbench-shell">
+        <label className="tic-package-workbench-mobile-picker">
+          <span>SELECT PACKAGE</span>
+          <select aria-label="Select package preview" value={selected} onChange={(event) => { setSelected(event.currentTarget.value as PackageId); setCopied(false); setSurface("install"); }}>
+            {order.map((id) => <option key={id} value={id}>{previews[id].name}</option>)}
+          </select>
+        </label>
         <div className="tic-package-workbench-tabs" aria-label="Choose a package preview">
           {order.map((id) => {
             const item = previews[id];
