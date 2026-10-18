@@ -160,7 +160,7 @@ export function PackageWorkbench() {
           <h2 id="package-workbench-title">One platform. Five ways in.</h2>
           <p>Preview package interfaces, install the published release, or run source checks in the mother repository.</p>
         </div>
-          <span className={`tic-package-workbench-status ${registry.status === "published" && registry.version ? "is-verified" : "is-pending"}`}><i aria-hidden="true"/>{registry.status === "published" && registry.version ? "Registry release verified" : "Checking public registry"}</span>
+          <span className={`tic-package-workbench-status ${registry.status === "published" && registry.version ? "is-verified" : "is-pending"}`}><i aria-hidden="true"/>{registry.status === "published" && registry.version ? "Registry release verified" : registry.version ? "Using last verified release" : "Checking public registry"}</span>
       </div>
 
       <div className="tic-package-workbench-shell">
@@ -198,7 +198,7 @@ export function PackageWorkbench() {
               <Link href={current.href}>View package details <span aria-hidden="true">→</span></Link>
               <a href={registry.url} target="_blank" rel="noreferrer">Open registry <span aria-hidden="true">↗</span></a>
             </div>
-            <p className="tic-package-workbench-note" role="status" aria-live="polite">{copied ? `${surface === "install" ? "Install command" : surface === "verify" ? "Source check" : "Example"} copied.` : registry.integrity ? "Archive integrity is published by the registry and linked in package details." : "Examples show the source interface; they do not include sample market results."}</p>
+            <p className="tic-package-workbench-note" role="status" aria-live="polite">{copied ? `${surface === "install" ? "Install command" : surface === "verify" ? "Source check" : "Example"} copied.` : registry.status !== "published" ? `Live registry check unavailable. Install is pinned to the last verified version ${registry.version ?? "not yet verified"}.` : registry.integrity ? "Archive integrity is published by the registry and linked in package details." : "Examples show the source interface; they do not include sample market results."}</p>
           </div>
 
           <div className="tic-package-workbench-preview" aria-label={`${current.name} package workbench`} key={`${selected}-${surface}`}>

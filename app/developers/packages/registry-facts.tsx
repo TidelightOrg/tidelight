@@ -19,11 +19,11 @@ export type RegistryPackage = {
 
 let registryRequest: Promise<Record<PackageId, RegistryPackage>> | undefined;
 const fallback: Record<PackageId, RegistryPackage> = {
-  sdk: { id: "sdk", registry: "npm", name: "@tidelight/sdk", url: "https://www.npmjs.com/package/@tidelight/sdk", install: "npm install @tidelight/sdk", version: null, summary: "Official Tidelight TypeScript SDK", integrity: null, tarball: null, files: [], status: "unavailable" },
-  mcp: { id: "mcp", registry: "npm", name: "@tidelight/mcp", url: "https://www.npmjs.com/package/@tidelight/mcp", install: "npm install @tidelight/mcp", version: null, summary: "Official Tidelight MCP stdio bridge", integrity: null, tarball: null, files: [], status: "unavailable" },
-  react: { id: "react", registry: "npm", name: "@tidelight/react", url: "https://www.npmjs.com/package/@tidelight/react", install: "npm install @tidelight/react", version: null, summary: "Official Tidelight React package", integrity: null, tarball: null, files: [], status: "unavailable" },
-  cli: { id: "cli", registry: "npm", name: "@tidelight/cli", url: "https://www.npmjs.com/package/@tidelight/cli", install: "npm install @tidelight/cli", version: null, summary: "Official Tidelight command line interface", integrity: null, tarball: null, files: [], status: "unavailable" },
-  python: { id: "python", registry: "pypi", name: "tidelight", url: "https://pypi.org/project/tidelight/", install: "python -m pip install tidelight", version: null, summary: "Official Tidelight Intelligence Cloud Python client", integrity: null, tarball: null, files: [], status: "unavailable" },
+  sdk: { id: "sdk", registry: "npm", name: "@tidelight/sdk", url: "https://www.npmjs.com/package/@tidelight/sdk", install: "npm install @tidelight/sdk@0.1.1", version: "0.1.1", summary: "Official Tidelight TypeScript SDK", integrity: null, tarball: null, files: [], status: "unavailable" },
+  mcp: { id: "mcp", registry: "npm", name: "@tidelight/mcp", url: "https://www.npmjs.com/package/@tidelight/mcp", install: "npm install @tidelight/mcp@0.1.1", version: "0.1.1", summary: "Official Tidelight MCP stdio bridge", integrity: null, tarball: null, files: [], status: "unavailable" },
+  react: { id: "react", registry: "npm", name: "@tidelight/react", url: "https://www.npmjs.com/package/@tidelight/react", install: "npm install @tidelight/react@0.1.1", version: "0.1.1", summary: "Official Tidelight React package", integrity: null, tarball: null, files: [], status: "unavailable" },
+  cli: { id: "cli", registry: "npm", name: "@tidelight/cli", url: "https://www.npmjs.com/package/@tidelight/cli", install: "npm install @tidelight/cli@0.1.1", version: "0.1.1", summary: "Official Tidelight command line interface", integrity: null, tarball: null, files: [], status: "unavailable" },
+  python: { id: "python", registry: "pypi", name: "tidelight", url: "https://pypi.org/project/tidelight/", install: "python -m pip install tidelight==0.1.1", version: "0.1.1", summary: "Official Tidelight Intelligence Cloud Python client", integrity: null, tarball: null, files: [], status: "unavailable" },
 };
 
 export function useRegistryPackage(packageId: PackageId) {
@@ -45,7 +45,7 @@ export function useRegistryPackage(packageId: PackageId) {
 export function RegistryFacts({ packageId, compact = false }: { packageId: PackageId; compact?: boolean }) {
   const entry = useRegistryPackage(packageId);
   return <section className={`tic-registry-facts${compact ? " is-compact" : ""}`} aria-label={`${entry.name} registry release details`}>
-    <div className="tic-registry-facts-head"><span className="tic-registry-live-dot" aria-hidden="true"/><strong>{entry.status === "published" ? `Published on ${entry.registry === "npm" ? "npm" : "PyPI"}` : "Registry check unavailable"}</strong><span className="tic-registry-version">{entry.version ? `v${entry.version}` : "Version unavailable"}</span></div>
+    <div className="tic-registry-facts-head"><span className="tic-registry-live-dot" aria-hidden="true"/><strong>{entry.status === "published" ? `Published on ${entry.registry === "npm" ? "npm" : "PyPI"}` : entry.version ? "Live check unavailable · last verified release" : "Registry check unavailable"}</strong><span className="tic-registry-version">{entry.version ? `v${entry.version}` : "Version unavailable"}</span></div>
     {!compact && <p>{entry.summary ?? `Official ${entry.name} distribution.`}</p>}
     <code className="tic-registry-install">{entry.install}</code>
     <div className="tic-registry-actions"><a href={entry.url} target="_blank" rel="noreferrer">Open registry page <span aria-hidden="true">↗</span></a>{entry.tarball && <a href={entry.tarball}>Download archive <span aria-hidden="true">↓</span></a>}{entry.integrity && <span title={entry.integrity}>npm SHA-512 integrity verified by registry</span>}{entry.files.find(file => file.sha256) && <span title={entry.files.find(file => file.sha256)?.sha256}>PyPI SHA-256 published</span>}</div>
