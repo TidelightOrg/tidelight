@@ -93,6 +93,11 @@ export function PlatformNav({ active = "platform", ecosystem }: PlatformNavProps
       <ThemeQuickSwitch />
       <Link href={consoleHref} className="tic-button tic-nav-cta">{currentSystem === "packages" ? "Open dashboard" : "Open console"} <span aria-hidden="true">↗</span></Link>
     </div>
+    {active !== "support" ? <Link
+      href={consoleHref}
+      className="tic-mobile-quick-cta"
+      aria-label={currentSystem === "packages" ? "Open package dashboard" : "Open developer console"}
+    >{currentSystem === "packages" ? "Dashboard" : "Console"}<span aria-hidden="true">↗</span></Link> : null}
     <div className={`tic-mobile-menu${menuOpen ? " is-open" : ""}`}>
       <button
         className="tic-mobile-menu-toggle"
