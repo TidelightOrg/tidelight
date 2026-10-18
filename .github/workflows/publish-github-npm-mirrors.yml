@@ -16,7 +16,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: publish-github-npm-mirrors-\${{ github.repository }}
+  group: publish-github-npm-mirrors-${{ github.repository }}
   cancel-in-progress: false
 
 jobs:
@@ -41,7 +41,7 @@ jobs:
           python-version: '3.12'
       - name: Validate shared release version
         env:
-          REQUESTED_VERSION: \${{ inputs.version }}
+          REQUESTED_VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
           node --input-type=module <<'NODE'
@@ -82,8 +82,8 @@ jobs:
           done
       - name: Publish or verify mirrors in dependency order
         env:
-          RELEASE_VERSION: \${{ inputs.version }}
-          NODE_AUTH_TOKEN: \${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ inputs.version }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -euo pipefail
           CANDIDATE="$RUNNER_TEMP/tidelight-github-npm-mirrors/archives"
@@ -111,8 +111,8 @@ jobs:
           publish_or_verify '@tidelightorg/cli' "tidelightorg-cli"
       - name: Install and smoke-test published mirrors
         env:
-          NODE_AUTH_TOKEN: \${{ secrets.GITHUB_TOKEN }}
-          RELEASE_VERSION: \${{ inputs.version }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RELEASE_VERSION: ${{ inputs.version }}
         run: |
           set -euo pipefail
           CONSUMER="$RUNNER_TEMP/tidelight-github-package-consumer"
