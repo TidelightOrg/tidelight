@@ -1,6 +1,6 @@
 {
   "name": "@tidelight/react",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "description": "Typed React hooks and accessible components for Tidelight research and market integrations.",
@@ -41,7 +41,7 @@
     "./styles.css": "./tidelight-react.css"
   },
   "peerDependencies": {
-    "@tidelight/sdk": "^0.1.0",
+    "@tidelight/sdk": "^0.1.1",
     "react": "^18.0.0 || ^19.0.0",
     "react-dom": "^18.0.0 || ^19.0.0"
   },
