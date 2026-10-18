@@ -1,7 +1,9 @@
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { TidelightApiError, TidelightClient } from "@tidelight/sdk";
 import type { CredentialStore } from "./credential-store.js";
 
+const PACKAGE_VERSION = (JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")) as { version: string }).version;
 const API_KEY_PATTERN = /^tl_(test|live)_[A-Za-z0-9_-]{43}$/;
 const HELP = `Tidelight CLI — supported API workflows
 
@@ -221,7 +223,7 @@ function safeError(error: unknown): string {
 export async function runCli(argv: string[], deps: CliDependencies): Promise<number> {
   try {
     if (argv.length === 0 || argv[0] === "--help" || argv[0] === "-h") { deps.stdout.write(HELP); return 0; }
-    if (argv[0] === "--version") { deps.stdout.write("0.1.0 (source; unpublished)\n"); return 0; }
+    if (argv[0] === "--version") { deps.stdout.write(`${PACKAGE_VERSION}\n`); return 0; }
     if (argv[0] === "auth") {
       const action = argv[1];
       if (argv.length !== 2) throw new Error("auth takes exactly one action: login, status, or logout.");
