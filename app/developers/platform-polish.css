@@ -79,6 +79,7 @@
 /* Compact, shared mobile navigation for the developer platform and package guides. */
 .tic-mobile-menu{display:none}
 .tic-mobile-system-dock{display:none}
+.tic-mobile-quick-cta{display:none}
 .tic-platform-nav-links a[aria-current="page"]{color:var(--brand-teal)}
 .tic-mobile-menu-toggle{display:none}
 .tic-mobile-menu-panel{display:none}
@@ -95,6 +96,9 @@
   .tic-platform-nav .tic-brand-divider{margin-inline:1px}
   .tic-platform-nav .tic-brand>span:last-child{display:inline!important;font-size:10px;color:var(--muted)}
   .tic-platform-nav-links{display:none!important}
+  .tic-mobile-quick-cta{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:40px;padding:0 11px;border:1px solid color-mix(in srgb,var(--brand-teal) 30%,var(--line));border-radius:12px;background:color-mix(in srgb,var(--brand-teal) 9%,var(--panel));color:var(--text);font-size:10px;font-weight:650;white-space:nowrap;backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%);-webkit-tap-highlight-color:transparent}
+  .tic-mobile-quick-cta span{color:var(--brand-teal);font-size:12px}
+  .tic-mobile-quick-cta:focus-visible{outline:2px solid var(--brand-teal);outline-offset:3px}
   .tic-mobile-menu{display:block;margin-left:auto}
   .tic-mobile-menu-toggle{position:relative;display:flex;align-items:center;justify-content:center;gap:8px;min-width:78px;min-height:42px;padding:0 11px;border:1px solid color-mix(in srgb,var(--brand-teal) 22%,var(--line));border-radius:13px;background:color-mix(in srgb,var(--panel) 69%,transparent);color:var(--text);font-size:12px;font-weight:650;cursor:pointer;backdrop-filter:blur(18px) saturate(150%);-webkit-backdrop-filter:blur(18px) saturate(150%)}
   .tic-mobile-menu-label{display:inline}
@@ -133,6 +137,8 @@
 @media(max-width:400px){
   .tic-mobile-menu-toggle{min-width:44px;padding-inline:11px}
   .tic-mobile-menu-label{display:none}
+  .tic-platform-nav .tic-brand>span:last-child{display:none!important}
+  .tic-mobile-quick-cta{padding-inline:9px}
   .tic-mobile-menu-panel:not([hidden]){padding-inline:19px}
   .tic-mobile-menu-items>a{min-height:64px}
   .tic-mobile-menu-items strong{font-size:17px}
