@@ -3,7 +3,12 @@
 import { useEffect, useRef } from "react";
 import * as THREE from "three";
 
-export function PackageOrbit3D() {
+type PackageOrbit3DProps = {
+  motionTargetSelector?: string;
+  staticFallback?: boolean;
+};
+
+export function PackageOrbit3D({ motionTargetSelector = ".tic-package-constellation", staticFallback = false }: PackageOrbit3DProps) {
   const host = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const container = host.current;
@@ -26,6 +31,7 @@ export function PackageOrbit3D() {
     renderer.setSize(container.clientWidth, container.clientHeight, false);
     renderer.setClearColor(0x000000, 0);
     container.appendChild(renderer.domElement);
+    container.classList.add("has-webgl");
     const group = new THREE.Group();
     scene.add(group);
 
@@ -63,9 +69,9 @@ export function PackageOrbit3D() {
     let pointerX = 0;
     let pointerZ = 0;
     let spin = 0;
-    const motionTarget = container.closest<HTMLElement>(".tic-package-constellation");
+    const motionTarget = container.closest<HTMLElement>(motionTargetSelector);
     const onPointerMove = (event: PointerEvent) => {
-      if (!motionTarget) return;
+      if (!motionTarget || reduceMotion.matches) return;
       const bounds = motionTarget.getBoundingClientRect();
       pointerX = -((event.clientY - bounds.top) / Math.max(bounds.height, 1) - 0.5) * 0.24;
       pointerZ = ((event.clientX - bounds.left) / Math.max(bounds.width, 1) - 0.5) * 0.32;
@@ -75,7 +81,11 @@ export function PackageOrbit3D() {
         renderer.render(scene, camera);
       }
     };
-    const onPointerLeave = () => { pointerX = 0; pointerZ = 0; };
+    const onPointerLeave = () => {
+      if (reduceMotion.matches) return;
+      pointerX = 0;
+      pointerZ = 0;
+    };
     motionTarget?.addEventListener("pointermove", onPointerMove, { passive: true });
     motionTarget?.addEventListener("pointerleave", onPointerLeave, { passive: true });
     const inViewport = new IntersectionObserver(entries => {
@@ -134,8 +144,20 @@ export function PackageOrbit3D() {
       materials.forEach(material => material.dispose());
       renderer.dispose();
       renderer.domElement.remove();
+      container.classList.remove("has-webgl");
     };
-  }, []);
+  }, [motionTargetSelector]);
 
-  return <div className="tic-package-three-orbit" ref={host} aria-hidden="true" />;
+  return <div className="tic-package-three-orbit" ref={host} aria-hidden="true">
+    {staticFallback && <svg className="tic-orbit-static" viewBox="0 0 420 300" preserveAspectRatio="xMidYMid meet" focusable="false">
+      <defs><radialGradient id="tic-orbit-glow"><stop stopColor="#76f1c0" stopOpacity=".24"/><stop offset="1" stopColor="#76f1c0" stopOpacity="0"/></radialGradient></defs>
+      <ellipse cx="210" cy="150" rx="178" ry="67" fill="none" stroke="#67dfb3" strokeOpacity=".3" strokeWidth="1" transform="rotate(-22 210 150)"/>
+      <ellipse cx="210" cy="150" rx="145" ry="91" fill="none" stroke="#67dfb3" strokeOpacity=".2" strokeWidth="1" transform="rotate(32 210 150)"/>
+      <ellipse cx="210" cy="150" rx="110" ry="110" fill="none" stroke="#67dfb3" strokeOpacity=".11" strokeWidth="1"/>
+      <circle cx="210" cy="150" r="76" fill="url(#tic-orbit-glow)"/>
+      <path d="m210 109 37 21v42l-37 21-37-21v-42z M210 109v84m-37-63 74 42m0-42-74 42" fill="none" stroke="#76f1c0" strokeOpacity=".64" strokeWidth="1.2"/>
+      <g fill="#8cf5ca" stroke="#102d26" strokeWidth="5"><circle cx="43" cy="147" r="5"/><circle cx="105" cy="74" r="5"/><circle cx="304" cy="62" r="5"/><circle cx="376" cy="171" r="5"/><circle cx="290" cy="241" r="5"/><circle cx="117" cy="229" r="5"/></g>
+      <g fill="none" stroke="#76f1c0" strokeOpacity=".23" strokeWidth="1"><path d="m43 147 62-73 105 76m0 0 94-88m-94 88 86 91m-86-91-93 79m93-79 166 21"/></g>
+    </svg>}
+  </div>;
 }
