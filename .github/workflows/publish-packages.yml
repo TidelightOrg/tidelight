@@ -131,6 +131,7 @@ jobs:
       - name: Publish or verify npm packages in dependency order
         env:
           RELEASE_VERSION: ${{ inputs.version }}
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -euo pipefail
           CANDIDATE="$RUNNER_TEMP/tidelight-package-candidate/npm"
