@@ -134,6 +134,8 @@ jobs:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           set -euo pipefail
+          [[ -n "${NODE_AUTH_TOKEN:-}" ]] || { echo "NPM_TOKEN is required for the first-release npm publisher."; exit 1; }
+          npm config set //registry.npmjs.org/:_authToken "$NODE_AUTH_TOKEN"
           CANDIDATE="$RUNNER_TEMP/tidelight-package-candidate/npm"
           publish_or_verify() {
             local package_name="$1"
@@ -177,7 +179,34 @@ jobs:
       - name: Verify checksums
         working-directory: ${{ runner.temp }}/tidelight-package-candidate
         run: sha256sum -c SHA256SUMS
+      - name: Verify existing PyPI release or select upload
+        id: pypi-check
+        env:
+          RELEASE_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          wheel="$RUNNER_TEMP/tidelight-package-candidate/python/tidelight-$RELEASE_VERSION-py3-none-any.whl"
+          api="https://pypi.org/pypi/tidelight/$RELEASE_VERSION/json"
+          status="$(curl -sS -o "$RUNNER_TEMP/pypi-release.json" -w "%{http_code}" "$api")"
+          if [[ "$status" == "404" ]]; then
+            echo "publish=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          [[ "$status" == "200" ]] || { echo "PyPI release lookup returned HTTP $status."; exit 1; }
+          expected="$(sha256sum "$wheel" | cut -d ' ' -f1)"
+          python - "$RUNNER_TEMP/pypi-release.json" "$expected" <<'PY'
+          import json, sys
+          from pathlib import Path
+          data = json.loads(Path(sys.argv[1]).read_text())
+          expected = sys.argv[2]
+          matching = [item for item in data.get("urls", []) if item.get("filename", "").endswith(".whl")]
+          if not matching or any(item.get("digests", {}).get("sha256") != expected for item in matching):
+              raise SystemExit("Existing PyPI release has different wheel content.")
+          print("Existing PyPI wheel matches the verified release candidate.")
+          PY
+          echo "publish=false" >> "$GITHUB_OUTPUT"
       - name: Publish Python wheel using PyPI Trusted Publishing
+        if: steps.pypi-check.outputs.publish == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           packages-dir: ${{ runner.temp }}/tidelight-package-candidate/python/
