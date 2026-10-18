@@ -88,7 +88,9 @@ jobs:
           set -euo pipefail
           CANDIDATE="$RUNNER_TEMP/tidelight-github-npm-mirrors/archives"
           publish_or_verify() {
-            local package_name="$1" archive_name="$2" archive="$CANDIDATE/$archive_name-$RELEASE_VERSION.tgz"
+            local package_name="$1"
+            local archive_name="$2"
+            local archive="$CANDIDATE/$archive_name-$RELEASE_VERSION.tgz"
             local expected actual
             expected="sha512-$(openssl dgst -sha512 -binary "$archive" | openssl base64 -A)"
             actual="$(npm view "$package_name@$RELEASE_VERSION" dist.integrity --registry=https://npm.pkg.github.com 2>/dev/null || true)"
