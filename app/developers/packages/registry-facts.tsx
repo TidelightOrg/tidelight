@@ -30,6 +30,7 @@ export function useRegistryPackage(packageId: PackageId) {
   const [entry, setEntry] = useState(fallback[packageId]);
   const [settledPackage, setSettledPackage] = useState<PackageId | null>(null);
   const checking = settledPackage !== packageId;
+  const visibleEntry = entry.id === packageId ? entry : fallback[packageId];
   useEffect(() => {
     let active = true;
     if (!registryRequest) {
@@ -41,7 +42,7 @@ export function useRegistryPackage(packageId: PackageId) {
     registryRequest.then(packages => { if (active && packages[packageId]) setEntry(packages[packageId]); }).catch(() => undefined).finally(() => { if (active) setSettledPackage(packageId); });
     return () => { active = false; };
   }, [packageId]);
-  return { entry, checking };
+  return { entry: visibleEntry, checking };
 }
 
 export function RegistryFacts({ packageId, compact = false }: { packageId: PackageId; compact?: boolean }) {
