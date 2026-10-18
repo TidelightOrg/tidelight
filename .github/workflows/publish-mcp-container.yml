@@ -47,13 +47,13 @@ jobs:
           file: public/components/mcp/server/Dockerfile
           platforms: linux/amd64
           load: true
-          tags: ghcr.io/${{ github.repository_owner }}/tidelight-mcp:ci
+          tags: ghcr.io/tidelightorg/tidelight-mcp:ci
           cache-from: type=gha
           cache-to: type=gha,mode=max
       - name: Smoke-test container entrypoint without credentials
         run: |
           set -euo pipefail
-          output="$(docker run --rm ghcr.io/${{ github.repository_owner }}/tidelight-mcp:ci 2>&1 || true)"
+          output="$(docker run --rm ghcr.io/tidelightorg/tidelight-mcp:ci 2>&1 || true)"
           printf '%s\n' "$output"
           [[ "$output" == *"TIDELIGHT_API_KEY is required"* ]]
 
@@ -79,7 +79,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ghcr.io/${{ github.repository_owner }}/tidelight-mcp
+          images: ghcr.io/tidelightorg/tidelight-mcp
           tags: |
             type=raw,value=${{ steps.version.outputs.value }}
             type=sha,prefix=sha-
