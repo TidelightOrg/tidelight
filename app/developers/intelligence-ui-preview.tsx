@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Image from "next/image";
 
 type View = "overview" | "sources" | "response";
 
@@ -16,7 +17,7 @@ export function IntelligenceUiPreview() {
   return (
     <div className="tic-intelligence-ui" aria-label="Interactive Intelligence Cloud interface preview">
       <div className="tic-intelligence-ui-top">
-        <div className="tic-intelligence-ui-brand"><span aria-hidden="true">t.</span><div><b>Research desk</b><small>WORKSPACE / EXAMPLE</small></div></div>
+        <div className="tic-intelligence-ui-brand"><Image src="/tidelight-mark.svg" alt="" width={31} height={31}/><div><b>Research desk</b><small>WORKSPACE / EXAMPLE</small></div></div>
         <span className="tic-intelligence-ui-badge"><i/> ILLUSTRATIVE FIXTURE</span>
       </div>
       <div className="tic-intelligence-ui-tabs" role="group" aria-label="Preview the intelligence interface">
