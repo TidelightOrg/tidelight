@@ -6,10 +6,11 @@ import { ReactPackageDetail } from "../react-detail";
 import "../../tidelight-developers.css";
 import "../../platform-polish.css";
 import "../packages.css";
+import "../registry-live.css";
 
 export const metadata: Metadata = {
   title: { absolute: "@tidelight/react — Official packages" },
-  description: "Source-backed guide to the unpublished Tidelight React hooks and accessible, server-safe UI components.",
+  description: "Guide to the published Tidelight React hooks and accessible, server-safe UI components.",
   alternates: { canonical: "https://tidelight.app/developers/packages/react" },
 };
 

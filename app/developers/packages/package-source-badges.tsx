@@ -1,4 +1,5 @@
 import { packageCatalog, type DeveloperPackage, type PackageId } from "./catalog.generated";
+import { RegistryFacts } from "./registry-facts";
 
 function compatibilityLabel(id: PackageId) {
   const item: DeveloperPackage | undefined = packageCatalog.find((entry) => entry.id === id);
@@ -22,11 +23,12 @@ export function PackageSourceBadges({ packageId }: { packageId: PackageId }) {
   const item: DeveloperPackage | undefined = packageCatalog.find((entry) => entry.id === packageId);
   if (!item) return null;
 
-  const status = `Source present · ${item.distribution.registry.toUpperCase()} unpublished`;
+  const status = `Published · ${item.distribution.registry.toUpperCase()}`;
 
   return <div className="tic-package-detail-badges" aria-label="Package source and compatibility facts">
     <span className="tic-package-state-pill"><i aria-hidden="true"/> {status}</span>
-    <span>{item.display.versionLabel}</span>
+    <span>Mother repository · {item.source.path}</span>
     <span>{compatibilityLabel(packageId)}</span>
+    <RegistryFacts packageId={packageId} compact />
   </div>;
 }

@@ -22,6 +22,7 @@ export default async function ConsolePage() {
         <strong>Tidelight</strong><span>Intelligence Cloud</span>
       </Link>
       <div className="tic-console-header-actions">
+        <Link href="/developers/packages">Packages <span aria-hidden="true">→</span></Link>
         <Link href="https://dev.tidelight.app">Developer docs <span aria-hidden="true">→</span></Link>
         <ThemeQuickSwitch />
       </div>

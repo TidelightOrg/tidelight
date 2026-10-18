@@ -62,6 +62,8 @@ jobs:
     needs: verify
     runs-on: ubuntu-latest
     timeout-minutes: 25
+    outputs:
+      version: ${{ steps.version.outputs.value }}
     permissions:
       contents: read
       packages: write
@@ -100,8 +102,35 @@ jobs:
           tags: |
             ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          annotations: ${{ steps.meta.outputs.annotations }}
+          annotations: |
+            ${{ steps.meta.outputs.annotations }}
+            index:org.opencontainers.image.description=Official Tidelight MCP stdio bridge for the Tidelight Intelligence Cloud
+            index:org.opencontainers.image.source=https://github.com/TidelightOrg/tidelight
           provenance: mode=max
           sbom: true
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  verify-public-pull:
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    needs: publish
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Pull the released image anonymously
+        env:
+          IMAGE_VERSION: ${{ needs.publish.outputs.version }}
+        run: |
+          set -euo pipefail
+          docker pull "ghcr.io/tidelightorg/tidelight-mcp:${IMAGE_VERSION}"
+          docker pull ghcr.io/tidelightorg/tidelight-mcp:latest
+      - name: Start the public image with clean environment
+        env:
+          IMAGE_VERSION: ${{ needs.publish.outputs.version }}
+        run: |
+          set -euo pipefail
+          output="$(docker run --rm -i "ghcr.io/tidelightorg/tidelight-mcp:${IMAGE_VERSION}" 2>&1 || true)"
+          printf '%s\n' "$output"
+          [[ "$output" == *"TIDELIGHT_API_KEY is required"* ]]

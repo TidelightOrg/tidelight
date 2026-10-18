@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { RegistryFacts } from "./registry-facts";
 
 type PackageId = "sdk" | "mcp" | "python" | "react" | "cli";
 
@@ -142,9 +143,9 @@ export function PackageWorkbench() {
         <div>
           <p className="tic-eyebrow">BUILT AROUND YOUR WORKFLOW</p>
           <h2 id="package-workbench-title">One platform. Five ways in.</h2>
-          <p>Preview package interfaces and run the source checks in the mother repository. Registry installs stay unavailable until the first approved release.</p>
+          <p>Preview package interfaces, install the published release, or run source checks in the mother repository.</p>
         </div>
-        <span className="tic-package-workbench-status"><i aria-hidden="true"/>Source packages · unpublished</span>
+        <span className="tic-package-workbench-status"><i aria-hidden="true"/>Five official package releases</span>
       </div>
 
       <div className="tic-package-workbench-shell">
@@ -170,7 +171,8 @@ export function PackageWorkbench() {
             <p className="tic-package-workbench-type">{current.type}</p>
             <h3>{current.name}</h3>
             <p>{current.description}</p>
-            <div className="tic-package-workbench-state"><span>Source available</span><span>Not published to registry</span></div>
+            <div className="tic-package-workbench-state"><span>Official release available</span><span>Live registry version</span></div>
+            <RegistryFacts packageId={selected} compact />
 
             <div className="tic-package-local-check">
               <span>LOCAL SOURCE CHECK</span>

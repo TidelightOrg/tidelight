@@ -6,11 +6,11 @@ import { fileURLToPath } from "node:url";
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const outputPath = path.join(root, "app/developers/packages/catalog.generated.ts");
 const sources = [
-  { id: "sdk", path: "sdk/typescript", registry: "npm", intendedName: "@tidelight/sdk", ecosystem: "TypeScript · JavaScript", summary: "Typed client for supported Tidelight API v1 endpoints, async research jobs, and webhooks.", href: "/developers/packages/sdk", glyph: "TS", publication: "source_only" },
-  { id: "mcp", path: "public/components/mcp/server", registry: "npm", intendedName: "@tidelight/mcp", ecosystem: "Node.js · MCP stdio", summary: "Bridge stdio-only MCP clients to Tidelight's hosted, scope-filtered Streamable HTTP service.", href: "/developers/packages/mcp", glyph: "M", publication: "source_only" },
-  { id: "python", path: "sdk/python", registry: "pypi", intendedName: "tidelight", ecosystem: "Python SDK", summary: "Python client for supported market, research-job, and webhook workflows.", href: "/developers/packages/python", glyph: "Py", publication: "source_only" },
-  { id: "react", path: "packages/react", registry: "npm", intendedName: "@tidelight/react", ecosystem: "React · hooks & UI", summary: "Typed hooks and accessible market components backed by the official SDK contract.", href: "/developers/packages/react", glyph: "R", publication: "source_only" },
-  { id: "cli", path: "packages/cli", registry: "npm", intendedName: "@tidelight/cli", ecosystem: "Node.js · command line", summary: "Keychain-backed terminal workflows for supported market, research-job, and webhook API operations.", href: "/developers/packages/cli", glyph: "$", publication: "source_only" },
+  { id: "sdk", path: "sdk/typescript", registry: "npm", intendedName: "@tidelight/sdk", ecosystem: "TypeScript · JavaScript", summary: "Typed client for supported Tidelight API v1 endpoints, async research jobs, and webhooks.", href: "/developers/packages/sdk", glyph: "TS", publication: "published", registryVersion: "0.1.1", registryUrl: "https://www.npmjs.com/package/@tidelight/sdk" },
+  { id: "mcp", path: "public/components/mcp/server", registry: "npm", intendedName: "@tidelight/mcp", ecosystem: "Node.js · MCP stdio", summary: "Bridge stdio-only MCP clients to Tidelight's hosted, scope-filtered Streamable HTTP service.", href: "/developers/packages/mcp", glyph: "M", publication: "published", registryVersion: "0.1.1", registryUrl: "https://www.npmjs.com/package/@tidelight/mcp" },
+  { id: "python", path: "sdk/python", registry: "pypi", intendedName: "tidelight", ecosystem: "Python SDK", summary: "Python client for supported market, research-job, and webhook workflows.", href: "/developers/packages/python", glyph: "Py", publication: "published", registryVersion: "0.1.1", registryUrl: "https://pypi.org/project/tidelight/" },
+  { id: "react", path: "packages/react", registry: "npm", intendedName: "@tidelight/react", ecosystem: "React · hooks & UI", summary: "Typed hooks and accessible market components backed by the official SDK contract.", href: "/developers/packages/react", glyph: "R", publication: "published", registryVersion: "0.1.1", registryUrl: "https://www.npmjs.com/package/@tidelight/react" },
+  { id: "cli", path: "packages/cli", registry: "npm", intendedName: "@tidelight/cli", ecosystem: "Node.js · command line", summary: "Keychain-backed terminal workflows for supported market, research-job, and webhook API operations.", href: "/developers/packages/cli", glyph: "$", publication: "published", registryVersion: "0.1.1", registryUrl: "https://www.npmjs.com/package/@tidelight/cli" },
 ];
 
 async function exists(file) {
@@ -51,7 +51,7 @@ export async function loadPackageEntries() {
     if (!available) throw new Error(`Package manifest is missing: ${definition.path}`);
     if (!isPython && manifest.private !== true) throw new Error(`${definition.path}/package.json must remain private until a reviewed registry release exists.`);
 
-    const registryState = { kind: "source_only" };
+    const registryState = { kind: definition.publication, version: definition.registryVersion, url: definition.registryUrl };
     const compatibility = isPython
       ? { declaredPython: manifest.requiresPython, testedPython }
       : {
@@ -60,9 +60,7 @@ export async function loadPackageEntries() {
           peerDependencies: manifest.peerDependencies ?? {},
           testedReact: manifest.devDependencies?.react ? [manifest.devDependencies.react] : [],
         };
-    const versionLabel = isPython
-      ? `Manifest: ${manifest.name} ${manifest.version}`
-      : `Source manifest: ${manifest.version}`;
+    const versionLabel = `Registry: ${definition.registryVersion} · source manifest: ${manifest.version}`;
     entries.push({
       id: definition.id,
       source: { path: definition.path, manifestName: manifest.name, version: manifest.version, private: isPython ? null : manifest.private, present: available },
@@ -72,7 +70,7 @@ export async function loadPackageEntries() {
         name: definition.intendedName,
         ecosystem: definition.ecosystem,
         summary: definition.summary,
-        stateLabel: `${definition.registry} · no Tidelight release recorded`,
+        stateLabel: `${definition.registry} · published ${definition.registryVersion}`,
         versionLabel,
         href: definition.href,
         glyph: definition.glyph,
@@ -84,7 +82,7 @@ export async function loadPackageEntries() {
 }
 
 export function renderCatalogContent(entries) {
-  return `/* Generated by scripts/generate-developer-package-catalog.mjs. Do not edit by hand. */\nexport type PackageId = ${sources.map(item => quote(item.id)).join(" | ")};\nexport type RegistryState = { kind: "source_only" };\nexport type DeveloperPackage = {\n  id: PackageId;\n  source: { path: string; manifestName: string; version: string; private: boolean | null; present: boolean };\n  distribution: { registry: "npm" | "pypi"; intendedName: string; state: RegistryState };\n  compatibility: { declaredNode?: string | null; testedNode?: string[]; declaredPython?: string | null; testedPython?: string[]; peerDependencies?: Record<string, string>; testedReact?: string[] };\n  display: { name: string; ecosystem: string; summary: string; stateLabel: string; versionLabel: string; href: string; glyph: string };\n};\nexport const packageCatalog = ${JSON.stringify(entries, null, 2)} as const satisfies readonly DeveloperPackage[];\n`;
+  return `/* Generated by scripts/generate-developer-package-catalog.mjs. Do not edit by hand. */\nexport type PackageId = ${sources.map(item => quote(item.id)).join(" | ")};\nexport type RegistryState = { kind: "published"; version: string; url: string };\nexport type DeveloperPackage = {\n  id: PackageId;\n  source: { path: string; manifestName: string; version: string; private: boolean | null; present: boolean };\n  distribution: { registry: "npm" | "pypi"; intendedName: string; state: RegistryState };\n  compatibility: { declaredNode?: string | null; testedNode?: string[]; declaredPython?: string | null; testedPython?: string[]; peerDependencies?: Record<string, string>; testedReact?: string[] };\n  display: { name: string; ecosystem: string; summary: string; stateLabel: string; versionLabel: string; href: string; glyph: string };\n};\nexport const packageCatalog = ${JSON.stringify(entries, null, 2)} as const satisfies readonly DeveloperPackage[];\n`;
 }
 
 async function main() {

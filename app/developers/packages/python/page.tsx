@@ -6,10 +6,11 @@ import { PythonPackageDetail } from "../python-detail";
 import "../../tidelight-developers.css";
 import "../../platform-polish.css";
 import "../packages.css";
+import "../registry-live.css";
 
 export const metadata: Metadata = {
   title: { absolute: "Python SDK — Official packages" },
-  description: "Source-backed guide to the unpublished Tidelight Python SDK, supported API workflows, and secure server-side use.",
+  description: "Guide to the published Tidelight Python SDK, supported API workflows, and secure server-side use.",
   alternates: { canonical: "https://tidelight.app/developers/packages/python" },
 };
 

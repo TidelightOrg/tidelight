@@ -6,10 +6,11 @@ import { CliPackageDetail } from "../cli-detail";
 import "../../tidelight-developers.css";
 import "../../platform-polish.css";
 import "../packages.css";
+import "../registry-live.css";
 
 export const metadata: Metadata = {
   title: { absolute: "@tidelight/cli — Official packages" },
-  description: "Source-backed command guide for the unpublished Tidelight CLI with keychain-backed credentials and supported API workflows.",
+  description: "Command guide for the published Tidelight CLI with keychain-backed credentials and supported API workflows.",
   alternates: { canonical: "https://tidelight.app/developers/packages/cli" },
 };
 
