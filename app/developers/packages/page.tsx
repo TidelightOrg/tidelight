@@ -1,7 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
-import { ThemeQuickSwitch } from "@/app/ui/theme-provider";
+import { PlatformNav } from "../platform-nav";
 import { packageCatalog } from "./catalog.generated";
 import { PackageWorkbench } from "./package-workbench";
 import "../tidelight-developers.css";
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
 
 export default function DeveloperPackagesPage() {
   return <main className="tic tic-landing tic-packages-page">
-    <nav className="tic-top"><Link href="/developers" className="tic-brand"><Image src="/tidelight-mark.svg" alt="" width={28} height={28}/><span className="tic-brand-name">Tidelight</span><span>Intelligence Cloud</span></Link><div><Link href="https://dev.tidelight.app">Docs</Link><ThemeQuickSwitch/><Link href="/developers/console" className="tic-button">Open console <span aria-hidden="true">→</span></Link></div></nav>
+    <PlatformNav active="packages" />
     <header className="tic-packages-hero">
       <div><p className="tic-eyebrow"><span className="tic-status-dot"/> OFFICIAL DEVELOPER PACKAGES</p><h1>One intelligence layer.<br/><em>Every developer workflow.</em></h1><p>Explore package source maintained in the Tidelight mother repository. Registry availability is not checked live here; each card clearly states the known publication status.</p>
         <div className="tic-package-hero-meta"><span><i>01</i> Mother repository: <code>TidelightOrg/tidelight</code></span><span><i>02</i> Public release: approval required</span></div><div className="tic-package-hero-actions"><Link className="tic-button tic-primary" href="#package-directory-title">Browse packages <span aria-hidden="true">↓</span></Link><Link className="tic-button" href="https://dev.tidelight.app#sdks">Read the developer quickstart <span aria-hidden="true">→</span></Link></div>
