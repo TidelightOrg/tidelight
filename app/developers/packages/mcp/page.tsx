@@ -6,10 +6,11 @@ import { McpPackageDetail } from "../mcp-detail";
 import "../../tidelight-developers.css";
 import "../../platform-polish.css";
 import "../packages.css";
+import "../registry-live.css";
 
 export const metadata: Metadata = {
   title: { absolute: "@tidelight/mcp — Official packages" },
-  description: "Source-backed guide to the unpublished Tidelight MCP stdio bridge, scopes, setup, security, and client compatibility.",
+  description: "Guide to the published Tidelight MCP stdio bridge, scopes, setup, security, and client compatibility.",
   alternates: { canonical: "https://tidelight.app/developers/packages/mcp" },
 };
 

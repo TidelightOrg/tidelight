@@ -24,7 +24,33 @@ test("the directory lists each source distribution once and links its matching d
   }
 });
 
-test("manifest versions and npm private flags feed the source label", async () => {
+test("public package cards and all detail pages expose live registry facts and installation links", async () => {
+  const endpoint = await readFile(new URL("app/api/developers/packages/route.ts", root), "utf8");
+  for (const name of ["@tidelight/sdk", "@tidelight/mcp", "@tidelight/react", "@tidelight/cli", "tidelight"]) {
+    assert.ok(endpoint.includes(name), `registry endpoint includes ${name}`);
+  }
+  assert.match(endpoint, /registry\.npmjs\.org/);
+  assert.match(endpoint, /pypi\.org\/pypi/);
+  assert.match(endpoint, /integrity/);
+  assert.match(endpoint, /sha256/);
+  const facts = await readFile(new URL("app/developers/packages/registry-facts.tsx", root), "utf8");
+  assert.match(facts, /entry\.install/);
+  assert.match(facts, /entry\.url/);
+  assert.match(facts, /entry\.version/);
+  assert.match(facts, /ghcr\.io\/tidelightorg\/tidelight-mcp/);
+  for (const id of ["sdk", "mcp", "python", "react", "cli"]) {
+    assert.match(facts, new RegExp(`id: "${id}"`));
+  }
+});
+
+test("Packages navigation works from the package pages and signed-in console", async () => {
+  const platformNav = await readFile(new URL("app/developers/platform-nav.tsx", root), "utf8");
+  const consoleUi = await readFile(new URL("app/developers/console/ui.tsx", root), "utf8");
+  assert.match(platformNav, /href="\/developers\/packages"/);
+  assert.match(consoleUi, /href="\/developers\/packages">Packages/);
+});
+
+test("manifest versions and published registry facts are represented separately", async () => {
   for (const entry of entries) {
     const manifestPath = entry.id === "python"
       ? new URL(`${entry.source.path}/pyproject.toml`, root)
@@ -36,9 +62,9 @@ test("manifest versions and npm private flags feed the source label", async () =
       assert.equal(entry.source.private, true);
       assert.match(manifest, /"private"\s*:\s*true/);
     }
-    assert.equal("installCommand" in entry.display, false);
-    assert.notEqual(entry.distribution.state.kind, "published");
-    assert.equal("checkedAt" in entry.distribution.state, false);
+    assert.equal(entry.distribution.state.kind, "published");
+    assert.equal(entry.distribution.state.version, "0.1.1");
+    assert.match(entry.distribution.state.url, /^https:\/\//);
   }
 });
 
@@ -46,7 +72,7 @@ test("Python distribution identity and compatibility match approved package meta
   const python = entries.find(entry => entry.id === "python");
   assert.equal(python.source.manifestName, "tidelight");
   assert.equal(python.distribution.intendedName, "tidelight");
-  assert.equal(python.distribution.state.kind, "source_only");
+  assert.equal(python.distribution.state.kind, "published");
   assert.equal(python.compatibility.declaredPython, ">=3.10");
   assert.deepEqual(python.compatibility.testedPython, ["3.10", "3.12"]);
 });
@@ -63,9 +89,8 @@ test("directory renders the generated catalog and never derives installability f
   assert.match(page, /import \{ packageCatalog \} from "\.\/catalog\.generated"/);
   assert.match(page, /packageCatalog\.map/);
   assert.doesNotMatch(page, /const packages\s*=\s*\[/);
-  assert.match(page, /Registry status · not checked live/);
-  assert.match(page, /item\.display\.stateLabel/);
-  assert.match(page, /Source files present/);
+  assert.match(page, /PackageRegistryCard/);
+  assert.match(page, /refreshed from npm and PyPI/);
   assert.match(page, /Browse packages/);
   assert.doesNotMatch(page, /source ready/i);
   assert.doesNotMatch(page, /checkedAt/);
@@ -103,7 +128,7 @@ test("detail headers share generated source, release, and compatibility metadata
   const badges = await readFile(new URL("app/developers/packages/package-source-badges.tsx", root), "utf8");
   assert.match(badges, /packageCatalog\.find/);
   assert.match(badges, /compatibilityLabel/);
-  assert.match(badges, /unpublished/);
+  assert.match(badges, /Published/);
   assert.doesNotMatch(badges, /name unresolved/);
   assert.doesNotMatch(badges, /Source available|source ready/i);
 });

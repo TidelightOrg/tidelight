@@ -1,62 +1,50 @@
-# Tidelight official package ecosystem
+# Official Tidelight packages
 
-This document is the source-of-truth plan for developer packages. Package source belongs in the Tidelight mother repository (`TidelightOrg/tidelight`) and public mirrors are derived artifacts. Package names shown in the Developer Center do not imply registry publication.
+`TidelightOrg/tidelight` is the canonical source repository. The first public package release is `0.1.1` (2026-10-18). The Developer Center reads current versions from npm and PyPI and links to each registry artifact.
 
-## Current architecture and verified state (2026-10-18)
+## Published packages
 
-| Target | Canonical source | Intended public name | Current state | Registry |
-|---|---|---|---|---|
-| TypeScript / JavaScript SDK | `sdk/typescript` | `@tidelight/sdk` | Implemented source, tests and build; private manifest `0.1.0` | npm lookup returned 404; unpublished |
-| Python SDK | `sdk/python` | `tidelight` | Implemented source and tests; project metadata `tidelight` `0.1.0` | PyPI lookup for `tidelight` returned 404; unpublished. Project ownership and trusted publishing still need manual setup |
-| MCP integration | `public/components/mcp/server` | `@tidelight/mcp` | MCP protocol core plus local stdio-to-remote bridge, tests, package metadata, and dry-run tarball; manifest stays private | npm lookup returned 404; unpublished |
-| API contract | `public/components/api` and `docs/tic-openapi.yaml` | no npm package promised yet | Private contract validation package and OpenAPI document | No public package |
-| React integration | `packages/react` | `@tidelight/react` | Typed client-context hooks and accessible tokenized-instrument component; private manifest `0.1.0` | npm lookup returned 404; unpublished |
-| CLI | `packages/cli` | `@tidelight/cli` | Implemented source, SDK-backed commands, tests and private manifest `0.1.0`; not a public install | npm lookup returned 404; unpublished |
+| Package | Source | Current version | Install | Registry |
+|---|---|---:|---|---|
+| TypeScript SDK | `sdk/typescript` | 0.1.1 | `npm install @tidelight/sdk` | [npm](https://www.npmjs.com/package/@tidelight/sdk) |
+| MCP bridge | `public/components/mcp/server` | 0.1.1 | `npm install @tidelight/mcp` | [npm](https://www.npmjs.com/package/@tidelight/mcp) |
+| Python SDK | `sdk/python` | 0.1.1 | `python -m pip install tidelight` | [PyPI](https://pypi.org/project/tidelight/) |
+| React | `packages/react` | 0.1.1 | `npm install @tidelight/react` | [npm](https://www.npmjs.com/package/@tidelight/react) |
+| CLI | `packages/cli` | 0.1.1 | `npm install @tidelight/cli` | [npm](https://www.npmjs.com/package/@tidelight/cli) |
 
-The Developer Center package index is `/developers/packages`; first-party detail pages are `/developers/packages/sdk`, `/developers/packages/mcp`, `/developers/packages/react`, `/developers/packages/cli`, and `/developers/packages/python`. The Python page documents the source metadata name mismatch, exact scopes, redirect protection, and unresolved provider terms gate. No npm or PyPI package is currently installable. Do not show npm or pip install commands as working instructions until verified registry releases exist.
+Install reproducibly by pinning `0.1.1` in application manifests and lockfiles. Do not expose Tidelight API keys in browser code, public repositories, client logs, or shared MCP config; use a trusted server or protected process environment. The React package takes a server-provided client interface and never accepts privileged credentials.
 
-Each package detail page includes an interactive, client-only walkthrough of a supported request lifecycle. These walkthroughs are illustrative, send no network requests, omit secret and result values, and show bounded research job states without promising a successful result. The React flow explicitly requires an application-owned authenticated backend; the package does not provide that backend. Market-data success is not used as a demo while redistribution terms remain unconfirmed.
+## MCP container
 
-## Package boundaries
+The deployable stdio MCP bridge is also distributed as a multi-architecture OCI image from GHCR. The image is built from the same canonical MCP source as the npm package and runs as the unprivileged `node` user. Its build includes provenance and an SBOM; the API key is supplied at container runtime.
 
-- Shared HTTP/auth/error behavior should be built from the versioned API contract, without importing application routes, Supabase service-role code, provider secrets, or private server modules into packages.
-- The SDK owns typed API transport, pagination, request IDs, bounded retries/timeouts, and job polling. Domain research remains on Tidelight services.
-- MCP adapts supported service calls to the MCP protocol; it must not fork service logic or bypass API scopes.
-- Python mirrors the stable supported REST surface. React may contain browser-safe UI/hooks only and must never accept privileged keys. CLI should call the same API contract and store credentials with OS-backed secure storage when available.
-- Container images are appropriate for the deployable MCP server, not for client SDKs. Publish to GHCR only after image hardening, SBOM, signing, and operator documentation are ready.
+```sh
+docker pull ghcr.io/tidelightorg/tidelight-mcp:0.1.1
+export TIDELIGHT_API_KEY='YOUR_TIDELIGHT_PROJECT_KEY'
+docker run --rm -i -e TIDELIGHT_API_KEY ghcr.io/tidelightorg/tidelight-mcp:0.1.1
+```
 
-## Compatibility and version policy
+The image supports `linux/amd64` and `linux/arm64`. Pin the version tag for reproducible deployments; `latest` tracks a main-branch build. Browse [the GHCR package](https://github.com/orgs/TidelightOrg/packages/container/package/tidelight-mcp) and [MCP package instructions](https://tidelight.app/developers/packages/mcp).
 
-Use SemVer after first public release. While packages are pre-release, keep them unpublished and version manifests aligned to the API contract compatibility they actually test. API v1 additions should be backward-compatible; breaking API changes use a new API version. Document a support matrix (Node.js, Python, React peer versions, MCP protocol, and API versions) before first publication. Deprecation requires a dated notice, migration path, and minimum 90-day public window unless a security issue requires faster action.
+## Package boundaries and safety
 
-## CI and release policy
+- The SDK owns typed HTTP transport, pagination, bounded retries/timeouts, research-job polling, and supported webhook operations.
+- The MCP bridge adapts the hosted, scope-filtered service to stdio clients. The hosted service remains authoritative for authorization and research behavior.
+- Python mirrors the supported REST surface. React contains browser-safe hooks and UI only. The CLI uses the SDK and protected OS credential storage where available.
+- The API contract remains documented in `docs/tic-openapi.yaml`; no separate API contract package is published.
+- Results preserve source context and do not expose private model reasoning. Package examples are illustrative; actual market coverage and data access remain subject to account scopes and provider terms.
 
-Each package must pass lint/typecheck, unit and integration tests against the API/MCP contract, packaging validation, secret scanning, dependency review, and a clean install test. `scripts/check-npm-package-archive.mjs` creates a temporary npm tarball, compares its actual members with npm's pack manifest and the package's explicit `files` allowlist, checks declared entry points, rejects credential files, and scans archived text for high-confidence secret patterns. This validates the unpublished archive without uploading it. The Python distribution is built from a temporary source copy as an isolated wheel in CI, so validation does not leave build files in the checkout. CI tests Python 3.10 and 3.12. The wheel check validates metadata against pyproject.toml, checks archive paths for unexpected or credential-like files, and imports the wheel in an isolated target directory. React consumes a server-provided client interface and must never put project keys in a browser bundle. The mother repository remains canonical; mirror sync is path-scoped and must not copy secrets or server-only internals. Release workflows are manual, validate canonical version and mirror SHA, and use OIDC trusted publishing/provenance where registry support and organization configuration permit. Public publication remains blocked until explicit owner approval, verified namespace ownership, registry credentials/OIDC configuration, package contents review, and a successful dry run.
+## Release and verification
 
-`.github/workflows/release-sdk.yml` creates manual GitHub source releases in the TypeScript, Python, and MCP mirrors; it does not publish to npm or PyPI. Before tagging, it compares every tracked file in the selected canonical mapping with the mirror byte-for-byte, rejects missing, extra, or changed paths, validates npm tarballs and Python wheels in both workspaces, and targets the exact mirror commit that passed parity. Package install, test, and archive checks run before a write token is created; the token is available only in the final GitHub release step. Release notes record both the mother-repository commit and tested mirror commit. Do not describe this as a registry release pipeline.
+`.github/workflows/publish-packages.yml` is the protected manual npm/PyPI publisher. It validates the requested version, builds and tests source packages, verifies archive integrity and checksums, and only publishes after the required environment protections. npm uses the configured `NPM_TOKEN` secret for this first release path; PyPI uses its Trusted Publisher. The release artifacts and registry hashes are verified against the tested workflow candidate.
 
-`.github/workflows/package-candidate.yml` is a manual internal release-candidate build. Run it from `main` with the version present in every package manifest and the exact confirmation phrase requested by the workflow. It tests the TypeScript SDK, React, CLI, MCP, and Python sources; validates and preserves the exact npm tarballs and Python wheel that passed the archive checks; writes a source commit note and SHA-256 manifest; and uploads a 30-day GitHub Actions artifact. It has read-only repository permissions, uses no publishing credentials or OIDC, and has no registry upload step. The resulting tarballs remain internal review artifacts and do not make the packages publicly installable.
+`.github/workflows/publish-mcp-container.yml` tests the MCP package and Docker startup on pull requests, then publishes `0.1.1`, commit-SHA, and `latest` image tags to GHCR from `main` after verification. The publisher grants `packages: write` only to the publish job. Container CI verifies a clean image build and the startup failure path when no key is provided.
 
-See [PUBLISHING.md](./PUBLISHING.md) for the exact first-release blockers, npm/PyPI Trusted Publisher setup, release order, internal candidate download steps, and clean-install verification commands.
+The registry-backed Developer Center endpoint refreshes npm and PyPI metadata every five minutes. If a registry lookup fails, package pages continue to show the last known release version and a visible unavailable status rather than inventing a new version.
 
-## First-release gates
+## Follow-up administration
 
-1. Confirm `TidelightOrg/tidelight` owns each registry namespace and publish access is correctly configured.
-2. Claim and configure the `tidelight` PyPI project before its first release.
-3. Extend MCP interoperability tests to named external clients before certifying them; the local stdio proxy currently has official SDK protocol coverage only.
-4. Before CLI release, replace the local SDK file dependency with the approved published SDK version, verify npm OIDC/provenance, and run a clean external install test. The CLI source is implemented, but remains private and unavailable from npm.
-5. Add package-specific changelogs, security policy links, licenses, release compatibility matrices, SBOM and provenance checks.
-6. Review redistribution and provider licensing limits against each example and package capability.
-7. Obtain explicit approval before the first public registry publication.
-
-## Verification performed for this milestone
-
-Read-only registry checks on 2026-10-18: `npm view` returned 404 for `@tidelight/sdk`, `@tidelight/mcp`, `@tidelight/react`, and `@tidelight/cli`; PyPI JSON returned 404 for `tidelight`. These establish that the checked names are not presently installable, not that all other names are available. The UI uses source state rather than fabricated release dates or versions. MCP source verification: `npm test` passed 7 protocol/proxy/package-gate tests; its tarball contains only README, changelog, executable CLI wrapper, compiled code, and manifest, and local install plus missing-key CLI check passed. React source verification: 6 test cases passed in the latest pre-merge run; package tarball contains only README, changelog, compiled entry point, styles, and manifest; local install and server-rendered empty-state/CSS export checks passed; `npm audit --omit=dev` reported 0 vulnerabilities. CLI source verification: 9 tests passed, including credential-status wording and recovery of a queued research job when JSON polling times out, its dry-run tarball contains only README, changelog, compiled JavaScript/declarations and manifest, and its production dependency audit reported 0 vulnerabilities. The CLI delegates API transport to `@tidelight/sdk`; its local `file:` dependency intentionally limits this private source preview to the mother repository. The SDK now has a lockfile and builds on pack. SDK, React and CLI manifests remain private; MCP client certification remains limited to official SDK protocol tests.
-
-
-Python SDK artifact gate (2026-10-18): `python scripts/check-python-package.py sdk/python` built `tidelight_sdk-0.1.0-py3-none-any.whl`, matched its metadata against the project, checked archive paths and isolated imports, and did not publish the artifact. Public mirror validation, sync, and manual source-release workflows run this check for canonical source and the Python mirror. Pull request validation also runs the Python suite and wheel check on Python 3.10 and 3.12.
-
-Python SDK follow-up (2026-10-18): `PYTHONPATH=sdk/python/src python -m unittest discover -s sdk/python/tests -v` passed 11 tests, including a local HTTP redirect check that confirms the default transport stops at the first 302, API-host allowlisting, and a single-attempt `provider_terms_unconfirmed` response. This is source verification only; the Python package remains unpublished.
-
-
-The repository roadmap is maintained in [the project plan](../planning/PROJECT_PLAN.md).
+- Configure npm Trusted Publishing for later releases and retain the token path only as the authorized fallback for environments where npm OIDC is unavailable.
+- Review package ownership, organization/team access, provenance, dependency policy, and registry account recovery procedures on a regular cadence.
+- Maintain the Node.js, Python, React, MCP protocol, and API compatibility matrix based on tested releases.
+- Publish dated migration guidance for breaking changes and keep the mother repository as the source of truth for npm, PyPI, and GHCR artifacts.

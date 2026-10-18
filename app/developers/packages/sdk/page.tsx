@@ -6,10 +6,11 @@ import { PackageDetail } from "../package-detail";
 import "../../tidelight-developers.css";
 import "../../platform-polish.css";
 import "../packages.css";
+import "../registry-live.css";
 
 export const metadata: Metadata = {
   title: { absolute: "@tidelight/sdk — Official packages" },
-  description: "Source-backed guide to the unpublished Tidelight TypeScript SDK, including current API support, local build, authentication, and compatibility.",
+  description: "Guide to the published Tidelight TypeScript SDK, including current API support, local build, authentication, and compatibility.",
   alternates: { canonical: "https://tidelight.app/developers/packages/sdk" },
 };
 
