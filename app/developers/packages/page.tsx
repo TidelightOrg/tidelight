@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 
 export default function DeveloperPackagesPage() {
   return <main className="tic tic-landing tic-packages-page">
-    <PlatformNav active="packages" />
+    <PlatformNav active="packages" packageHome />
     <header className="tic-packages-hero">
       <div><p className="tic-eyebrow"><span className="tic-status-dot"/> OFFICIAL DEVELOPER PACKAGES</p><h1>One intelligence layer.<br/><em>Every developer workflow.</em></h1><p>Five first-party packages, published from the Tidelight mother repository. Versions and install details are refreshed from npm and PyPI.</p>
         <div className="tic-package-hero-meta"><span><i>01</i> Mother repository: <code>TidelightOrg/tidelight</code></span><span><i>02</i> Registries: <code>npm · PyPI · GHCR</code></span></div><div className="tic-package-hero-actions"><Link className="tic-button tic-primary" href="https://package.tidelight.app/dashboard">Open package dashboard <span aria-hidden="true">→</span></Link><Link className="tic-button" href="#package-directory-title">Browse packages <span aria-hidden="true">↓</span></Link></div>

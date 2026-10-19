@@ -128,13 +128,15 @@
   .tic-mobile-menu-cta{width:100%;min-height:52px;border-radius:10px!important;font-size:14px!important}
   .tic-mobile-menu-foot{margin:16px 0 0;color:var(--muted);font:8px var(--mono);letter-spacing:.04em}
   body:has(.tic-mobile-menu.is-open){overflow:hidden}
-  .tic-mobile-system-dock{position:fixed;z-index:1100;right:10px;bottom:max(8px,env(safe-area-inset-bottom));left:10px;display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px;min-height:68px;padding:7px;border:1px solid color-mix(in srgb,var(--line) 75%,transparent);border-radius:18px;background:color-mix(in srgb,var(--panel) 82%,transparent);box-shadow:0 12px 40px color-mix(in srgb,var(--text) 12%,transparent),inset 0 1px #ffffffa0;backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%)}
+  .tic-mobile-system-dock{position:fixed;z-index:1100;right:10px;bottom:max(8px,env(safe-area-inset-bottom));left:10px;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:3px;min-height:68px;padding:7px;border:1px solid color-mix(in srgb,var(--line) 75%,transparent);border-radius:18px;background:color-mix(in srgb,var(--panel) 82%,transparent);box-shadow:0 12px 40px color-mix(in srgb,var(--text) 12%,transparent),inset 0 1px #ffffffa0;backdrop-filter:blur(28px) saturate(160%);-webkit-backdrop-filter:blur(28px) saturate(160%)}
   .tic-mobile-system-dock a{display:grid;place-items:center;align-content:center;gap:4px;min-width:0;min-height:50px;padding-inline:1px;border-radius:12px;color:var(--muted);font:clamp(9px,2.8vw,11px) var(--font);text-decoration:none;white-space:nowrap;-webkit-tap-highlight-color:transparent}
   .tic-mobile-system-dock a[aria-current="page"]{background:color-mix(in srgb,var(--brand-teal) 11%,transparent);color:var(--brand-teal);font-weight:650}
   .tic-mobile-system-dock svg{width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.65;stroke-linecap:round;stroke-linejoin:round}
   .tic-landing,.tic-docs,.tic-console-main{padding-bottom:calc(108px + env(safe-area-inset-bottom))}
 }
 @media(max-width:400px){
+  .tic-mobile-system-dock{right:6px;left:6px;gap:1px;padding:6px}
+  .tic-mobile-system-dock a{font-size:9px}
   .tic-mobile-menu-toggle{min-width:44px;padding-inline:11px}
   .tic-mobile-menu-label{display:none}
   .tic-platform-nav .tic-brand>span:last-child{display:none!important}
