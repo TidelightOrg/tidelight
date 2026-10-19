@@ -33,3 +33,11 @@ export function readSupabaseAuthCookieHeader(header: string | null): {
     duplicateNames: [...byName].flatMap(([name, values]) => values.length > 1 ? [name] : []),
   };
 }
+
+/** Do not let a pre-refresh request cookie overwrite a token just refreshed by Supabase. */
+export function excludeRefreshedAuthCookies(
+  cookies: Array<{ name: string; value: string }>,
+  refreshedNames: ReadonlySet<string>,
+): Array<{ name: string; value: string }> {
+  return cookies.filter(({ name }) => !refreshedNames.has(name));
+}

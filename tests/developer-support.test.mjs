@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { containsCredentialLikeContent, emailSubjectLine, escapeSupportHtml, isSupportEcosystem, isSupportStatus, readBoundedJson } from "../lib/developer-support.ts";
-import { isSupabaseAuthCookie, readSupabaseAuthCookieHeader, shouldMigrateSharedAuthCookies } from "../lib/supabase/legacy-cookie-migration.ts";
+import { excludeRefreshedAuthCookies, isSupabaseAuthCookie, readSupabaseAuthCookieHeader, shouldMigrateSharedAuthCookies } from "../lib/supabase/legacy-cookie-migration.ts";
 
 const root = new URL("../", import.meta.url);
 
@@ -45,6 +45,12 @@ test("legacy auth cookie migration never guesses between duplicate host and pare
   assert.deepEqual(parsed.duplicateNames, ["sb-project-auth-token"]);
   assert.deepEqual(readSupabaseAuthCookieHeader("sb-project-auth-token=only-session").cookies, [
     { name: "sb-project-auth-token", value: "only-session" },
+  ]);
+  assert.deepEqual(excludeRefreshedAuthCookies([
+    { name: "sb-project-auth-token", value: "stale-access-token" },
+    { name: "sb-project-auth-token.0", value: "unchanged-chunk" },
+  ], new Set(["sb-project-auth-token"])), [
+    { name: "sb-project-auth-token.0", value: "unchanged-chunk" },
   ]);
 });
 
