@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { containsCredentialLikeContent, emailSubjectLine, escapeSupportHtml, isSupportEcosystem, isSupportStatus, readBoundedJson } from "../lib/developer-support.ts";
-import { isSupabaseAuthCookie, shouldMigrateSharedAuthCookies, uniqueSupabaseAuthCookies } from "../lib/supabase/legacy-cookie-migration.ts";
+import { isSupabaseAuthCookie, readSupabaseAuthCookieHeader, shouldMigrateSharedAuthCookies } from "../lib/supabase/legacy-cookie-migration.ts";
 
 const root = new URL("../", import.meta.url);
 
@@ -39,13 +39,11 @@ test("legacy auth cookie migration is host-scoped and recognizes Supabase chunks
 });
 
 test("legacy auth cookie migration never guesses between duplicate host and parent-domain values", () => {
-  assert.deepEqual(uniqueSupabaseAuthCookies([
-    { name: "sb-project-auth-token", value: "host-session" },
-    { name: "sb-project-auth-token", value: "old-parent-session" },
-    { name: "sb-project-auth-token.0", value: "chunk-0" },
-    { name: "theme", value: "light" },
-  ]), [{ name: "sb-project-auth-token.0", value: "chunk-0" }]);
-  assert.deepEqual(uniqueSupabaseAuthCookies([{ name: "sb-project-auth-token", value: "only-session" }]), [
+  const parsed = readSupabaseAuthCookieHeader("sb-project-auth-token=host-session; sb-project-auth-token=old-parent-session; sb-project-auth-token.0=chunk%2D0; theme=light");
+  assert.deepEqual(parsed.cookies, [{ name: "sb-project-auth-token.0", value: "chunk-0" }]);
+  assert.deepEqual(parsed.names, ["sb-project-auth-token", "sb-project-auth-token.0"]);
+  assert.deepEqual(parsed.duplicateNames, ["sb-project-auth-token"]);
+  assert.deepEqual(readSupabaseAuthCookieHeader("sb-project-auth-token=only-session").cookies, [
     { name: "sb-project-auth-token", value: "only-session" },
   ]);
 });

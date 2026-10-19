@@ -8,19 +8,28 @@ export function shouldMigrateSharedAuthCookies(hostname: string): boolean {
   return hostname.toLowerCase().replace(/:\d+$/, "") === "tidelight.app";
 }
 
-/**
- * Cookie headers can contain the same Supabase cookie name twice when an older
- * parent-domain cookie overlaps a newer host-only cookie. The request does not
- * tell us which scope each value came from, so never guess and overwrite the
- * host session with one of the ambiguous values.
- */
-export function uniqueSupabaseAuthCookies(cookies: Array<{ name: string; value: string }>): Array<{ name: string; value: string }> {
+/** Read raw Cookie header pairs before Next's cookie map collapses duplicate names. */
+export function readSupabaseAuthCookieHeader(header: string | null): {
+  cookies: Array<{ name: string; value: string }>;
+  names: string[];
+  duplicateNames: string[];
+} {
   const byName = new Map<string, string[]>();
-  for (const cookie of cookies) {
-    if (!isSupabaseAuthCookie(cookie.name)) continue;
-    const values = byName.get(cookie.name) ?? [];
-    values.push(cookie.value);
-    byName.set(cookie.name, values);
+  for (const pair of header?.split(/;\s*/) ?? []) {
+    const separator = pair.indexOf("=");
+    if (separator < 1) continue;
+    const name = pair.slice(0, separator).trim();
+    if (!isSupabaseAuthCookie(name)) continue;
+    const encodedValue = pair.slice(separator + 1);
+    let value = encodedValue;
+    try { value = decodeURIComponent(encodedValue); } catch { /* retain the raw value */ }
+    const values = byName.get(name) ?? [];
+    values.push(value);
+    byName.set(name, values);
   }
-  return [...byName].flatMap(([name, values]) => values.length === 1 ? [{ name, value: values[0] }] : []);
+  return {
+    cookies: [...byName].flatMap(([name, values]) => values.length === 1 ? [{ name, value: values[0] }] : []),
+    names: [...byName.keys()],
+    duplicateNames: [...byName].flatMap(([name, values]) => values.length > 1 ? [name] : []),
+  };
 }
