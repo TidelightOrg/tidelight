@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { getBitgetMarketUniverse } from "@/lib/bitget-market";
-import { createClient } from "@/lib/supabase/server";
 import TradingWorkspace from "@/app/ui/trading-workspace";
 import { issuerLogoUrl } from "@/lib/issuer-logo";
 import { getServerUser } from "@/lib/supabase/auth-user";
@@ -10,7 +9,7 @@ export default async function TradingPage({ searchParams }: { searchParams: Prom
   const params = await searchParams;
   const requestedSymbol = params.symbol?.toUpperCase() ?? "";
   const intent = params.intent === "demo" || params.intent === "live" ? params.intent : undefined;
-  const [supabase, universe] = await Promise.all([createClient(), getBitgetMarketUniverse().catch(() => null)]);
+  const universe = await getBitgetMarketUniverse().catch(() => null);
   const user = await getServerUser();
   const assets = (universe?.assets ?? []).filter((asset) => asset.isReality && asset.kind === "rtoken" && asset.quoteCoin === "USDT").map((asset) => ({ symbol: asset.symbol, name: asset.name, ticker: asset.underlyingTicker, logoUrl: asset.logoUrl ?? issuerLogoUrl(asset), lastPrice: asset.lastPrice }));
   return <div className="content-wrap inner-page">

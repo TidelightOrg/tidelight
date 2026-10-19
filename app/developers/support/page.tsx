@@ -1,6 +1,5 @@
 import type { Metadata } from "next";
 import { PlatformNav } from "../platform-nav";
-import { createClient } from "@/lib/supabase/server";
 import { SupportCenter } from "./support-center";
 import "../tidelight-developers.css";
 import "../platform-polish.css";
@@ -17,7 +16,6 @@ export const metadata: Metadata = {
 export default async function DeveloperSupportPage({ searchParams }: { searchParams: Promise<{ ecosystem?: string; ticket?: string }> }) {
   const params = await searchParams;
   const ecosystem = params.ecosystem === "tidelight" || params.ecosystem === "packages" ? params.ecosystem : "intelligence";
-  const supabase = await createClient();
   const user = await getServerUser();
   return <main className="tic tic-landing tic-support-page">
     <PlatformNav active="support" ecosystem={ecosystem} />
