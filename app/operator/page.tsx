@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isTidelightOperator } from "@/lib/auth/operator-access";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getServerUser } from "@/lib/supabase/auth-user";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Operator console | Tidelight" };
@@ -16,7 +17,7 @@ const controls = [
 
 export default async function OperatorConsolePage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getServerUser();
   if (!user || !isTidelightOperator(user)) redirect("/overview");
 
   let pendingRequests: number | null = null;

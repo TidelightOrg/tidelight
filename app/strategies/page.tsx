@@ -2,13 +2,14 @@ import Link from "next/link";
 import TidelightAnimatedMark from "@/app/ui/tidelight-animated-mark";
 import { createClient } from "@/lib/supabase/server";
 import StrategyLab from "@/app/ui/strategy-lab";
+import { getServerUser } from "@/lib/supabase/auth-user";
 
 export default async function StrategiesPage({ searchParams }: { searchParams: Promise<{ symbol?: string; researchRunId?: string }> }) {
   const { symbol: requestedSymbol, researchRunId: requestedResearchRunId } = await searchParams;
   const initialSymbol = requestedSymbol?.toUpperCase().match(/^[A-Z0-9]{2,32}$/)?.[0] ?? "RAAPLUSDT";
   const initialResearchRunId = requestedResearchRunId?.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)?.[0] ?? null;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getServerUser();
   const { data } = user
     ? await supabase.from("strategy_backtest_runs").select("id, symbol, interval, strategy_key, parameters, train_metrics, test_metrics, data_start, data_end, candle_count, created_at").order("created_at", { ascending: false }).limit(12)
     : { data: [] };

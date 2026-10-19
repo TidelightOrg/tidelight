@@ -22,6 +22,7 @@ import "./overview/intelligent-overview.css";
 import "./tidelight-animated-mark.css";
 import "./account-center.css";
 import "./notifications/notifications.css";
+import { getServerUser } from "@/lib/supabase/auth-user";
 
 const baseMetadata: Metadata = {
   metadataBase: new URL("https://tidelight.app"),
@@ -72,7 +73,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const isStandaloneDeveloperHost = isPublicPackageHost || isPublicBlogHost;
   const language = cookieStore.get("tidelight-language")?.value === "zh-CN" ? "zh-CN" : "en";
   const supabase = isStandaloneDeveloperHost ? null : await createClient();
-  const { data: { user } } = supabase ? await supabase.auth.getUser() : { data: { user: null } };
+  const user = isStandaloneDeveloperHost ? null : await getServerUser();
   const { data: profile } = user && supabase
     ? await supabase.from("community_profiles").select("display_name,avatar_url").eq("id", user.id).maybeSingle()
     : { data: null };
