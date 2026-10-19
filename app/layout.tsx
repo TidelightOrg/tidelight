@@ -22,7 +22,7 @@ import "./overview/intelligent-overview.css";
 import "./tidelight-animated-mark.css";
 import "./account-center.css";
 import "./notifications/notifications.css";
-import { getServerUser } from "@/lib/supabase/auth-user";
+import { getServerAuthState } from "@/lib/supabase/auth-user";
 
 const baseMetadata: Metadata = {
   metadataBase: new URL("https://tidelight.app"),
@@ -73,7 +73,12 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const isStandaloneDeveloperHost = isPublicPackageHost || isPublicBlogHost;
   const language = cookieStore.get("tidelight-language")?.value === "zh-CN" ? "zh-CN" : "en";
   const supabase = isStandaloneDeveloperHost ? null : await createClient();
-  const user = isStandaloneDeveloperHost ? null : await getServerUser();
+  const authState = isStandaloneDeveloperHost ? { user: null, errorCode: null } : await getServerAuthState();
+  const user = authState.user;
+  const authCookieCount = (requestHeaders.get("cookie") ?? "").split(";").filter((part) => {
+    const name = part.trim().split("=")[0] ?? "";
+    return name.startsWith("sb-") && name.includes("-auth-token");
+  }).length;
   const { data: profile } = user && supabase
     ? await supabase.from("community_profiles").select("display_name,avatar_url").eq("id", user.id).maybeSingle()
     : { data: null };
@@ -86,6 +91,5 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     || user?.email?.split("@")[0]
     || null;
 
-  return <html lang={language} data-language={language} data-theme="daylight" suppressHydrationWarning><body><ThemeProvider><LanguageProvider initialLanguage={language}><IntelligenceProvider>{isStandaloneDeveloperHost ? <>{children}<AnalyticsConsent /></> : <WorkspaceShell email={user?.email ?? null} avatarUrl={profile?.avatar_url ?? metadataAvatar} displayName={displayName} isOperator={isTidelightOperator(user)}>{children}</WorkspaceShell>}{isStandaloneDeveloperHost ? null : <><SupportCompanion /><ProductQuickActions /></>}</IntelligenceProvider></LanguageProvider></ThemeProvider></body></html>;
+  return <html lang={language} data-language={language} data-theme="daylight" suppressHydrationWarning><body data-tic-auth-state={user ? "signed-in" : "guest"} data-tic-auth-error={authState.errorCode ?? "none"} data-tic-auth-cookie-count={authCookieCount}><ThemeProvider><LanguageProvider initialLanguage={language}><IntelligenceProvider>{isStandaloneDeveloperHost ? <>{children}<AnalyticsConsent /></> : <WorkspaceShell email={user?.email ?? null} avatarUrl={profile?.avatar_url ?? metadataAvatar} displayName={displayName} isOperator={isTidelightOperator(user)}>{children}</WorkspaceShell>}{isStandaloneDeveloperHost ? null : <><SupportCompanion /><ProductQuickActions /></>}</IntelligenceProvider></LanguageProvider></ThemeProvider></body></html>;
 }
-
