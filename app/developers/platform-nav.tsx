@@ -9,13 +9,17 @@ import { EcosystemSwitcher } from "./ecosystem-switcher";
 type PlatformNavProps = {
   active?: "platform" | "packages" | "support";
   ecosystem?: "tidelight" | "intelligence" | "packages";
+  packageHome?: boolean;
 };
 
-export function DeveloperMobileDock({ current = "platform" }: { current?: "platform" | "console" | "packages" | "support" | "docs" }) {
+type MobileDockCurrent = "platform" | "console" | "packages" | "support" | "docs";
+
+export function DeveloperMobileDock({ current = "platform", packageHref = "https://package.tidelight.app/dashboard" }: { current?: MobileDockCurrent; packageHref?: string }) {
   const items = [
     { id: "platform", label: "Cloud", href: "https://tidelight.app/developers", icon: "M3 10.5 12 3l9 7.5M5 9v11h14V9M9 20v-6h6v6" },
     { id: "console", label: "Console", href: "https://tidelight.app/developers/console", icon: "M4 5h16v14H4zM8 9l3 3-3 3M13 15h3" },
-    { id: "packages", label: "Packages", href: "https://package.tidelight.app/dashboard", icon: "M12 3 21 8v8l-9 5-9-5V8zM3 8l9 5 9-5M12 13v8" },
+    { id: "packages", label: "Packages", href: packageHref, icon: "M12 3 21 8v8l-9 5-9-5V8zM3 8l9 5 9-5M12 13v8" },
+    { id: "docs", label: "Docs", href: "https://dev.tidelight.app", icon: "M6 3h8l4 4v14H6zM14 3v5h5M9 12h6M9 16h6" },
     { id: "tidelight", label: "Tidelight", href: "https://tidelight.app/", icon: "M12 3a9 9 0 1 0 9 9M12 7a5 5 0 1 0 5 5" },
     { id: "support", label: "Support", href: `https://tidelight.app/developers/support?ecosystem=${current === "packages" ? "packages" : "intelligence"}`, icon: "M4 5h16v12H9l-5 4zM8 9h8M8 13h5" },
   ] as const;
@@ -29,7 +33,7 @@ const menuItems = [
   { href: "https://tidelight.app/developers/support", title: "Human support", note: "Talk directly with the Tidelight team", key: "support" },
 ] as const;
 
-export function PlatformNav({ active = "platform", ecosystem }: PlatformNavProps) {
+export function PlatformNav({ active = "platform", ecosystem, packageHome = false }: PlatformNavProps) {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuId = useId();
   const menuTitleId = useId();
@@ -156,5 +160,5 @@ export function PlatformNav({ active = "platform", ecosystem }: PlatformNavProps
         <p className="tic-mobile-menu-foot">Source-aware market and research infrastructure.</p>
       </div>
     </div>
-  </nav>{active !== "support" ? <DeveloperMobileDock current={active === "packages" ? "packages" : "platform"} /> : null}</>;
+  </nav>{active !== "support" ? <DeveloperMobileDock current={active === "packages" ? "packages" : "platform"} packageHref={packageHome ? "https://package.tidelight.app/" : undefined} /> : null}</>;
 }
