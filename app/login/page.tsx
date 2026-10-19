@@ -47,10 +47,12 @@ export default function LoginPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const authError = params.get("error");
-    if (authError === "session") setError("Tidelight couldn't finish signing you in. Your account provider returned, but no valid app session was found. Try again or contact support.");
-    else if (authError === "link") setError("This sign-in link is invalid or has expired. Request a fresh link and open it on this device.");
-    if (params.get("recovery") !== "1") return;
-    const timer = window.setTimeout(() => { setRecovering(true); setMethod("password"); }, 0);
+    const recovery = params.get("recovery") === "1";
+    const timer = window.setTimeout(() => {
+      if (authError === "session") setError("Tidelight couldn't finish signing you in. Your account provider returned, but no valid app session was found. Try again or contact support.");
+      else if (authError === "link") setError("This sign-in link is invalid or has expired. Request a fresh link and open it on this device.");
+      if (recovery) { setRecovering(true); setMethod("password"); }
+    }, 0);
     return () => window.clearTimeout(timer);
   }, []);
 

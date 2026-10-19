@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { listAccessibleProjects } from "@/lib/tic/organizations";
 import "../../tidelight-developers.css";
+import { getServerUser } from "@/lib/supabase/auth-user";
 
 export const dynamic = "force-dynamic";
 
@@ -14,8 +14,7 @@ function isKeyUnexpired(expiresAt: string | null) {
 export default async function OAuthConsentPage({ searchParams }: { searchParams: Promise<{ flow?: string }> }) {
   const { flow: flowId } = await searchParams;
   if (!flowId || !/^[0-9a-f-]{36}$/i.test(flowId)) return <main className="tic tic-docs"><h1>Authorization request expired</h1><p>Return to your MCP client and start the connection again.</p></main>;
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getServerUser();
   if (!user) redirect(`/login?next=${encodeURIComponent(`/developers/oauth/consent?flow=${flowId}`)}`);
   const admin = createAdminClient();
   const { data: flow } = await admin.from("tic_oauth_flows").select("id,client_id,scopes,expires_at").eq("id", flowId).gt("expires_at", new Date().toISOString()).maybeSingle();

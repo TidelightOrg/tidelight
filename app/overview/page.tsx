@@ -6,13 +6,14 @@ import { createClient } from "@/lib/supabase/server";
 import MarketSessionIndicator from "@/app/ui/market-session-indicator";
 import TidelightAnimatedMark from "@/app/ui/tidelight-animated-mark";
 import TokenPulse from "@/app/ui/token-pulse";
+import { getServerUser } from "@/lib/supabase/auth-user";
 
 export const maxDuration = 60;
 
 export default async function Overview() {
   const today = new Intl.DateTimeFormat("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: "America/New_York" }).format(new Date());
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getServerUser();
   const market = await getBitgetMarketUniverse().catch(() => null);
   const radarTickers = new Set(["NVDA", "TSLA", "MSFT", "AMZN"]);
   const initialRadarAssets = market?.assets.filter((asset) => asset.isReality && radarTickers.has(asset.underlyingTicker ?? "")) ?? [];
