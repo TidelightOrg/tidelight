@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { encodeVerifiedAuthUser } from "@/lib/supabase/verified-auth-claims";
 import { resolveServiceHostRoute } from "@/lib/tic/service-host-routing";
 import { excludeRefreshedAuthCookies, readSupabaseAuthCookieHeader, shouldMigrateSharedAuthCookies } from "@/lib/supabase/legacy-cookie-migration";
 
@@ -25,13 +26,13 @@ function routeResponse(request: NextRequest): NextResponse {
 }
 
 export async function proxy(request: NextRequest) {
+  // Never trust an identity header supplied by the browser. It is populated
+  // below only after Supabase has verified the request's signed access token.
+  request.headers.delete("x-tidelight-verified-auth-user");
   const authCookieHeader = readSupabaseAuthCookieHeader(request.headers.get("cookie"));
-  const originalAuthCookieShape = authCookieHeader.cookies.map(({ name, value }) => name + ":" + value.length).sort().join(",");
-  request.headers.set("x-tic-original-auth-cookie-shape", originalAuthCookieShape);
   let response = routeResponse(request);
   const refreshedAuthCookieNames = new Set<string>();
   const refreshedCookieWriters: Array<(target: NextResponse) => void> = [];
-  let refreshedCookieShape = "none";
 
   // Supabase SSR needs a request proxy to refresh expired access tokens and
   // persist the refreshed cookie before server components read the session.
@@ -44,10 +45,6 @@ export async function proxy(request: NextRequest) {
         cookies: {
           getAll: () => request.cookies.getAll(),
           setAll(cookiesToSet) {
-            refreshedCookieShape = cookiesToSet
-              .map(({ name, value }) => name + ":" + (typeof value === "string" ? value.length : "missing"))
-              .sort()
-              .join(",");
             cookiesToSet.forEach(({ name, value }) => {
               request.cookies.set(name, value);
               refreshedAuthCookieNames.add(name);
@@ -61,14 +58,10 @@ export async function proxy(request: NextRequest) {
       // getClaims verifies the token and refreshes it when needed. Never use
       // getSession here: it trusts the cookie without validating the JWT.
       const { data, error } = await supabase.auth.getClaims();
-      request.headers.set("x-tic-proxy-claims-state", error ? "error:" + (error.code ?? error.name) : data?.claims ? "present" : "absent");
-      request.headers.set("x-tic-proxy-set-cookie-shape", refreshedCookieShape);
-      const postRefreshShape = request.cookies.getAll()
-        .filter(({ name }) => /^sb-[a-z0-9-]+-auth-token(?:\.\d+)?$/i.test(name))
-        .map(({ name, value }) => name + ":" + (typeof value === "string" ? value.length : "missing"))
-        .sort()
-        .join(",");
-      request.headers.set("x-tic-proxy-post-refresh-cookie-shape", postRefreshShape);
+      if (!error) {
+        const verifiedUser = encodeVerifiedAuthUser(data?.claims);
+        if (verifiedUser) request.headers.set("x-tidelight-verified-auth-user", verifiedUser);
+      }
       response = routeResponse(request);
       refreshedCookieWriters.forEach((writeCookie) => writeCookie(response));
     }
