@@ -13,7 +13,6 @@ import PasskeyControls from "@/app/ui/passkey-controls";
 import ProfileEditor from "@/app/ui/profile-editor";
 import { LanguagePicker } from "@/app/ui/language-provider";
 import { isTidelightOperator } from "@/lib/auth/operator-access";
-import { getServerUser } from "@/lib/supabase/auth-user";
 
 export default async function SettingsPage({ searchParams }: { searchParams: Promise<{ error?: string; updated?: string; setup?: string }> }) {
   const params = await searchParams;
@@ -26,7 +25,7 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
     && (process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY),
   );
   const supabase = await createClient();
-  const user = await getServerUser();
+  const { data: { user } } = await supabase.auth.getUser();
   const { data: preferences } = user
     ? await supabase.from("user_preferences").select("risk_profile, default_region").eq("user_id", user.id).maybeSingle()
     : { data: null };

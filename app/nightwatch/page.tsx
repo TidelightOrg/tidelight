@@ -3,7 +3,6 @@ import { getBitgetAsset, getBitgetCandles, getBitgetMarketUniverse } from "@/lib
 import { issuerLogoUrl } from "@/lib/issuer-logo";
 import NightwatchDesk from "@/app/ui/nightwatch-desk";
 import { ALPHA_STRATEGIES, type StrategyKey } from "@/lib/backtest";
-import { getServerUser } from "@/lib/supabase/auth-user";
 
 export const revalidate = 60;
 
@@ -12,7 +11,7 @@ export default async function NightwatchPage({ searchParams }: { searchParams: P
   const initialPlaybookKey = requestedPlaybook && Object.hasOwn(ALPHA_STRATEGIES, requestedPlaybook) ? requestedPlaybook as StrategyKey : null;
   const researchRunId = requestedResearchRunId?.match(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i)?.[0] ?? null;
   const supabase = await createClient();
-  const user = await getServerUser();
+  const { data: { user } } = await supabase.auth.getUser();
   const universe = await getBitgetMarketUniverse().catch(() => null);
   const assets = (universe?.assets ?? []).filter((asset) => asset.isReality).map((asset) => ({
     symbol: asset.symbol, name: asset.name, ticker: asset.underlyingTicker, lastPrice: asset.lastPrice, change24h: asset.change24h,

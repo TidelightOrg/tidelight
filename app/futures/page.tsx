@@ -3,7 +3,6 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { STOCK_PERP_UNIVERSE } from "@/lib/bitget-market";
 import FuturesTradingStation from "@/app/ui/futures-trading-station";
 import "./paper.css";
-import { getServerUser } from "@/lib/supabase/auth-user";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +11,7 @@ export default async function FuturesPage({ searchParams }: { searchParams: Prom
   const requestedSymbol = params.symbol?.toUpperCase() ?? "";
   const researchRunId = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(params.researchRunId ?? "") ? params.researchRunId : undefined;
   const supabase = await createClient();
-  const user = await getServerUser();
+  const { data: { user } } = await supabase.auth.getUser();
   if (user) {
     const admin = createAdminClient();
     await admin.from("futures_paper_accounts").upsert({ user_id: user.id }, { onConflict: "user_id", ignoreDuplicates: true });

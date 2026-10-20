@@ -1,3 +1,4 @@
+import { createClient } from "@/lib/supabase/server";
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
@@ -8,7 +9,6 @@ import { DeveloperMobileDock } from "../platform-nav";
 import "../tidelight-developers.css";
 import "../platform-polish.css";
 import "./console-premium.css";
-import { getServerUser } from "@/lib/supabase/auth-user";
 
 export const metadata: Metadata = {
   title: { absolute: "Tidelight Developer Console" },
@@ -16,7 +16,8 @@ export const metadata: Metadata = {
 };
 
 export default async function ConsolePage() {
-  const user = await getServerUser();
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
   if (!user) return <main className="tic tic-console tic-console-entry">
     <header className="tic-console-header">
       <Link href="https://tidelight.app/developers" className="tic-brand">
