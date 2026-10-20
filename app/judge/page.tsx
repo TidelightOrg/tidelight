@@ -36,6 +36,7 @@ export default function JudgePage() {
           <div className="judge-actions">
             <Link className="judge-primary" href="/flow?demo=1&question=Should%20I%20review%20the%20affected%20rToken%20after%20an%20after-hours%20earnings%20event%3F">Run the live research path <span>↗</span></Link>
             <Link className="judge-secondary" href="/demo">Read the product walkthrough <span>→</span></Link>
+            <Link className="judge-secondary" href="/evidence">Inspect evidence manifest <span>↗</span></Link>
           </div>
         </div>
         <aside className="judge-hero-card" aria-label="Judge mode summary">
@@ -67,7 +68,7 @@ export default function JudgePage() {
         <span className="judge-kicker">02 / WHAT IS VERIFIED</span>
         <h2>Proof is part of the interface.</h2>
         <p>Every important statement has a place in the trace. A missing source, stale quote, contradictory claim, or failed gate is visible rather than silently replaced with confidence.</p>
-        <Link className="judge-inline-link" href="/research">Open the Research Desk <span>↗</span></Link>
+        <Link className="judge-inline-link" href="/evidence">Open the public evidence manifest <span>↗</span></Link>
       </div>
       <div className="judge-proof-list">
         {proof.map(([label, text], index) => <div key={label}><span>0{index + 1}</span><div><b>{label}</b><small>{text}</small></div></div>)}
