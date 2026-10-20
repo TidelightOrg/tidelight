@@ -22,8 +22,10 @@ function routeResponse(request: NextRequest): NextResponse {
 }
 
 export async function proxy(request: NextRequest) {
-  let response = routeResponse(request);
   const authCookieHeader = readSupabaseAuthCookieHeader(request.headers.get("cookie"));
+  const originalAuthCookieShape = authCookieHeader.cookies.map(({ name, value }) => name + ":" + value.length).sort().join(",");
+  request.headers.set("x-tic-original-auth-cookie-shape", originalAuthCookieShape);
+  let response = routeResponse(request);
   const refreshedAuthCookieNames = new Set<string>();
 
   // Supabase SSR needs a request proxy to refresh expired access tokens and
