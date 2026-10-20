@@ -101,7 +101,7 @@ export default function AnalyticsConsent() {
     } finally { setSaving(false); }
   }, [accountChoice]);
 
-  if (pathname === "/judge") return null;
+  if (pathname === "/judge" || pathname === "/evidence" || pathname === "/replay") return null;
 
   return <>
     {resolved && !open && !hasChoice && <button className="analytics-privacy-trigger" type="button" onClick={() => setOpen(true)}>Privacy choices</button>}

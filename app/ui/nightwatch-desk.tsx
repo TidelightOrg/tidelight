@@ -82,6 +82,25 @@ export default function NightwatchDesk({ signedIn, assets, initialRuns, initialO
   const [mfaRequired, setMfaRequired] = useState(false);
   const selected = assets.find((asset) => asset.symbol === symbol);
   const allRuns = localRun ? [localRun, ...initialRuns.filter((run) => run.id !== localRun.id)] : initialRuns;
+  const exportPaperEvidence = () => {
+    const evidence = {
+      schema_version: "tidelight.nightwatch-paper-evidence.v1",
+      exported_at: new Date().toISOString(),
+      privacy: "Private account data. This file is downloaded locally and is not uploaded by this action. Review and redact before sharing.",
+      scope: { decisions_included: allRuns.length, paper_orders_included: initialOrders.length, positions_included: positions.length, limit: "Only records currently loaded in this view are included; this is not a complete account archive." },
+      decision_runs: allRuns,
+      paper_orders: initialOrders,
+      open_positions: positions,
+    };
+    const blob = new Blob([JSON.stringify(evidence, null, 2)], { type: "application/json" });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `tidelight-nightwatch-evidence-${new Date().toISOString().slice(0, 10)}.json`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
+
   const marketChange = selected?.change24h;
   const positionsValue = useMemo(() => positions.reduce((sum, item) => sum + item.quantity * (item.currentPrice ?? item.average_cost), 0), [positions]);
   const equity = cashBalance + positionsValue;
@@ -253,7 +272,7 @@ export default function NightwatchDesk({ signedIn, assets, initialRuns, initialO
     </section>
 
     <section className="nw-panel nw-activity-panel">
-      <div className="nw-panel-head"><div><span className="eyebrow small-eyebrow">THE AUDIT TRAIL · PRIVATE & APPEND-ONLY</span><h2>Every decision has a reason.</h2></div><div className="nw-tabs"><button type="button" className={view === "decisions" ? "active" : ""} onClick={() => setView("decisions")}>Decisions <span>{allRuns.length}</span></button><button type="button" className={view === "orders" ? "active" : ""} onClick={() => setView("orders")}>Paper fills <span>{initialOrders.length}</span></button></div></div>
+      <div className="nw-panel-head"><div><span className="eyebrow small-eyebrow">THE AUDIT TRAIL · PRIVATE & APPEND-ONLY</span><h2>Every decision has a reason.</h2></div><div className="nw-audit-actions">{signedIn ? <button type="button" className="nw-export-button" onClick={exportPaperEvidence} disabled={!allRuns.length && !initialOrders.length && !positions.length}>Export private paper evidence ↓</button> : null}<div className="nw-tabs"><button type="button" className={view === "decisions" ? "active" : ""} onClick={() => setView("decisions")}>Decisions <span>{allRuns.length}</span></button><button type="button" className={view === "orders" ? "active" : ""} onClick={() => setView("orders")}>Paper fills <span>{initialOrders.length}</span></button></div></div></div>
       {signedIn ? <div className="nw-decision-audit" aria-label="Recent agent decision review"><div><span>REVIEWED</span><b>{decisionAudit.total}</b></div><div><span>PAPER ACTIONS</span><b>{decisionAudit.actioned}</b></div><div><span>HOLDS</span><b>{decisionAudit.held}</b></div><div><span>BLOCKED</span><b>{decisionAudit.blocked}</b></div><div><span>AI UNAVAILABLE</span><b>{decisionAudit.unavailable}</b></div><small>Latest {initialRuns.length} saved checks{localRun ? " + current check" : ""}. Counts are observational, not a profitability score.</small></div> : null}
       {view === "decisions" ? (allRuns.length ? <>
         <div className="nw-event-list" id="nightwatch-decision-history">{allRuns.slice(0, visibleDecisions).map((run) => <article className="nw-event" key={run.id}><span className={`nw-event-icon ${run.outcome}`}>{run.outcome === "executed" ? "↗" : run.outcome === "rejected" ? "⊘" : "·"}</span><div className="nw-event-copy"><div><b>{run.signal.toUpperCase()} · {run.symbol}</b><span className={`nw-outcome ${run.outcome}`}>{run.outcome.replace("_", " ")}</span></div>{run.snapshot?.playbook?.label ? <small className="nw-agent-evidence">Alpha Factory · {run.snapshot.playbook.label}</small> : null}<p>{run.snapshot?.agent?.rationale ?? run.reason}</p>{run.snapshot?.agent?.evidence?.length ? <small className="nw-agent-evidence">Observed: {run.snapshot.agent.evidence.join(" · ")}</small> : null}<small>{date(run.as_of)} · reference {price(Number(run.reference_price))}{run.snapshot?.agent ? " · AI confidence " + Math.round(run.snapshot.agent.confidence * 100) + "%" : " · legacy rule snapshot"}</small></div><span className="nw-event-sma">{run.snapshot?.agent ? "AGENT CONFIDENCE" : "SMA REFERENCE"}<br/><b>{run.snapshot?.agent ? Math.round(run.snapshot.agent.confidence * 100) + "%" : Number(run.fast_sma).toPrecision(5) + " / " + Number(run.slow_sma).toPrecision(5)}</b></span></article>)}</div>

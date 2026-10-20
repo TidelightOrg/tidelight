@@ -36,6 +36,8 @@ export default function JudgePage() {
           <div className="judge-actions">
             <Link className="judge-primary" href="/flow?demo=1&question=Should%20I%20review%20the%20affected%20rToken%20after%20an%20after-hours%20earnings%20event%3F">Run the live research path <span>↗</span></Link>
             <Link className="judge-secondary" href="/demo">Read the product walkthrough <span>→</span></Link>
+            <Link className="judge-secondary" href="/evidence">Inspect evidence manifest <span>↗</span></Link>
+            <Link className="judge-secondary" href="/replay">Open labeled research replay <span>↗</span></Link>
           </div>
         </div>
         <aside className="judge-hero-card" aria-label="Judge mode summary">
@@ -67,7 +69,7 @@ export default function JudgePage() {
         <span className="judge-kicker">02 / WHAT IS VERIFIED</span>
         <h2>Proof is part of the interface.</h2>
         <p>Every important statement has a place in the trace. A missing source, stale quote, contradictory claim, or failed gate is visible rather than silently replaced with confidence.</p>
-        <Link className="judge-inline-link" href="/research">Open the Research Desk <span>↗</span></Link>
+        <Link className="judge-inline-link" href="/evidence">Open the public evidence manifest <span>↗</span></Link>
       </div>
       <div className="judge-proof-list">
         {proof.map(([label, text], index) => <div key={label}><span>0{index + 1}</span><div><b>{label}</b><small>{text}</small></div></div>)}
@@ -82,6 +84,16 @@ export default function JudgePage() {
       <div className="judge-lane-grid">
         <Link href="/strategies"><span>ALPHA FACTORY</span><strong>Challenge the rule.</strong><small>Completed candles, holdout windows, fees, slippage, drawdown and trade logs.</small><em>Open Strategy Lab ↗</em></Link>
         <Link href="/nightwatch"><span>AGENTIC TRADING</span><strong>Guard the paper action.</strong><small>Freshness, sizing, exposure, pause, duplicate and daily-loss checks remain explicit.</small><em>Open Nightwatch ↗</em></Link>
+      </div>
+    </section>
+
+    <section className="judge-section">
+      <div className="judge-section-heading"><span className="judge-kicker">05 / REPRODUCIBLE PROOF</span><h2>Inspect the artifacts, not just the pitch.</h2></div>
+      <div className="judge-lane-grid">
+        <Link href="/evidence"><span>PUBLIC EVIDENCE</span><strong>Open the evidence manifest.</strong><em>Routes, artifact status, limitations and reproduction requirements ↗</em></Link>
+        <Link href="/replay"><span>RESEARCH TRACE</span><strong>Inspect the labeled replay.</strong><em>Illustrative fixture only—not a live source or result ↗</em></Link>
+        <Link href="/strategies"><span>ALPHA FACTORY</span><strong>Export a reproducible strategy run.</strong><em>Authenticated runs include candle fingerprints, costs and holdout data ↗</em></Link>
+        <Link href="/nightwatch"><span>NIGHTWATCH</span><strong>Export private paper evidence.</strong><em>Account-scoped decisions and paper ledger; review privacy before sharing ↗</em></Link>
       </div>
     </section>
 

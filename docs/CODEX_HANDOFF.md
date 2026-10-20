@@ -1,11 +1,15 @@
 # Tidelight Codex handoff
 
-**Prepared:** 16 October 2026
+**Prepared:** 20 October 2026
 **Repository:** [`TidelightOrg/tidelight`](https://github.com/TidelightOrg/tidelight)
-**Latest verified application baseline:** PR #176 main commit `c81dce5c5ed4fabbec846894f22486fb1b18818d`; production deployment `dpl_98SkhXN3NHu46kh6FqaDok1e24Ko` is READY and aliases all five TIC hosts. PR #176 fixes developer-platform accessibility findings. Verification record: [`TIC_IMPLEMENTATION.md`](TIC_IMPLEMENTATION.md#follow-up-verification-after-pr-176--16-october-2026).
-**Purpose:** let a fresh Codex session continue from verified state without redoing completed work.
+**Current baseline at this handoff:** production baseline before this evidence tranche is PR #267 commit `809147af9db35f610d43c549a4a91ad2170af125`. This branch is a proposal; do not treat its pages or evidence-export controls as production until the PR is merged, CI is green, and the production deployment is verified.
+**Purpose:** let a fresh session continue from current verified state without repeating completed work.
 
-This is the short operational index for the project. The detailed implementation evidence remains in [`TIC_IMPLEMENTATION.md`](TIC_IMPLEMENTATION.md); the product roadmap is [`PRODUCT_EVOLUTION_ROADMAP.md`](PRODUCT_EVOLUTION_ROADMAP.md); operating procedures are in [`OPERATIONS_RUNBOOK.md`](OPERATIONS_RUNBOOK.md). Read those source documents when working in their area. Update this handoff when milestones, production configuration, or the next action changes.
+## Current proposal: public proof and audit packaging
+
+The open evidence tranche adds a public manifest (`/evidence`, `/evidence/manifest.json`), a clearly marked non-live replay fixture (`/replay`), a direct Judge Mode entry to all proof surfaces, and a local Nightwatch JSON export limited to currently loaded owner-scoped records. Strategy Lab already provides per-run JSON export containing reproducibility inputs and metrics. Auth, signup, and Bitget package routes are outside this change and must not be modified without a separately verified regression.
+
+The branch remains unshipped until checks/deployment are confirmed. For status, inspect PR #268 and its latest commit/workflow. Then verify Vercel production deployment and open `https://tidelight.app/judge`, `/evidence`, and `/replay` in a browser; confirm the public routes bypass the account workspace and analytics prompt. Check mobile width with a real viewport before claiming mobile visual verification.
 
 ## Next session: exact continuation point
 

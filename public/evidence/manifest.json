@@ -1,0 +1,144 @@
+{
+  "schema_version": "1.0.0",
+  "product": "Tidelight",
+  "purpose": "Public index of reproducible evidence and verification paths for the Tidelight S2 evaluator.",
+  "generated_at": "2026-10-20",
+  "evidence_boundary": {
+    "status": "index_only",
+    "note": "This manifest documents where verifiable evidence can be obtained. It does not claim live paper fills, profitable alpha, audited returns, or completed runtime tests.",
+    "fixtures_are_live_results": false
+  },
+  "primary_entry": {
+    "track": "AI Trading Desk",
+    "thesis": "Turn after-hours tokenized-stock events into source-verified research, exposure-aware scenarios, and risk-gated paper decisions.",
+    "trace": [
+      "question",
+      "captured_sources",
+      "claims_and_counterpoints",
+      "reality_instrument",
+      "scenario",
+      "risk_gate",
+      "paper_review"
+    ]
+  },
+  "verification": {
+    "public_routes": [
+      {
+        "path": "/judge",
+        "purpose": "Public evaluator landing and navigation"
+      },
+      {
+        "path": "/flow?demo=1",
+        "purpose": "Live authenticated research workflow; requires a valid session"
+      },
+      {
+        "path": "/demo",
+        "purpose": "Product walkthrough"
+      },
+      {
+        "path": "/strategies",
+        "purpose": "Strategy research UI; authenticated workspace"
+      },
+      {
+        "path": "/nightwatch",
+        "purpose": "Paper monitoring and ledger UI; authenticated workspace"
+      },
+      {
+        "path": "/replay",
+        "purpose": "Static illustrative research-flow explanation; not live evidence."
+      },
+      {
+        "path": "/evidence",
+        "purpose": "Public index of evidence, reproducibility requirements, and boundaries."
+      },
+      {
+        "path": "/replay",
+        "purpose": "Illustrative static UX fixture; not live research evidence."
+      }
+    ],
+    "source_repository": "https://github.com/TidelightOrg/tidelight",
+    "reproducibility": {
+      "alpha": {
+        "status": "needs_run_artifact",
+        "requirements": [
+          "data window",
+          "out-of-sample window",
+          "source/data fingerprint",
+          "fees and slippage",
+          "raw trades",
+          "equity curve",
+          "drawdown and risk metrics",
+          "reproduction command"
+        ]
+      },
+      "agentic": {
+        "status": "private_owner_export_available",
+        "requirements": [
+          "private owner-scoped export only",
+          "run timestamp and event/source lineage where recorded",
+          "decision and risk checks",
+          "paper order/fill or explicit no-fill",
+          "result",
+          "review account privacy before sharing"
+        ]
+      },
+      "research": {
+        "status": "live_workflow_requires_session",
+        "requirements": [
+          "question",
+          "publisher and URL",
+          "captured timestamp",
+          "quoted claims",
+          "counter-evidence",
+          "instrument mapping",
+          "freshness",
+          "risk decision"
+        ]
+      }
+    }
+  },
+  "evidence_inventory": [
+    {
+      "id": "judge-route",
+      "kind": "public_route",
+      "status": "production_verified",
+      "uri": "https://tidelight.app/judge",
+      "claim": "Public evaluator page is available without login; UI presentation was inspected after the standalone-page fix."
+    },
+    {
+      "id": "judge-navigation",
+      "kind": "public_route",
+      "status": "production_verified",
+      "uri": "https://tidelight.app/",
+      "claim": "Landing page includes a direct Judge Mode navigation link; desktop and responsive navigation behavior are in the application."
+    },
+    {
+      "id": "application-ci",
+      "kind": "automated_checks",
+      "status": "pending",
+      "uri": "https://github.com/TidelightOrg/tidelight/actions",
+      "claim": "CI status will be updated after this evidence tranche passes the repository checks."
+    },
+    {
+      "id": "strategy-report",
+      "kind": "quantitative_evidence",
+      "status": "not_attached",
+      "uri": "https://github.com/TidelightOrg/tidelight/blob/main/docs/STRATEGY_VALIDATION_2026-10-05.md",
+      "claim": "Historical strategy validation report; do not represent as a positive alpha claim."
+    },
+    {
+      "id": "nightwatch-ledger",
+      "kind": "paper_trading",
+      "status": "private_owner_scoped",
+      "uri": "https://tidelight.app/nightwatch",
+      "claim": "Nightwatch runs and paper ledger require the owning account; no private user data is included in this public manifest."
+    },
+    {
+      "id": "research-replay",
+      "kind": "fixture",
+      "status": "illustrative_not_live",
+      "uri": "https://tidelight.app/replay",
+      "claim": "Static checklist fixture only; source, quote, provider, AI result, risk gate and paper outcome are not represented as real."
+    }
+  ]
+}
