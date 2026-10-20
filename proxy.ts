@@ -12,12 +12,15 @@ function notFound() {
 
 function routeResponse(request: NextRequest): NextResponse {
   const route = resolveServiceHostRoute(request.nextUrl.hostname, request.nextUrl.pathname);
-  if (!route) return NextResponse.next({ request });
+  const headers = new Headers(request.headers);
+  headers.set("cookie", request.cookies.toString());
+  const forwardedRequest = { request: { headers } };
+  if (!route) return NextResponse.next(forwardedRequest);
   if (route.kind === "not-found") return notFound();
   else {
     const destination = request.nextUrl.clone();
     destination.pathname = route.pathname;
-    return NextResponse.rewrite(destination, { request });
+    return NextResponse.rewrite(destination, forwardedRequest);
   }
 }
 
