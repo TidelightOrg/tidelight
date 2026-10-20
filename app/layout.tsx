@@ -4,7 +4,6 @@ import "./globals.css";
 import "./theme-polish.css";
 import "./nightwatch.css";
 import { createClient } from "@/lib/supabase/server";
-import { getServerAuthState } from "@/lib/supabase/auth-user";
 import { isTidelightOperator } from "@/lib/auth/operator-access";
 import WorkspaceShell from "./ui/workspace-shell";
 import AnalyticsConsent from "./ui/analytics-consent";
@@ -23,6 +22,7 @@ import "./overview/intelligent-overview.css";
 import "./tidelight-animated-mark.css";
 import "./account-center.css";
 import "./notifications/notifications.css";
+import { getServerUser } from "@/lib/supabase/auth-user";
 
 const baseMetadata: Metadata = {
   metadataBase: new URL("https://tidelight.app"),
@@ -73,10 +73,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const isStandaloneDeveloperHost = isPublicPackageHost || isPublicBlogHost;
   const language = cookieStore.get("tidelight-language")?.value === "zh-CN" ? "zh-CN" : "en";
   const supabase = isStandaloneDeveloperHost ? null : await createClient();
-  const authState = isStandaloneDeveloperHost
-    ? { user: null, errorCode: null, errorName: null }
-    : await getServerAuthState();
-  const user = authState.user;
+  const user = isStandaloneDeveloperHost ? null : await getServerUser();
   const { data: profile } = user && supabase
     ? await supabase.from("community_profiles").select("display_name,avatar_url").eq("id", user.id).maybeSingle()
     : { data: null };
@@ -89,5 +86,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     || user?.email?.split("@")[0]
     || null;
 
-  return <html lang={language} data-language={language} data-theme="daylight" suppressHydrationWarning><body data-tic-request-host={requestHost} data-tic-standalone-host={isStandaloneDeveloperHost}><ThemeProvider><LanguageProvider initialLanguage={language}><IntelligenceProvider>{isStandaloneDeveloperHost ? <>{children}<AnalyticsConsent /></> : <WorkspaceShell email={user?.email ?? null} avatarUrl={profile?.avatar_url ?? metadataAvatar} displayName={displayName} isOperator={isTidelightOperator(user)}>{children}</WorkspaceShell>}{isStandaloneDeveloperHost ? null : <><SupportCompanion /><ProductQuickActions /></>}</IntelligenceProvider></LanguageProvider></ThemeProvider></body></html>;
+  return <html lang={language} data-language={language} data-theme="daylight" suppressHydrationWarning><body><ThemeProvider><LanguageProvider initialLanguage={language}><IntelligenceProvider>{isStandaloneDeveloperHost ? <>{children}<AnalyticsConsent /></> : <WorkspaceShell email={user?.email ?? null} avatarUrl={profile?.avatar_url ?? metadataAvatar} displayName={displayName} isOperator={isTidelightOperator(user)}>{children}</WorkspaceShell>}{isStandaloneDeveloperHost ? null : <><SupportCompanion /><ProductQuickActions /></>}</IntelligenceProvider></LanguageProvider></ThemeProvider></body></html>;
 }
+
