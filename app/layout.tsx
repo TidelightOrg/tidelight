@@ -22,7 +22,6 @@ import "./overview/intelligent-overview.css";
 import "./tidelight-animated-mark.css";
 import "./account-center.css";
 import "./notifications/notifications.css";
-import { getServerAuthState } from "@/lib/supabase/auth-user";
 
 const baseMetadata: Metadata = {
   metadataBase: new URL("https://tidelight.app"),
@@ -73,8 +72,11 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const isStandaloneDeveloperHost = isPublicPackageHost || isPublicBlogHost;
   const language = cookieStore.get("tidelight-language")?.value === "zh-CN" ? "zh-CN" : "en";
   const supabase = isStandaloneDeveloperHost ? null : await createClient();
-  const authState = isStandaloneDeveloperHost ? { user: null, errorCode: null } : await getServerAuthState();
-  const user = authState.user;
+  const { data: { user: resolvedUser }, error: authError } = supabase
+    ? await supabase.auth.getUser()
+    : { data: { user: null }, error: null };
+  const user = authError ? null : resolvedUser;
+  const authState = { user, errorCode: authError?.code ?? null };
   const authCookieCount = (requestHeaders.get("cookie") ?? "").split(";").filter((part) => {
     const name = part.trim().split("=")[0] ?? "";
     return name.startsWith("sb-") && name.includes("-auth-token");

@@ -3,11 +3,10 @@ import Link from "next/link";
 import { signOut } from "@/app/actions";
 import AccountTabs, { type AccountGroup } from "@/app/ui/account-tabs";
 import { createClient } from "@/lib/supabase/server";
-import { getServerUser } from "@/lib/supabase/auth-user";
 
 export default async function AccountPage() {
   const supabase = await createClient();
-  const user = await getServerUser();
+  const { data: { user } } = await supabase.auth.getUser();
   const { data: profile } = user ? await supabase.from("community_profiles").select("handle,display_name,avatar_url").eq("id", user.id).maybeSingle() : { data: null };
   const name = profile?.display_name || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Tidelight guest";
   const groups: AccountGroup[] = [
