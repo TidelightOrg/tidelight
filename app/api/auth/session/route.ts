@@ -17,11 +17,11 @@ export async function GET(request: Request) {
       .map(({ name, value }) => name + ":" + (typeof value === "string" ? value.length : "missing"))
       .sort()
       .join(",");
-    const rawAuthCookieShape = (request.headers.get("cookie") ?? "").split(/;\\s*/).flatMap((pair) => {
+    const rawAuthCookieShape = (request.headers.get("cookie") ?? "").split(/;\s*/).flatMap((pair) => {
       const separator = pair.indexOf("=");
       if (separator < 1) return [];
       const name = pair.slice(0, separator).trim();
-      if (!/^sb-[a-z0-9-]+-auth-token(?:\\.\\d+)?$/i.test(name)) return [];
+      if (!/^sb-[a-z0-9-]+-auth-token(?:\.\d+)?$/i.test(name)) return [];
       return [name + ":" + pair.slice(separator + 1).length];
     }).sort().join(",");
 
