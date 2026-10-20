@@ -1,5 +1,6 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import { encodeVerifiedAuthUser } from "@/lib/supabase/verified-auth-claims";
 import { resolveServiceHostRoute } from "@/lib/tic/service-host-routing";
 import { excludeRefreshedAuthCookies, readSupabaseAuthCookieHeader, shouldMigrateSharedAuthCookies } from "@/lib/supabase/legacy-cookie-migration";
 
@@ -12,19 +13,26 @@ function notFound() {
 
 function routeResponse(request: NextRequest): NextResponse {
   const route = resolveServiceHostRoute(request.nextUrl.hostname, request.nextUrl.pathname);
-  if (!route) return NextResponse.next({ request });
+  const headers = new Headers(request.headers);
+  headers.set("cookie", request.cookies.toString());
+  const forwardedRequest = { request: { headers } };
+  if (!route) return NextResponse.next(forwardedRequest);
   if (route.kind === "not-found") return notFound();
   else {
     const destination = request.nextUrl.clone();
     destination.pathname = route.pathname;
-    return NextResponse.rewrite(destination, { request });
+    return NextResponse.rewrite(destination, forwardedRequest);
   }
 }
 
 export async function proxy(request: NextRequest) {
-  let response = routeResponse(request);
+  // Never trust an identity header supplied by the browser. It is populated
+  // below only after Supabase has verified the request's signed access token.
+  request.headers.delete("x-tidelight-verified-auth-user");
   const authCookieHeader = readSupabaseAuthCookieHeader(request.headers.get("cookie"));
+  let response = routeResponse(request);
   const refreshedAuthCookieNames = new Set<string>();
+  const refreshedCookieWriters: Array<(target: NextResponse) => void> = [];
 
   // Supabase SSR needs a request proxy to refresh expired access tokens and
   // persist the refreshed cookie before server components read the session.
@@ -41,14 +49,21 @@ export async function proxy(request: NextRequest) {
               request.cookies.set(name, value);
               refreshedAuthCookieNames.add(name);
             });
-            response = routeResponse(request);
-            cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+            cookiesToSet.forEach(({ name, value, options }) => {
+              refreshedCookieWriters.push((target) => target.cookies.set(name, value, options));
+            });
           },
         },
       });
       // getClaims verifies the token and refreshes it when needed. Never use
       // getSession here: it trusts the cookie without validating the JWT.
-      await supabase.auth.getClaims();
+      const { data, error } = await supabase.auth.getClaims();
+      if (!error) {
+        const verifiedUser = encodeVerifiedAuthUser(data?.claims);
+        if (verifiedUser) request.headers.set("x-tidelight-verified-auth-user", verifiedUser);
+      }
+      response = routeResponse(request);
+      refreshedCookieWriters.forEach((writeCookie) => writeCookie(response));
     }
   }
 
