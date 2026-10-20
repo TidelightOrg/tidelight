@@ -115,9 +115,9 @@
     {
       "id": "application-ci",
       "kind": "automated_checks",
-      "status": "pending",
+      "status": "passed",
       "uri": "https://github.com/TidelightOrg/tidelight/actions",
-      "claim": "CI status will be updated after this evidence tranche passes the repository checks."
+      "claim": "Application checks passed for production commit 1a8099f0d394c628a9888dfed91363c00bec6705; includes unit/contract tests, typecheck, lint, production build, and isolated database checks."
     },
     {
       "id": "strategy-report",
