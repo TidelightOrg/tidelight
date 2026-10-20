@@ -73,7 +73,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const isStandaloneDeveloperHost = isPublicPackageHost || isPublicBlogHost;
   const language = cookieStore.get("tidelight-language")?.value === "zh-CN" ? "zh-CN" : "en";
   const supabase = isStandaloneDeveloperHost ? null : await createClient();
-  const authState = isStandaloneDeveloperHost ? { user: null, errorCode: null } : await getServerAuthState();
+  const authState = isStandaloneDeveloperHost
+    ? { user: null, errorCode: null, errorName: null, sessionPresent: false, refreshTokenPresent: false }
+    : await getServerAuthState();
   const user = authState.user;
   const authCookieCounts = new Map<string, number>();
   for (const pair of (requestHeaders.get("cookie") ?? "").split(/;\s*/)) {
