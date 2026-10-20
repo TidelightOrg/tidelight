@@ -85,7 +85,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const authCookieCount = [...authCookieCounts.values()].reduce((count, value) => count + value, 0);
   const duplicateAuthCookieCount = [...authCookieCounts.values()].filter((count) => count > 1).length;
   const parsedAuthCookieCount = cookieStore.getAll().filter(({ name }) => /^sb-[a-z0-9-]+-auth-token(?:\.\d+)?$/i.test(name)).length;
-  const authCookieShape = cookieStore.getAll().filter(({ name }) => /^sb-[a-z0-9-]+-auth-token(?:\.\d+)?$/i.test(name)).map(({ name, value }) => name + ":" + value.length).sort().join(",");
+  const authCookieShape = cookieStore.getAll().filter(({ name }) => /^sb-[a-z0-9-]+-auth-token(?:\.\d+)?$/i.test(name)).map(({ name, value }) => name + ":" + (typeof value === "string" ? value.length : "missing")).sort().join(",");
   const { data: profile } = user && supabase
     ? await supabase.from("community_profiles").select("display_name,avatar_url").eq("id", user.id).maybeSingle()
     : { data: null };
