@@ -73,7 +73,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const isStandaloneDeveloperHost = isPublicPackageHost || isPublicBlogHost;
   const language = cookieStore.get("tidelight-language")?.value === "zh-CN" ? "zh-CN" : "en";
   const supabase = isStandaloneDeveloperHost ? null : await createClient();
-  const authState = isStandaloneDeveloperHost ? { user: null, errorCode: null } : await getServerAuthState();
+  const authState = isStandaloneDeveloperHost
+    ? { user: null, errorCode: null, errorName: null, sessionPresent: false, refreshTokenPresent: false }
+    : await getServerAuthState();
   const user = authState.user;
   const authCookieCounts = new Map<string, number>();
   for (const pair of (requestHeaders.get("cookie") ?? "").split(/;\s*/)) {
@@ -83,6 +85,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const authCookieCount = [...authCookieCounts.values()].reduce((count, value) => count + value, 0);
   const duplicateAuthCookieCount = [...authCookieCounts.values()].filter((count) => count > 1).length;
   const parsedAuthCookieCount = cookieStore.getAll().filter(({ name }) => /^sb-[a-z0-9-]+-auth-token(?:\.\d+)?$/i.test(name)).length;
+  const authCookieShape = cookieStore.getAll().filter(({ name }) => /^sb-[a-z0-9-]+-auth-token(?:\.\d+)?$/i.test(name)).map(({ name, value }) => name + ":" + value.length).sort().join(",");
   const { data: profile } = user && supabase
     ? await supabase.from("community_profiles").select("display_name,avatar_url").eq("id", user.id).maybeSingle()
     : { data: null };
@@ -95,5 +98,5 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     || user?.email?.split("@")[0]
     || null;
 
-  return <html lang={language} data-language={language} data-theme="daylight" suppressHydrationWarning><body data-tic-auth-state={user ? "signed-in" : "guest"} data-tic-auth-error={authState.errorCode ?? "none"} data-tic-auth-cookie-count={authCookieCount} data-tic-auth-parsed-cookie-count={parsedAuthCookieCount} data-tic-auth-duplicate-count={duplicateAuthCookieCount} data-tic-request-host={requestHost} data-tic-standalone-host={isStandaloneDeveloperHost}><ThemeProvider><LanguageProvider initialLanguage={language}><IntelligenceProvider>{isStandaloneDeveloperHost ? <>{children}<AnalyticsConsent /></> : <WorkspaceShell email={user?.email ?? null} avatarUrl={profile?.avatar_url ?? metadataAvatar} displayName={displayName} isOperator={isTidelightOperator(user)}>{children}</WorkspaceShell>}{isStandaloneDeveloperHost ? null : <><SupportCompanion /><ProductQuickActions /></>}</IntelligenceProvider></LanguageProvider></ThemeProvider></body></html>;
+  return <html lang={language} data-language={language} data-theme="daylight" suppressHydrationWarning><body data-tic-auth-state={user ? "signed-in" : "guest"} data-tic-auth-error={authState.errorCode ?? "none"} data-tic-auth-error-name={authState.errorName ?? "none"} data-tic-auth-session-present={authState.sessionPresent} data-tic-auth-refresh-token-present={authState.refreshTokenPresent} data-tic-auth-cookie-count={authCookieCount} data-tic-auth-parsed-cookie-count={parsedAuthCookieCount} data-tic-auth-cookie-shape={authCookieShape} data-tic-auth-duplicate-count={duplicateAuthCookieCount} data-tic-request-host={requestHost} data-tic-standalone-host={isStandaloneDeveloperHost}><ThemeProvider><LanguageProvider initialLanguage={language}><IntelligenceProvider>{isStandaloneDeveloperHost ? <>{children}<AnalyticsConsent /></> : <WorkspaceShell email={user?.email ?? null} avatarUrl={profile?.avatar_url ?? metadataAvatar} displayName={displayName} isOperator={isTidelightOperator(user)}>{children}</WorkspaceShell>}{isStandaloneDeveloperHost ? null : <><SupportCompanion /><ProductQuickActions /></>}</IntelligenceProvider></LanguageProvider></ThemeProvider></body></html>;
 }
