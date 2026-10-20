@@ -11,11 +11,11 @@ export async function GET() {
   if (!user) return NextResponse.json({ error: "Sign in to manage Nightwatch preferences." }, { status: 401 });
   const [settingsResult, emailResult] = await Promise.all([
     supabase.from("nightwatch_preferences").select("trigger_mode, monitor_symbol, research_run_id, alert_on_signal, alert_on_fill, daily_summary, playbook_key").maybeSingle(),
-    supabase.from("email_notification_preferences").select("nightwatch_signals, nightwatch_fills, nightwatch_risks, nightwatch_research, nightwatch_daily_summary").maybeSingle(),
+    supabase.from("email_notification_preferences").select("nightwatch_analysis, nightwatch_signals, nightwatch_fills, nightwatch_risks, nightwatch_research, nightwatch_daily_summary").maybeSingle(),
   ]);
   if (settingsResult.error || emailResult.error) return NextResponse.json({ error: "Could not load Nightwatch preferences." }, { status: 503 });
   const schedulerAvailable = Boolean(process.env.CRON_SECRET && (process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY));
-  return NextResponse.json({ ...(settingsResult.data ?? defaults), ...(emailResult.data ?? { nightwatch_signals: false, nightwatch_fills: false, nightwatch_risks: false, nightwatch_research: false, nightwatch_daily_summary: false }), scheduler_available: schedulerAvailable, email_delivery_available: Boolean(process.env.RESEND_API_KEY && (process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY)) });
+  return NextResponse.json({ ...(settingsResult.data ?? defaults), ...(emailResult.data ?? { nightwatch_analysis: false, nightwatch_signals: false, nightwatch_fills: false, nightwatch_risks: false, nightwatch_research: false, nightwatch_daily_summary: false }), scheduler_available: schedulerAvailable, email_delivery_available: Boolean(process.env.RESEND_API_KEY && (process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY)) });
 }
 
 export async function PATCH(request: Request) {
@@ -40,6 +40,7 @@ export async function PATCH(request: Request) {
   }
   const emailValues = {
     user_id: user.id,
+    nightwatch_analysis: body.nightwatch_analysis === true,
     nightwatch_signals: body.nightwatch_signals === true,
     nightwatch_fills: body.nightwatch_fills === true,
     nightwatch_risks: body.nightwatch_risks === true,
@@ -47,7 +48,7 @@ export async function PATCH(request: Request) {
     nightwatch_daily_summary: body.nightwatch_daily_summary === true,
     updated_at: new Date().toISOString(),
   };
-  const emailRequested = emailValues.nightwatch_signals || emailValues.nightwatch_fills || emailValues.nightwatch_risks || emailValues.nightwatch_research || emailValues.nightwatch_daily_summary;
+  const emailRequested = emailValues.nightwatch_analysis || emailValues.nightwatch_signals || emailValues.nightwatch_fills || emailValues.nightwatch_risks || emailValues.nightwatch_research || emailValues.nightwatch_daily_summary;
   if (emailRequested && (!process.env.RESEND_API_KEY || (!process.env.SUPABASE_SECRET_KEY && !process.env.SUPABASE_SERVICE_ROLE_KEY))) return NextResponse.json({ error: "Email notifications are being prepared but are not available yet." }, { status: 503 });
   const values = { user_id: user.id, ...normalizeNightwatchPreferences(body), updated_at: new Date().toISOString() };
   const { error } = await supabase.from("nightwatch_preferences").upsert(values, { onConflict: "user_id" });
