@@ -31,3 +31,13 @@ Production verification must record the deployed commit and deployment state, th
 - The static replay is a UX explanation only. A real research run requires the authenticated research flow and live provider access.
 - Nightwatch exports are user-initiated, local downloads, not a public judging artifact or signed/audited ledger.
 - A passing migration test or CI run is not a substitute for checking the live deployment and current production advisories.
+
+## Live project advisor snapshot
+
+Read-only Supabase advisor checks for project `plmdnzbmvgigkzfmfwov`, observed 20 October 2026:
+- Security: 23 tables have RLS enabled without explicit policies (INFO); this can be intentional for service-role-only tables and must be checked against grants and server access before changing.
+- Security: `pg_net` in `public` (WARN), remediation: https://supabase.com/docs/guides/database/database-linter?lint=0014_extension_in_public
+- Security: leaked-password protection disabled (WARN); enable through the Supabase Auth security settings after product-owner review.
+- Performance: 53 unused-index notices (INFO); do not drop indexes based on a fresh/low-volume project snapshot alone.
+
+These are live dashboard findings, not conclusions that the app is exploitable. Resolve each table’s grants, access path, and intended service-role boundary; then change policies only with a verified test. Track configuration-only warnings separately from code/migration findings.
