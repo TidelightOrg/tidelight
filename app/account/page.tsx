@@ -51,7 +51,7 @@ export default async function AccountPage() {
       { label: "Storage management", detail: "Review local browser data without deleting account records", href: "/storage", icon: "▱" },
     ] },
   ];
-  return <main className="content-wrap inner-page account-center">
+  return <main className="content-wrap inner-page account-center" data-tic-account-auth-state={user ? "signed-in" : "guest"}>
     <header className="account-center-hero"><div className="account-center-identity"><div className="account-center-avatar">{profile?.avatar_url ? <Image src={profile.avatar_url} alt="" width={70} height={70} unoptimized /> : name.slice(0,1).toUpperCase()}</div><div><span className="eyebrow">TIDELIGHT ACCOUNT</span><h1>{name}</h1><p>{user?.email ?? "Sign in to save preferences and secure your research."}{profile?.handle ? ` · @${profile.handle}` : ""}</p></div></div><Link className="account-center-edit" href={user ? "/settings#account-profile" : "/login"}>{user ? "Edit profile" : "Sign in"}<span>↗</span></Link></header>
     <AccountTabs groups={groups} userId={user?.id} />
     <footer className="account-center-footer"><Link href="/terms">Terms</Link><Link href="/privacy">Privacy</Link>{user ? <form action={signOut}><button className="account-center-logout" type="submit">Log out</button></form> : null}<span>Clarity when the bell is quiet.</span></footer>
