@@ -11,10 +11,6 @@ import { drainEmailQueue } from '@/lib/email/delivery';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 const headers = { 'Cache-Control': 'no-store' };
-function scheduleEmailDrain(admin: ReturnType<typeof createAdminClient>) {
-  const drain = () => drainEmailQueue(admin).catch(() => console.warn('nightwatch-schedule-delivery-deferred'));
-  try { after(drain); } catch { void drain(); }
-}
 type Job = { id: string; user_id: string; lease_token: string; config: { id: string; symbol: string; playbook_key: StrategyKey; research_run_id: string | null } };
 function authorized(request: Request) {
   const supplied = Buffer.from(request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ?? '');
@@ -66,19 +62,16 @@ export async function POST(request: Request) {
     if (finished.error) throw new Error('commit_unavailable');
     const result = finished.data as { status:string; run_id?:string; outcome?:string; idempotent?:boolean };
     if (result.status === 'complete' && result.run_id && !result.idempotent && decision) {
-      const alerts = [];
-      if (signal !== 'hold' && preferences.data?.alert_on_signal !== false) alerts.push({kind:'signal' as const,title:`${signal.toUpperCase()} signal · ${config.symbol}`});
-      if (result.outcome === 'executed' && preferences.data?.alert_on_fill !== false) alerts.push({kind:'fill' as const,title:`Paper ${signal} filled · ${config.symbol}`});
+      const alerts: Array<{kind:'analysis'|'signal'|'fill';title:string;body:string}> = [{ kind:'analysis', title:`Analysis complete · ${config.symbol}`, body:`${signal.toUpperCase()} · ${result.outcome ?? 'recorded'}. ${decision?.rationale ?? 'The scheduled paper analysis was recorded.'}` }];
+      if (signal !== 'hold' && preferences.data?.alert_on_signal !== false) alerts.push({kind:'signal',title:`${signal.toUpperCase()} signal · ${config.symbol}`,body:decision?.rationale ?? 'Scheduled signal recorded.'});
+      if (result.outcome === 'executed' && preferences.data?.alert_on_fill !== false) alerts.push({kind:'fill',title:`Paper ${signal} filled · ${config.symbol}`,body:decision?.rationale ?? 'Paper fill recorded.'});
       for (const alert of alerts) {
-        const saved = await admin.from('nightwatch_alerts').upsert({user_id:job.user_id,run_id:result.run_id,...alert,body:decision.rationale},{onConflict:'run_id,kind'});
+        const saved = await admin.from('nightwatch_alerts').upsert({user_id:job.user_id,run_id:result.run_id,...alert,body:alert.body ?? decision?.rationale ?? 'Scheduled paper analysis recorded.'},{onConflict:'run_id,kind'});
         if (saved.error) console.warn('nightwatch-schedule-alert-deferred',saved.error.code);
-        else await enqueueNightwatchEmail({admin,userId:job.user_id,eventKey:`nightwatch:${result.run_id}:${alert.kind}`,kind:alert.kind==='signal'?'nightwatch_signal':'nightwatch_fill',title:alert.title,body:decision.rationale}).catch(()=>console.warn('nightwatch-schedule-email-deferred'));
+        else await enqueueNightwatchEmail({admin,userId:job.user_id,eventKey:`nightwatch:${result.run_id}:${alert.kind}`,kind:alert.kind==='analysis'?'nightwatch_analysis':alert.kind==='signal'?'nightwatch_signal':'nightwatch_fill',title:alert.title,body:alert.body ?? decision?.rationale ?? 'Scheduled paper analysis recorded.'}).catch(()=>console.warn('nightwatch-schedule-email-deferred'));
       }
+      if (alerts.length) after(async()=>{ await drainEmailQueue(admin).catch(()=>console.warn('nightwatch-schedule-delivery-deferred')); });
     }
-    // Drain any queued account emails even when this run produced no new
-    // signal/fill. A previous transient delivery failure must not wait for a
-    // separate daily sweep before reaching the user.
-    scheduleEmailDrain(admin);
     return NextResponse.json({claimed:true,status:result.status,outcome:result.outcome ?? null,paperOnly:true},{headers});
   } catch {
     let failure;
