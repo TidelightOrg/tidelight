@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 
 const MEASUREMENT_ID = "G-JOP7HOTN38";
 const CONSENT_KEY = "tidelight-analytics-consent-v1";
@@ -30,6 +31,7 @@ declare global {
 }
 
 export default function AnalyticsConsent() {
+  const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const [resolved, setResolved] = useState(false);
   const [hasChoice, setHasChoice] = useState(false);
@@ -98,6 +100,8 @@ export default function AnalyticsConsent() {
       setError(cause instanceof Error ? cause.message : "We couldn’t save your privacy choice. Please try again.");
     } finally { setSaving(false); }
   }, [accountChoice]);
+
+  if (pathname === "/judge") return null;
 
   return <>
     {resolved && !open && !hasChoice && <button className="analytics-privacy-trigger" type="button" onClick={() => setOpen(true)}>Privacy choices</button>}
