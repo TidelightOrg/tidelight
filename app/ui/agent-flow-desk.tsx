@@ -39,19 +39,28 @@ function safeDeskLink(destination: Destination) {
   return null;
 }
 
-export default function AgentFlowDesk({ initialQuestion }: { initialQuestion: string }) {
+export default function AgentFlowDesk({ initialQuestion, evaluatorMode = false }: { initialQuestion: string; evaluatorMode?: boolean }) {
   const { mode, setMode } = useExperience();
   const [question, setQuestion] = useState(initialQuestion);
   const [stages, setStages] = useState<StageEvent[]>([]);
   const [result, setResult] = useState<FlowResult | null>(null);
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
+  const [busySince, setBusySince] = useState<number | null>(null);
+  const [busySeconds, setBusySeconds] = useState(0);
   const [quoteNow, setQuoteNow] = useState(0);
   const controller = useRef<AbortController | null>(null);
   const handoffRef = useRef<HTMLDivElement>(null);
   const tradeableAssets = result?.assets.filter((asset) => asset.tradeable && asset.handoff?.destinations.length) ?? [];
 
   useEffect(() => () => controller.current?.abort(), []);
+  useEffect(() => {
+    if (!busy || busySince === null) return;
+    const update = () => setBusySeconds(Math.max(0, Math.floor((Date.now() - busySince) / 1000)));
+    update();
+    const timer = window.setInterval(update, 1_000);
+    return () => window.clearInterval(timer);
+  }, [busy, busySince]);
   useEffect(() => {
     if (!result) return;
     const timer = window.setInterval(() => setQuoteNow(Date.now()), 1_000);
@@ -73,7 +82,7 @@ export default function AgentFlowDesk({ initialQuestion }: { initialQuestion: st
     controller.current?.abort();
     const request = new AbortController();
     controller.current = request;
-    setBusy(true); setError(""); setResult(null); setStages([]);
+    setBusy(true); setBusySince(Date.now()); setBusySeconds(0); setError(""); setResult(null); setStages([]);
     let completed = false;
     try {
       const response = await fetch("/api/research/agent-flow", {
@@ -126,11 +135,15 @@ export default function AgentFlowDesk({ initialQuestion }: { initialQuestion: st
     } catch (cause) {
       if (!request.signal.aborted) setError(cause instanceof Error ? cause.message : "The research flow could not finish.");
     } finally {
-      if (controller.current === request) { controller.current = null; setBusy(false); }
+      if (controller.current === request) { controller.current = null; setBusy(false); setBusySince(null); }
     }
   }
 
   return <div className="content-wrap inner-page agent-flow-page">
+    {evaluatorMode ? <section className="flow-evaluator" aria-label="Evaluator guide">
+      <div><span className="flow-kicker">TIDELIGHT / EVALUATOR VIEW</span><h2>Follow one real question through the gates.</h2><p>This guided run uses the same source-bound workflow as the workspace. Watch the evidence, quote freshness, and confidence gate; a review link appears only when the result qualifies.</p></div>
+      <ol><li><b>Evidence</b><span>Source links and captured publishers</span></li><li><b>Exposure</b><span>Reality instrument and quote timestamp</span></li><li><b>Decision</b><span>Confidence and risk gates stay visible</span></li></ol>
+    </section> : null}
     <section className="flow-hero" aria-labelledby="flow-title">
       <div className="flow-hero-copy"><span className="flow-kicker"><i /> TIDELIGHT / CONNECTED RESEARCH</span>
         <h1 id="flow-title">Ask once.<br /><span>Follow every step.</span></h1>
@@ -141,7 +154,7 @@ export default function AgentFlowDesk({ initialQuestion }: { initialQuestion: st
       <div className="flow-orbit" aria-hidden="true"><div className="flow-orbit-ring"><span>EVENT</span><span>EVIDENCE</span><span>EXPOSURE</span><span>DECISION</span></div><div className="flow-orbit-core"><Image src="/tidelight-mark.svg" alt="" width={42} height={42} /><small>TIDELIGHT</small></div></div>
     </section>
 
-    {(busy || stages.length > 0) ? <section className="flow-glass" aria-label="Agent activity"><div className="flow-section-head"><div><span className="flow-kicker">THE VISIBLE WORKFLOW</span><h2>What the agents are checking.</h2><p>Operational checkpoints appear as the work runs. Private model reasoning and unverified claims are not displayed.</p></div><span className={`flow-state ${busy ? "flow-state-live" : ""}`}>{busy ? "● IN PROGRESS" : error ? "PAUSED" : "COMPLETE"}</span></div>
+    {(busy || stages.length > 0) ? <section className="flow-glass" aria-label="Agent activity" aria-busy={busy}><div className="flow-section-head"><div><span className="flow-kicker">THE VISIBLE WORKFLOW</span><h2>What the agents are checking.</h2><p>Operational checkpoints appear as the work runs. Private model reasoning and unverified claims are not displayed.</p></div><span className={`flow-state ${busy ? "flow-state-live" : ""}`}>{busy ? "● IN PROGRESS" : error ? "PAUSED" : "COMPLETE"}</span></div>
       <div className="flow-trace" aria-live="polite" aria-relevant="additions text" role="list">{stages.map((stage, index) => {
         const effectiveStatus = stage.status === "running" && !busy ? error ? "blocked" : "complete" : stage.status;
         const statusLabel = effectiveStatus === "running" ? "In progress" : effectiveStatus === "blocked" ? "On hold" : index < stages.length - 1 ? "Passed forward" : "Captured";
@@ -152,7 +165,7 @@ export default function AgentFlowDesk({ initialQuestion }: { initialQuestion: st
             <details className="flow-stage-detail"><summary>What was checked</summary><p>{stage.detail}</p></details>
           </div>
         </article>;
-      })}{busy && stages.length === 0 ? <div className="flow-wait"><i /> Connecting the research agents…</div> : null}</div>
+      })}{busy && stages.length === 0 ? <div className="flow-wait"><i /><span>Connecting the research agents…{busySeconds >= 15 ? <small>Evidence providers can take a minute to respond. Keep this window open.</small> : null}</span><time dateTime={`PT${busySeconds}S`}>{busySeconds}s</time></div> : null}{busy && stages.length > 0 && busySeconds >= 15 ? <p className="flow-progress-note" role="status">Still checking evidence and market gates. This can take a minute when providers are slow.</p> : null}</div>
     </section> : null}
 
     {error ? <div className="flow-error" role="alert"><b>Research paused</b><span>{error}</span>{error.toLowerCase().includes("sign in") ? <Link href="/login">Sign in ↗</Link> : <button type="button" onClick={() => void runFlow()} disabled={busy}>Try again ↗</button>}</div> : null}
