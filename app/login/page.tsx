@@ -44,6 +44,12 @@ export default function LoginPage() {
     return false;
   }
 
+  async function notifyAuthEvent(event: "new_login" | "new_signup") {
+    try {
+      await fetch("/api/security/notification", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ event }), keepalive: true });
+    } catch { /* Authentication must not fail because notification delivery is unavailable. */ }
+  }
+
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const authError = params.get("error");
@@ -62,7 +68,7 @@ export default function LoginPage() {
     try {
       const { error: passkeyError } = await createClient().auth.signInWithPasskey();
       if (passkeyError) setError("Passkey sign-in could not be completed. Check the passkey provider setup or choose another sign-in method.");
-      else { const client = createClient(); const { data: { user } } = await client.auth.getUser(); if (!user || !(await confirmServerSession())) { setError("Your sign-in was accepted, but Tidelight could not establish a session. Please try again. If this continues, contact support."); return; } await client.from("security_events").insert({ user_id: user.id, event_type: "passkey_signin", metadata: {} }); router.replace(requestedNext()); router.refresh(); }
+      else { const client = createClient(); const { data: { user } } = await client.auth.getUser(); if (!user || !(await confirmServerSession())) { setError("Your sign-in was accepted, but Tidelight could not establish a session. Please try again. If this continues, contact support."); return; } await client.from("security_events").insert({ user_id: user.id, event_type: "passkey_signin", metadata: {} }); await notifyAuthEvent("new_login"); router.replace(requestedNext()); router.refresh(); }
     } catch {
       setError("Passkey sign-in is unavailable on this device or provider setup. Choose another sign-in method.");
     } finally { setPasskeyBusy(false); }
@@ -84,6 +90,7 @@ export default function LoginPage() {
         if (verifyError) throw verifyError;
         if (!(await confirmServerSession())) throw new Error("Your code was accepted, but Tidelight could not establish a session. Please try again.");
         const isNew = verified.user?.created_at && Date.now() - Date.parse(verified.user.created_at) < 10 * 60 * 1000;
+        await notifyAuthEvent(isNew ? "new_signup" : "new_login");
         router.replace(requestedNext() !== "/" ? requestedNext() : isNew ? "/settings?setup=username#profile" : "/");
         router.refresh();
         return;
@@ -102,7 +109,7 @@ export default function LoginPage() {
       if (authError) throw authError;
       if (method === "code") setCodeSent(true);
       else if (method === "link" || isSignUp) setSent(true);
-      else { if (!(await confirmServerSession())) throw new Error("Your password was accepted, but Tidelight could not establish a session. Please try again."); router.replace(requestedNext()); router.refresh(); }
+      else { if (!(await confirmServerSession())) throw new Error("Your password was accepted, but Tidelight could not establish a session. Please try again."); await notifyAuthEvent("new_login"); router.replace(requestedNext()); router.refresh(); }
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : "";
       const normalized = message.toLowerCase();
