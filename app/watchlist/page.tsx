@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import WatchlistBoard from "@/app/ui/watchlist-board";
+import { getServerUser } from "@/lib/supabase/auth-user";
 
 const companies = [
   { symbol: "NVDA", company_name: "NVIDIA Corporation", field: "Semiconductors", color: "green", mark: "N" },
@@ -15,7 +16,7 @@ const companies = [
 export default async function WatchlistPage({ searchParams }: { searchParams: Promise<{ error?: string; added?: string; removed?: string; symbol?: string }> }) {
   const params = await searchParams;
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getServerUser();
   const { data } = user
     ? await supabase.from("watchlist_items").select("id, symbol, company_name, notes, created_at").order("created_at", { ascending: true })
     : { data: null };
