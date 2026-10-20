@@ -37,6 +37,7 @@ export default function JudgePage() {
             <Link className="judge-primary" href="/flow?demo=1&question=Should%20I%20review%20the%20affected%20rToken%20after%20an%20after-hours%20earnings%20event%3F">Run the live research path <span>↗</span></Link>
             <Link className="judge-secondary" href="/demo">Read the product walkthrough <span>→</span></Link>
             <Link className="judge-secondary" href="/evidence">Inspect evidence manifest <span>↗</span></Link>
+            <Link className="judge-secondary" href="/replay">Open labeled research replay <span>↗</span></Link>
           </div>
         </div>
         <aside className="judge-hero-card" aria-label="Judge mode summary">
