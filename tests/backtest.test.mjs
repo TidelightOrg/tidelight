@@ -36,6 +36,10 @@ test("runs a chronological holdout over at least 60 days with costs and a trade 
   assert.ok(result.test.tradeLog.length > 0);
   assert.ok(result.test.tradeLog.every((trade) => Number.isFinite(trade.returnPct)));
   assert.ok(result.test.equityCurve.every((point) => Number.isFinite(point.equity) && point.equity > 0));
+  assert.ok(result.validation.trainingDays >= 30);
+  assert.ok(result.validation.holdoutDays >= 30);
+  assert.equal(result.validation.holdoutExcessReturnPct, result.test.totalReturnPct - result.test.buyAndHoldReturnPct);
+  assert.ok(["outperformed_benchmark", "matched_benchmark", "underperformed_benchmark", "insufficient_trades"].includes(result.validation.verdict));
 });
 
 test("uses current Bitget-sized 4H history while preserving 30-day training and holdout windows", () => {
