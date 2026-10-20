@@ -11,6 +11,10 @@ import { drainEmailQueue } from '@/lib/email/delivery';
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 const headers = { 'Cache-Control': 'no-store' };
+function scheduleEmailDrain(admin: ReturnType<typeof createAdminClient>) {
+  const drain = () => drainEmailQueue(admin).catch(() => console.warn('nightwatch-schedule-delivery-deferred'));
+  try { after(drain); } catch { void drain(); }
+}
 type Job = { id: string; user_id: string; lease_token: string; config: { id: string; symbol: string; playbook_key: StrategyKey; research_run_id: string | null } };
 function authorized(request: Request) {
   const supplied = Buffer.from(request.headers.get('authorization')?.replace(/^Bearer\s+/i, '') ?? '');
@@ -70,8 +74,11 @@ export async function POST(request: Request) {
         if (saved.error) console.warn('nightwatch-schedule-alert-deferred',saved.error.code);
         else await enqueueNightwatchEmail({admin,userId:job.user_id,eventKey:`nightwatch:${result.run_id}:${alert.kind}`,kind:alert.kind==='signal'?'nightwatch_signal':'nightwatch_fill',title:alert.title,body:decision.rationale}).catch(()=>console.warn('nightwatch-schedule-email-deferred'));
       }
-      if (alerts.length) after(async()=>{ await drainEmailQueue(admin).catch(()=>console.warn('nightwatch-schedule-delivery-deferred')); });
     }
+    // Drain any queued account emails even when this run produced no new
+    // signal/fill. A previous transient delivery failure must not wait for a
+    // separate daily sweep before reaching the user.
+    scheduleEmailDrain(admin);
     return NextResponse.json({claimed:true,status:result.status,outcome:result.outcome ?? null,paperOnly:true},{headers});
   } catch {
     let failure;

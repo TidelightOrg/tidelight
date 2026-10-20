@@ -18,6 +18,8 @@ export async function GET() {
       mfa_required: ["Extra verification requested", "A sensitive account action requested an authenticator check."],
       mfa_verified: ["Authenticator check passed", "Your identity was confirmed for a sensitive action."],
       passkey_signin: ["Passkey sign-in completed", "A passkey was used to access your Tidelight account."],
+      new_login: ["New login detected", "Your Tidelight account was accessed from a new sign-in session."],
+      new_signup: ["Tidelight workspace created", "A new Tidelight workspace was created for your account."],
       passkey_registered: ["Passkey added", "A passkey was registered to your account."],
       passkey_removed: ["Passkey removed", "A passkey was removed from your account."],
       control_change: [details.paused === true ? "Nightwatch paused" : "Nightwatch resumed", "Your paper agent control was changed."],

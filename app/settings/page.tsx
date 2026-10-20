@@ -42,6 +42,8 @@ export default async function SettingsPage({ searchParams }: { searchParams: Pro
     if (type === "mfa_required") return { title: "Extra verification requested", detail: "A sensitive control asked for an authenticator check." };
     if (type === "mfa_verified") return { title: "Authenticator check passed", detail: "Your identity was confirmed for a sensitive control." };
     if (type === "passkey_signin") return { title: "Passkey sign-in completed", detail: "A passkey was used to access your workspace." };
+    if (type === "new_login") return { title: "New login detected", detail: "Your account was accessed from a new sign-in session." };
+    if (type === "new_signup") return { title: "Workspace created", detail: "Your Tidelight account was created successfully." };
     if (type === "passkey_registered") return { title: "Passkey added", detail: "A new passkey was registered to your account." };
     if (type === "passkey_removed") return { title: "Passkey removed", detail: "A passkey was removed from your account." };
     if (type === "control_change") return { title: details.paused === true ? "Nightwatch paused" : "Nightwatch resumed", detail: "Paper agent control changed." };
