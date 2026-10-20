@@ -24,7 +24,7 @@ export default async function NightwatchPage({ searchParams }: { searchParams: P
   const [accountResult, runsResult, ordersResult, positionsResult, alertsResult] = user ? await Promise.all([
     supabase.rpc("nightwatch_ensure_account").maybeSingle(),
     supabase.from("nightwatch_runs").select("id, symbol, signal, outcome, reason, as_of, reference_price, fast_sma, slow_sma, snapshot, created_at").order("created_at", { ascending: false }).limit(30),
-    supabase.from("nightwatch_orders").select("id, symbol, side, quantity, simulated_fill_price, notional, fee, realized_pnl, created_at").order("created_at", { ascending: false }).limit(50),
+    supabase.from("nightwatch_orders").select("id, run_id, symbol, side, quantity, simulated_fill_price, notional, fee, realized_pnl, created_at").order("created_at", { ascending: false }).limit(50),
     supabase.from("nightwatch_positions").select("id, symbol, quantity, average_cost, opened_at"),
     supabase.from("nightwatch_alerts").select("id, kind, title, body, read_at, created_at").order("created_at", { ascending: false }).limit(20),
   ]) : [{ data: null }, { data: [] }, { data: [] }, { data: [] }, { data: [] }];
