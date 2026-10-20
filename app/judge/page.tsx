@@ -1,0 +1,93 @@
+import Link from "next/link";
+import TidelightAnimatedMark from "@/app/ui/tidelight-animated-mark";
+import "./judge.css";
+
+const evidence = [
+  { label: "EVENT", title: "After-hours earnings shock", body: "A public company update lands while the US primary market is closed. Tidelight starts with the question, not a prediction." },
+  { label: "EVIDENCE", title: "Claims stay attached to sources", body: "Publisher, timestamp, excerpt, confidence, and counter-evidence remain visible beside the conclusion." },
+  { label: "EXPOSURE", title: "The Bitget Reality market is mapped", body: "The affected rToken, quote freshness, session state, and execution context are shown before a scenario is considered." },
+  { label: "DECISION", title: "Risk gates can say no", body: "The paper plan is only available when evidence, freshness, sizing, exposure, and pause controls agree." },
+];
+
+const proof = [
+  ["Source lineage", "Captured source → claim → counterpoint → conclusion"],
+  ["Market context", "Reality instrument, provider timestamp, session and cost context"],
+  ["Decision trace", "Question → evidence → exposure → scenario → risk gate"],
+  ["Safe execution", "Paper-only review with deterministic rejection reasons"],
+];
+
+export const metadata = {
+  title: "Judge Mode · Tidelight",
+  description: "A five-minute, no-login evaluation of Tidelight's evidence-first after-hours research desk.",
+};
+
+export default function JudgePage() {
+  return <main className="judge-page">
+    <section className="judge-hero">
+      <div className="judge-hero-top">
+        <span className="judge-brand"><TidelightAnimatedMark /> TIDELIGHT</span>
+        <span className="judge-badge">PUBLIC EVALUATOR MODE · NO LOGIN</span>
+      </div>
+      <div className="judge-hero-grid">
+        <div>
+          <span className="judge-kicker">AI TRADING DESK / AFTER-HOURS INTELLIGENCE</span>
+          <h1>From an overnight event to a decision you can inspect.</h1>
+          <p className="judge-lede">Tidelight is an evidence-first control room for tokenized US equities. This fixed replay shows the complete trust path in under five minutes, without pretending that a staged result is live performance.</p>
+          <div className="judge-actions">
+            <Link className="judge-primary" href="/flow?demo=1&question=Should%20I%20review%20the%20affected%20rToken%20after%20an%20after-hours%20earnings%20event%3F">Run the live research path <span>↗</span></Link>
+            <Link className="judge-secondary" href="/demo">Read the product walkthrough <span>→</span></Link>
+          </div>
+        </div>
+        <aside className="judge-hero-card" aria-label="Judge mode summary">
+          <div className="judge-card-mark"><TidelightAnimatedMark /></div>
+          <span className="judge-card-eyebrow">THE TRUST SPINE</span>
+          <strong>Event → Evidence → Exposure → Scenario → Decision</strong>
+          <small>One product trace. Human final say. Paper execution by default.</small>
+        </aside>
+      </div>
+    </section>
+
+    <section className="judge-section">
+      <div className="judge-section-heading">
+        <span className="judge-kicker">01 / THE FIVE-MINUTE REVIEW</span>
+        <h2>Follow one decision without opening a private workspace.</h2>
+      </div>
+      <div className="judge-evidence-grid">
+        {evidence.map((item, index) => <article className="judge-evidence-card" key={item.label}>
+          <span className="judge-index">0{index + 1}</span>
+          <span className="judge-kicker">{item.label}</span>
+          <h3>{item.title}</h3>
+          <p>{item.body}</p>
+        </article>)}
+      </div>
+    </section>
+
+    <section className="judge-split">
+      <div>
+        <span className="judge-kicker">02 / WHAT IS VERIFIED</span>
+        <h2>Proof is part of the interface.</h2>
+        <p>Every important statement has a place in the trace. A missing source, stale quote, contradictory claim, or failed gate is visible rather than silently replaced with confidence.</p>
+        <Link className="judge-inline-link" href="/research">Open the Research Desk <span>↗</span></Link>
+      </div>
+      <div className="judge-proof-list">
+        {proof.map(([label, text], index) => <div key={label}><span>0{index + 1}</span><div><b>{label}</b><small>{text}</small></div></div>)}
+      </div>
+    </section>
+
+    <section className="judge-section judge-lanes">
+      <div className="judge-section-heading">
+        <span className="judge-kicker">03 / THE OTHER TWO MODES</span>
+        <h2>One evidence standard across the product.</h2>
+      </div>
+      <div className="judge-lane-grid">
+        <Link href="/strategies"><span>ALPHA FACTORY</span><strong>Challenge the rule.</strong><small>Completed candles, holdout windows, fees, slippage, drawdown and trade logs.</small><em>Open Strategy Lab ↗</em></Link>
+        <Link href="/nightwatch"><span>AGENTIC TRADING</span><strong>Guard the paper action.</strong><small>Freshness, sizing, exposure, pause, duplicate and daily-loss checks remain explicit.</small><em>Open Nightwatch ↗</em></Link>
+      </div>
+    </section>
+
+    <section className="judge-final">
+      <div><span className="judge-kicker">04 / THE HONEST BOUNDARY</span><h2>Useful evidence is not a promise of profit.</h2><p>This route is a reproducible product evaluation. It does not claim audited alpha, investment advice, live execution, or an invented paper fill. When the real gates do not qualify, Tidelight says so.</p></div>
+      <div className="judge-final-actions"><Link className="judge-primary" href="/flow?demo=1&question=Compare%20the%20latest%20evidence%20for%20NVDA%20and%20TSLA%20and%20show%20the%20risks">Start evaluation <span>↗</span></Link><Link href="/">Return to Tidelight <span>→</span></Link></div>
+    </section>
+  </main>;
+}
