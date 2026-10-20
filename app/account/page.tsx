@@ -2,12 +2,26 @@ import Image from "next/image";
 import Link from "next/link";
 import { signOut } from "@/app/actions";
 import AccountTabs, { type AccountGroup } from "@/app/ui/account-tabs";
+import { cookies, headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import { getServerUser } from "@/lib/supabase/auth-user";
+import { getServerAuthState } from "@/lib/supabase/auth-user";
 
-export default async function AccountPage() {
+export default async function AccountPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {
+  const params = await searchParams;
+  const authProbe = params["auth-probe"] === "diag";
   const supabase = await createClient();
-  const user = await getServerUser();
+  const authState = await getServerAuthState();
+  const user = authState.user;
+  const requestHeaders = authProbe ? await headers() : null;
+  const cookieStore = authProbe ? await cookies() : null;
+  const authCookiePattern = /^sb-[a-z0-9-]+-auth-token(?:\.\d+)?$/i;
+  const requestCookieShape = (requestHeaders?.get("cookie") ?? "").split(/;\s*/).flatMap((pair) => {
+    const separator = pair.indexOf("=");
+    if (separator < 1) return [];
+    const name = pair.slice(0, separator).trim();
+    return authCookiePattern.test(name) ? [name + ":" + pair.slice(separator + 1).length] : [];
+  }).sort().join(",");
+  const parsedCookieShape = cookieStore?.getAll().filter(({ name }) => authCookiePattern.test(name)).map(({ name, value }) => name + ":" + value.length).sort().join(",") ?? "not-requested";
   const { data: profile } = user ? await supabase.from("community_profiles").select("handle,display_name,avatar_url").eq("id", user.id).maybeSingle() : { data: null };
   const name = profile?.display_name || user?.user_metadata?.full_name || user?.email?.split("@")[0] || "Tidelight guest";
   const groups: AccountGroup[] = [
@@ -52,6 +66,7 @@ export default async function AccountPage() {
     ] },
   ];
   return <main className="content-wrap inner-page account-center" data-tic-account-auth-state={user ? "signed-in" : "guest"}>
+    {authProbe ? <details open><summary>Temporary auth diagnostics</summary><pre>{JSON.stringify({ pageUser: Boolean(user), authError: authState.errorCode, authErrorName: authState.errorName, requestHost: requestHeaders?.get("x-forwarded-host") ?? requestHeaders?.get("host") ?? null, requestCookieShape, parsedCookieShape, originalProxyCookieShape: requestHeaders?.get("x-tic-original-auth-cookie-shape") ?? null, proxyClaims: requestHeaders?.get("x-tic-proxy-claims-state") ?? null, proxySetCookieShape: requestHeaders?.get("x-tic-proxy-set-cookie-shape") ?? null, proxyPostRefreshCookieShape: requestHeaders?.get("x-tic-proxy-post-refresh-cookie-shape") ?? null }, null, 2)}</pre></details> : null}
     <header className="account-center-hero"><div className="account-center-identity"><div className="account-center-avatar">{profile?.avatar_url ? <Image src={profile.avatar_url} alt="" width={70} height={70} unoptimized /> : name.slice(0,1).toUpperCase()}</div><div><span className="eyebrow">TIDELIGHT ACCOUNT</span><h1>{name}</h1><p>{user?.email ?? "Sign in to save preferences and secure your research."}{profile?.handle ? ` · @${profile.handle}` : ""}</p></div></div><Link className="account-center-edit" href={user ? "/settings#account-profile" : "/login"}>{user ? "Edit profile" : "Sign in"}<span>↗</span></Link></header>
     <AccountTabs groups={groups} userId={user?.id} />
     <footer className="account-center-footer"><Link href="/terms">Terms</Link><Link href="/privacy">Privacy</Link>{user ? <form action={signOut}><button className="account-center-logout" type="submit">Log out</button></form> : null}<span>Clarity when the bell is quiet.</span></footer>
