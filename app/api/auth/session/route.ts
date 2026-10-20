@@ -14,7 +14,7 @@ export async function GET(request: Request) {
       .filter(({ name }) => /^sb-[a-z0-9-]+-auth-token(?:\.\d+)?$/i.test(name)).length;
     const authCookieShape = parsedCookies
       .filter(({ name }) => /^sb-[a-z0-9-]+-auth-token(?:\.\d+)?$/i.test(name))
-      .map(({ name, value }) => name + ":" + value.length)
+      .map(({ name, value }) => name + ":" + (typeof value === "string" ? value.length : "missing"))
       .sort()
       .join(",");
 
