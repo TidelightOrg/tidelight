@@ -1,10 +1,11 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import BriefLibrary from "@/app/ui/brief-library";
+import { getServerUser } from "@/lib/supabase/auth-user";
 
 export default async function BriefsPage() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getServerUser();
   const { data } = user
     ? await supabase.from("research_runs").select("id, question, status, summary, model_name, event_type, created_at").order("created_at", { ascending: false }).limit(50)
     : { data: [] };

@@ -4,6 +4,7 @@ import "./globals.css";
 import "./theme-polish.css";
 import "./nightwatch.css";
 import { createClient } from "@/lib/supabase/server";
+import { getServerUser } from "@/lib/supabase/auth-user";
 import { isTidelightOperator } from "@/lib/auth/operator-access";
 import WorkspaceShell from "./ui/workspace-shell";
 import AnalyticsConsent from "./ui/analytics-consent";
@@ -72,10 +73,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const isStandaloneDeveloperHost = isPublicPackageHost || isPublicBlogHost;
   const language = cookieStore.get("tidelight-language")?.value === "zh-CN" ? "zh-CN" : "en";
   const supabase = isStandaloneDeveloperHost ? null : await createClient();
-  const { data: { user: resolvedUser }, error: authError } = supabase
-    ? await supabase.auth.getUser()
-    : { data: { user: null }, error: null };
-  const user = authError ? null : resolvedUser;
+  const user = isStandaloneDeveloperHost ? null : await getServerUser();
   const { data: profile } = user && supabase
     ? await supabase.from("community_profiles").select("display_name,avatar_url").eq("id", user.id).maybeSingle()
     : { data: null };
