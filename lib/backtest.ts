@@ -48,6 +48,18 @@ export type BacktestResult = {
   dataEnd: number;
   candleCount: number;
   splitIndex: number;
+  validation: BacktestValidation;
+};
+
+/** A truthful, machine-readable summary of whether this run is useful evidence.
+ *  This deliberately compares only the untouched holdout with its same-window
+ *  buy-and-hold baseline; it is not a claim of future performance.
+ */
+export type BacktestValidation = {
+  trainingDays: number;
+  holdoutDays: number;
+  holdoutExcessReturnPct: number;
+  verdict: "outperformed_benchmark" | "matched_benchmark" | "underperformed_benchmark" | "insufficient_trades";
 };
 
 export type WalkForwardFold = { index: number; trainStart: number; testStart: number; testEnd: number; metrics: BacktestMetrics };
@@ -292,6 +304,16 @@ export function runBacktest(symbol: string, interval: CandleInterval, input: Mar
   if (candles[splitIndex - 1].timestamp - candles[warmup].timestamp < 30 * day) throw new Error("The evaluated training window is shorter than 30 days after the 50-candle warm-up. Choose a history with more data.");
   const train = measure(candles, fast, slow, warmup, splitIndex, interval, BACKTEST_PARAMETERS.feeBpsPerSide, BACKTEST_PARAMETERS.slippageBpsPerSide, signals);
   const test = measure(candles, fast, slow, splitIndex, candles.length, interval, BACKTEST_PARAMETERS.feeBpsPerSide, BACKTEST_PARAMETERS.slippageBpsPerSide, signals);
+  const trainingDays = (candles[splitIndex - 1].timestamp - candles[warmup].timestamp) / day;
+  const holdoutDays = (candles.at(-1)!.timestamp - candles[splitIndex].timestamp) / day;
+  const holdoutExcessReturnPct = test.totalReturnPct - test.buyAndHoldReturnPct;
+  const verdict = test.trades < 2
+    ? "insufficient_trades"
+    : holdoutExcessReturnPct > 0.25
+      ? "outperformed_benchmark"
+      : holdoutExcessReturnPct < -0.25
+        ? "underperformed_benchmark"
+        : "matched_benchmark";
   return {
     symbol,
     interval,
@@ -303,6 +325,7 @@ export function runBacktest(symbol: string, interval: CandleInterval, input: Mar
     dataEnd: candles.at(-1)!.timestamp,
     candleCount: candles.length,
     splitIndex,
+    validation: { trainingDays, holdoutDays, holdoutExcessReturnPct, verdict },
   };
 }
 
