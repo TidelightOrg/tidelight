@@ -33,8 +33,6 @@ export async function GET(request: Request) {
           authPath: "shared-helper",
           errorCode: authState.errorCode,
           errorName: authState.errorName,
-          sessionPresent: authState.sessionPresent,
-          refreshTokenPresent: authState.refreshTokenPresent,
           parsedAuthCookieCount,
           authCookieShape,
           rawAuthCookieShape,
