@@ -33,8 +33,27 @@ export default function LoginPage() {
     return safeInternalRedirect(candidate, window.location.origin) ?? "/";
   }
 
+  async function confirmServerSession() {
+    // Give the proxy one response cycle to remove a legacy parent-domain cookie
+    // that can collide with the first-party session cookie.
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      const response = await fetch("/api/auth/session", { cache: "no-store" });
+      if (response.ok && (await response.json()).authenticated === true) return true;
+      if (attempt === 0) await new Promise(resolve => window.setTimeout(resolve, 150));
+    }
+    return false;
+  }
+
   useEffect(() => {
-    if (new URLSearchParams(window.location.search).get("recovery") !== "1") return;
+    const params = new URLSearchParams(window.location.search);
+    const authError = params.get("error");
+    const urlError = authError === "session"
+      ? "Tidelight couldn't finish signing you in. Your account provider returned, but no valid app session was found. Try again or contact support."
+      : authError === "link"
+        ? "This sign-in link is invalid or has expired. Request a fresh link and open it on this device."
+        : null;
+    if (urlError) window.setTimeout(() => setError(urlError), 0);
+    if (params.get("recovery") !== "1") return;
     const timer = window.setTimeout(() => { setRecovering(true); setMethod("password"); }, 0);
     return () => window.clearTimeout(timer);
   }, []);
@@ -45,7 +64,7 @@ export default function LoginPage() {
     try {
       const { error: passkeyError } = await createClient().auth.signInWithPasskey();
       if (passkeyError) setError("Passkey sign-in could not be completed. Check the passkey provider setup or choose another sign-in method.");
-      else { const client = createClient(); const { data: { user } } = await client.auth.getUser(); if (user) await client.from("security_events").insert({ user_id: user.id, event_type: "passkey_signin", metadata: {} }); router.replace(requestedNext()); router.refresh(); }
+      else { const client = createClient(); const { data: { user } } = await client.auth.getUser(); if (!user || !(await confirmServerSession())) { setError("Your sign-in was accepted, but Tidelight could not establish a session. Please try again. If this continues, contact support."); return; } await client.from("security_events").insert({ user_id: user.id, event_type: "passkey_signin", metadata: {} }); router.replace(requestedNext()); router.refresh(); }
     } catch {
       setError("Passkey sign-in is unavailable on this device or provider setup. Choose another sign-in method.");
     } finally { setPasskeyBusy(false); }
@@ -65,6 +84,7 @@ export default function LoginPage() {
       if (method === "code" && codeSent) {
         const { data: verified, error: verifyError } = await supabase.auth.verifyOtp({ email, token: code.trim(), type: "email" });
         if (verifyError) throw verifyError;
+        if (!(await confirmServerSession())) throw new Error("Your code was accepted, but Tidelight could not establish a session. Please try again.");
         const isNew = verified.user?.created_at && Date.now() - Date.parse(verified.user.created_at) < 10 * 60 * 1000;
         router.replace(requestedNext() !== "/" ? requestedNext() : isNew ? "/settings?setup=username#profile" : "/");
         router.refresh();
@@ -84,11 +104,13 @@ export default function LoginPage() {
       if (authError) throw authError;
       if (method === "code") setCodeSent(true);
       else if (method === "link" || isSignUp) setSent(true);
-      else { router.replace(requestedNext()); router.refresh(); }
+      else { if (!(await confirmServerSession())) throw new Error("Your password was accepted, but Tidelight could not establish a session. Please try again."); router.replace(requestedNext()); router.refresh(); }
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : "";
       const normalized = message.toLowerCase();
-      setError(method === "code"
+      setError(message.includes("could not establish a session")
+        ? message
+        : method === "code"
         ? codeSent
           ? normalized.includes("expired")
             ? "That code has expired. Request a new code and try again."

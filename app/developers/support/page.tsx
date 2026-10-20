@@ -6,6 +6,7 @@ import "../tidelight-developers.css";
 import "../platform-polish.css";
 import "../packages/packages.css";
 import "./support.css";
+import { getServerUser } from "@/lib/supabase/auth-user";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -17,7 +18,7 @@ export default async function DeveloperSupportPage({ searchParams }: { searchPar
   const params = await searchParams;
   const ecosystem = params.ecosystem === "tidelight" || params.ecosystem === "packages" ? params.ecosystem : "intelligence";
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getServerUser();
   return <main className="tic tic-landing tic-support-page">
     <PlatformNav active="support" ecosystem={ecosystem} />
     <SupportCenter signedIn={Boolean(user)} email={user?.email ?? null} initialEcosystem={params.ecosystem} initialTicket={params.ticket} />
