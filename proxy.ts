@@ -30,6 +30,7 @@ export async function proxy(request: NextRequest) {
   request.headers.set("x-tic-original-auth-cookie-shape", originalAuthCookieShape);
   let response = routeResponse(request);
   const refreshedAuthCookieNames = new Set<string>();
+  const refreshedCookieWriters: Array<(target: NextResponse) => void> = [];
   let refreshedCookieShape = "none";
 
   // Supabase SSR needs a request proxy to refresh expired access tokens and
@@ -51,8 +52,9 @@ export async function proxy(request: NextRequest) {
               request.cookies.set(name, value);
               refreshedAuthCookieNames.add(name);
             });
-            response = routeResponse(request);
-            cookiesToSet.forEach(({ name, value, options }) => response.cookies.set(name, value, options));
+            cookiesToSet.forEach(({ name, value, options }) => {
+              refreshedCookieWriters.push((target) => target.cookies.set(name, value, options));
+            });
           },
         },
       });
@@ -68,6 +70,7 @@ export async function proxy(request: NextRequest) {
         .join(",");
       request.headers.set("x-tic-proxy-post-refresh-cookie-shape", postRefreshShape);
       response = routeResponse(request);
+      refreshedCookieWriters.forEach((writeCookie) => writeCookie(response));
     }
   }
 
