@@ -16,7 +16,7 @@ export default function LandingPage() {
     <nav className="landing-nav" aria-label="Tidelight landing navigation">
       <Link className="landing-brand" href="/"><Image className="landing-mark" src="/tidelight-mark.svg" alt="" width={30} height={30} priority /><span>tide<span>light</span></span></Link>
       <div className="landing-nav-actions">
-        <div className="landing-nav-links"><a href="#method">The method</a><a href="#handbook">Docs <NavigationTrail className="landing-arrow" /></a><Link href="/developers">Developers</Link></div>
+        <div className="landing-nav-links"><a href="#method">The method</a><a href="#handbook">Docs <NavigationTrail className="landing-arrow" /></a><Link href="/developers">Developers</Link><Link href="/judge">Judge Mode</Link></div>
         <ThemeQuickSwitch />
         <LanguageToggle className="landing-language-toggle" />
         <Link className="landing-nav-workspace" href="/overview">Open workspace</Link>
@@ -44,4 +44,3 @@ export default function LandingPage() {
     <footer className="landing-footer"><span>© 2026 Tidelight Research</span><span>Clarity when the bell is quiet.</span><div><Link href="/developers">Developers</Link><Link href="/terms">Terms</Link><Link href="/privacy">Privacy</Link><a href="mailto:support@tidelight.app">Contact</a></div></footer>
   </main>;
 }
-
