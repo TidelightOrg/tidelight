@@ -74,25 +74,9 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const language = cookieStore.get("tidelight-language")?.value === "zh-CN" ? "zh-CN" : "en";
   const supabase = isStandaloneDeveloperHost ? null : await createClient();
   const authState = isStandaloneDeveloperHost
-    ? { user: null, errorCode: null, errorName: null, sessionPresent: false, refreshTokenPresent: false }
+    ? { user: null, errorCode: null, errorName: null }
     : await getServerAuthState();
   const user = authState.user;
-  const authCookieCounts = new Map<string, number>();
-  for (const pair of (requestHeaders.get("cookie") ?? "").split(/;\s*/)) {
-    const name = pair.slice(0, pair.indexOf("=")).trim();
-    if (/^sb-[a-z0-9-]+-auth-token(?:\.\d+)?$/i.test(name)) authCookieCounts.set(name, (authCookieCounts.get(name) ?? 0) + 1);
-  }
-  const authCookieCount = [...authCookieCounts.values()].reduce((count, value) => count + value, 0);
-  const duplicateAuthCookieCount = [...authCookieCounts.values()].filter((count) => count > 1).length;
-  const parsedAuthCookieCount = cookieStore.getAll().filter(({ name }) => /^sb-[a-z0-9-]+-auth-token(?:\.\d+)?$/i.test(name)).length;
-  const authCookieShape = cookieStore.getAll().filter(({ name }) => /^sb-[a-z0-9-]+-auth-token(?:\.\d+)?$/i.test(name)).map(({ name, value }) => name + ":" + (typeof value === "string" ? value.length : "missing")).sort().join(",");
-  const authCookieHeaderShape = (requestHeaders.get("cookie") ?? "").split(/;\s*/).flatMap((pair) => {
-    const separator = pair.indexOf("=");
-    if (separator < 1) return [];
-    const name = pair.slice(0, separator).trim();
-    if (!/^sb-[a-z0-9-]+-auth-token(?:\.\d+)?$/i.test(name)) return [];
-    return [name + ":" + pair.slice(separator + 1).length];
-  }).sort().join(",");
   const { data: profile } = user && supabase
     ? await supabase.from("community_profiles").select("display_name,avatar_url").eq("id", user.id).maybeSingle()
     : { data: null };
@@ -105,5 +89,5 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     || user?.email?.split("@")[0]
     || null;
 
-  return <html lang={language} data-language={language} data-theme="daylight" suppressHydrationWarning><body data-tic-auth-state={user ? "signed-in" : "guest"} data-tic-auth-error={authState.errorCode ?? "none"} data-tic-auth-error-name={authState.errorName ?? "none"} data-tic-auth-cookie-count={authCookieCount} data-tic-auth-parsed-cookie-count={parsedAuthCookieCount} data-tic-auth-cookie-shape={authCookieShape} data-tic-auth-header-shape={authCookieHeaderShape} data-tic-original-auth-header-shape={requestHeaders.get("x-tic-original-auth-cookie-shape") ?? "missing"} data-tic-proxy-claims-state={requestHeaders.get("x-tic-proxy-claims-state") ?? "not-run"} data-tic-proxy-set-cookie-shape={requestHeaders.get("x-tic-proxy-set-cookie-shape") ?? "not-run"} data-tic-proxy-post-refresh-cookie-shape={requestHeaders.get("x-tic-proxy-post-refresh-cookie-shape") ?? "not-run"} data-tic-auth-duplicate-count={duplicateAuthCookieCount} data-tic-request-host={requestHost} data-tic-standalone-host={isStandaloneDeveloperHost}><ThemeProvider><LanguageProvider initialLanguage={language}><IntelligenceProvider>{isStandaloneDeveloperHost ? <>{children}<AnalyticsConsent /></> : <WorkspaceShell email={user?.email ?? null} avatarUrl={profile?.avatar_url ?? metadataAvatar} displayName={displayName} isOperator={isTidelightOperator(user)}>{children}</WorkspaceShell>}{isStandaloneDeveloperHost ? null : <><SupportCompanion /><ProductQuickActions /></>}</IntelligenceProvider></LanguageProvider></ThemeProvider></body></html>;
+  return <html lang={language} data-language={language} data-theme="daylight" suppressHydrationWarning><body data-tic-request-host={requestHost} data-tic-standalone-host={isStandaloneDeveloperHost}><ThemeProvider><LanguageProvider initialLanguage={language}><IntelligenceProvider>{isStandaloneDeveloperHost ? <>{children}<AnalyticsConsent /></> : <WorkspaceShell email={user?.email ?? null} avatarUrl={profile?.avatar_url ?? metadataAvatar} displayName={displayName} isOperator={isTidelightOperator(user)}>{children}</WorkspaceShell>}{isStandaloneDeveloperHost ? null : <><SupportCompanion /><ProductQuickActions /></>}</IntelligenceProvider></LanguageProvider></ThemeProvider></body></html>;
 }
