@@ -42,6 +42,10 @@
       {
         "path": "/nightwatch",
         "purpose": "Paper monitoring and ledger UI; authenticated workspace"
+      },
+      {
+        "path": "/replay",
+        "purpose": "Static illustrative research-flow explanation; not live evidence."
       }
     ],
     "source_repository": "https://github.com/TidelightOrg/tidelight",
@@ -121,6 +125,13 @@
       "status": "private_owner_scoped",
       "uri": "https://tidelight.app/nightwatch",
       "claim": "Nightwatch runs and paper ledger require the owning account; no private user data is included in this public manifest."
+    },
+    {
+      "id": "research-replay",
+      "kind": "fixture",
+      "status": "illustrative_not_live",
+      "uri": "https://tidelight.app/replay",
+      "claim": "Static checklist fixture only; source, quote, provider, AI result, risk gate and paper outcome are not represented as real."
     }
   ]
 }
