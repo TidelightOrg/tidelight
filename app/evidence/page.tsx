@@ -41,6 +41,6 @@ export default function EvidencePage() {
       <article><span className="evidence-kicker">AGENTIC TRADING</span><h2>Paper run export</h2><Status value={manifest.verification.reproducibility.agentic.status}/><ul>{manifest.verification.reproducibility.agentic.requirements.map((x)=><li key={x}>{x}</li>)}</ul><p>Private owner-scoped ledger records are not exposed in this public route.</p></article>
       <article><span className="evidence-kicker">AI TRADING DESK</span><h2>Research replay</h2><Status value={manifest.verification.reproducibility.research.status}/><ul>{manifest.verification.reproducibility.research.requirements.map((x)=><li key={x}>{x}</li>)}</ul><p>The actual research workflow is session-protected; the manifest does not substitute for a completed research run.</p></article>
     </section>
-    <footer className="evidence-footer"><span>Generated {manifest.generated_at} · Source repository</span><a href={manifest.source_repository} target="_blank" rel="noreferrer">TidelightOrg/tidelight ↗</a><Link href="/judge">Back to Judge Mode →</Link></footer>
+    <footer className="evidence-footer"><span>Generated {manifest.generated_at} · Source repository</span><a href={manifest.verification.source_repository} target="_blank" rel="noreferrer">TidelightOrg/tidelight ↗</a><Link href="/judge">Back to Judge Mode →</Link></footer>
   </main>;
 }
