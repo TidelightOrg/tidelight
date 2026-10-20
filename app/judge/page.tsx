@@ -87,6 +87,16 @@ export default function JudgePage() {
       </div>
     </section>
 
+    <section className="judge-section">
+      <div className="judge-section-heading"><span className="judge-kicker">05 / REPRODUCIBLE PROOF</span><h2>Inspect the artifacts, not just the pitch.</h2></div>
+      <div className="judge-lane-grid">
+        <Link href="/evidence"><span>PUBLIC EVIDENCE</span><strong>Open the evidence manifest.</strong><em>Routes, artifact status, limitations and reproduction requirements ↗</em></Link>
+        <Link href="/replay"><span>RESEARCH TRACE</span><strong>Inspect the labeled replay.</strong><em>Illustrative fixture only—not a live source or result ↗</em></Link>
+        <Link href="/strategies"><span>ALPHA FACTORY</span><strong>Export a reproducible strategy run.</strong><em>Authenticated runs include candle fingerprints, costs and holdout data ↗</em></Link>
+        <Link href="/nightwatch"><span>NIGHTWATCH</span><strong>Export private paper evidence.</strong><em>Account-scoped decisions and paper ledger; review privacy before sharing ↗</em></Link>
+      </div>
+    </section>
+
     <section className="judge-final">
       <div><span className="judge-kicker">04 / THE HONEST BOUNDARY</span><h2>Useful evidence is not a promise of profit.</h2><p>This route is a reproducible product evaluation. It does not claim audited alpha, investment advice, live execution, or an invented paper fill. When the real gates do not qualify, Tidelight says so.</p></div>
       <div className="judge-final-actions"><Link className="judge-primary" href="/flow?demo=1&question=Compare%20the%20latest%20evidence%20for%20NVDA%20and%20TSLA%20and%20show%20the%20risks">Start evaluation <span>↗</span></Link><Link href="/">Return to Tidelight <span>→</span></Link></div>
