@@ -17,6 +17,15 @@ export default function LandingPage() {
       <Link className="landing-brand" href="/"><Image className="landing-mark" src="/tidelight-mark.svg" alt="" width={30} height={30} priority /><span>tide<span>light</span></span></Link>
       <div className="landing-nav-actions">
         <div className="landing-nav-links"><a href="#method">The method</a><a href="#handbook">Docs <NavigationTrail className="landing-arrow" /></a><Link href="/developers">Developers</Link><Link href="/judge">Judge Mode</Link></div>
+        <details className="landing-mobile-menu">
+          <summary aria-label="Open site navigation"><span className="landing-menu-glyph" aria-hidden="true"><i /><i /><i /></span><span>Menu</span></summary>
+          <div className="landing-mobile-menu-panel" aria-label="Site navigation">
+            <a href="#method">The method <NavigationTrail className="landing-arrow" /></a>
+            <a href="#handbook">Handbook <NavigationTrail className="landing-arrow" /></a>
+            <Link href="/developers">Developers <NavigationTrail className="landing-arrow" /></Link>
+            <Link href="/judge">Judge Mode <NavigationTrail className="landing-arrow" /></Link>
+          </div>
+        </details>
         <ThemeQuickSwitch />
         <LanguageToggle className="landing-language-toggle" />
         <Link className="landing-nav-workspace" href="/overview">Open workspace</Link>

@@ -227,3 +227,34 @@
 @media(max-width:520px){.landing-page .landing-hero-stage{min-height:420px;margin-top:22px;border-radius:18px}.landing-page .landing-dyor{top:16px}.landing-page .landing-dyor>span{font-size:6px;letter-spacing:1.4px}.landing-page .landing-dyor strong{font-size:clamp(68px,18vw,88px)}.landing-page .landing-dyor>small{margin-top:7px;font-size:8px}.landing-page .landing-pointer{top:125px;width:32px;height:44px}.landing-page .landing-product-word{top:197px;font-size:clamp(38px,12.5vw,50px)}.landing-page .landing-hero-stage .landing-orbit{min-height:250px;transform:translateY(116px)}.landing-page .landing-hero-stage .landing-orbit .ring-one{height:150px}.landing-page .landing-hero-stage .landing-orbit .ring-two{height:210px}.landing-page .landing-hand-art{width:min(200px,58vw);bottom:-46px}.landing-page .landing-egg-mark{width:40px}}
 @media(prefers-reduced-motion:reduce){:root[data-theme="daylight"] .landing-page .landing-dyor strong,:root[data-theme="daylight"] .landing-page .landing-dyor strong::before,:root[data-theme="daylight"] .landing-page .landing-product-word{animation:none}}
 
+
+/* Compact, discoverable mobile navigation for the landing page. */
+.landing-mobile-menu{display:none}
+.landing-mobile-menu summary{list-style:none}
+.landing-mobile-menu summary::-webkit-details-marker{display:none}
+@media(max-width:800px){
+  .landing-nav{position:sticky;top:0;z-index:80;max-width:100%;gap:10px;padding:12px 16px}
+  .landing-nav-actions{position:relative;gap:7px}
+  .landing-nav-actions .landing-mobile-menu{position:relative;display:block}
+  .landing-mobile-menu>summary{display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:36px;padding:0 11px;border:1px solid color-mix(in srgb,var(--brand-teal) 34%,var(--line));border-radius:10px;background:color-mix(in srgb,var(--panel) 70%,transparent);color:var(--text);font:600 11px var(--font);cursor:pointer}
+  .landing-mobile-menu>summary:focus-visible{outline:2px solid var(--brand-teal);outline-offset:3px}
+  .landing-menu-glyph{display:grid;gap:3px;width:14px}
+  .landing-menu-glyph i{display:block;width:14px;height:1.5px;border-radius:2px;background:var(--brand-teal);transition:transform .18s,opacity .18s}
+  .landing-mobile-menu[open] .landing-menu-glyph i:first-child{transform:translateY(4.5px) rotate(45deg)}
+  .landing-mobile-menu[open] .landing-menu-glyph i:nth-child(2){opacity:0}
+  .landing-mobile-menu[open] .landing-menu-glyph i:last-child{transform:translateY(-4.5px) rotate(-45deg)}
+  .landing-mobile-menu-panel{position:absolute;top:calc(100% + 10px);right:0;z-index:90;display:grid;gap:4px;width:min(288px,calc(100vw - 28px));padding:8px;border:1px solid color-mix(in srgb,var(--brand-teal) 28%,var(--line));border-radius:16px;background:color-mix(in srgb,var(--panel) 94%,var(--bg));box-shadow:0 18px 48px color-mix(in srgb,var(--bg) 34%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 10%,transparent);-webkit-backdrop-filter:blur(22px) saturate(150%);backdrop-filter:blur(22px) saturate(150%)}
+  .landing-mobile-menu-panel a{display:flex;align-items:center;justify-content:space-between;min-height:44px;padding:0 12px;border-radius:10px;color:var(--text);font:500 12px var(--font);text-decoration:none}
+  .landing-mobile-menu-panel a:hover,.landing-mobile-menu-panel a:focus-visible{outline:none;background:color-mix(in srgb,var(--brand-teal) 12%,transparent);color:var(--brand-teal)}
+  .landing-mobile-menu-panel .landing-arrow{width:15px;height:15px;opacity:.75}
+}
+@media(max-width:380px){
+  .landing-nav{padding-inline:12px}
+  .landing-brand{gap:6px;font-size:17px}
+  .landing-nav-workspace{font-size:8px}
+  .landing-mobile-menu>summary{gap:5px;padding-inline:9px}
+}
+.landing-docs-signal{display:flex;align-items:center;gap:5px;width:max-content;min-height:15px;margin-top:11px;padding:0 2px}
+.landing-docs-signal i{display:block;width:4px;height:4px;border-radius:50%;background:var(--brand-teal);opacity:.35;box-shadow:0 0 10px color-mix(in srgb,var(--brand-teal) 45%,transparent)}
+.landing-docs-signal i:nth-child(2){width:19px;height:1px;border-radius:2px;opacity:.7}
+.landing-docs-signal i:last-child{width:4px;height:4px;opacity:.45}
