@@ -4,7 +4,7 @@ import "./globals.css";
 import "./theme-polish.css";
 import "./nightwatch.css";
 import { createClient } from "@/lib/supabase/server";
-import { getServerUser } from "@/lib/supabase/auth-user";
+import { getServerAuthState } from "@/lib/supabase/auth-user";
 import { isTidelightOperator } from "@/lib/auth/operator-access";
 import WorkspaceShell from "./ui/workspace-shell";
 import AnalyticsConsent from "./ui/analytics-consent";
@@ -73,7 +73,15 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const isStandaloneDeveloperHost = isPublicPackageHost || isPublicBlogHost;
   const language = cookieStore.get("tidelight-language")?.value === "zh-CN" ? "zh-CN" : "en";
   const supabase = isStandaloneDeveloperHost ? null : await createClient();
-  const user = isStandaloneDeveloperHost ? null : await getServerUser();
+  const authState = isStandaloneDeveloperHost ? { user: null, errorCode: null } : await getServerAuthState();
+  const user = authState.user;
+  const authCookieCounts = new Map<string, number>();
+  for (const pair of (requestHeaders.get("cookie") ?? "").split(/;\s*/)) {
+    const name = pair.slice(0, pair.indexOf("=")).trim();
+    if (/^sb-[a-z0-9-]+-auth-token(?:\.\d+)?$/i.test(name)) authCookieCounts.set(name, (authCookieCounts.get(name) ?? 0) + 1);
+  }
+  const authCookieCount = [...authCookieCounts.values()].reduce((count, value) => count + value, 0);
+  const duplicateAuthCookieCount = [...authCookieCounts.values()].filter((count) => count > 1).length;
   const { data: profile } = user && supabase
     ? await supabase.from("community_profiles").select("display_name,avatar_url").eq("id", user.id).maybeSingle()
     : { data: null };
@@ -86,5 +94,5 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     || user?.email?.split("@")[0]
     || null;
 
-  return <html lang={language} data-language={language} data-theme="daylight" suppressHydrationWarning><body><ThemeProvider><LanguageProvider initialLanguage={language}><IntelligenceProvider>{isStandaloneDeveloperHost ? <>{children}<AnalyticsConsent /></> : <WorkspaceShell email={user?.email ?? null} avatarUrl={profile?.avatar_url ?? metadataAvatar} displayName={displayName} isOperator={isTidelightOperator(user)}>{children}</WorkspaceShell>}{isStandaloneDeveloperHost ? null : <><SupportCompanion /><ProductQuickActions /></>}</IntelligenceProvider></LanguageProvider></ThemeProvider></body></html>;
+  return <html lang={language} data-language={language} data-theme="daylight" suppressHydrationWarning><body data-tic-auth-state={user ? "signed-in" : "guest"} data-tic-auth-error={authState.errorCode ?? "none"} data-tic-auth-cookie-count={authCookieCount} data-tic-auth-duplicate-count={duplicateAuthCookieCount}><ThemeProvider><LanguageProvider initialLanguage={language}><IntelligenceProvider>{isStandaloneDeveloperHost ? <>{children}<AnalyticsConsent /></> : <WorkspaceShell email={user?.email ?? null} avatarUrl={profile?.avatar_url ?? metadataAvatar} displayName={displayName} isOperator={isTidelightOperator(user)}>{children}</WorkspaceShell>}{isStandaloneDeveloperHost ? null : <><SupportCompanion /><ProductQuickActions /></>}</IntelligenceProvider></LanguageProvider></ThemeProvider></body></html>;
 }
