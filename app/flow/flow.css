@@ -57,3 +57,29 @@
 @media(max-width:700px){.flow-trace{grid-auto-flow:column;grid-auto-columns:minmax(165px,1fr);grid-template-columns:none;grid-template-rows:auto;overflow-x:auto;overscroll-behavior-x:contain;scroll-snap-type:x proximity}.flow-stage{min-height:116px;border-right:1px solid var(--line);scroll-snap-align:start}.flow-stage:last-child{border-right:0}}
 @media(max-width:600px){.flow-trace{margin-top:18px}.flow-stage{padding:13px 11px 12px}}
 @media(prefers-reduced-motion:reduce){.flow-stage-running .flow-stage-node>span{animation:none}.flow-stage,.flow-stage::after{transition:none}}
+
+/* Activity is a quiet checkpoint grid; animation highlights only the active stage. */
+.flow-trace{grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-flow:row;grid-auto-columns:auto;grid-template-rows:none;gap:10px;margin-top:22px;overflow:visible;border:0;background:transparent}
+.flow-stage{display:flex;align-items:flex-start;gap:12px;min-height:0;padding:15px;border:1px solid color-mix(in srgb,var(--flow-glow) 15%,var(--line));border-radius:13px;background:linear-gradient(145deg,color-mix(in srgb,var(--panel) 94%,var(--flow-glow) 6%),color-mix(in srgb,var(--panel) 98%,transparent));box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 4%,transparent);scroll-snap-align:unset}
+.flow-stage::after{display:none}
+.flow-stage:last-child{border-right:1px solid color-mix(in srgb,var(--flow-glow) 15%,var(--line))}
+.flow-stage-node{flex:0 0 22px;min-height:22px}
+.flow-stage-body{min-width:0}
+.flow-stage-body h3{overflow-wrap:anywhere}
+.flow-stage-meta{min-height:16px}
+.flow-stage-running{border-color:color-mix(in srgb,var(--flow-glow) 56%,var(--line));box-shadow:0 0 0 1px color-mix(in srgb,var(--flow-glow) 10%,transparent),0 12px 30px color-mix(in srgb,var(--flow-glow) 8%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 7%,transparent)}
+.flow-stage-running .flow-stage-node>span{animation:flow-node-pulse 1.8s ease-in-out infinite}
+.flow-stage-blocked{border-color:color-mix(in srgb,var(--amber) 28%,var(--line))}
+.flow-stage-detail{margin-top:9px}
+.flow-stage-detail summary{display:flex;align-items:center;gap:6px;padding:5px 0;color:var(--faint);transition:color .18s}
+.flow-stage-detail summary:hover,.flow-stage-detail[open] summary{color:var(--mint)}
+.flow-stage-detail p{padding-top:3px}
+.flow-wait{position:relative;display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:12px;min-height:78px;margin-top:2px;padding:16px;border:1px solid color-mix(in srgb,var(--flow-glow) 20%,var(--line));border-radius:13px;background:radial-gradient(ellipse at 0 50%,color-mix(in srgb,var(--flow-glow) 10%,transparent),transparent 62%),color-mix(in srgb,var(--panel) 88%,transparent);color:var(--text)}
+.flow-wait i{grid-column:1;grid-row:1;width:22px;height:22px;margin:0;border:1px solid color-mix(in srgb,var(--flow-glow) 38%,var(--line));border-top-color:var(--flow-glow);box-shadow:0 0 20px color-mix(in srgb,var(--flow-glow) 16%,transparent)}
+.flow-wait>span{grid-column:2;grid-row:1;gap:4px;font:600 12px var(--font)}
+.flow-wait small{font:11px/1.5 var(--font)}
+.flow-wait time{grid-column:3;grid-row:1;margin:0;padding:5px 8px;border:1px solid var(--line);border-radius:99px;background:color-mix(in srgb,var(--panel) 75%,transparent);font-size:9px}
+.flow-progress-note{border-style:solid;background:color-mix(in srgb,var(--panel) 72%,transparent)}
+@media(max-width:850px){.flow-trace{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:row;overflow:visible}}
+@media(max-width:560px){.flow-trace{grid-template-columns:minmax(0,1fr);gap:8px}.flow-stage{padding:13px}.flow-wait{grid-template-columns:25px minmax(0,1fr);padding:13px}.flow-wait time{grid-column:2;grid-row:2;justify-self:start;margin-top:2px}.flow-wait>span{grid-column:2}.flow-wait i{grid-row:1 / span 2;align-self:start;margin-top:2px}}
+@media(prefers-reduced-motion:reduce){.flow-stage-running .flow-stage-node>span{animation:none}}
