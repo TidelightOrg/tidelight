@@ -11,7 +11,7 @@ test("public evidence manifest separates verified checks from missing/private ar
   assert.ok(manifest.evidence_inventory.some((item) => item.status === "production_verified"));
   assert.ok(manifest.evidence_inventory.some((item) => item.status === "private_owner_scoped"));
   assert.equal(manifest.verification.reproducibility.alpha.status, "needs_run_artifact");
-  assert.equal(manifest.verification.reproducibility.agentic.status, "needs_public_run_export");
+  assert.equal(manifest.verification.reproducibility.agentic.status, "private_owner_export_available");
 });
 
 test("evidence page exposes the JSON download and names its limitations", async () => {
