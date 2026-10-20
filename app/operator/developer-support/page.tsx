@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
 import { isTidelightOperator } from "@/lib/auth/operator-access";
 import { DeveloperSupportAdmin } from "./support-admin";
 import "@/app/developers/support/support.css";
@@ -9,6 +10,7 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Developer support queue | Tidelight Operations" };
 
 export default async function DeveloperSupportAdminPage({ searchParams }: { searchParams: Promise<{ ticket?: string }> }) {
+  const supabase = await createClient();
   const user = await getServerUser();
   if (!user || !isTidelightOperator(user)) redirect("/overview");
   const params = await searchParams;
