@@ -46,6 +46,14 @@
       {
         "path": "/replay",
         "purpose": "Static illustrative research-flow explanation; not live evidence."
+      },
+      {
+        "path": "/evidence",
+        "purpose": "Public index of evidence, reproducibility requirements, and boundaries."
+      },
+      {
+        "path": "/replay",
+        "purpose": "Illustrative static UX fixture; not live research evidence."
       }
     ],
     "source_repository": "https://github.com/TidelightOrg/tidelight",
@@ -64,15 +72,14 @@
         ]
       },
       "agentic": {
-        "status": "needs_public_run_export",
+        "status": "private_owner_export_available",
         "requirements": [
-          "run timestamp",
-          "event/source lineage",
-          "decision",
-          "risk checks",
+          "private owner-scoped export only",
+          "run timestamp and event/source lineage where recorded",
+          "decision and risk checks",
           "paper order/fill or explicit no-fill",
           "result",
-          "owner-privacy review"
+          "review account privacy before sharing"
         ]
       },
       "research": {
@@ -108,9 +115,9 @@
     {
       "id": "application-ci",
       "kind": "automated_checks",
-      "status": "passed",
+      "status": "pending",
       "uri": "https://github.com/TidelightOrg/tidelight/actions",
-      "claim": "Latest Judge Mode standalone presentation change passed application checks."
+      "claim": "CI status will be updated after this evidence tranche passes the repository checks."
     },
     {
       "id": "strategy-report",
