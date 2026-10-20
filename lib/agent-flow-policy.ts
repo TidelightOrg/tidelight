@@ -1,6 +1,7 @@
 export type FlowSource = { title: string; url: string; publisher: string; publishedAt: string | null; via?: "Public feeds" | "AgentKey" };
 export type FlowStance = "bullish" | "bearish" | "mixed" | "unclear";
-export type FlowAssessment = { summary: string; stance: FlowStance; confidence: number; citedUrls: string[]; risks: string[]; nextCheck: string };
+export type FlowEvidencePoint = { text: string; citedUrls: string[] };
+export type FlowAssessment = { summary: string; stance: FlowStance; confidence: number; citedUrls: string[]; supportingEvidence: FlowEvidencePoint[]; counterEvidence: FlowEvidencePoint[]; risks: string[]; nextCheck: string };
 export type FlowGateInput = {
   assessment: FlowAssessment;
   sources: FlowSource[];
@@ -59,9 +60,22 @@ export function normalizeFlowAssessment(value: Record<string, unknown>, sources:
   const confidence = typeof value.confidence === "number" ? value.confidence : NaN;
   if (summary.length < 25 || typeof stance !== "string" || !["bullish", "bearish", "mixed", "unclear"].includes(stance) || !Number.isFinite(confidence) || confidence < 0 || confidence > 1) return null;
   const valid = new Set(sources.map(source => source.url));
+  const evidencePoints = (items: unknown): FlowEvidencePoint[] => Array.isArray(items)
+    ? items.flatMap((item): FlowEvidencePoint[] => {
+      if (!item || typeof item !== "object" || Array.isArray(item)) return [];
+      const row = item as Record<string, unknown>;
+      const text = typeof row.text === "string" ? row.text.trim().slice(0, 260) : "";
+      const citedUrls = Array.isArray(row.citedUrls)
+        ? [...new Set(row.citedUrls.filter((url): url is string => typeof url === "string" && valid.has(url)))].slice(0, 3)
+        : [];
+      return text.length >= 12 && citedUrls.length ? [{ text, citedUrls }] : [];
+    }).slice(0, 3)
+    : [];
   return {
     summary, stance: stance as FlowStance, confidence,
     citedUrls: Array.isArray(value.citedUrls) ? [...new Set(value.citedUrls.filter((url): url is string => typeof url === "string" && valid.has(url)))].slice(0, 6) : [],
+    supportingEvidence: evidencePoints(value.supportingEvidence),
+    counterEvidence: evidencePoints(value.counterEvidence),
     risks: Array.isArray(value.risks) ? value.risks.filter((item): item is string => typeof item === "string").slice(0, 4).map(item => item.slice(0, 200)) : [],
     nextCheck: typeof value.nextCheck === "string" ? value.nextCheck.slice(0, 220) : "Review issuer filings and completed candles.",
   };

@@ -83,3 +83,20 @@
 @media(max-width:850px){.flow-trace{grid-template-columns:repeat(2,minmax(0,1fr));grid-auto-flow:row;overflow:visible}}
 @media(max-width:560px){.flow-trace{grid-template-columns:minmax(0,1fr);gap:8px}.flow-stage{padding:13px}.flow-wait{grid-template-columns:25px minmax(0,1fr);padding:13px}.flow-wait time{grid-column:2;grid-row:2;justify-self:start;margin-top:2px}.flow-wait>span{grid-column:2}.flow-wait i{grid-row:1 / span 2;align-self:start;margin-top:2px}}
 @media(prefers-reduced-motion:reduce){.flow-stage-running .flow-stage-node>span{animation:none}}
+
+/* Two-sided evidence makes the research reading auditable at a glance. */
+.flow-evidence-balance{display:grid;gap:12px;margin-top:16px;padding:15px;border:1px solid color-mix(in srgb,var(--flow-glow) 18%,var(--line));border-radius:13px;background:linear-gradient(145deg,color-mix(in srgb,var(--flow-glow) 5%,var(--panel)),color-mix(in srgb,var(--panel) 96%,transparent))}
+.flow-evidence-balance>header{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.flow-evidence-balance>header b{color:var(--text);font:600 12px var(--display)}
+.flow-evidence-balance>header span{color:var(--faint);font:8px var(--mono);letter-spacing:.04em;text-transform:uppercase}
+.flow-evidence-columns{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.flow-evidence-side{min-width:0;padding:12px;border:1px solid var(--line);border-radius:10px;background:color-mix(in srgb,var(--panel) 78%,transparent)}
+.flow-evidence-side h4{margin:0 0 9px;color:var(--mint);font:9px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.flow-evidence-side ul{display:grid;gap:10px;margin:0;padding:0;list-style:none}
+.flow-evidence-side li{display:grid;gap:7px}
+.flow-evidence-side li+li{padding-top:9px;border-top:1px solid var(--line)}
+.flow-evidence-side li p,.flow-evidence-empty{margin:0;color:var(--muted);font:11px/1.6 var(--font);overflow-wrap:anywhere}
+.flow-evidence-side li>div{display:flex;flex-wrap:wrap;gap:6px}
+.flow-evidence-side a{display:inline-flex;align-items:center;max-width:100%;padding:4px 7px;border:1px solid color-mix(in srgb,var(--flow-glow) 18%,var(--line));border-radius:999px;color:var(--mint);font:8px var(--mono);text-decoration:none}
+.flow-evidence-side a:hover{border-color:var(--flow-glow);background:color-mix(in srgb,var(--flow-glow) 8%,transparent)}
+@media(max-width:650px){.flow-evidence-columns{grid-template-columns:1fr}.flow-evidence-balance{padding:12px}.flow-evidence-side{padding:11px}}

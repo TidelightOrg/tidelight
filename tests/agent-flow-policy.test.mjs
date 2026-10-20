@@ -87,3 +87,19 @@ test("unknown companies and duplicate provider assessments cannot overwrite the 
   assert.equal(normalized.NVDA.confidence, 0.8);
   assert.equal(normalizeFlowAssessment({ ...assessment, stance: ["bullish"] }, sources), null);
 });
+
+test("two-sided evidence only retains points tied to supplied source URLs", () => {
+  const balanced = normalizeFlowAssessment({
+    ...assessment,
+    supportingEvidence: [
+      { text: "A current source describes stronger cloud demand.", citedUrls: [sources[0].url] },
+      { text: "This point cites an invented source.", citedUrls: ["https://elsewhere.invalid/fabricated"] },
+      { text: "No citation should be discarded.", citedUrls: [] },
+    ],
+    counterEvidence: [
+      { text: "A second publisher flags a slower outlook.", citedUrls: [sources[1].url] },
+    ],
+  }, sources);
+  assert.deepEqual(balanced?.supportingEvidence, [{ text: "A current source describes stronger cloud demand.", citedUrls: [sources[0].url] }]);
+  assert.deepEqual(balanced?.counterEvidence, [{ text: "A second publisher flags a slower outlook.", citedUrls: [sources[1].url] }]);
+});
