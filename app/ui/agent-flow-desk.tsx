@@ -165,7 +165,7 @@ export default function AgentFlowDesk({ initialQuestion, evaluatorMode = false }
             <details className="flow-stage-detail"><summary>What was checked</summary><p>{stage.detail}</p></details>
           </div>
         </article>;
-      })}{busy && stages.length === 0 ? <div className="flow-wait"><i /><span>Connecting the research agents…{busySeconds >= 15 ? <small>Evidence providers can take a minute to respond. Keep this window open.</small> : null}</span><time dateTime={`PT${busySeconds}S`}>{busySeconds}s</time></div> : null}{busy && stages.length > 0 && busySeconds >= 15 ? <p className="flow-progress-note" role="status">Still checking evidence and market gates. This can take a minute when providers are slow.</p> : null}</div>
+      })}{busy && stages.length === 0 ? <div className="flow-wait"><i aria-hidden="true" /><span>{busySeconds < 8 ? "Opening the research path…" : "Connecting market and evidence sources"}{busySeconds >= 15 ? <small>Tidelight is checking current coverage and verified market data. Progress appears here as each check completes.</small> : <small>Market context · recent evidence · decision gates</small>}</span><time dateTime={`PT${busySeconds}S`}>{busySeconds}s</time></div> : null}{busy && stages.length > 0 && busySeconds >= 15 ? <p className="flow-progress-note" role="status">Research is still running. Market and source checks can vary with provider response time.</p> : null}</div>
     </section> : null}
 
     {error ? <div className="flow-error" role="alert"><b>Research paused</b><span>{error}</span>{error.toLowerCase().includes("sign in") ? <Link href="/login">Sign in ↗</Link> : <button type="button" onClick={() => void runFlow()} disabled={busy}>Try again ↗</button>}</div> : null}
