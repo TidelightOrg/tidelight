@@ -195,10 +195,10 @@ export default function LandingDocsEmbed() {
         <h2 id="landing-docs-title">The context is here.<br /><em>So are the answers.</em></h2>
         <p>Explore the Tidelight guide without leaving the desk. Browse product docs, search a topic, or ask the handbook a question.</p>
         <div className="landing-docs-actions">
-          <button className="landing-docs-open" type="button" onClick={() => openEmbed()} aria-describedby="landing-docs-status">Open the handbook <NavigationTrail className="landing-arrow" /></button>
+          <button className="landing-docs-open" type="button" onClick={() => openEmbed()}>Open the handbook <NavigationTrail className="landing-arrow" /></button>
           <a href={docsSite} target="_blank" rel="noopener noreferrer">Read in a new tab <NavigationTrail className="landing-arrow" /></a>
         </div>
-        <span id="landing-docs-status" className="landing-docs-status" role="status" aria-live="polite">{status || (ready ? "Handbook ready · opens only when you ask" : "The guide loads only when you open it.")}</span>
+        {status ? <span id="landing-docs-status" className="landing-docs-status" role="status" aria-live="polite">{status}</span> : <span className="landing-docs-signal" aria-hidden="true"><i /><i /><i /></span>}
       </div>
       <div className="landing-docs-window" aria-label="Tidelight handbook preview">
         <div className="landing-docs-window-bar"><span className="landing-docs-window-brand"><i><TidelightAnimatedMark /></i> TIDELIGHT / HANDBOOK</span><span className="landing-docs-window-dots" aria-hidden="true"><i /><i /><i /></span></div>
