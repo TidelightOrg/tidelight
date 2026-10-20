@@ -1,0 +1,37 @@
+{
+  "schema": "tidelight-hackathon-s2-evidence-v1",
+  "project": "Tidelight",
+  "competition": "Bitget AI Base Camp S2",
+  "status": "public-judge-preview",
+  "generatedAt": "2026-10-20",
+  "claimPolicy": "This manifest distinguishes implemented product surfaces from evidence that still needs to be collected. It makes no performance, user, or live-trading claim.",
+  "tracks": {
+    "alphaFactory": {
+      "status": "implemented-workflow",
+      "entry": "/strategies",
+      "supports": ["completed-candle replay", "chronological train/holdout split", "walk-forward validation", "cost sensitivity", "archived candles and input fingerprint"],
+      "remainingProof": ["dated multi-asset strategy report", "session-aware fill modeling"]
+    },
+    "agenticTrading": {
+      "status": "implemented-paper-workflow",
+      "entry": "/nightwatch",
+      "supports": ["manual and scheduled completed-candle checks", "paper-only decisions", "freshness gate", "sizing and exposure limits", "daily loss breaker", "pause and duplicate controls", "owner-scoped decision and fill audit trail"],
+      "remainingProof": ["timestamped natural paper run", "event-driven market trigger"]
+    },
+    "aiTradingDesk": {
+      "status": "implemented-workflow",
+      "entry": "/flow?demo=1",
+      "supports": ["source capture", "citation-bound claims", "counterpoints and risks", "affected assets", "explicit no-trade gate"],
+      "remainingProof": ["broader source discovery", "independent publisher verification"]
+    }
+  },
+  "judgePath": ["/flow?demo=1", "/strategies", "/nightwatch"],
+  "systemLinks": {
+    "markets": "/markets",
+    "research": "/research",
+    "demo": "/demo",
+    "status": "/status",
+    "repository": "https://github.com/TidelightOrg/tidelight"
+  },
+  "notYetClaimed": ["live trading", "institutional-grade performance", "competition-period paper results", "final submission acceptance"]
+}
