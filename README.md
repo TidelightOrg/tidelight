@@ -123,3 +123,82 @@ Tidelight is being built with a simple standard: show the evidence, label assump
 </div>
 
 For technical contributions or responsible security reports, contact [security@tidelight.app](mailto:security@tidelight.app).
+
+## Judge links · Tidelight ecosystem
+
+<details>
+<summary><strong>Open the Tidelight judge directory</strong></summary>
+
+Use this directory to move directly between the public product, its judge walkthrough, and the developer ecosystem. The live research demo is designed to be explored without signing in; account-only features may ask you to create an account.
+
+### Suggested judging path
+
+| Visit | What to inspect |
+| --- | --- |
+| [Public judge mode](https://tidelight.app/judge) | Start here for the public evaluation overview and judge-facing evidence. |
+| [Research flow demo](https://tidelight.app/flow?demo=1) | Follow a sample question through research steps, sources, exposure, and decision gates. |
+| [Judge mode guide](https://github.com/TidelightOrg/tidelight/blob/main/docs/S2_JUDGE_MODE.md) | Read the intended evaluation sequence, what each surface demonstrates, and evidence boundaries. |
+
+### Product surfaces
+
+| Visit | What it does |
+| --- | --- |
+| [Tidelight home](https://tidelight.app/) | Product overview and entry point to the workspace. |
+| [Market map](https://tidelight.app/markets) | Browse covered tokenized equities and market context. |
+| [Research desk](https://tidelight.app/research) | Create a source-led market brief and inspect its evidence. |
+| [Watchlist](https://tidelight.app/watchlist) | Track selected companies and instruments. |
+| [Strategy Lab](https://tidelight.app/strategies) | Review historical strategy replays and their assumptions. |
+| [Nightwatch](https://tidelight.app/nightwatch) | Inspect bounded monitoring and paper-run workflows. |
+| [Futures paper desk](https://tidelight.app/futures) | Rehearse stock-perpetual ideas in a simulated paper environment. No exchange orders are placed. |
+| [Research community](https://tidelight.app/community) | Explore the community research surface. |
+| [Saved briefs](https://tidelight.app/briefs) | Review saved research briefs when signed in. |
+| [Exchange workspace](https://tidelight.app/trading) | Inspect the Bitget workspace and its exchange controls; live trading is disabled. |
+
+### Developer platform
+
+| Visit | What it does |
+| --- | --- |
+| [Developer portal](https://tidelight.app/developers) | Overview of the API, SDKs, and integration options. |
+| [Developer documentation](https://dev.tidelight.app) | API reference, quickstarts, SDK guides, webhooks, and MCP setup. |
+| [Developer console](https://tidelight.app/developers/console) | Manage developer projects and credentials. |
+| [Package platform](https://package.tidelight.app) | Browse Tidelight SDKs and integration packages. |
+| [Package dashboard](https://package.tidelight.app/dashboard) | View package and integration workspace options. |
+| [REST API base](https://api.tidelight.app/v1) | Public API base URL; use the developer docs for endpoint details and authentication. |
+| [Remote MCP endpoint](https://mcp.tidelight.app/mcp) | Streamable HTTP endpoint for MCP clients; see the developer docs for connection instructions. |
+
+### SDKs, registries, and container
+
+| Package | Product guide | Public registry |
+| --- | --- | --- |
+| JavaScript SDK | [SDK overview](https://package.tidelight.app/sdk) | [npm: @tidelight/sdk](https://www.npmjs.com/package/@tidelight/sdk) |
+| MCP server | [MCP overview](https://package.tidelight.app/mcp) | [npm: @tidelight/mcp](https://www.npmjs.com/package/@tidelight/mcp) · [GitHub Container Registry](https://github.com/orgs/TidelightOrg/packages/container/package/tidelight-mcp) |
+| Python SDK | [Python overview](https://package.tidelight.app/python) | [PyPI: tidelight](https://pypi.org/project/tidelight/) |
+| React SDK | [React overview](https://package.tidelight.app/react) | [npm: @tidelight/react](https://www.npmjs.com/package/@tidelight/react) |
+| CLI | [CLI overview](https://package.tidelight.app/cli) | [npm: @tidelight/cli](https://www.npmjs.com/package/@tidelight/cli) |
+
+### Source code and project information
+
+| Visit | What it contains |
+| --- | --- |
+| [Main application repository](https://github.com/TidelightOrg/tidelight) | Product source, implementation notes, and project history. |
+| [API repository](https://github.com/TidelightOrg/tidelight-api) | API service source and its implementation. |
+| [MCP repository](https://github.com/TidelightOrg/tidelight-mcp) | MCP server source. |
+| [JavaScript SDK repository](https://github.com/TidelightOrg/tidelight-sdk) | TypeScript/JavaScript client source. |
+| [Python SDK repository](https://github.com/TidelightOrg/tidelight-python) | Python client source. |
+| [Examples repository](https://github.com/TidelightOrg/tidelight-examples) | Integration examples for developers. |
+| [Tidelight GitHub organization](https://github.com/TidelightOrg) | All public repositories and organization activity. |
+| [Product plan](https://github.com/TidelightOrg/tidelight/blob/main/docs/planning/PROJECT_PLAN.md) | Product direction and planned work. |
+| [Current milestones](https://github.com/TidelightOrg/tidelight/blob/main/docs/NEXT_BUILD_MILESTONES.md) | Current implementation milestones. |
+
+### Help and policies
+
+| Visit | What it contains |
+| --- | --- |
+| [Help center](https://tidelight.app/help) | Product help and support options. |
+| [Contact Tidelight](https://tidelight.app/contact) | Contact and feedback routes. |
+| [Terms](https://tidelight.app/terms) | Product terms. |
+| [Privacy](https://tidelight.app/privacy) | Privacy information. |
+| [Security contact](mailto:security@tidelight.app) | Responsible security and technical reports. |
+
+</details>
+
