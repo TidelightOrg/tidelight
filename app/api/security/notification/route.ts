@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { enqueueSecurityEmail } from "@/lib/email/nightwatch";
 import { drainEmailQueue } from "@/lib/email/delivery";
+import { queueAccountAuthNotice, type AccountAuthEvent } from "@/lib/email/account-security";
 
 export const dynamic = "force-dynamic";
 const EVENTS = {
@@ -17,9 +18,19 @@ export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) return NextResponse.json({ error: "Sign in to continue." }, { status: 401 });
-  let event: keyof typeof EVENTS;
+  let event: keyof typeof EVENTS | AccountAuthEvent;
   try {
     const body = await request.json() as { event?: unknown };
+    if (body.event === "new_login" || body.event === "new_signup") {
+      const admin = createAdminClient();
+      const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+      const { count, error: countError } = await admin.from("security_events").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", body.event).gte("created_at", since);
+      if (countError) throw new Error("rate_limit_check_failed");
+      if ((count ?? 0) >= 3) return NextResponse.json({ ok: true, queued: false }, { headers: { "Cache-Control": "no-store" } });
+      await queueAccountAuthNotice({ admin, userId: user.id, event: body.event, request });
+      after(async () => { try { await drainEmailQueue(admin); } catch { console.error("Auth security email delivery deferred"); } });
+      return NextResponse.json({ ok: true, queued: true }, { headers: { "Cache-Control": "no-store" } });
+    }
     if (typeof body.event !== "string" || !Object.hasOwn(EVENTS, body.event)) return NextResponse.json({ error: "That account event cannot be notified." }, { status: 400 });
     event = body.event as keyof typeof EVENTS;
   } catch { return NextResponse.json({ error: "Send a valid account event." }, { status: 400 }); }
