@@ -9,14 +9,28 @@ export async function GET(request: Request) {
   try {
     const probe = new URL(request.url).searchParams.get("probe");
     const cookieStore = probe ? await cookies() : null;
-    const parsedAuthCookieCount = cookieStore?.getAll()
-      .filter(({ name }) => /^sb-[a-z0-9-]+-auth-token(?:\.\d+)?$/i.test(name)).length ?? null;
+    const parsedCookies = cookieStore?.getAll() ?? [];
+    const parsedAuthCookieCount = parsedCookies
+      .filter(({ name }) => /^sb-[a-z0-9-]+-auth-token(?:\.\d+)?$/i.test(name)).length;
+    const authCookieShape = parsedCookies
+      .filter(({ name }) => /^sb-[a-z0-9-]+-auth-token(?:\.\d+)?$/i.test(name))
+      .map(({ name, value }) => name + ":" + value.length)
+      .sort()
+      .join(",");
 
     if (probe === "shared") {
       const authState = await getServerAuthState();
       return NextResponse.json({
         authenticated: Boolean(authState.user),
-        diagnostics: { authPath: "shared-helper", errorCode: authState.errorCode, parsedAuthCookieCount },
+        diagnostics: {
+          authPath: "shared-helper",
+          errorCode: authState.errorCode,
+          errorName: authState.errorName,
+          sessionPresent: authState.sessionPresent,
+          refreshTokenPresent: authState.refreshTokenPresent,
+          parsedAuthCookieCount,
+          authCookieShape,
+        },
       }, { headers: { "Cache-Control": "no-store, max-age=0" } });
     }
 
