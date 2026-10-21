@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { extractFlowTickers, gateFlowTrade, normalizeFlowAssessment, normalizeFlowAssessments, sourceOnlyAssessment } from "../lib/agent-flow-policy.ts";
+import { extractFlowTickers, gateFlowTrade, normalizeFlowAssessment, normalizeFlowAssessments, sourceOnlyAssessment, tokenizedMarketReview } from "../lib/agent-flow-policy.ts";
 
 const now = Date.now();
 const sources = [
@@ -19,6 +19,18 @@ test("source-only rToken research distinguishes issuer coverage from token-marke
   assert.match(result.summary, /not enough evidence/i);
   assert.equal(result.stance, "unclear");
   assert.equal(result.confidence, 0);
+});
+
+test("tokenized market verdict separates due diligence from trading merit and reports quote age", () => {
+  const fresh = tokenizedMarketReview({ ticker: "NVDA", spotSymbol: "RNVDAUSDT", spotPrice: 220, spotTimestamp: now - 30_000, now });
+  assert.match(fresh.verdict, /Worth a closer due-diligence review/);
+  assert.match(fresh.verdict, /does not establish rNVDA tradability/);
+  assert.equal(fresh.quoteStatus, "fresh");
+  const stale = tokenizedMarketReview({ ticker: "NVDA", spotSymbol: "RNVDAUSDT", spotPrice: 220, spotTimestamp: now - 180_000, now });
+  assert.equal(stale.quoteStatus, "stale");
+  const absent = tokenizedMarketReview({ ticker: "NVDA", spotSymbol: null, spotPrice: null, spotTimestamp: null, now });
+  assert.match(absent.verdict, /no verified tokenized-spot quote/);
+  assert.equal(absent.quoteStatus, "unavailable");
 });
 
 test("the coordinator recognizes only supported US stock underlyings", () => {

@@ -25,6 +25,20 @@ export function sourceOnlyAssessment(input: { ticker: string; headlineCount: num
   return { summary, stance: "unclear", confidence: 0, citedUrls: [], supportingEvidence: [], counterEvidence: [], risks: ["AI synthesis is unavailable; retrieved headlines are discovery references only.", ...(input.tokenizedMarketQuestion ? ["Issuer coverage does not establish rToken liquidity, spread, or premium/discount."] : [])], nextCheck: input.tokenizedMarketQuestion ? "Verify the rToken's live availability, quote freshness, liquidity, spread, and premium or discount from instrument-specific sources." : "Review issuer filings and completed candles." };
 }
 
+/** Deterministic instrument-specific conclusion, independent of model prose. */
+export function tokenizedMarketReview(input: { ticker: string; spotSymbol: string | null; spotPrice: number | null; spotTimestamp: number | null; now: number }) {
+  const quoteAvailable = Boolean(input.spotSymbol && typeof input.spotPrice === "number" && Number.isFinite(input.spotPrice) && input.spotPrice > 0);
+  const timestampKnown = typeof input.spotTimestamp === "number" && Number.isFinite(input.spotTimestamp) && input.spotTimestamp > 0 && input.spotTimestamp <= input.now + 60_000;
+  const quoteFresh = Boolean(quoteAvailable && timestampKnown && input.now - input.spotTimestamp! <= 120_000);
+  return {
+    verdict: !quoteAvailable
+      ? `Not enough evidence for an r${input.ticker} market review: no verified tokenized-spot quote was returned.`
+      : `Worth a closer due-diligence review; the available evidence does not establish r${input.ticker} tradability.`,
+    quoteStatus: !quoteAvailable ? "unavailable" as const : !timestampKnown ? "unverified" as const : quoteFresh ? "fresh" as const : "stale" as const,
+    limitations: ["Order-book liquidity and depth were not measured.", "Bid–ask spread was not measured.", "Premium or discount to the underlying was not measured."],
+  };
+}
+
 const aliases: Record<string, string[]> = {
   NVDA: ["NVIDIA"], TSLA: ["TESLA"], AAPL: ["APPLE"], AMD: ["ADVANCED MICRO DEVICES"],
   MSFT: ["MICROSOFT"], META: ["META PLATFORMS"], AMZN: ["AMAZON"],

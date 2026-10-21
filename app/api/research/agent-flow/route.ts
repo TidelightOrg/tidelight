@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { aiJsonWithFallback, configuredAiProviders } from "@/lib/ai-fallback";
 import { getBitgetAsset, getBitgetCandles, getBitgetStockPerp, STOCK_PERP_UNIVERSE } from "@/lib/bitget-market";
 import { buildSignals, prepareBacktestCandles } from "@/lib/backtest";
-import { extractFlowTickers, gateFlowTrade, normalizeFlowAssessments, sourceOnlyAssessment, type FlowAssessment, type FlowSource } from "@/lib/agent-flow-policy";
+import { extractFlowTickers, gateFlowTrade, normalizeFlowAssessments, sourceOnlyAssessment, tokenizedMarketReview, type FlowAssessment, type FlowSource } from "@/lib/agent-flow-policy";
 import { gatherIssuerEvidence, type FlowEvidence } from "@/lib/agent-flow-sources";
 import { agentKeyIssuerEvidence } from "@/lib/agentkey-flow-sources";
 
@@ -163,7 +163,7 @@ export async function POST(request: Request) {
           ] : [];
           stage("Alpha Factory", signals.length ? "complete" : "blocked", `${snap.ticker}: completed-candle rule`, signals.length ? `SMA 20/50 checked on ${completed.length} completed 4H bars; ${signals.at(-1) !== signals.at(-2) ? "fresh transition" : "no fresh transition"}.` : "Too few completed candles to test the fixed rule.", snap.ticker);
           stage("Trading agent", gate.tradeable ? "complete" : "blocked", `${snap.ticker}: ${gate.tradeable ? "eligible for order review" : "research only"}`, gate.tradeable ? "Source coverage, market freshness, confidence, and the fixed Alpha rule align. You must still choose and confirm any action." : gateReasons.join(" "), snap.ticker);
-          return { ticker: snap.ticker, issuer: snap.issuer, summary: assessment.summary, stance: assessment.stance, confidence: assessment.confidence, confidenceCapped: Boolean(assessment.confidenceCapped),
+          return { ticker: snap.ticker, issuer: snap.issuer, summary: assessment.summary, stance: assessment.stance, confidence: assessment.confidence, confidenceCapped: Boolean(assessment.confidenceCapped), ...(tokenizedMarketQuestion ? { tokenizedMarketReview: tokenizedMarketReview({ ticker: snap.ticker, spotSymbol: snap.spot?.symbol ?? null, spotPrice: snap.spot?.lastPrice ?? null, spotTimestamp: snap.spot?.providerTimestamp ?? null, now }) } : {}),
             tradeable: gate.tradeable, gateReasons, sources: snap.sources.slice(0, 20).map(({ title, url, publisher, publishedAt, via }): FlowSource => ({ title, url, publisher, publishedAt, via })),
             market: { perpSymbol: snap.perp?.symbol ?? null, spotSymbol: snap.spot?.symbol ?? null, perpLastPrice: snap.perp?.lastPrice ?? null, perpProviderTimestamp: snap.perp?.providerTimestamp ?? null, spotLastPrice: snap.spot?.lastPrice ?? null, spotProviderTimestamp: snap.spot?.providerTimestamp ?? null, lastPrice: snap.perp?.lastPrice ?? null, providerTimestamp: snap.perp?.providerTimestamp ?? null, interval: "4H", candles: completed.slice(-30).map(candle => ({ timestamp: candle.timestamp, close: candle.close })) },
             handoff: gate.tradeable ? { destinations, reason: "Eligible for a separate, user-confirmed order review. Paper futures and live rToken spot use different instruments and accounts." } : null,
