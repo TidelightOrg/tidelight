@@ -5,6 +5,7 @@ import { useState } from "react";
 import { PackageLifecycleDemo } from "./package-lifecycle-demo";
 import { PackageSectionNav, packageSections } from "./package-section-nav";
 import { PackageSourceBadges } from "./package-source-badges";
+import { PackageLanguageMark } from "./package-language-mark";
 import { RegistryFacts } from "./registry-facts";
 const snippets = {
   source: `cd sdk/typescript && npm ci && npm test
@@ -34,7 +35,7 @@ export function CliPackageDetail() {
   }
   return <>
     <header className="tic-package-detail-hero">
-      <div className="tic-package-detail-copy"><p className="tic-eyebrow">OFFICIAL PACKAGE / TERMINAL WORKFLOWS</p><div className="tic-package-detail-title"><span className="tic-package-glyph" aria-hidden="true">$</span><h1>@tidelight/cli</h1></div><p>A focused command-line interface for supported Tidelight API workflows. Use your project’s scopes from the terminal, keep credentials in your OS keychain, and inspect structured job results.</p><PackageSourceBadges packageId="cli" /><div className="tic-package-detail-actions"><a className="tic-button tic-primary" href="#quickstart">Explore commands <span aria-hidden="true">↓</span></a><a className="tic-button" href="https://github.com/TidelightOrg/tidelight/tree/main/packages/cli" target="_blank" rel="noreferrer">View source <span aria-hidden="true">→</span></a></div></div>
+      <div className="tic-package-detail-copy"><p className="tic-eyebrow">OFFICIAL PACKAGE / TERMINAL WORKFLOWS</p><div className="tic-package-detail-title"><PackageLanguageMark packageId="cli" /><h1>@tidelight/cli</h1></div><p>A focused command-line interface for supported Tidelight API workflows. Use your project’s scopes from the terminal, keep credentials in your OS keychain, and inspect structured job results.</p><PackageSourceBadges packageId="cli" /><div className="tic-package-detail-actions"><a className="tic-button tic-primary" href="#quickstart">Explore commands <span aria-hidden="true">↓</span></a><a className="tic-button" href="https://github.com/TidelightOrg/tidelight/tree/main/packages/cli" target="_blank" rel="noreferrer">View source <span aria-hidden="true">→</span></a></div></div>
       <div className="tic-package-flow tic-cli-flow" role="img" aria-label="Illustrative CLI workflow: a terminal reads credentials from an operating-system keychain, sends a scoped API request through the official SDK, and prints the returned Tidelight response."><span className="tic-package-flow-label">LOCAL CREDENTIAL · SERVER AUTHORITY</span><div className="tic-cli-terminal-head"><i/><i/><i/><span>tidelight · API v1</span></div><div className="tic-cli-terminal-body"><p className="tic-cli-command"><span>$</span> tidelight research start NVDA <span className="tic-cli-nowrap">--wait</span></p><div className="tic-cli-terminal-meta"><span>credential</span><strong>OS keychain</strong><span>scope</span><strong>research:run</strong></div><div className="tic-cli-terminal-rule"/><div className="tic-cli-terminal-result"><small>ILLUSTRATIVE JOB STATUS</small><strong>completed</strong><small>REQUEST ID</small><code>req_········</code></div></div><div className="tic-cli-caption">Example fields only. Actual output comes from the API response.</div></div>
     </header>
     <PackageLifecycleDemo packageName="cli" />
