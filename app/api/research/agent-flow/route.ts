@@ -98,7 +98,7 @@ export async function POST(request: Request) {
         push("stage", item);
       };
       try {
-        stage("Coordinator", "complete", "Question framed", `Comparing ${tickers.join(" and ")} across evidence, verified Bitget markets, Alpha Factory, and risk gates.${workspaceContext ? ` Opened from ${workspaceContext}.` : ""}`);
+        stage("Coordinator", "complete", "Question framed", `Deep research: eight bounded news searches per company, verified Bitget markets, Alpha Factory, and risk gates.${workspaceContext ? ` Opened from ${workspaceContext}.` : ""}`);
         stage("Market scout", "running", "Mapping current market and coverage", "Checking eight bounded news searches across four angles, an optional live search provider, and verified Bitget instruments. Headlines remain discovery references until reviewed.");
         const snapshots: MarketSnapshot[] = await Promise.all(tickers.map(async ticker => {
           const symbol = `${ticker}USDT`;
@@ -108,7 +108,7 @@ export async function POST(request: Request) {
             settleWithin(getBitgetStockPerp(symbol), 18_000),
             settleWithin(getBitgetAsset(`R${ticker}USDT`), 18_000),
             settleWithin(getBitgetCandles(symbol, "4H", 100, "USDT-FUTURES"), 18_000),
-            settleWithin(gatherIssuerEvidence(ticker, ticker), 35_000),
+            settleWithin(gatherIssuerEvidence(ticker, ticker), 18_000),
             settleWithin(agentKeyIssuerEvidence(ticker, ticker), 12_000),
           ]);
           const market = perp.status === "fulfilled" ? perp.value : null;
