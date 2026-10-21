@@ -331,10 +331,19 @@ components:
             stock_perpetual: { oneOf: [{ $ref: '#/components/schemas/StockPerpetual' }, { type: 'null' }] }
         evidence:
           type: object
-          required: [mode, note, items]
+          required: [mode, note, coverage, items]
           properties:
-            mode: { type: string, const: headline_discovery }
+            mode: { type: string, const: multi_query_headline_discovery }
             note: { type: string }
+            coverage:
+              type: object
+              required: [query_count, lookback_days, retrieved_at, returned_items, publishers]
+              properties:
+                query_count: { type: integer, minimum: 0 }
+                lookback_days: { type: integer, const: 30 }
+                retrieved_at: { type: string, format: date-time }
+                returned_items: { type: integer, minimum: 0 }
+                publishers: { type: integer, minimum: 0 }
             items: { type: array, items: { $ref: '#/components/schemas/HeadlineReference' } }
         limitations: { type: array, items: { type: string } }
     StockPerpetual:
