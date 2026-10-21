@@ -31,7 +31,7 @@ const MAX_EVIDENCE_AGE_MS = 30 * 86_400_000;
 const MAX_DISCOVERY_ITEMS = 40;
 
 function storyKey(item: FlowEvidence) {
-  return item.title.toLowerCase().replace(/\s+-\s+[^-]+$/, "").replace(/[^a-z0-9]/g, "");
+  return item.title.toLowerCase().replace(/\s+-\s+[^-]+$/, "").replace(/[^a-z0-9]/g, "").replace(/quarterly|reports|results|reporting|announces|announced/g, "");
 }
 
 function withinResearchWindow(item: FlowEvidence, now: number) {
