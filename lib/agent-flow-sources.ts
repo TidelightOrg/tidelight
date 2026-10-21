@@ -50,7 +50,6 @@ export function buildIssuerNewsQueries(ticker: string, issuer: string): string[]
     `"${name}" OR "${ticker}" (industry OR supply chain OR market)`,
   ];
 }
-
 export async function gatherIssuerEvidence(ticker: string, issuer: string): Promise<FlowEvidence[]> {
   const name = issuerNames[ticker] ?? issuer;
   const queries = buildIssuerNewsQueries(ticker, issuer);\n  const urls = queries.flatMap(query => {
