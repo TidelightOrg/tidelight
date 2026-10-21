@@ -343,7 +343,7 @@ components:
                 lookback_days: { type: integer, const: 30 }
                 retrieved_at: { type: string, format: date-time }
                 returned_items: { type: integer, minimum: 0 }
-                publishers: { type: integer, minimum: 0 }
+                publishers: { type: integer, minimum: 0 }\n                source_domains: { type: integer, minimum: 0 }
             items: { type: array, items: { $ref: '#/components/schemas/HeadlineReference' } }
         limitations: { type: array, items: { type: string } }
     StockPerpetual:
