@@ -62,6 +62,21 @@ test("native Gemini excludes thought text and joins only final answer parts", as
   assert.equal(fetch.mock.callCount(), 2);
 });
 
+test("schema-invalid primary response is retried before provider fallback", async t => {
+  configure(t);
+  let qwenCalls = 0;
+  const fetch = t.mock.method(globalThis, "fetch", async url => {
+    if (url.includes("bitgetops")) {
+      qwenCalls++;
+      return qwen(JSON.stringify(qwenCalls === 1 ? { summary: "Wrong schema" } : answer));
+    }
+    return gemini([{ text: JSON.stringify(answer) }]);
+  });
+  assert.deepEqual(await aiJsonWithFallback(messages, valid), answer);
+  assert.equal(qwenCalls, 2);
+  assert.equal(fetch.mock.callCount(), 2);
+});
+
 test("blocked Gemini response cannot pass validation even with plausible JSON", async t => {
   configure(t, false);
   t.mock.method(globalThis, "fetch", async () => gemini([{ text: JSON.stringify(answer) }], "SAFETY"));
