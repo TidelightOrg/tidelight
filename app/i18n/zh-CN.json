@@ -4096,5 +4096,11 @@
   "Review this market with a strategy": "使用策略分析此市场",
   "Paper mode uses Bitget public market data and Tidelight paper execution. No real orders are sent.": "模拟模式使用 Bitget 公开行情和 Tidelight 模拟撮合，不会发送真实订单。",
   "Approved live mode routes individually confirmed USDT perpetual orders to Bitget. Paper capital remains separate.": "实盘模式会将逐笔确认的 USDT 永续合约订单发送至 Bitget。模拟资金与实盘资金相互独立。",
+  "LIVE RESEARCH TRACE": "实时研究记录",
+  "Every check, in sequence.": "每项检查，依序呈现。",
+  "Source and market checks appear as they complete. Private model reasoning stays private.": "资料来源与市场检查会在完成时显示。模型的内部推理保持私密。",
+  "RUNNING": "运行中",
+  "About this check": "关于此项检查",
+  "Inspect this check": "查看此项检查",
   "MAX": "最大"
 }
