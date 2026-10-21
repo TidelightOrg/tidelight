@@ -41,7 +41,7 @@ function withinResearchWindow(item: FlowEvidence, now: number) {
 }
 
 /** Bounded multi-query public headline discovery. Search results are pointers, not verified article contents. */
-export async function gatherIssuerEvidence(ticker: string, issuer: string): Promise<FlowEvidence[]> {
+export function buildIssuerNewsQueries(ticker: string, issuer: string): string[] {\n  const name = issuerNames[ticker] ?? issuer;\n  return [\n    `"${name}" OR "${ticker}" (stock OR earnings OR filing)`,\n    `"${name}" OR "${ticker}" (guidance OR revenue OR product)`,\n    `"${name}" OR "${ticker}" (regulation OR lawsuit OR analyst)`,\n    `"${name}" OR "${ticker}" (industry OR supply chain OR market)`,\n  ];\n}\n\nexport async function gatherIssuerEvidence(ticker: string, issuer: string): Promise<FlowEvidence[]> {
   const name = issuerNames[ticker] ?? issuer;
   const queries = [
     `"${name}" OR "${ticker}" (stock OR earnings OR filing)`,
