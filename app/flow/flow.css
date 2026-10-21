@@ -100,3 +100,152 @@
 .flow-evidence-side a{display:inline-flex;align-items:center;max-width:100%;padding:4px 7px;border:1px solid color-mix(in srgb,var(--flow-glow) 18%,var(--line));border-radius:999px;color:var(--mint);font:8px var(--mono);text-decoration:none}
 .flow-evidence-side a:hover{border-color:var(--flow-glow);background:color-mix(in srgb,var(--flow-glow) 8%,transparent)}
 @media(max-width:650px){.flow-evidence-columns{grid-template-columns:1fr}.flow-evidence-balance{padding:12px}.flow-evidence-side{padding:11px}}
+
+/* Research activity is a readable timeline, not a grid of compressed status tiles. */
+.flow-trace{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:0;
+  margin-top:22px;
+  overflow:hidden;
+  border:1px solid color-mix(in srgb,var(--flow-glow) 24%,var(--line));
+  border-radius:18px;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--panel) 90%,var(--flow-glow) 3%),color-mix(in srgb,var(--panel) 96%,transparent));
+  box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 6%,transparent),0 16px 42px color-mix(in srgb,var(--bg) 20%,transparent);
+}
+.flow-stage{
+  display:grid;
+  grid-template-columns:30px minmax(0,1fr);
+  align-items:stretch;
+  gap:15px;
+  min-height:0;
+  padding:18px 20px;
+  border:0;
+  border-bottom:1px solid color-mix(in srgb,var(--line) 84%,transparent);
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  scroll-snap-align:none;
+  transition:background .2s ease;
+}
+.flow-stage:last-child{border:0}
+.flow-stage::after{display:none}
+.flow-stage:hover{background:color-mix(in srgb,var(--flow-glow) 3%,transparent)}
+.flow-stage-node{
+  display:grid;
+  grid-template-rows:25px minmax(18px,1fr);
+  justify-items:center;
+  align-self:stretch;
+  min-height:100%;
+}
+.flow-stage-node>span{
+  width:24px;
+  height:24px;
+  border-color:color-mix(in srgb,var(--flow-glow) 35%,var(--line));
+  background:color-mix(in srgb,var(--panel) 84%,transparent);
+  font-size:9px;
+}
+.flow-stage-node>i{
+  display:block;
+  width:1px;
+  min-height:24px;
+  background:linear-gradient(color-mix(in srgb,var(--flow-glow) 48%,var(--line)),color-mix(in srgb,var(--line) 76%,transparent));
+}
+.flow-stage:last-child .flow-stage-node>i{opacity:0}
+.flow-stage-complete .flow-stage-node>span{
+  border-color:color-mix(in srgb,var(--mint) 58%,var(--line));
+  background:color-mix(in srgb,var(--mint) 12%,var(--panel));
+}
+.flow-stage-running{
+  background:linear-gradient(90deg,color-mix(in srgb,var(--flow-glow) 8%,transparent),transparent 72%);
+}
+.flow-stage-running:hover{background:linear-gradient(90deg,color-mix(in srgb,var(--flow-glow) 11%,transparent),transparent 78%)}
+.flow-stage-running .flow-stage-node>span{animation:flow-node-pulse 1.8s ease-in-out infinite}
+.flow-stage-blocked{background:linear-gradient(90deg,color-mix(in srgb,var(--amber) 6%,transparent),transparent 72%)}
+.flow-stage-body{display:grid;align-content:start;gap:7px;min-width:0}
+.flow-stage-body .flow-stage-meta{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  color:var(--mint);
+  font:9px/1.4 var(--mono);
+  letter-spacing:.075em;
+}
+.flow-stage-meta>span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.flow-stage-meta small{flex:none;color:var(--faint);font:10px/1.4 var(--mono)}
+.flow-stage-body h3{
+  display:block;
+  overflow-wrap:anywhere;
+  margin:0;
+  color:var(--text);
+  font:var(--weight-heading) 15px/1.35 var(--display);
+  letter-spacing:-.02em;
+}
+.flow-stage-status{
+  justify-self:start;
+  align-self:start;
+  padding:4px 8px;
+  border:1px solid var(--line);
+  border-radius:99px;
+  background:color-mix(in srgb,var(--panel) 70%,transparent);
+  color:var(--faint);
+  font:8px/1.2 var(--mono);
+  letter-spacing:.07em;
+  text-transform:uppercase;
+}
+.flow-stage-complete .flow-stage-status{border-color:color-mix(in srgb,var(--mint) 25%,var(--line));color:var(--mint)}
+.flow-stage-running .flow-stage-status{border-color:color-mix(in srgb,var(--flow-glow) 48%,var(--line));color:var(--mint)}
+.flow-stage-blocked .flow-stage-status{border-color:color-mix(in srgb,var(--amber) 35%,var(--line));color:var(--amber)}
+.flow-stage-detail{min-width:0;margin-top:2px}
+.flow-stage-detail summary{
+  display:flex;
+  align-items:center;
+  width:max-content;
+  max-width:100%;
+  padding:4px 0;
+  color:var(--muted);
+  font:11px/1.45 var(--font);
+  cursor:pointer;
+  transition:color .18s;
+}
+.flow-stage-detail summary:hover,.flow-stage-detail[open] summary{color:var(--mint)}
+.flow-stage-detail p{margin:6px 0 0;padding:0;color:var(--muted);font:12px/1.65 var(--font);overflow-wrap:anywhere}
+.flow-wait{
+  display:grid;
+  grid-template-columns:28px minmax(0,1fr) auto;
+  align-items:center;
+  gap:12px;
+  min-height:78px;
+  margin:0;
+  padding:18px 20px;
+  border:0;
+  border-bottom:1px solid color-mix(in srgb,var(--line) 84%,transparent);
+  border-radius:0;
+  background:radial-gradient(ellipse at 0 50%,color-mix(in srgb,var(--flow-glow) 11%,transparent),transparent 66%);
+  color:var(--text);
+}
+.flow-wait i{grid-column:1;grid-row:1;width:22px;height:22px;margin:0;border:1px solid color-mix(in srgb,var(--flow-glow) 38%,var(--line));border-top-color:var(--flow-glow);box-shadow:0 0 20px color-mix(in srgb,var(--flow-glow) 16%,transparent)}
+.flow-wait>span{grid-column:2;grid-row:1;gap:4px;color:var(--text);font:600 12px/1.4 var(--font)}
+.flow-wait small{color:var(--muted);font:11px/1.5 var(--font)}
+.flow-wait time{grid-column:3;grid-row:1;margin:0;padding:5px 8px;border:1px solid var(--line);border-radius:99px;background:color-mix(in srgb,var(--panel) 75%,transparent);font:9px var(--mono)}
+.flow-progress-note{margin:0;padding:12px 20px;border:0;border-top:1px solid var(--line);border-radius:0;background:color-mix(in srgb,var(--panel) 70%,transparent);font:11px/1.55 var(--font)}
+@media(max-width:600px){
+  .flow-trace{margin-top:18px;border-radius:15px}
+  .flow-stage{grid-template-columns:26px minmax(0,1fr);gap:12px;padding:15px 14px}
+  .flow-stage-body .flow-stage-meta{font-size:8px}
+  .flow-stage-meta small{font-size:9px}
+  .flow-stage-body h3{font-size:14px}
+  .flow-stage-detail p{font-size:11px}
+  .flow-wait{grid-template-columns:25px minmax(0,1fr) auto;padding:15px 14px}
+  .flow-progress-note{padding-inline:14px}
+}
+@media(max-width:390px){
+  .flow-wait{grid-template-columns:25px minmax(0,1fr)}
+  .flow-wait time{grid-column:2;grid-row:2;justify-self:start;margin-top:2px}
+  .flow-wait>span{grid-column:2}
+  .flow-wait i{grid-row:1 / span 2;align-self:start;margin-top:2px}
+}
+@media(prefers-reduced-motion:reduce){
+  .flow-stage,.flow-stage-running .flow-stage-node>span,.flow-stage-detail summary{animation:none;transition:none}
+}

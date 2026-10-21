@@ -316,3 +316,36 @@
   .landing-nav-actions .theme-quick-option{width:14px;height:14px}
   .landing-nav-workspace{padding-inline:6px;font-size:8px}
 }
+
+/* Keep the mobile navigation panel inside the viewport instead of anchoring it
+   to the narrow menu disclosure (which can push it off-screen). */
+@media(max-width:800px){
+  .landing-nav{z-index:240;overflow:visible}
+  .landing-nav-actions .landing-mobile-menu{position:static}
+  .landing-mobile-menu-panel{
+    position:fixed;
+    top:calc(env(safe-area-inset-top,0px) + 64px);
+    left:50%;
+    right:auto;
+    width:min(420px,calc(100vw - 24px));
+    max-width:calc(100vw - 24px);
+    max-height:calc(100dvh - 88px);
+    overflow-y:auto;
+    overscroll-behavior:contain;
+    transform:translateX(-50%);
+    z-index:242;
+    border-radius:20px;
+    background:color-mix(in srgb,var(--panel) 88%,transparent);
+    box-shadow:0 26px 70px color-mix(in srgb,var(--bg) 54%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 15%,transparent),0 0 42px color-mix(in srgb,var(--brand-teal) 9%,transparent);
+    -webkit-backdrop-filter:blur(30px) saturate(170%);
+    backdrop-filter:blur(30px) saturate(170%);
+  }
+  .landing-mobile-menu-panel a{
+    min-height:50px;
+    padding-inline:15px;
+    border-radius:12px;
+    color:var(--text,#edf6f2);
+    font-size:13px;
+  }
+  .landing-mobile-menu-panel a:focus-visible{outline:2px solid var(--brand-teal);outline-offset:2px}
+}

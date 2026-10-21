@@ -155,15 +155,15 @@ export default function AgentFlowDesk({ initialQuestion, evaluatorMode = false }
       <div className="flow-orbit" aria-hidden="true"><div className="flow-orbit-ring"><span>EVENT</span><span>EVIDENCE</span><span>EXPOSURE</span><span>DECISION</span></div><div className="flow-orbit-core"><Image src="/tidelight-mark.svg" alt="" width={42} height={42} /><small>TIDELIGHT</small></div></div>
     </section>
 
-    {(busy || stages.length > 0) ? <section className="flow-glass" aria-label="Agent activity" aria-busy={busy}><div className="flow-section-head"><div><span className="flow-kicker">THE VISIBLE WORKFLOW</span><h2>What the agents are checking.</h2><p>Operational checkpoints appear as the work runs. Private model reasoning and unverified claims are not displayed.</p></div><span className={`flow-state ${busy ? "flow-state-live" : ""}`}>{busy ? "● IN PROGRESS" : error ? "PAUSED" : "COMPLETE"}</span></div>
-      <div className="flow-trace" aria-live="polite" aria-relevant="additions text" role="list">{stages.map((stage, index) => {
+    {(busy || stages.length > 0) ? <section className="flow-glass" aria-label="Research activity" aria-busy={busy}><div className="flow-section-head"><div><span className="flow-kicker">LIVE RESEARCH TRACE</span><h2>Every check, in sequence.</h2><p>Source and market checks appear as they complete. Private model reasoning stays private.</p></div><span className={`flow-state ${busy ? "flow-state-live" : ""}`}>{busy ? "● RUNNING" : error ? "PAUSED" : "COMPLETE"}</span></div>
+      <div className="flow-trace" aria-label="Public research checkpoints" aria-live="polite" aria-relevant="additions text" role="list">{stages.map((stage, index) => {
         const effectiveStatus = stage.status === "running" && !busy ? error ? "blocked" : "complete" : stage.status;
         const statusLabel = effectiveStatus === "running" ? "In progress" : effectiveStatus === "blocked" ? "On hold" : index < stages.length - 1 ? "Passed forward" : "Captured";
-        return <article className={`flow-stage flow-stage-${effectiveStatus}`} key={stage.id} role="listitem">
+        return <article className={`flow-stage flow-stage-${effectiveStatus}`} key={stage.id} role="listitem" aria-current={effectiveStatus === "running" ? "step" : undefined}>
           <div className="flow-stage-node"><span aria-hidden="true">{effectiveStatus === "complete" ? "✓" : effectiveStatus === "blocked" ? "!" : String(index + 1).padStart(2, "0")}</span><i aria-hidden="true" /></div>
           <div className="flow-stage-body"><div className="flow-stage-meta"><span>{stage.agent}{stage.asset ? ` · ${stage.asset}` : ""}</span><small>{stage.at ? new Date(stage.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}</small></div><h3>{stage.title}</h3>
             <span className="flow-stage-status">{statusLabel}</span>
-            <details className="flow-stage-detail"><summary>What was checked</summary><p>{stage.detail}</p></details>
+            <details className="flow-stage-detail"><summary>{effectiveStatus === "running" ? "About this check" : "Inspect this check"}</summary><p>{stage.detail}</p></details>
           </div>
         </article>;
       })}{busy && stages.length === 0 ? <div className="flow-wait"><i aria-hidden="true" /><span>{busySeconds < 8 ? "Opening the research path…" : "Connecting market and evidence sources"}{busySeconds >= 15 ? <small>Tidelight is checking current coverage and verified market data. Progress appears here as each check completes.</small> : <small>Market context · recent evidence · decision gates</small>}</span><time dateTime={`PT${busySeconds}S`}>{busySeconds}s</time></div> : null}{busy && stages.length > 0 && busySeconds >= 15 ? <p className="flow-progress-note" role="status">Research is still running. Market and source checks can vary with provider response time.</p> : null}</div>
