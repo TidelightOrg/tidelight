@@ -98,6 +98,14 @@ export default function JudgePage() {
       </div>
     </section>
 
+    <section className="judge-section judge-published-research" aria-labelledby="published-research-title">
+      <div className="judge-section-heading"><span className="judge-kicker">06 / OWNER-PUBLISHED RESEARCH</span><h2 id="published-research-title">Two real runs, ready for review.</h2><p>These owner-published records preserve the original question, captured sources, instrument context, risk gates, and process trace. They are research snapshots, not audited performance.</p></div>
+      <div className="judge-lane-grid">
+        <Link href="/replay/c2ffbe89-74a5-4547-bf89-5952e37efeaa"><span>RNVDA · TOKENIZED MARKET</span><strong>Is the rNVDA market worth reviewing?</strong><small>Inspect what the run found about NVIDIA coverage, the instrument context, and the evidence limitations.</small><em>Open published replay ↗</em></Link>
+        <Link href="/replay/91bb478a-7977-4b34-b32d-b1f558a8af75"><span>NVDA + TSLA · COMPARISON</span><strong>Compare the latest evidence and risks.</strong><small>Review the two issuer assessments, their cited public sources, and separate decision gates.</small><em>Open published replay ↗</em></Link>
+      </div>
+    </section>
+
     <section className="judge-final">
       <div><span className="judge-kicker">04 / THE HONEST BOUNDARY</span><h2>Useful evidence is not a promise of profit.</h2><p>This route is a reproducible product evaluation. It does not claim audited alpha, investment advice, live execution, or an invented paper fill. When the real gates do not qualify, Tidelight says so.</p></div>
       <div className="judge-final-actions"><Link className="judge-primary" href="/flow?demo=1&question=Compare%20the%20latest%20evidence%20for%20NVDA%20and%20TSLA%20and%20show%20the%20risks">Start evaluation <span>↗</span></Link><Link href="/">Return to Tidelight <span>→</span></Link></div>

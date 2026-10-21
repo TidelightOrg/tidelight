@@ -28,6 +28,12 @@ const navigation: { href: string; label: string; icon: NavigationIconName; techn
   { href: "/demo", label: "Product walkthrough", icon: "demo", technical: true },
   { href: "/systems", label: "Research systems", icon: "systems", technical: true },
 ];
+const mobilePrimaryNavigation = [
+  { href: "/overview", label: "Overview", icon: "overview" as NavigationIconName },
+  { href: "/flow", label: "Research", icon: "flow" as NavigationIconName },
+  { href: "/markets", label: "Markets", icon: "markets" as NavigationIconName },
+  { href: "/watchlist", label: "Watchlist", icon: "watchlist" as NavigationIconName },
+];
 
 const BRAND_STORIES = ["Read the signal between sessions.", "Trace company events into tokenized equities.", "Test a market view against the record.", "Keep evidence and risk in the same frame."];
 
@@ -107,7 +113,7 @@ export default function WorkspaceShell({ children, email, avatarUrl, displayName
 
   useEffect(() => { if (mobileMenuOpen) window.dispatchEvent(new Event("tidelight:close-guide")); }, [mobileMenuOpen]);
 
-  if (pathname === "/status" || pathname === "/judge" || pathname === "/evidence" || pathname === "/replay") return <>{children}</>;
+  if (pathname === "/status" || pathname === "/judge" || pathname === "/evidence" || pathname === "/replay" || pathname.startsWith("/replay/")) return <>{children}</>;
   if (pathname.startsWith("/login") || pathname.startsWith("/auth/") || pathname.startsWith("/developers") || pathname === "/") return <>{children}<AnalyticsConsent /></>;
 
   return (
@@ -153,6 +159,7 @@ export default function WorkspaceShell({ children, email, avatarUrl, displayName
         <div className="route-content">{children}</div>
         <footer className="page-footer"><span>© 2026 Tidelight Research</span><span><b>Clarity when the bell is quiet.</b> <i>Built for markets that never sleep.</i></span><nav className="legal-footer-links" aria-label="Legal and account links"><Link href="/terms">TERMS</Link><Link href="/privacy">PRIVACY</Link><Link href="/help">HELP</Link><Link href="/contact">CONTACT</Link><Link href="/account">ACCOUNT <span className="footer-dot">●</span></Link></nav></footer>
       </main>
+      <nav className="mobile-nav" aria-label="Primary navigation">{mobilePrimaryNavigation.map((item) => { const isActive = pathname === item.href || (item.href !== "/overview" && pathname.startsWith(`${item.href}/`)); return <Link key={item.href} href={item.href} className={`mobile-nav-link${isActive ? " active" : ""}`} aria-current={isActive ? "page" : undefined}><span className="mobile-nav-icon"><NavigationIcon name={item.icon} /></span><span>{item.label}</span></Link>; })}<button type="button" className={`mobile-nav-link${mobileMenuOpen ? " active" : ""}`} aria-expanded={mobileMenuOpen} aria-controls="mobile-workspace-drawer" onClick={() => setMobileMenuPath(mobileMenuOpen ? null : pathname)}><span className="mobile-nav-icon"><NavigationIcon name="systems" /></span><span>More</span></button></nav>
       {mobileMenuOpen ? <div className="mobile-drawer-backdrop" onClick={() => setMobileMenuPath(null)}><aside className="mobile-workspace-drawer" id="mobile-workspace-drawer" aria-label="Workspace navigation" onClick={(event) => event.stopPropagation()}><div className="mobile-drawer-head"><span>YOUR WORKSPACE</span><button type="button" aria-label="Close menu" onClick={() => setMobileMenuPath(null)}>×</button></div><nav className="mobile-drawer-links">{visibleNavigation.map((item) => { const isActive = item.href === "/" ? pathname === "/" : pathname.startsWith(item.href); return <Link key={item.href} data-technical={item.technical ? "true" : undefined} className={`mobile-drawer-link${isActive ? " active" : ""}`} href={item.href} onClick={() => setMobileMenuPath(null)} aria-current={isActive ? "page" : undefined}><span className="mobile-drawer-icon"><NavigationIcon name={item.icon} /></span>{item.label}<NavigationTrail /></Link>; })}<Link className="mobile-drawer-link" href="/account" onClick={() => setMobileMenuPath(null)}><span className="mobile-drawer-icon"><NavigationIcon name="settings" /></span>Account center<NavigationTrail /></Link></nav><div className="mobile-drawer-foot"><Link className="mobile-profile-link" href={email ? "/account" : "/login"} onClick={() => setMobileMenuPath(null)}><div className="mobile-profile-avatar">{avatarUrl ? <Image src={avatarUrl} alt={profileLabel + " profile photo"} width={30} height={30} unoptimized /> : <span>{profileInitial}</span>}</div><span><b>{email ? profileLabel : "Your Tidelight desk"}</b><small>{email ?? "Sign in to save your research"}</small></span></Link>{email ? <form action={signOut}><button className="mobile-signout" aria-label="Sign out" title="Sign out">↪</button></form> : <Link className="mobile-signin" href="/login">Sign in</Link>}</div></aside></div> : null}
     </div>
   );

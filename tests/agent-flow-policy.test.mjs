@@ -14,6 +14,7 @@ test("the coordinator recognizes only supported US stock underlyings", () => {
   assert.deepEqual(extractFlowTickers("What do you think about NVDA and TSLA?", ["NVDAUSDT", "TSLAUSDT", "AMDUSDT"]), ["NVDA", "TSLA"]);
   assert.deepEqual(extractFlowTickers("rNVDAUSDT and NVIDIA", ["NVDAUSDT"]), ["NVDA"]);
   assert.deepEqual(extractFlowTickers("Should I check BTC?", ["NVDAUSDT"]), []);
+  assert.deepEqual(extractFlowTickers("Is the rNVDA market worth reviewing?", ["NVDAUSDT"]), ["NVDA"]);
 });
 
 test("a handoff requires independently cited current coverage, fresh verified market, and agreeing new signal", () => {

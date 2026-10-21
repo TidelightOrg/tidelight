@@ -139,6 +139,15 @@ Use this directory to move directly between the public product, its judge walkth
 | [Research flow demo](https://tidelight.app/flow?demo=1) | Follow a sample question through research steps, sources, exposure, and decision gates. |
 | [Judge mode guide](https://github.com/TidelightOrg/tidelight/blob/main/docs/S2_JUDGE_MODE.md) | Read the intended evaluation sequence, what each surface demonstrates, and evidence boundaries. |
 
+### Owner-published research replays
+
+These public records were explicitly shared by the Tidelight owner. Each includes source links, a captured market snapshot, review gates, and a process trace; neither is an audited performance claim.
+
+| Replay | Question | What judges can inspect |
+| --- | --- | --- |
+| [rNVDA market review](https://tidelight.app/replay/c2ffbe89-74a5-4547-bf89-5952e37efeaa) | Is the rNVDA market worth reviewing? | Issuer coverage, tokenized market context, source limitations, and the research gate. |
+| [NVDA + TSLA comparison](https://tidelight.app/replay/91bb478a-7977-4b34-b32d-b1f558a8af75) | Compare the latest evidence for NVDA and TSLA and show the risks | Separate issuer assessments, supporting and counterevidence, source lineage, and gates. |
+
 ### Product surfaces
 
 | Visit | What it does |

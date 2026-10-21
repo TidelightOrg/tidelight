@@ -1,11 +1,12 @@
 "use client";
 
 import { useState } from "react";
+import ResearchReplayShare from "@/app/ui/research-replay-share";
 import "./token-pulse.css";
 
 type Exposure = { symbol: string; name: string; instrument: string; issuer: string; underlying: string; sector: string; catalysts: string[]; risks: string[] };
 type Result = {
-  token: string; collectedAt: string; coverage: { news: number; community: number };
+  token: string; researchRunId?: string; collectedAt: string; coverage: { news: number; community: number };
   sources: Array<{ title: string; url: string; publisher: string; publishedAt: string | null; channel: string; snippet: string }>;
   analysis: { overview: string; mood: string; mood_explanation: string; notable_developments: Array<{ headline: string; what_it_means: string; source_urls: string[] }>; risks: string[]; watch_next: string[]; confidence: number; limitations: string; unavailable?: boolean; sourceOnly?: boolean };
 };
@@ -54,6 +55,7 @@ export default function TokenPulse() {
       <details className="tp-sources" open={result.analysis.unavailable}><summary>Review all {result.sources.length} collected items</summary><ul>{result.sources.map((source) => <li key={source.url}><span>{source.channel} · {source.publisher}{source.publishedAt ? " · " + new Date(source.publishedAt).toLocaleDateString() : ""}</span><a href={source.url} target="_blank" rel="noreferrer">{source.title} ↗</a></li>)}</ul></details>
       <div className="tp-exposure-handoff"><div><span className="tp-kicker">NEXT LAYER · EXPOSURE MAP</span><b>Connect this token to its market context.</b><small>Issuer, underlying, sector, catalysts and risk context.</small></div><button type="button" onClick={() => void resolveExposure()} disabled={exposureBusy}>{exposureBusy ? "Mapping…" : "Map exposure ↗"}</button></div>{exposure ? <div className="tp-exposure-grid">{exposure.length ? exposure.map((item) => <article key={item.symbol}><b>{item.name} · {item.symbol}</b><span>{item.instrument} · {item.issuer}</span><small>{item.sector} · underlying: {item.underlying}</small><p><strong>Catalyst:</strong> {item.catalysts[0]}</p><p><strong>Risk:</strong> {item.risks[0]}</p></article>) : <p className="tp-muted">No supported exposure match yet. Try a ticker or full asset name.</p>}</div> : null}
       <p className="tp-limit">{result.analysis.limitations}</p>
+      {result.researchRunId ? <ResearchReplayShare researchRunId={result.researchRunId} /> : <p className="tp-muted">This snapshot could not be saved as a private replay, so it cannot be published yet.</p>}
     </div> : null}
     {reviewSymbol ? <aside className="tp-review-toast" role="status"><button type="button" className="tp-review-close" aria-label="Dismiss market review" onClick={() => setReviewSymbol(null)}>×</button><span className="tp-kicker">RESEARCH → MARKET REVIEW</span><b>Sources point to a clear story. Check the market before acting.</b><p>This is a news read, not an order signal. Confirm the instrument, price, risk, and account mode yourself.</p><a href={`/trading?symbol=${encodeURIComponent(reviewSymbol)}`}>Inspect {reviewSymbol} at the trading desk ↗</a></aside> : null}
   </section>;
