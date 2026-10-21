@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { aiJsonWithFallback, configuredAiProviders } from "@/lib/ai-fallback";
 import { getBitgetAsset, getBitgetCandles, getBitgetStockPerp, STOCK_PERP_UNIVERSE } from "@/lib/bitget-market";
 import { buildSignals, prepareBacktestCandles } from "@/lib/backtest";
-import { extractFlowTickers, gateFlowTrade, normalizeFlowAssessments, type FlowAssessment, type FlowSource } from "@/lib/agent-flow-policy";
+import { extractFlowTickers, gateFlowTrade, normalizeFlowAssessments, sourceOnlyAssessment, type FlowAssessment, type FlowSource } from "@/lib/agent-flow-policy";
 import { gatherIssuerEvidence, type FlowEvidence } from "@/lib/agent-flow-sources";
 import { agentKeyIssuerEvidence } from "@/lib/agentkey-flow-sources";
 
@@ -23,14 +23,11 @@ async function settleWithin<T>(task: Promise<T>, timeoutMs: number): Promise<T> 
     if (timer) clearTimeout(timer);
   }
 }
-const HOLD: FlowAssessment = { summary: "The available source headlines do not support a reliable directional assessment. Review the linked items and the issuer's original filings.", stance: "unclear", confidence: 0, citedUrls: [], supportingEvidence: [], counterEvidence: [], risks: ["Source headlines may omit material context."], nextCheck: "Review original issuer filings and fresh completed candles." };
-
-function sourceOnlyRead(snap: MarketSnapshot): FlowAssessment {
+function sourceOnlyRead(snap: MarketSnapshot, tokenizedMarketQuestion: boolean): FlowAssessment {
   const publishers = new Set(snap.sources.map(source => source.publisher.trim().toLowerCase()).filter(Boolean));
   const latest = snap.sources[0];
-  if (!latest) return { ...HOLD, summary: `No attributable public headlines were reached for ${snap.ticker}. Check the issuer's original filings and retry later.` };
-  const date = latest.publishedAt ? new Date(latest.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : "date unavailable";
-  return { ...HOLD, summary: `Collected ${snap.sources.length} public headlines across ${publishers.size} publishers. Most recent listed headline: “${latest.title.slice(0, 170)}” (${latest.publisher}, ${date}). AI synthesis is unavailable, so review the linked items directly. No directional trade assessment was made.` };
+  const date = latest?.publishedAt ? new Date(latest.publishedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric", timeZone: "UTC" }) : null;
+  return sourceOnlyAssessment({ ticker: snap.ticker, headlineCount: snap.sources.length, publishers: publishers.size, latestTitle: latest?.title, latestPublisher: latest?.publisher, latestDate: date, tokenizedMarketQuestion, spotSymbol: snap.spot?.symbol, spotPrice: snap.spot?.lastPrice, spotTimestamp: snap.spot?.providerTimestamp, perpSymbol: snap.perp?.symbol });
 }
 
 function event(type: "stage" | "result" | "error", payload: unknown) {
@@ -151,7 +148,7 @@ export async function POST(request: Request) {
 
         const now = Date.now();
         const assets = snapshots.map(snap => {
-          const assessment = assessments[snap.ticker] ?? sourceOnlyRead(snap);
+          const assessment = assessments[snap.ticker] ?? sourceOnlyRead(snap, tokenizedMarketQuestion);
           let completed: MarketSnapshot["candles"] = [];
           try { completed = prepareBacktestCandles(snap.candles, "4H", now); }
           catch { /* Malformed candles keep this asset's trading gate closed. */ }

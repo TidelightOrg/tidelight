@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { extractFlowTickers, gateFlowTrade, normalizeFlowAssessment, normalizeFlowAssessments } from "../lib/agent-flow-policy.ts";
+import { extractFlowTickers, gateFlowTrade, normalizeFlowAssessment, normalizeFlowAssessments, sourceOnlyAssessment } from "../lib/agent-flow-policy.ts";
 
 const now = Date.now();
 const sources = [
@@ -9,6 +9,17 @@ const sources = [
 ];
 const assessment = { summary: "Two recent publishers describe an earnings and outlook development requiring an original-source check.", stance: "bullish", confidence: 0.8, citedUrls: sources.map(item => item.url), risks: ["Gap risk"], nextCheck: "Read the issuer release" };
 const base = { assessment, sources, marketVerified: true, marketTimestamp: now - 30000, lastCompletedCandleEnd: now - 3600000, completedCandles: 80, currentSignal: true, previousSignal: false, now };
+
+test("source-only rToken research distinguishes issuer coverage from token-market evidence", () => {
+  const result = sourceOnlyAssessment({ ticker: "NVDA", headlineCount: 40, publishers: 19, latestTitle: "NVIDIA issuer update", latestPublisher: "Example News", latestDate: "Oct 21, 2026", tokenizedMarketQuestion: true, perpSymbol: "NVDAUSDT", perpPrice: 220, perpTimestamp: now });
+  assert.match(result.summary, /not the rNVDA token market/i);
+  assert.match(result.summary, /No verified rNVDA tokenized-spot quote/);
+  assert.match(result.summary, /stock-perpetual reference, not the rToken/i);
+  assert.match(result.summary, /liquidity, spread, and premium or discount were not measured/i);
+  assert.match(result.summary, /not enough evidence/i);
+  assert.equal(result.stance, "unclear");
+  assert.equal(result.confidence, 0);
+});
 
 test("the coordinator recognizes only supported US stock underlyings", () => {
   assert.deepEqual(extractFlowTickers("What do you think about NVDA and TSLA?", ["NVDAUSDT", "TSLAUSDT", "AMDUSDT"]), ["NVDA", "TSLA"]);
