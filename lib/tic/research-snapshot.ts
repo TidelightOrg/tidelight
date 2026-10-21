@@ -1,6 +1,6 @@
 import "server-only";
 import { getBitgetMarketUniverse, getBitgetStockPerp, STOCK_PERP_UNIVERSE, type MarketAsset } from "@/lib/bitget-market";
-import { buildIssuerNewsQueries, gatherIssuerEvidence } from "@/lib/agent-flow-sources";
+import { gatherIssuerEvidence } from "@/lib/agent-flow-sources";
 
 const supportedTickers = new Set<string>(STOCK_PERP_UNIVERSE.map(symbol => symbol.slice(0, -4)));
 
@@ -60,7 +60,7 @@ export function buildCompanySnapshot(input: {
     evidence: {
       mode: "multi_query_headline_discovery" as const,
       note: "Recent public headline discovery across multiple bounded queries. Headlines and snippets are pointers, not verified article contents, complete coverage, or independent research conclusions.",
-      coverage: { query_count: buildIssuerNewsQueries(input.ticker, input.ticker).length * 2, lookback_days: 30, source_domains: [...new Set(input.evidence.map(source => new URL(source.url).hostname))].length, retrieved_at: new Date(input.generatedAt ?? Date.now()).toISOString(), returned_items: input.evidence.length, publishers: [...new Set(input.evidence.map(source => source.publisher))].length },
+      coverage: { query_count: 8, lookback_days: 30, source_domains: [...new Set(input.evidence.map(source => new URL(source.url).hostname))].length, retrieved_at: new Date(input.generatedAt ?? Date.now()).toISOString(), returned_items: input.evidence.length, publishers: [...new Set(input.evidence.map(source => source.publisher))].length },
       items: input.evidence.slice(0, 40).map(source => ({
         title: source.title.slice(0, 300),
         url: source.url,
