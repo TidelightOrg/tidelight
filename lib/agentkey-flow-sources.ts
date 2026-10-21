@@ -62,14 +62,14 @@ export async function agentKeyIssuerEvidence(ticker: string, issuer: string, cli
     if (!JSON.stringify(unpack(discovery)).includes(TOOL)) return [];
     const description = await client.describeTool(TOOL);
     if (!inspectAgentKeySearchDescription(description).withinBudget) return [];
-    const result = await client.executeTool(TOOL, { query: `${issuer} ${ticker} stock latest news`, type: "news", num: 5 });
+    const result = await client.executeTool(TOOL, { query: `${issuer} ${ticker} stock news earnings guidance filing regulation lawsuit product`, type: "news", num: 20, time_range: "month" });
     const now = Date.now();
     const unique = new Map<string, FlowEvidence>();
     for (const record of records(result)) {
       const item = safeEvidence(record, ticker, issuer, now);
       if (item) unique.set(item.url, item);
     }
-    return [...unique.values()].sort((a, b) => Date.parse(b.publishedAt!) - Date.parse(a.publishedAt!)).slice(0, 5);
+    return [...unique.values()].sort((a, b) => Date.parse(b.publishedAt!) - Date.parse(a.publishedAt!)).slice(0, 20);
   } catch (error) {
     console.warn("agent-flow-agentkey-unavailable", ticker, error instanceof Error ? error.name : "unknown");
     return [];
