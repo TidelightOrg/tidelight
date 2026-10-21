@@ -42,7 +42,7 @@ test("public replay access filters expiry and revocation, with owner-authenticat
   assert.match(route, /\.eq\("user_id", user\.id\)/);
   assert.match(page, /notFound\(\)/);
   assert.match(page, /index: false, follow: false/);
-  assert.match(page, /Confidence is capped because fewer than two recent, distinct publishers/);
+  assert.match(page, /Model-reported score, not a calibrated probability/);
   assert.doesNotMatch(page, /\b(?:asset|row)\.(?:handoff|portfolio|credentials)\b/i);
 });
 

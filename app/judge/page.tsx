@@ -92,6 +92,7 @@ export default function JudgePage() {
       <div className="judge-lane-grid">
         <Link href="/evidence"><span>PUBLIC EVIDENCE</span><strong>Open the evidence manifest.</strong><em>Routes, artifact status, limitations and reproduction requirements ↗</em></Link>
         <Link href="/replay"><span>RESEARCH TRACE</span><strong>Inspect the labeled replay.</strong><em>Illustrative fixture only—not a live source or result ↗</em></Link>
+        <Link href="/flow"><span>OWNER-PUBLISHED REPLAY</span><strong>Publish a real research run.</strong><em>After a completed run, share a 30-day source-linked replay with judges ↗</em><small>Publishing requires a signed-in owner and explicit consent.</small></Link>
         <Link href="/strategies"><span>ALPHA FACTORY</span><strong>Export a reproducible strategy run.</strong><em>Authenticated runs include candle fingerprints, costs and holdout data ↗</em></Link>
         <Link href="/nightwatch"><span>NIGHTWATCH</span><strong>Export private paper evidence.</strong><em>Account-scoped decisions and paper ledger; review privacy before sharing ↗</em></Link>
       </div>
