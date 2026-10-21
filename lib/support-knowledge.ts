@@ -13,13 +13,13 @@ export type SupportTopic = {
 export const SUPPORT_TOPICS: SupportTopic[] = [
   {
     id: "start", title: "Getting started", keywords: ["start", "begin", "new", "how does tidelight work", "what is tidelight", "first", "help"],
-    answer: "Start with one market question in Research or Agent Flow. Tidelight gathers evidence, shows what supports or weakens a claim, maps the affected markets, and lets you review a scenario. The decision stays yours. The Start Here guide walks through this in four steps.",
-    links: [{ label: "Start here", href: "/guide" }, { label: "Ask a market question", href: "/flow" }],
+    answer: "Start with one market question in Research or Market research. Tidelight gathers evidence, shows what supports or weakens a claim, maps the affected markets, and lets you review a scenario. The decision stays yours. The Start Here guide walks through this in four steps.",
+    links: [{ label: "Start here", href: "/guide" }, { label: "Start market research", href: "/flow" }],
   },
   {
-    id: "flow", title: "Agent Flow", keywords: ["agent flow", "agents", "checkpoint", "tradeable", "trading agent", "signal", "gate", "nvda", "tsla"],
-    answer: "Open Agent Flow and ask a question about US stocks or tokenized markets. It gathers recent sources, maps the instruments, tests scenarios, and shows each checkpoint. A trading review appears only when its evidence and market gates agree. A hold means the current evidence is insufficient; it is not a trade instruction.",
-    links: [{ label: "Open Agent Flow", href: "/flow" }, { label: "Read the guide", href: "/guide" }],
+    id: "flow", title: "Market research", keywords: ["market research", "research workflow", "agent flow", "agents", "checkpoint", "tradeable", "trading agent", "signal", "gate", "nvda", "tsla"],
+    answer: "Open Market research and ask a question about US stocks or tokenized markets. Tidelight gathers recent sources, maps the instruments, tests scenarios, and shows each public checkpoint. A trading review appears only when its evidence and market gates agree. A hold means the current evidence is insufficient; it is not a trade instruction.",
+    links: [{ label: "Open market research", href: "/flow" }, { label: "Read the guide", href: "/guide" }],
   },
   {
     id: "research", title: "Research desk", keywords: ["research", "brief", "citation", "source", "article", "mini", "pro", "evidence", "claim"],
