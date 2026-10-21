@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { extractFlowTickers, gateFlowTrade, normalizeFlowAssessment, normalizeFlowAssessments } from "../lib/agent-flow-policy.ts";
 
-const now = Date.parse("2026-10-08T18:00:00.000Z");
+const now = Date.now();
 const sources = [
   { title: "NVDA earnings", url: "https://example.com/a", publisher: "Publisher A", publishedAt: new Date(now - 3600000).toISOString() },
   { title: "NVDA outlook", url: "https://example.org/b", publisher: "Publisher B", publishedAt: new Date(now - 7200000).toISOString() },
@@ -29,6 +29,20 @@ test("source-bound assessment discards fabricated citations before the gate", ()
   const result = normalizeFlowAssessment({ ...assessment, citedUrls: [sources[0].url, "https://elsewhere.invalid/claim"] }, sources);
   assert.deepEqual(result?.citedUrls, [sources[0].url]);
   assert.equal(gateFlowTrade({ ...base, assessment: result }).tradeable, false);
+});
+
+test("directional confidence is capped and stance becomes unclear without two recent cited publishers", () => {
+  const oneCitation = normalizeFlowAssessment({ ...assessment, citedUrls: [sources[0].url] }, sources, now);
+  assert.equal(oneCitation?.stance, "unclear");
+  assert.equal(oneCitation?.confidence, 0.4);
+  assert.equal(oneCitation?.confidenceCapped, true);
+  assert.ok(oneCitation?.risks.some((risk) => risk.includes("capped at 40%")));
+
+  const staleSources = sources.map((source) => ({ ...source, publishedAt: new Date(now - 8 * 86_400_000).toISOString() }));
+  const stale = normalizeFlowAssessment(assessment, staleSources, now);
+  assert.equal(stale?.stance, "unclear");
+  assert.equal(stale?.confidence, 0.4);
+  assert.equal(stale?.confidenceCapped, true);
 });
 
 test("uncited publishers cannot supply the independent evidence required for a handoff", () => {

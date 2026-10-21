@@ -67,6 +67,38 @@ jobs:
       - name: Test refresh rotation, replay revocation, scopes, and grants
         run: psql -v ON_ERROR_STOP=1 -f tests/postgres/tic-oauth-refresh-replay.sql
 
+  public-research-replay-database:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tidelight_replay_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d tidelight_replay_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: tidelight_replay_test
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare isolated replay schema
+        run: psql -v ON_ERROR_STOP=1 -f tests/postgres/public-research-replay-prerequisites.sql
+      - name: Apply public replay migration
+        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261021123000_public_research_replays.sql
+      - name: Test replay permissions, ownership, expiry, and revocation
+        run: psql -v ON_ERROR_STOP=1 -f tests/postgres/public-research-replay.sql
+
   nightwatch-database:
     runs-on: ubuntu-latest
     services:

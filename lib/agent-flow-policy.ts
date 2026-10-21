@@ -1,7 +1,7 @@
 export type FlowSource = { title: string; url: string; publisher: string; publishedAt: string | null; via?: "Public feeds" | "AgentKey" };
 export type FlowStance = "bullish" | "bearish" | "mixed" | "unclear";
 export type FlowEvidencePoint = { text: string; citedUrls: string[] };
-export type FlowAssessment = { summary: string; stance: FlowStance; confidence: number; citedUrls: string[]; supportingEvidence: FlowEvidencePoint[]; counterEvidence: FlowEvidencePoint[]; risks: string[]; nextCheck: string };
+export type FlowAssessment = { summary: string; stance: FlowStance; confidence: number; confidenceCapped?: boolean; citedUrls: string[]; supportingEvidence: FlowEvidencePoint[]; counterEvidence: FlowEvidencePoint[]; risks: string[]; nextCheck: string };
 export type FlowGateInput = {
   assessment: FlowAssessment;
   sources: FlowSource[];
@@ -54,7 +54,7 @@ export function gateFlowTrade(input: FlowGateInput) {
   return { tradeable: reasons.length === 0, reasons, direction: input.assessment.stance === "bullish" ? "long" as const : input.assessment.stance === "bearish" ? "short" as const : null };
 }
 
-export function normalizeFlowAssessment(value: Record<string, unknown>, sources: FlowSource[]): FlowAssessment | null {
+export function normalizeFlowAssessment(value: Record<string, unknown>, sources: FlowSource[], now = Date.now()): FlowAssessment | null {
   const summary = typeof value.summary === "string" ? value.summary.trim().slice(0, 700) : "";
   const stance = value.stance;
   const confidence = typeof value.confidence === "number" ? value.confidence : NaN;
@@ -71,18 +71,25 @@ export function normalizeFlowAssessment(value: Record<string, unknown>, sources:
       return text.length >= 12 && citedUrls.length ? [{ text, citedUrls }] : [];
     }).slice(0, 3)
     : [];
+  const citedUrls = Array.isArray(value.citedUrls) ? [...new Set(value.citedUrls.filter((url): url is string => typeof url === "string" && valid.has(url)))].slice(0, 6) : [];
+  const recentSources = sources.filter(source => source.publishedAt && Number.isFinite(Date.parse(source.publishedAt)) && Date.parse(source.publishedAt) <= now + 60_000 && now - Date.parse(source.publishedAt) <= 7 * 86_400_000);
+  const cited = new Set(citedUrls);
+  const independentPublishers = new Set(recentSources.filter(source => cited.has(source.url)).map(source => source.publisher.trim().toLowerCase()).filter(Boolean));
+  const confidenceCapped = independentPublishers.size < 2;
+  const calibratedStance = confidenceCapped && ["bullish", "bearish"].includes(stance) ? "unclear" : stance as FlowStance;
+  const calibratedConfidence = confidenceCapped ? Math.min(confidence, 0.4) : confidence;
   return {
-    summary, stance: stance as FlowStance, confidence,
-    citedUrls: Array.isArray(value.citedUrls) ? [...new Set(value.citedUrls.filter((url): url is string => typeof url === "string" && valid.has(url)))].slice(0, 6) : [],
+    summary, stance: calibratedStance, confidence: calibratedConfidence, confidenceCapped,
+    citedUrls,
     supportingEvidence: evidencePoints(value.supportingEvidence),
     counterEvidence: evidencePoints(value.counterEvidence),
-    risks: Array.isArray(value.risks) ? value.risks.filter((item): item is string => typeof item === "string").slice(0, 4).map(item => item.slice(0, 200)) : [],
+    risks: [...(Array.isArray(value.risks) ? value.risks.filter((item): item is string => typeof item === "string").slice(0, 3).map(item => item.slice(0, 200)) : []), ...(confidenceCapped ? ["Directional confidence is capped at 40% until two recent, distinct publishers are cited."] : [])],
     nextCheck: typeof value.nextCheck === "string" ? value.nextCheck.slice(0, 220) : "Review issuer filings and completed candles.",
   };
 }
 
 /** A partial or malformed provider response must allow the next provider to try. */
-export function normalizeFlowAssessments(value: Record<string, unknown>, sourcesByTicker: Record<string, FlowSource[]>): Record<string, FlowAssessment> | null {
+export function normalizeFlowAssessments(value: Record<string, unknown>, sourcesByTicker: Record<string, FlowSource[]>, now = Date.now()): Record<string, FlowAssessment> | null {
   const requested = Object.keys(sourcesByTicker);
   if (!requested.length || !Array.isArray(value.assets)) return null;
   const assessments: Record<string, FlowAssessment> = {};
@@ -91,7 +98,7 @@ export function normalizeFlowAssessments(value: Record<string, unknown>, sources
     const candidate = item as Record<string, unknown>;
     const ticker = typeof candidate.ticker === "string" ? candidate.ticker.trim().toUpperCase() : "";
     if (!Object.hasOwn(sourcesByTicker, ticker) || Object.hasOwn(assessments, ticker)) continue;
-    const normalized = normalizeFlowAssessment(candidate, sourcesByTicker[ticker]);
+    const normalized = normalizeFlowAssessment(candidate, sourcesByTicker[ticker], now);
     if (normalized) assessments[ticker] = normalized;
   }
   return requested.every(ticker => Object.hasOwn(assessments, ticker)) ? assessments : null;

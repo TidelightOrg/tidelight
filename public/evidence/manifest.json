@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "product": "Tidelight",
   "purpose": "Public index of reproducible evidence and verification paths for the Tidelight S2 evaluator.",
-  "generated_at": "2026-10-20",
+  "generated_at": "2026-10-21",
   "evidence_boundary": {
     "status": "index_only",
     "note": "This manifest documents where verifiable evidence can be obtained. It does not claim live paper fills, profitable alpha, audited returns, or completed runtime tests.",
@@ -48,12 +48,12 @@
         "purpose": "Static illustrative research-flow explanation; not live evidence."
       },
       {
-        "path": "/evidence",
-        "purpose": "Public index of evidence, reproducibility requirements, and boundaries."
+        "path": "/replay/{token}",
+        "purpose": "Owner-published, expiring and revocable source-linked replay; contains only the fields explicitly disclosed before publishing."
       },
       {
-        "path": "/replay",
-        "purpose": "Illustrative static UX fixture; not live research evidence."
+        "path": "/evidence",
+        "purpose": "Public index of evidence, reproducibility requirements, and boundaries."
       }
     ],
     "source_repository": "https://github.com/TidelightOrg/tidelight",
@@ -83,16 +83,15 @@
         ]
       },
       "research": {
-        "status": "live_workflow_requires_session",
+        "status": "owner_published_replay_after_explicit_consent",
         "requirements": [
-          "question",
-          "publisher and URL",
-          "captured timestamp",
-          "quoted claims",
-          "counter-evidence",
-          "instrument mapping",
-          "freshness",
-          "risk decision"
+          "completed account-owned run selected by its owner",
+          "question, source links and captured timestamps",
+          "sanitized market snapshot, assessment and deterministic gate reasons",
+          "source-linked supporting and counter evidence",
+          "private identity, workspace context, portfolio, credentials and order controls excluded",
+          "public link expires after 30 days and can be revoked by the owner",
+          "published replay is an AI research record, not audited performance or advice"
         ]
       }
     }
@@ -139,6 +138,13 @@
       "status": "illustrative_not_live",
       "uri": "https://tidelight.app/replay",
       "claim": "Static checklist fixture only; source, quote, provider, AI result, risk gate and paper outcome are not represented as real."
+    },
+    {
+      "id": "public-research-replay",
+      "kind": "owner_published_public_route",
+      "status": "requires_owner_publication",
+      "uri": "https://tidelight.app/flow",
+      "claim": "A completed research run can be explicitly published from the signed-in research desk as a sanitized, time-limited replay. No private run is public by default."
     }
   ]
 }
