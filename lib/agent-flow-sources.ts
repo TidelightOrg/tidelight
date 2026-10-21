@@ -50,16 +50,6 @@ export function buildIssuerNewsQueries(ticker: string, issuer: string): string[]
     `"${name}" OR "${ticker}" (industry OR supply chain OR market)`,
   ];
 }
-export function buildIssuerNewsQueries(ticker: string, issuer: string): string[] {
-  const name = issuerNames[ticker] ?? issuer;
-  return [
-    \`"\${name}" OR "\${ticker}" (stock OR earnings OR filing)\`,
-    \`"\${name}" OR "\${ticker}" (guidance OR revenue OR product)\`,
-    \`"\${name}" OR "\${ticker}" (regulation OR lawsuit OR analyst)\`,
-    \`"\${name}" OR "\${ticker}" (industry OR supply chain OR market)\`,
-  ];
-}
-
 export async function gatherIssuerEvidence(ticker: string, issuer: string): Promise<FlowEvidence[]> {
   const name = issuerNames[ticker] ?? issuer;
   const queries = [
