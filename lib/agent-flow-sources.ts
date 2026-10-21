@@ -10,18 +10,18 @@ function decode(value: string) {
 }
 
 function field(xml: string, tag: string) {
-  return decode(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)</${tag}>`, "i").exec(xml)?.[1] ?? "");
+  return decode(new RegExp(`<${tag}(?:\s[^>]*)?>([\s\S]*?)</${tag}>`, "i").exec(xml)?.[1] ?? "");
 }
 
 async function rss(url: URL): Promise<FlowEvidence[]> {
   const response = await fetch(url, { headers: { Accept: "application/rss+xml, application/xml, text/xml", "User-Agent": "Tidelight Research/1.0" }, signal: AbortSignal.timeout(12_000), cache: "no-store" });
   if (!response.ok) throw new Error(`http-${response.status}`);
   const xml = await response.text();
-  return [...xml.matchAll(/<item>([\\s\\S]*?)<\\/item>/gi)].slice(0, 30).flatMap(match => {
+  return [...xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)].slice(0, 30).flatMap(match => {
     const item = match[1], title = field(item, "title"), link = field(item, "link");
     if (!title || !link.startsWith("https://")) return [];
     const published = Date.parse(field(item, "pubDate"));
-    return [{ title, url: link, publisher: field(item, "source") || new URL(link).hostname.replace(/^www\\./, ""),
+    return [{ title, url: link, publisher: field(item, "source") || new URL(link).hostname.replace(/^www\./, ""),
       publishedAt: Number.isFinite(published) ? new Date(published).toISOString() : null,
       snippet: field(item, "description").slice(0, 500), via: "Public feeds" as const }];
   });
@@ -31,7 +31,7 @@ const MAX_EVIDENCE_AGE_MS = 30 * 86_400_000;
 const MAX_DISCOVERY_ITEMS = 40;
 
 function storyKey(item: FlowEvidence) {
-  return item.title.toLowerCase().replace(/\\s+-\\s+[^-]+$/, "").replace(/[^a-z0-9]/g, "");
+  return item.title.toLowerCase().replace(/\s+-\s+[^-]+$/, "").replace(/[^a-z0-9]/g, "");
 }
 
 function withinResearchWindow(item: FlowEvidence, now: number) {
