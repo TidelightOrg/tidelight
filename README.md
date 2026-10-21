@@ -124,6 +124,35 @@ Tidelight is being built with a simple standard: show the evidence, label assump
 
 For technical contributions or responsible security reports, contact [security@tidelight.app](mailto:security@tidelight.app).
 
+## Judge research · live public replays
+
+The owner explicitly published these research runs for judges. Each link is public for 30 days from publication and can be revoked. Replays contain selected research fields, source links, market snapshots, and risk gates; they are not audited performance or trade records.
+
+| Token | Review scope | What the live run reports |
+| --- | --- | --- |
+| [rTSLA replay](https://tidelight.app/replay/c5f5b22e-c995-4a5e-8193-5737c4d413b8) · [JSON](https://tidelight.app/api/research/replays/c5f5b22e-c995-4a5e-8193-5737c4d413b8?format=json) | Tesla catalysts and rTSLA tradability | 40 issuer headlines across 30 publishers; rTSLA quote marked stale; AI synthesis unavailable; due diligence only. |
+| [rMSFT replay](https://tidelight.app/replay/4e86bf9c-7295-4be1-ae52-487341e7f1ca) · [JSON](https://tidelight.app/api/research/replays/4e86bf9c-7295-4be1-ae52-487341e7f1ca?format=json) | AI infrastructure investment, Azure demand, competition, and capital intensity | 40 headlines across 23 publishers; token quote fresh at capture; liquidity, spread, and premium/discount unmeasured; AI synthesis unavailable. |
+| [rAAPL replay](https://tidelight.app/replay/5d27e66c-2a87-4450-95d3-5014e1309216) · [JSON](https://tidelight.app/api/research/replays/5d27e66c-2a87-4450-95d3-5014e1309216?format=json) | Services, device cycle, and regulatory risk | 40 headlines across 22 publishers; token quote marked stale; AI synthesis unavailable. |
+| [rGOOGL replay](https://tidelight.app/replay/7ca56a20-c064-4f99-b351-806b2ddd685e) · [JSON](https://tidelight.app/api/research/replays/7ca56a20-c064-4f99-b351-806b2ddd685e?format=json) | Search advertising, antitrust remedies, and AI-search competition | 40 headlines across 17 publishers; token quote fresh at capture; AI synthesis unavailable. |
+| [rAMZN replay](https://tidelight.app/replay/c67d7b29-85eb-4c27-8a29-2cbe85bd4e91) · [JSON](https://tidelight.app/api/research/replays/c67d7b29-85eb-4c27-8a29-2cbe85bd4e91?format=json) | AWS investment, retail economics, logistics, and AI infrastructure | 40 headlines across 21 publishers; token quote fresh at capture; AI synthesis unavailable. |
+| [rNVDA replay](https://tidelight.app/replay/c2ffbe89-74a5-4547-bf89-5952e37efeaa) · [JSON](https://tidelight.app/api/research/replays/c2ffbe89-74a5-4547-bf89-5952e37efeaa?format=json) | Earlier tokenized-market review | Original owner-published run; inspect its own captured limitations and gate. |
+| [NVDA + TSLA replay](https://tidelight.app/replay/91bb478a-7977-4b34-b32d-b1f558a8af75) · [JSON](https://tidelight.app/api/research/replays/91bb478a-7977-4b34-b32d-b1f558a8af75?format=json) | Compare issuer evidence and risks | Earlier owner-published comparison; inspect both source sets and separate gates. |
+
+**Evidence boundary:** The five new runs collected issuer headlines, but all reported “AI synthesis unavailable,” and the replay pages show no source-linked supporting or opposing claim points. These are transparent research workflow and fallback records, not finished analyst theses. Tidelight made no directional assessment and showed no trade handoff. Quote snapshots are historical to each run, not live prices.
+
+## Research data and trading artifacts
+
+<details>
+<summary><strong>Open the public JSON index and data boundaries</strong></summary>
+
+- [Public evidence manifest JSON](https://tidelight.app/evidence/manifest.json) — route inventory, reproducibility requirements, and evidence limitations.
+- Each replay row links to its downloadable, sanitized JSON record. The export is the same selected public payload shown on the replay page, not the private full account run.
+- Strategy Lab can export an authenticated owner's individual strategy run as JSON. No positive alpha result or public trade ledger is attached here.
+- Nightwatch paper decisions and ledger remain owner-scoped; they are not part of these public research links.
+- The public research runs contain no live orders, exchange fills, or audited trading returns. Do not interpret a source-count or quote snapshot as strategy performance.
+
+</details>
+
 ## Judge links · Tidelight ecosystem
 
 <details>
@@ -138,15 +167,6 @@ Use this directory to move directly between the public product, its judge walkth
 | [Public judge mode](https://tidelight.app/judge) | Start here for the public evaluation overview and judge-facing evidence. |
 | [Research flow demo](https://tidelight.app/flow?demo=1) | Follow a sample question through research steps, sources, exposure, and decision gates. |
 | [Judge mode guide](https://github.com/TidelightOrg/tidelight/blob/main/docs/S2_JUDGE_MODE.md) | Read the intended evaluation sequence, what each surface demonstrates, and evidence boundaries. |
-
-### Owner-published research replays
-
-These public records were explicitly shared by the Tidelight owner. Each includes source links, a captured market snapshot, review gates, and a process trace; neither is an audited performance claim.
-
-| Replay | Question | What judges can inspect |
-| --- | --- | --- |
-| [rNVDA market review](https://tidelight.app/replay/c2ffbe89-74a5-4547-bf89-5952e37efeaa) | Is the rNVDA market worth reviewing? | Issuer coverage, tokenized market context, source limitations, and the research gate. |
-| [NVDA + TSLA comparison](https://tidelight.app/replay/91bb478a-7977-4b34-b32d-b1f558a8af75) | Compare the latest evidence for NVDA and TSLA and show the risks | Separate issuer assessments, supporting and counterevidence, source lineage, and gates. |
 
 ### Product surfaces
 
