@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 type PackageId = "sdk" | "mcp" | "react" | "cli" | "python";
+import { PackageLanguageMark } from "./package-language-mark";
 export type RegistryPackage = {
   id: PackageId;
   registry: "npm" | "pypi";
@@ -60,7 +61,7 @@ export function PackageRegistryCard({ packageId, name, summary, href, glyph, eco
 }) {
   const { entry, checking } = useRegistryPackage(packageId);
   return <article className={`tic-package-card ${entry.status === "published" && entry.version ? "is-published" : "is-unavailable"}`}>
-    <div className="tic-package-card-top"><span className="tic-package-glyph" aria-hidden="true">{glyph}</span><span className="tic-package-number">0{index + 1} / {ecosystem}</span></div>
+    <div className="tic-package-card-top"><PackageLanguageMark packageId={packageId} /><span className="tic-package-number">0{index + 1} / {ecosystem}</span></div>
     <h3>{name}</h3><p>{summary}</p>
     <div className="tic-package-card-status"><span className="tic-package-status-mark" aria-hidden="true">{entry.status === "published" && entry.version ? "✓" : "·"}</span><span className="tic-package-source-label">{entry.status === "published" && entry.version ? `Published · ${entry.registry}` : checking ? `Checking ${entry.registry}…` : entry.version ? `Last verified · ${entry.registry}` : "Registry unavailable"}</span><code>{entry.version ? `v${entry.version}` : checking ? "Checking…" : "Version unavailable"}</code></div>
     <code className="tic-package-card-install">{entry.install}</code>
