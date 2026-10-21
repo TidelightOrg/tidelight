@@ -40,7 +40,8 @@ test("public feeds retain only relevant, recent dated HTTPS stories and deduplic
   try {
     const items = await gatherIssuerEvidence("NVDA", "NVIDIA");
     assert.equal(requests.length, 8);
-    assert.equal(items.length, 3);\n    assert.equal(new Set(items.map(item => new URL(item.url).hostname)).size, 3);
+        assert.equal(items.length, 3);
+    assert.equal(new Set(items.map(item => new URL(item.url).hostname)).size, 3);
     assert.ok(items.every(item => item.publishedAt && item.via === "Public feeds"));
     assert.ok(items.some(item => item.publisher === "Publisher One" || item.publisher === "Publisher Two"));
   } finally { globalThis.fetch = previousFetch; }
