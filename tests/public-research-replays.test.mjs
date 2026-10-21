@@ -31,6 +31,8 @@ test("public export is an explicit owner action and strips private route context
   assert.match(control, /Anyone with the link can see this research question/);
   assert.match(control, /expires after 30 days and can be revoked/);
   assert.match(control, /Publish this research run/);
+  assert.match(control, /Your shared replays\./);
+  assert.match(control, /No public replays yet/);
 });
 
 test("public replay access filters expiry and revocation, with owner-authenticated revoke", async () => {
