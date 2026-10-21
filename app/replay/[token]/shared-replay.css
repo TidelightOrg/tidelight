@@ -1,4 +1,4 @@
-.shared-replay-page{max-width:1040px}.shared-replay-meta{display:grid;grid-template-columns:150px minmax(0,1fr);gap:10px 18px;margin-top:25px;padding:20px;border:1px solid #29483e;border-radius:16px;background:linear-gradient(145deg,#10231fe8,#0c1719e8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
+.shared-replay-page{width:min(100%,1040px);max-width:1040px;margin-inline:auto}.shared-replay-meta{display:grid;grid-template-columns:150px minmax(0,1fr);gap:10px 18px;margin-top:25px;padding:20px;border:1px solid #29483e;border-radius:16px;background:linear-gradient(145deg,#10231fe8,#0c1719e8);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px)}
 /* Public replays follow the viewer's saved Tidelight theme. */
 :root[data-theme="blue"] .shared-replay-page{background:radial-gradient(circle at 85% 0%,#253a6855 0,transparent 34%),#0a1020;color:#eef3ff}
 :root[data-theme="blue"] .shared-replay-page :is(.shared-replay-meta,.shared-replay-asset,.shared-replay-balance section,.shared-replay-trace li){border-color:#2a3a5a;background:linear-gradient(145deg,#142039ed,#0d172bed);color:#eef3ff}
