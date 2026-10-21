@@ -139,6 +139,8 @@ export async function aiJsonWithFallback(messages: Message[], valid: (value: Rec
           jsonParsed: Boolean(parsed),
         });
         failures.push(`${provider.label}-invalid-response`);
+        // Retry one schema-invalid response within the same provider and route deadline.
+        if (attempt === 0 && timeoutMs > 9000) continue;
         break;
       } catch (error) {
         failures.push(`${provider.label}-${error instanceof Error && error.name === "TimeoutError" ? "timeout" : "network-error"}`);
