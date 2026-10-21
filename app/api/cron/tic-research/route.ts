@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { runCompanySnapshot } from "@/lib/tic/research-snapshot";
 
 export const dynamic = "force-dynamic";
-export const maxDuration = 45;
+export const maxDuration = 120;
 
 function authorize(request: Request) {
   const expected = process.env.TIC_RESEARCH_CRON_SECRET;
