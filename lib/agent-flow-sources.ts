@@ -10,7 +10,7 @@ function decode(value: string) {
 }
 
 function field(xml: string, tag: string) {
-  return decode(new RegExp(`<${tag}(?:\s[^>]*)?>([\s\S]*?)</${tag}>`, "i").exec(xml)?.[1] ?? "");
+  return decode(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)</${tag}>`, "i").exec(xml)?.[1] ?? "");
 }
 
 async function rss(url: URL): Promise<FlowEvidence[]> {
