@@ -52,7 +52,8 @@ export function buildIssuerNewsQueries(ticker: string, issuer: string): string[]
 }
 export async function gatherIssuerEvidence(ticker: string, issuer: string): Promise<FlowEvidence[]> {
   const name = issuerNames[ticker] ?? issuer;
-  const queries = buildIssuerNewsQueries(ticker, issuer);\n  const urls = queries.flatMap(query => {
+  const queries = buildIssuerNewsQueries(ticker, issuer);
+  const urls = queries.flatMap(query => {
     const google = new URL("https://news.google.com/rss/search");
     google.search = new URLSearchParams({ q: query, hl: "en-US", gl: "US", ceid: "US:en" }).toString();
     const bing = new URL("https://www.bing.com/news/search");
