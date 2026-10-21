@@ -324,7 +324,7 @@
   .landing-nav-actions .landing-mobile-menu{position:static}
   .landing-mobile-menu-panel{
     position:fixed;
-    top:calc(env(safe-area-inset-top,0px) + 72px);
+    top:calc(env(safe-area-inset-top,0px) + 64px);
     left:50%;
     right:auto;
     width:min(420px,calc(100vw - 24px));
