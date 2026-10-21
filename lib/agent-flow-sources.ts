@@ -14,47 +14,68 @@ function field(xml: string, tag: string) {
 }
 
 async function rss(url: URL): Promise<FlowEvidence[]> {
-  const response = await fetch(url, { headers: { Accept: "application/rss+xml, application/xml, text/xml", "User-Agent": "Tidelight Research/1.0" }, signal: AbortSignal.timeout(9000), cache: "no-store" });
+  const response = await fetch(url, { headers: { Accept: "application/rss+xml, application/xml, text/xml", "User-Agent": "Tidelight Research/1.0" }, signal: AbortSignal.timeout(12_000), cache: "no-store" });
   if (!response.ok) throw new Error(`http-${response.status}`);
   const xml = await response.text();
-  return [...xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)].slice(0, 12).flatMap(match => {
+  return [...xml.matchAll(/<item>([\\s\\S]*?)<\\/item>/gi)].slice(0, 30).flatMap(match => {
     const item = match[1], title = field(item, "title"), link = field(item, "link");
     if (!title || !link.startsWith("https://")) return [];
     const published = Date.parse(field(item, "pubDate"));
-    return [{ title, url: link, publisher: field(item, "source") || new URL(link).hostname.replace(/^www\./, ""),
+    return [{ title, url: link, publisher: field(item, "source") || new URL(link).hostname.replace(/^www\\./, ""),
       publishedAt: Number.isFinite(published) ? new Date(published).toISOString() : null,
-      snippet: field(item, "description").slice(0, 400), via: "Public feeds" }];
+      snippet: field(item, "description").slice(0, 500), via: "Public feeds" as const }];
   });
 }
 
+const MAX_EVIDENCE_AGE_MS = 30 * 86_400_000;
+const MAX_DISCOVERY_ITEMS = 40;
+
+function storyKey(item: FlowEvidence) {
+  return item.title.toLowerCase().replace(/\\s+-\\s+[^-]+$/, "").replace(/[^a-z0-9]/g, "");
+}
+
+function withinResearchWindow(item: FlowEvidence, now: number) {
+  if (!item.publishedAt) return false;
+  const published = Date.parse(item.publishedAt);
+  return Number.isFinite(published) && published <= now + 5 * 60_000 && now - published <= MAX_EVIDENCE_AGE_MS;
+}
+
+/** Bounded multi-query public headline discovery. Search results are pointers, not verified article contents. */
 export async function gatherIssuerEvidence(ticker: string, issuer: string): Promise<FlowEvidence[]> {
   const name = issuerNames[ticker] ?? issuer;
-  const google = new URL("https://news.google.com/rss/search");
-  google.search = new URLSearchParams({ q: `"${name}" OR "${ticker}" (stock OR earnings OR filing)`, hl: "en-US", gl: "US", ceid: "US:en" }).toString();
-  const bing = new URL("https://www.bing.com/news/search");
-  bing.search = new URLSearchParams({ q: `${name} ${ticker} stock`, format: "rss" }).toString();
-  const results = await Promise.allSettled([rss(google), rss(bing)]);
-  results.forEach((result, index) => {
-    if (result.status === "rejected") console.warn("agent-flow-source-feed", ticker, index === 0 ? "google" : "bing", result.reason instanceof Error ? result.reason.message : "unavailable");
+  const queries = [
+    `"${name}" OR "${ticker}" (stock OR earnings OR filing)`,
+    `"${name}" OR "${ticker}" (guidance OR revenue OR product)`,
+    `"${name}" OR "${ticker}" (regulation OR lawsuit OR analyst)`,
+    `"${name}" OR "${ticker}" (industry OR supply chain OR market)`,
+  ];
+  const urls = queries.flatMap(query => {
+    const google = new URL("https://news.google.com/rss/search");
+    google.search = new URLSearchParams({ q: query, hl: "en-US", gl: "US", ceid: "US:en" }).toString();
+    const bing = new URL("https://www.bing.com/news/search");
+    bing.search = new URLSearchParams({ q: query, format: "rss" }).toString();
+    return [google, bing];
   });
-  const unique = new Map<string, FlowEvidence>();
+  const results = await Promise.allSettled(urls.map(rss));
+  results.forEach((result, index) => {
+    if (result.status === "rejected") console.warn("agent-flow-source-feed", ticker, index % 2 ? "bing" : "google", result.reason instanceof Error ? result.reason.message : "unavailable");
+  });
+  const now = Date.now();
+  const stories = new Map<string, FlowEvidence>();
   for (const result of results) {
     if (result.status !== "fulfilled") continue;
     for (const item of result.value) {
-      // Search is discovery, not evidence of the article content. Pass only the
-      // supplied headline/snippet to the model and retain the original link.
       const headline = `${item.title} ${item.snippet}`;
       const relevant = new RegExp(`(^|[^a-z0-9])${ticker}([^a-z0-9]|$)`, "i").test(headline) ||
         (name.length >= 4 && headline.toLowerCase().includes(name.toLowerCase()));
-      if (!relevant) continue;
-      const key = item.title.toLowerCase().replace(/\s+-\s+[^-]+$/, "").replace(/[^a-z0-9]/g, "");
-      if (!unique.has(key)) unique.set(key, item);
+      if (!relevant || !withinResearchWindow(item, now)) continue;
+      const key = storyKey(item);
+      const previous = stories.get(key);
+      if (!previous || (item.snippet.length > previous.snippet.length && item.via === "Public feeds")) stories.set(key, item);
     }
   }
-  if (!unique.size && results.some(result => result.status === "fulfilled")) console.warn("agent-flow-source-empty", ticker, results.map(result => result.status === "fulfilled" ? result.value.length : "failed"));
-  return [...unique.values()].sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? ""))
-    // Older links can still help a reader understand a quiet ticker. The
-    // trading gate independently requires cited coverage from the last 7 days.
-    .filter(item => item.publishedAt && Date.now() - Date.parse(item.publishedAt) <= 30 * 86_400_000)
-    .slice(0, 12);
+  if (!stories.size && results.some(result => result.status === "fulfilled")) console.warn("agent-flow-source-empty", ticker, results.map(result => result.status === "fulfilled" ? result.value.length : "failed"));
+  return [...stories.values()]
+    .sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? ""))
+    .slice(0, MAX_DISCOVERY_ITEMS);
 }
