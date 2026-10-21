@@ -173,7 +173,7 @@ export async function POST(request: Request) {
             risks: assessment.risks, nextCheck: assessment.nextCheck };
         });
         stage("Coordinator", "complete", "Review ready", assets.some(asset => asset.tradeable) ? "One or more scenarios may proceed to a separate trade review. Nothing was sent to Bitget or the paper ledger." : "Keep watching the evidence and market. No scenario passed every trade review gate.");
-        const result = { researchRunId: run.id, question, assets, tradeable: assets.some(asset => asset.tradeable), trace, contextRunId, ...(workspaceContext ? { workspaceContext } : {}) };
+        const result = { researchRunId: run.id, question, researchCoverage: { mode: "deep", lookbackDays: 30, queriesPerTicker: 8, collectedItems: snapshots.reduce((count, snap) => count + snap.sources.length, 0), publishers: [...new Set(snapshots.flatMap(snap => snap.sources.map(source => source.publisher)))].length, sourceDomains: [...new Set(snapshots.flatMap(snap => snap.sources.map(source => new URL(source.url).hostname)))].length, collectedAt: new Date().toISOString(), limitations: ["Headlines and snippets are discovery references, not full article reads.", "Public-feed coverage is bounded and cannot represent the entire internet."] }, assets, tradeable: assets.some(asset => asset.tradeable), trace, contextRunId, ...(workspaceContext ? { workspaceContext } : {}) };
         const { error: saveError } = await supabase.from("research_runs").update({ status: "complete", completed_at: new Date().toISOString(), summary: result }).eq("id", run.id);
         if (saveError) {
           stage("Coordinator", "blocked", "Private trace could not be saved", "No trade handoff was offered because the research record was not committed.");
