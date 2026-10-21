@@ -373,10 +373,10 @@
     padding:7px;
     gap:2px;
     border-radius:18px;
-    background:color-mix(in srgb,var(--panel) 96%,var(--bg));
+    background:linear-gradient(145deg,color-mix(in srgb,var(--panel) 76%,transparent),color-mix(in srgb,var(--bg) 62%,transparent));
     border-color:color-mix(in srgb,var(--brand-teal) 34%,var(--line));
-    box-shadow:0 20px 56px color-mix(in srgb,var(--bg) 62%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 14%,transparent),0 0 28px color-mix(in srgb,var(--brand-teal) 7%,transparent);
-    -webkit-backdrop-filter:blur(28px) saturate(155%);
+    box-shadow:0 20px 56px color-mix(in srgb,var(--bg) 52%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 24%,transparent),inset 0 -1px 0 color-mix(in srgb,var(--brand-teal) 12%,transparent),0 0 30px color-mix(in srgb,var(--brand-teal) 12%,transparent);
+    -webkit-backdrop-filter:blur(32px) saturate(180%);
     backdrop-filter:blur(28px) saturate(155%);
   }
   .landing-mobile-menu-panel a{
