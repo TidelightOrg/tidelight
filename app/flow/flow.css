@@ -350,3 +350,12 @@
 @media(prefers-reduced-motion:reduce){
   .flow-stage,.flow-stage-node,.flow-stage-chevron,.flow-stage[open] .flow-stage-detail{animation:none;transition:none}
 }
+
+/* Keep the checkpoint marker circular despite legacy rail sizing rules. */
+.flow-stage-node{
+  align-self:center;
+  grid-template-rows:none;
+  justify-items:center;
+  min-height:22px;
+  height:22px;
+}
