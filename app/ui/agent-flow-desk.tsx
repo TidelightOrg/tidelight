@@ -155,18 +155,20 @@ export default function AgentFlowDesk({ initialQuestion, evaluatorMode = false }
       <div className="flow-orbit" aria-hidden="true"><div className="flow-orbit-ring"><span>EVENT</span><span>EVIDENCE</span><span>EXPOSURE</span><span>DECISION</span></div><div className="flow-orbit-core"><Image src="/tidelight-mark.svg" alt="" width={42} height={42} /><small>TIDELIGHT</small></div></div>
     </section>
 
-    {(busy || stages.length > 0) ? <section className="flow-glass" aria-label="Research activity" aria-busy={busy}><div className="flow-section-head"><div><span className="flow-kicker">LIVE RESEARCH TRACE</span><h2>Every check, in sequence.</h2><p>Source and market checks appear as they complete. Private model reasoning stays private.</p></div><span className={`flow-state ${busy ? "flow-state-live" : ""}`}>{busy ? "● RUNNING" : error ? "PAUSED" : "COMPLETE"}</span></div>
+    {(busy || stages.length > 0) ? <section className="flow-glass" aria-label="Research activity" aria-busy={busy}><div className="flow-section-head"><div><span className="flow-kicker">MARKET RESEARCH ACTIVITY</span><h2>What Tidelight is checking</h2><p>Follow current sources, market data, and review gates as they complete. Private model reasoning stays private.</p></div><span className={`flow-state ${busy ? "flow-state-live" : ""}`}>{busy ? "● RUNNING" : error ? "PAUSED" : "COMPLETE"}</span></div>
       <div className="flow-trace" aria-label="Public research checkpoints" aria-live="polite" aria-relevant="additions text" role="list">{stages.map((stage, index) => {
         const effectiveStatus = stage.status === "running" && !busy ? error ? "blocked" : "complete" : stage.status;
         const statusLabel = effectiveStatus === "running" ? "In progress" : effectiveStatus === "blocked" ? "On hold" : index < stages.length - 1 ? "Passed forward" : "Captured";
-        return <article className={`flow-stage flow-stage-${effectiveStatus}`} key={stage.id} role="listitem" aria-current={effectiveStatus === "running" ? "step" : undefined}>
-          <div className="flow-stage-node"><span aria-hidden="true">{effectiveStatus === "complete" ? "✓" : effectiveStatus === "blocked" ? "!" : String(index + 1).padStart(2, "0")}</span><i aria-hidden="true" /></div>
-          <div className="flow-stage-body"><div className="flow-stage-meta"><span>{stage.agent}{stage.asset ? ` · ${stage.asset}` : ""}</span><small>{stage.at ? new Date(stage.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}</small></div><h3>{stage.title}</h3>
+        return <details className={`flow-stage flow-stage-${effectiveStatus}`} key={stage.id} role="listitem" aria-current={effectiveStatus === "running" ? "step" : undefined} open={effectiveStatus === "running"}>
+          <summary className="flow-stage-summary">
+            <span className="flow-stage-node" aria-hidden="true">{effectiveStatus === "complete" ? "✓" : effectiveStatus === "blocked" ? "!" : String(index + 1).padStart(2, "0")}</span>
+            <span className="flow-stage-body"><span className="flow-stage-meta"><span>{stage.agent}{stage.asset ? ` · ${stage.asset}` : ""}</span><time>{stage.at ? new Date(stage.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}</time></span><span className="flow-stage-title">{stage.title}</span></span>
             <span className="flow-stage-status">{statusLabel}</span>
-            <details className="flow-stage-detail"><summary>{effectiveStatus === "running" ? "About this check" : "Inspect this check"}</summary><p>{stage.detail}</p></details>
-          </div>
-        </article>;
-      })}{busy && stages.length === 0 ? <div className="flow-wait"><i aria-hidden="true" /><span>{busySeconds < 8 ? "Opening the research path…" : "Connecting market and evidence sources"}{busySeconds >= 15 ? <small>Tidelight is checking current coverage and verified market data. Progress appears here as each check completes.</small> : <small>Market context · recent evidence · decision gates</small>}</span><time dateTime={`PT${busySeconds}S`}>{busySeconds}s</time></div> : null}{busy && stages.length > 0 && busySeconds >= 15 ? <p className="flow-progress-note" role="status">Research is still running. Market and source checks can vary with provider response time.</p> : null}</div>
+            <span className="flow-stage-chevron" aria-hidden="true">⌄</span>
+          </summary>
+          <p className="flow-stage-detail">{stage.detail}</p>
+        </details>;
+      })}{busy && stages.length === 0 ? <div className="flow-wait" role="listitem"><i aria-hidden="true" /><span>{busySeconds < 8 ? "Opening the research path…" : "Connecting market and evidence sources"}{busySeconds >= 15 ? <small>Tidelight is checking current coverage and verified market data. Progress appears here as each check completes.</small> : <small>Market context · recent evidence · decision gates</small>}</span><time dateTime={`PT${busySeconds}S`}>{busySeconds}s</time></div> : null}{busy && stages.length > 0 && busySeconds >= 15 ? <div className="flow-progress-note" role="listitem"><p role="status">Research is still running. Market and source checks can vary with provider response time.</p></div> : null}</div>
     </section> : null}
 
     {error ? <div className="flow-error" role="alert"><b>Research paused</b><span>{error}</span>{error.toLowerCase().includes("sign in") ? <Link href="/login">Sign in ↗</Link> : <button type="button" onClick={() => void runFlow()} disabled={busy}>Try again ↗</button>}</div> : null}

@@ -2,8 +2,8 @@ import AgentFlowDesk from "@/app/ui/agent-flow-desk";
 import "./flow.css";
 
 export const metadata = {
-  title: "Research flow · Tidelight",
-  description: "Ask about tokenized US equities and follow the evidence, exposure, and paper or exchange review gates.",
+  title: "Market research · Tidelight",
+  description: "Research tokenized US equities through current evidence, market context, exposure, and clear decision gates.",
 };
 
 export default async function FlowPage({ searchParams }: { searchParams: Promise<{ q?: string; question?: string; demo?: string }> }) {

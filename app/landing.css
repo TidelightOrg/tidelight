@@ -349,3 +349,18 @@
   }
   .landing-mobile-menu-panel a:focus-visible{outline:2px solid var(--brand-teal);outline-offset:2px}
 }
+
+/* Compact, legible mobile glass navigation. */
+@media(max-width:800px){
+  .landing-mobile-menu-panel{
+    width:min(360px,calc(100vw - 28px));
+    max-width:calc(100vw - 28px);
+    padding:8px;
+    background:color-mix(in srgb,var(--panel) 94%,var(--bg));
+    border-color:color-mix(in srgb,var(--brand-teal) 30%,var(--line));
+    box-shadow:0 24px 64px color-mix(in srgb,var(--bg) 58%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 16%,transparent),0 0 32px color-mix(in srgb,var(--brand-teal) 8%,transparent);
+    -webkit-backdrop-filter:blur(26px) saturate(155%);
+    backdrop-filter:blur(26px) saturate(155%);
+  }
+  .landing-mobile-menu-panel a{min-height:46px}
+}

@@ -249,3 +249,104 @@
 @media(prefers-reduced-motion:reduce){
   .flow-stage,.flow-stage-running .flow-stage-node>span,.flow-stage-detail summary{animation:none;transition:none}
 }
+
+/* Compact research activity: one scan-friendly row per observable check. */
+.flow-glass{padding:clamp(18px,2.8vw,30px)}
+.flow-section-head h2{font-size:clamp(21px,2.5vw,28px)}
+.flow-section-head p{font-size:12px;line-height:1.6}
+.flow-trace{
+  display:grid;
+  grid-template-columns:minmax(0,1fr);
+  gap:0;
+  margin-top:18px;
+  overflow:hidden;
+  border:1px solid color-mix(in srgb,var(--flow-glow) 24%,var(--line));
+  border-radius:16px;
+  background:linear-gradient(145deg,color-mix(in srgb,var(--panel) 94%,var(--flow-glow) 2%),color-mix(in srgb,var(--panel) 98%,var(--bg)));
+  box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 7%,transparent),0 14px 34px color-mix(in srgb,var(--bg) 18%,transparent);
+}
+.flow-stage{
+  display:block;
+  min-width:0;
+  min-height:0;
+  padding:0;
+  border:0;
+  border-bottom:1px solid color-mix(in srgb,var(--line) 78%,transparent);
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  transition:background .18s ease;
+}
+.flow-stage:last-child{border-bottom:0}
+.flow-stage::after{display:none}
+.flow-stage-summary{
+  display:grid;
+  grid-template-columns:24px minmax(0,1fr) auto 12px;
+  align-items:center;
+  gap:12px;
+  min-height:60px;
+  padding:9px 15px;
+  list-style:none;
+  cursor:pointer;
+}
+.flow-stage-summary::-webkit-details-marker{display:none}
+.flow-stage-summary:hover{background:color-mix(in srgb,var(--flow-glow) 4%,transparent)}
+.flow-stage-node{
+  display:grid;
+  place-items:center;
+  width:22px;
+  height:22px;
+  border:1px solid color-mix(in srgb,var(--flow-glow) 38%,var(--line));
+  border-radius:50%;
+  background:color-mix(in srgb,var(--panel) 90%,transparent);
+  color:var(--mint);
+  font:9px/1 var(--mono);
+}
+.flow-stage-complete .flow-stage-node{border-color:color-mix(in srgb,var(--mint) 52%,var(--line));background:color-mix(in srgb,var(--mint) 11%,var(--panel))}
+.flow-stage-blocked .flow-stage-node{border-color:color-mix(in srgb,var(--amber) 45%,var(--line));color:var(--amber)}
+.flow-stage-body{display:grid;gap:4px;min-width:0}
+.flow-stage-meta{display:flex;align-items:center;justify-content:space-between;gap:8px;color:var(--mint);font:8px/1.35 var(--mono);letter-spacing:.075em;text-transform:uppercase}
+.flow-stage-meta>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.flow-stage-meta time{flex:none;color:var(--faint);font:9px/1.35 var(--mono);letter-spacing:0}
+.flow-stage-title{display:block;overflow:hidden;color:var(--text);font:600 13px/1.35 var(--display);letter-spacing:-.015em;text-overflow:ellipsis;white-space:nowrap}
+.flow-stage-status{justify-self:end;padding:4px 7px;border:1px solid var(--line);border-radius:99px;background:color-mix(in srgb,var(--panel) 82%,transparent);color:var(--faint);font:7px/1.2 var(--mono);letter-spacing:.045em;text-transform:uppercase;white-space:nowrap}
+.flow-stage-complete .flow-stage-status{border-color:color-mix(in srgb,var(--mint) 25%,var(--line));color:var(--mint)}
+.flow-stage-running{background:linear-gradient(90deg,color-mix(in srgb,var(--flow-glow) 8%,transparent),transparent 74%)}
+.flow-stage-running .flow-stage-node{animation:flow-node-pulse 1.8s ease-in-out infinite}
+.flow-stage-running .flow-stage-status{border-color:color-mix(in srgb,var(--flow-glow) 42%,var(--line));color:var(--mint)}
+.flow-stage-blocked{background:linear-gradient(90deg,color-mix(in srgb,var(--amber) 6%,transparent),transparent 74%)}
+.flow-stage-blocked .flow-stage-status{border-color:color-mix(in srgb,var(--amber) 34%,var(--line));color:var(--amber)}
+.flow-stage-chevron{color:var(--faint);font:13px/1 var(--font);transition:transform .18s,color .18s}
+.flow-stage[open] .flow-stage-chevron{transform:rotate(180deg);color:var(--mint)}
+.flow-stage-detail{margin:0;padding:0 18px 14px 51px;color:var(--muted);font:11px/1.55 var(--font);overflow-wrap:anywhere}
+.flow-stage[open] .flow-stage-detail{animation:flow-detail-in .16s ease-out}
+.flow-wait{min-height:62px;padding:12px 15px}
+.flow-wait i{width:19px;height:19px}
+.flow-wait>span{font-size:11px}
+.flow-wait small{font-size:10px}
+.flow-wait time{font-size:8px}
+.flow-progress-note{margin:0;padding:10px 15px;border-top:1px solid var(--line);color:var(--muted);font:10px/1.5 var(--font)}
+.flow-progress-note p{margin:0}
+@keyframes flow-detail-in{from{opacity:0;transform:translateY(-2px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:600px){
+  .flow-glass{padding:17px}
+  .flow-trace{margin-top:15px;border-radius:14px}
+  .flow-section-head{gap:10px}
+  .flow-section-head h2{font-size:21px}
+  .flow-section-head p{font-size:11px}
+  .flow-stage-summary{grid-template-columns:22px minmax(0,1fr) auto 10px;gap:8px;min-height:56px;padding:8px 10px}
+  .flow-stage-title{font-size:12px}
+  .flow-stage-status{padding:4px 6px;font-size:6.5px}
+  .flow-stage-detail{padding:0 12px 12px 40px;font-size:10px}
+  .flow-wait{grid-template-columns:22px minmax(0,1fr) auto;gap:9px;padding:11px 10px}
+  .flow-progress-note{padding-inline:10px}
+}
+@media(max-width:380px){
+  .flow-stage-summary{grid-template-columns:20px minmax(0,1fr) auto 9px;gap:6px;padding-inline:8px}
+  .flow-stage-status{max-width:78px;overflow:hidden;text-overflow:ellipsis}
+  .flow-stage-meta{font-size:7px}
+  .flow-stage-meta time{font-size:8px}
+}
+@media(prefers-reduced-motion:reduce){
+  .flow-stage,.flow-stage-node,.flow-stage-chevron,.flow-stage[open] .flow-stage-detail{animation:none;transition:none}
+}
