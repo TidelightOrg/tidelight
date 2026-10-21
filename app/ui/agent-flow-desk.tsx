@@ -15,7 +15,7 @@ type AssetRead = {
   market: { perpSymbol: string | null; spotSymbol: string | null; lastPrice: number | null; providerTimestamp?: number | null };
   handoff: { destinations: Destination[]; reason: string } | null;
 };
-type FlowResult = { question: string; assets: AssetRead[]; tradeable: boolean; handoff?: unknown; trace: StageEvent[] };
+type FlowResult = { question: string; assets: AssetRead[]; tradeable: boolean; handoff?: unknown; trace: StageEvent[]; researchCoverage?: { mode: string; lookbackDays: number; queriesPerTicker: number; collectedItems: number; publishers: number; sourceDomains: number; collectedAt: string; limitations: string[] } };
 
 const EXAMPLES = ["What do you think about NVDA and TSLA?", "Compare Apple and Microsoft after the latest news", "Is the rNVDA market worth reviewing?"];
 
@@ -149,7 +149,7 @@ export default function AgentFlowDesk({ initialQuestion, evaluatorMode = false }
       <div className="flow-hero-copy"><span className="flow-kicker"><i /> TIDELIGHT / CONNECTED RESEARCH</span>
         <h1 id="flow-title">Ask once.<br /><span>Follow every step.</span></h1>
         <p>Bring a question about US stocks or their tokenized markets. Tidelight checks recent evidence, maps the available instruments, tests a scenario, and only offers a trading review when its gates agree.</p>
-        <form className="flow-form" onSubmit={runFlow}><label htmlFor="flow-question">Your market question</label><div className="flow-form-row"><textarea id="flow-question" value={question} maxLength={280} rows={2} onChange={(event) => setQuestion(event.target.value)} placeholder="What do you think about NVDA and TSLA?" disabled={busy} /><button type="submit" disabled={busy}>{busy ? "Following the evidence…" : "Begin research ↗"}</button></div></form>
+        <form className="flow-form" onSubmit={runFlow}><label htmlFor="flow-question">Your market question <span className="flow-depth-badge">DEEP RESEARCH · UP TO 30 DAYS</span></label><div className="flow-form-row"><textarea id="flow-question" value={question} maxLength={280} rows={2} onChange={(event) => setQuestion(event.target.value)} placeholder="What do you think about NVDA and TSLA?" disabled={busy} /><button type="submit" disabled={busy}>{busy ? "Following the evidence…" : "Begin research ↗"}</button></div></form>
         <div className="flow-prompts"><span>TRY A QUESTION</span>{EXAMPLES.map((example) => <button type="button" key={example} onClick={() => setQuestion(example)} disabled={busy}>{example}</button>)}</div>
       </div>
       <div className="flow-orbit" aria-hidden="true"><div className="flow-orbit-ring"><span>EVENT</span><span>EVIDENCE</span><span>EXPOSURE</span><span>DECISION</span></div><div className="flow-orbit-core"><Image src="/tidelight-mark.svg" alt="" width={42} height={42} /><small>TIDELIGHT</small></div></div>
@@ -168,7 +168,7 @@ export default function AgentFlowDesk({ initialQuestion, evaluatorMode = false }
           </summary>
           <p className="flow-stage-detail">{stage.detail}</p>
         </details>;
-      })}{busy && stages.length === 0 ? <div className="flow-wait" role="listitem"><i aria-hidden="true" /><span>{busySeconds < 8 ? "Opening the research path…" : "Connecting market and evidence sources"}{busySeconds >= 15 ? <small>Tidelight is checking current coverage and verified market data. Progress appears here as each check completes.</small> : <small>Market context · recent evidence · decision gates</small>}</span><time dateTime={`PT${busySeconds}S`}>{busySeconds}s</time></div> : null}{busy && stages.length > 0 && busySeconds >= 15 ? <div className="flow-progress-note" role="listitem"><p role="status">Research is still running. Market and source checks can vary with provider response time.</p></div> : null}</div>
+      })}{busy && stages.length === 0 ? <div className="flow-wait" role="listitem"><i aria-hidden="true" /><span>{busySeconds < 8 ? "Opening the research path…" : "Connecting market and evidence sources"}{busySeconds >= 15 ? <small>Tidelight is checking current coverage and verified market data. Progress appears here as each check completes.</small> : <small>Market context · eight news searches per company · corroboration and counter-evidence · market and risk gates</small>}</span><time dateTime={`PT${busySeconds}S`}>{busySeconds}s</time></div> : null}{busy && stages.length > 0 && busySeconds >= 15 ? <div className="flow-progress-note" role="listitem"><p role="status">Research is still running. Search, source validation and synthesis may take up to two minutes.</p></div> : null}</div>
     </section> : null}
 
     {error ? <div className="flow-error" role="alert"><b>Research paused</b><span>{error}</span>{error.toLowerCase().includes("sign in") ? <Link href="/login">Sign in ↗</Link> : <button type="button" onClick={() => void runFlow()} disabled={busy}>Try again ↗</button>}</div> : null}

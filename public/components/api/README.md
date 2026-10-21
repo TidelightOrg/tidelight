@@ -7,7 +7,7 @@ The live, versioned REST API is at `https://api.tidelight.app/v1`. The OpenAPI 3
 | Operation | Scope | Purpose |
 | --- | --- | --- |
 | `GET /market/instruments` | `market:read` | List supported Reality tokenized-equity spot instruments; optionally filter by `underlying_ticker` before pagination |
-| `POST /research/jobs` | `research:run` | Start an asynchronous, idempotent company snapshot |
+| `POST /research/jobs` | `research:run` | Start an asynchronous, idempotent company snapshot with 30-day headline discovery |
 | `GET /research/jobs/{job_id}` | `research:run` | Read status/result within the key's project |
 | `DELETE /research/jobs/{job_id}` | `research:run` | Cancel queued work or request cancellation |
 | `GET, POST /webhooks` | `alerts:manage` | List or create research event subscriptions |
@@ -26,7 +26,7 @@ curl --fail-with-body \
   'https://api.tidelight.app/v1/market/instruments?kind=rtoken&underlying_ticker=AAPL&limit=10'
 ```
 
-Responses include a request ID and market provenance, including the provider source and timestamp. rToken spot instruments are tokenized products; they are not underlying shares or stock perpetual contracts. An unavailable provider returns a safe service error instead of fabricated values. Bitget-backed market responses fail closed with `503 provider_terms_unconfirmed` until written redistribution permission is confirmed and configured. Async research responses include a job ID; reuse the same `Idempotency-Key` when retrying a start request.
+Research snapshots perform eight bounded news-feed searches over earnings, guidance, regulation, industry, and supply-chain topics. Dated headlines are filtered to 30 days and returned with retrieval time, publisher counts, and original links. Coverage is bounded, not exhaustive; headlines and snippets are discovery references, not full article analysis. Responses include a request ID and market provenance, including the provider source and timestamp. rToken spot instruments are tokenized products; they are not underlying shares or stock perpetual contracts. An unavailable provider returns a safe service error instead of fabricated values. Bitget-backed market responses fail closed with `503 provider_terms_unconfirmed` until written redistribution permission is confirmed and configured. Async research responses include a job ID; reuse the same `Idempotency-Key` when retrying a start request.
 
 Errors use a stable code, safe message, and request ID. Respect `429` quotas and only retry safe operations or idempotent requests. All request and response schemas, status codes, limits, and OAuth-free API-key requirements are defined by the OpenAPI contract.
 

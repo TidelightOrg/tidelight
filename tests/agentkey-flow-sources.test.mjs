@@ -31,7 +31,7 @@ test("AgentKey admits attributable, relevant HTTPS headlines with provenance and
   assert.equal(evidence.length, 1);
   assert.equal(evidence[0].via, "AgentKey");
   assert.equal(calls[2][1], "agentkey_search");
-  assert.deepEqual(calls[2][2], { query: "NVIDIA NVDA stock latest news", type: "news", num: 5 });
+  assert.deepEqual(calls[2][2], { query: "NVIDIA NVDA stock news earnings guidance filing regulation lawsuit product", type: "news", num: 20 });
 });
 
 test("no execution with undiscovered tool or ambiguous and over-budget cost", async () => {

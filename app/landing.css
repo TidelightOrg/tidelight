@@ -364,3 +364,30 @@
   }
   .landing-mobile-menu-panel a{min-height:46px}
 }
+
+/* Smaller, centered mobile glass panel with calm, readable navigation rows. */
+@media(max-width:800px){
+  .landing-mobile-menu-panel{
+    width:min(304px,calc(100vw - 32px));
+    max-width:calc(100vw - 32px);
+    padding:7px;
+    gap:2px;
+    border-radius:18px;
+    background:color-mix(in srgb,var(--panel) 96%,var(--bg));
+    border-color:color-mix(in srgb,var(--brand-teal) 34%,var(--line));
+    box-shadow:0 20px 56px color-mix(in srgb,var(--bg) 62%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 14%,transparent),0 0 28px color-mix(in srgb,var(--brand-teal) 7%,transparent);
+    -webkit-backdrop-filter:blur(28px) saturate(155%);
+    backdrop-filter:blur(28px) saturate(155%);
+  }
+  .landing-mobile-menu-panel a{
+    min-height:40px;
+    padding-inline:11px;
+    border-radius:11px;
+    font-size:12px;
+    letter-spacing:-.08px;
+  }
+}
+@media(max-width:380px){
+  .landing-mobile-menu-panel{width:calc(100vw - 28px);max-width:calc(100vw - 28px);padding:6px}
+  .landing-mobile-menu-panel a{min-height:39px}
+}
