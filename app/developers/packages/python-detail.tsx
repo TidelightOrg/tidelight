@@ -5,6 +5,7 @@ import { useState } from "react";
 import { PackageLifecycleDemo } from "./package-lifecycle-demo";
 import { PackageSectionNav, packageSections } from "./package-section-nav";
 import { PackageSourceBadges } from "./package-source-badges";
+import { PackageLanguageMark } from "./package-language-mark";
 import { RegistryFacts } from "./registry-facts";
 const snippets = {
   install: `git clone https://github.com/TidelightOrg/tidelight.git
@@ -62,7 +63,7 @@ export function PythonPackageDetail() {
   }
   return <>
     <header className="tic-package-detail-hero">
-      <div className="tic-package-detail-copy"><p className="tic-eyebrow">OFFICIAL PACKAGE / PYTHON SDK</p><div className="tic-package-detail-title"><span className="tic-package-glyph" aria-hidden="true">Py</span><h1>Python SDK</h1></div><p>A small Python client for supported Tidelight API v1 market, asynchronous research, and webhook workflows. Keep project credentials on trusted servers and work with typed response objects.</p><PackageSourceBadges packageId="python" /><div className="tic-package-detail-actions"><a className="tic-button tic-primary" href="#quickstart">Build from source <span aria-hidden="true">↓</span></a><a className="tic-button" href="https://github.com/TidelightOrg/tidelight/tree/main/sdk/python" target="_blank" rel="noreferrer">View source <span aria-hidden="true">→</span></a></div></div>
+      <div className="tic-package-detail-copy"><p className="tic-eyebrow">OFFICIAL PACKAGE / PYTHON SDK</p><div className="tic-package-detail-title"><PackageLanguageMark packageId="python" /><h1>Python SDK</h1></div><p>A small Python client for supported Tidelight API v1 market, asynchronous research, and webhook workflows. Keep project credentials on trusted servers and work with typed response objects.</p><PackageSourceBadges packageId="python" /><div className="tic-package-detail-actions"><a className="tic-button tic-primary" href="#quickstart">Build from source <span aria-hidden="true">↓</span></a><a className="tic-button" href="https://github.com/TidelightOrg/tidelight/tree/main/sdk/python" target="_blank" rel="noreferrer">View source <span aria-hidden="true">→</span></a></div></div>
       <div className="tic-package-flow" role="img" aria-label="Python SDK workflow: a trusted Python service uses the Tidelight client, which sends a scoped request to API v1 and returns structured market or research data."><span className="tic-package-flow-label">PYTHON CLIENT / SERVER SIDE</span><div className="tic-flow-line"><div className="tic-flow-node"><span>01</span><strong>Your service</strong><small>Credential from environment</small></div><i aria-hidden="true">→</i><div className="tic-flow-node flow-active"><span>02</span><strong>Python SDK</strong><small>Typed results · bounded retries</small></div><i aria-hidden="true">→</i><div className="tic-flow-node"><span>03</span><strong>API v1</strong><small>Scope and quota enforced</small></div></div><div className="tic-flow-response"><span>RETURNED DATA</span><b>instruments</b><b>research job</b><b>request_id</b></div></div>
     </header>
     <PackageLifecycleDemo packageName="python" />
