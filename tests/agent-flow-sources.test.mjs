@@ -28,7 +28,7 @@ test("public feeds retain only relevant, recent dated HTTPS stories and deduplic
     const news = query.includes("earnings") || query.includes("filing") ? [
       ["NVIDIA reports quarterly earnings", "https://publisher.example/nvidia-results", "Publisher One"],
       ["NVIDIA quarterly earnings results", "https://other.example/nvidia-results", "Publisher Two"],
-      ["NVDA supplier expands capacity", "https://third.example/capacity", "Publisher Three"],
+      ["NVIDIA supplier expands capacity", "https://third.example/capacity", "Publisher Three"],
       ["NVDA unrelated historical story", "https://old.example/old", "Publisher Four", new Date(now - 31 * 86400000).toISOString()],
     ] : [];
     const xml = news.map(([title, link, publisher, date]) => {
