@@ -62,7 +62,7 @@ export async function agentKeyIssuerEvidence(ticker: string, issuer: string, cli
     if (!JSON.stringify(unpack(discovery)).includes(TOOL)) return [];
     const description = await client.describeTool(TOOL);
     if (!inspectAgentKeySearchDescription(description).withinBudget) return [];
-    const result = await client.executeTool(TOOL, { query: `${issuer} ${ticker} stock news earnings guidance filing regulation lawsuit product`, type: "news", num: 20, time_range: "month" });
+    const result = await client.executeTool(TOOL, { query: `${issuer} ${ticker} stock news earnings guidance filing regulation lawsuit product`, type: "news", num: 20 });
     const now = Date.now();
     const unique = new Map<string, FlowEvidence>();
     for (const record of records(result)) {
