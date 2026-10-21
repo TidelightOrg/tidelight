@@ -43,7 +43,7 @@ test("Qwen receives JSON instructions and a valid result avoids fallback", async
     assert.deepEqual(JSON.parse(init.body).response_format, { type: "json_object" });
     return qwen(JSON.stringify(answer));
   });
-  assert.deepEqual(await aiJsonWithFallback(messages, valid), answer);
+  assert.deepEqual(await aiJsonWithFallback(messages, valid, { budgetMs: 45000 }), answer);
   assert.equal(fetch.mock.callCount(), 1);
 });
 
