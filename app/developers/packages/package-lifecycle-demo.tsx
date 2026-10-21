@@ -66,6 +66,16 @@ const flows: Record<string, Flow> = {
 export function PackageLifecycleDemo({ packageName }: { packageName: keyof typeof flows }) {
   const flow = flows[packageName];
   const [active, setActive] = useState(0);
+  const [copied, setCopied] = useState<string | null>(null);
+  async function copyCode(code: string) {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(code);
+      window.setTimeout(() => setCopied(current => current === code ? null : current), 1800);
+    } catch {
+      setCopied(null);
+    }
+  }
   const step = flow.steps[active];
 
   return <section className="tic-package-lifecycle" aria-labelledby={`lifecycle-${packageName}-title`}>
@@ -86,11 +96,11 @@ export function PackageLifecycleDemo({ packageName }: { packageName: keyof typeo
           <h3>{step.title}</h3><p>{step.detail}</p>
           <div className="tic-package-lifecycle-fields" aria-label="Relevant contract fields">{step.fields.map(field => <span key={field}>{field}</span>)}</div>
         </div>
-        <div className="tic-package-lifecycle-code"><span>EXAMPLE SHAPE · VALUES OMITTED</span><pre tabIndex={0} aria-label={`${step.title} illustrative code or protocol shape`}><code>{step.code}</code></pre></div>
+        <div className="tic-package-lifecycle-code"><div className="tic-package-lifecycle-code-head"><span>EXAMPLE SHAPE · VALUES OMITTED</span><button type="button" className="tic-package-copy" onClick={() => copyCode(step.code)}>{copied === step.code ? "Copied" : "Copy code"}</button></div><pre tabIndex={0} aria-label={`${step.title} illustrative code or protocol shape`}><code>{step.code}</code></pre></div>
       </div>
       <div className="tic-package-lifecycle-controls"><button type="button" onClick={() => setActive(value => Math.max(0, value - 1))} disabled={active === 0}>← Previous</button><span aria-hidden="true">{active + 1} of {flow.steps.length}</span><button type="button" onClick={() => setActive(value => Math.min(flow.steps.length - 1, value + 1))} disabled={active === flow.steps.length - 1}>Next →</button></div>
     </div>
     <p className="tic-package-lifecycle-note"><span aria-hidden="true">i</span>{flow.footnote}</p>
-    <details className="tic-package-lifecycle-all"><summary>View all steps</summary><ol>{flow.steps.map(item => <li key={item.title}><strong>{item.title}</strong><p>{item.detail}</p><pre tabIndex={0}><code>{item.code}</code></pre></li>)}</ol></details>
+    <details className="tic-package-lifecycle-all"><summary>View all steps</summary><ol>{flow.steps.map(item => <li key={item.title}><strong>{item.title}</strong><p>{item.detail}</p><div className="tic-package-lifecycle-all-code"><button type="button" className="tic-package-copy" onClick={() => copyCode(item.code)}>{copied === item.code ? "Copied" : "Copy code"}</button><pre tabIndex={0}><code>{item.code}</code></pre></div></li>)}</ol></details>
   </section>;
 }
