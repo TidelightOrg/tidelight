@@ -145,6 +145,109 @@
       "status": "requires_owner_publication",
       "uri": "https://tidelight.app/flow",
       "claim": "A completed research run can be explicitly published from the signed-in research desk as a sanitized, time-limited replay. No private run is public by default."
+    },
+    {
+      "id": "public-replay-rtsla",
+      "kind": "owner_published_public_route",
+      "status": "published_30_day_link",
+      "uri": "https://tidelight.app/replay/c5f5b22e-c995-4a5e-8193-5737c4d413b8",
+      "claim": "Owner-published rTSLA research snapshot. 40 issuer headlines across 30 publishers; AI synthesis unavailable; quote freshness stale; no trade handoff."
+    },
+    {
+      "id": "public-replay-rmsft",
+      "kind": "owner_published_public_route",
+      "status": "published_30_day_link",
+      "uri": "https://tidelight.app/replay/4e86bf9c-7295-4be1-ae52-487341e7f1ca",
+      "claim": "Owner-published rMSFT research snapshot. 40 issuer headlines across 23 publishers; AI synthesis unavailable; quote freshness fresh_at_capture; no trade handoff."
+    },
+    {
+      "id": "public-replay-raapl",
+      "kind": "owner_published_public_route",
+      "status": "published_30_day_link",
+      "uri": "https://tidelight.app/replay/5d27e66c-2a87-4450-95d3-5014e1309216",
+      "claim": "Owner-published rAAPL research snapshot. 40 issuer headlines across 22 publishers; AI synthesis unavailable; quote freshness stale; no trade handoff."
+    },
+    {
+      "id": "public-replay-rgoogl",
+      "kind": "owner_published_public_route",
+      "status": "published_30_day_link",
+      "uri": "https://tidelight.app/replay/7ca56a20-c064-4f99-b351-806b2ddd685e",
+      "claim": "Owner-published rGOOGL research snapshot. 40 issuer headlines across 17 publishers; AI synthesis unavailable; quote freshness fresh_at_capture; no trade handoff."
+    },
+    {
+      "id": "public-replay-ramzn",
+      "kind": "owner_published_public_route",
+      "status": "published_30_day_link",
+      "uri": "https://tidelight.app/replay/c67d7b29-85eb-4c27-8a29-2cbe85bd4e91",
+      "claim": "Owner-published rAMZN research snapshot. 40 issuer headlines across 21 publishers; AI synthesis unavailable; quote freshness fresh_at_capture; no trade handoff."
     }
-  ]
+  ],
+  "owner_published_research": {
+    "status": "active_public_links",
+    "expires_after_days": 30,
+    "revoked_by_owner": true,
+    "evidence_boundary": "These are owner-published research snapshots, not audited performance, investment advice, strategy backtests, live orders, or trade fills.",
+    "limitations": [
+      "Five new runs used public-feed fallback and report AI synthesis unavailable.",
+      "No directional assessment or trade handoff was made in the five new runs.",
+      "Token quote freshness is specific to capture time; liquidity, spread, and premium/discount were not measured in these runs."
+    ],
+    "replays": [
+      {
+        "instrument": "rTSLA",
+        "uri": "https://tidelight.app/replay/c5f5b22e-c995-4a5e-8193-5737c4d413b8",
+        "scope": "Tesla issuer catalysts and rTSLA token tradability",
+        "quote_freshness": "stale",
+        "headlines": 40,
+        "publishers": 30,
+        "ai_synthesis": "unavailable"
+      },
+      {
+        "instrument": "rMSFT",
+        "uri": "https://tidelight.app/replay/4e86bf9c-7295-4be1-ae52-487341e7f1ca",
+        "scope": "AI infrastructure investment, cloud demand, competition, and capital intensity",
+        "quote_freshness": "fresh_at_capture",
+        "headlines": 40,
+        "publishers": 23,
+        "ai_synthesis": "unavailable"
+      },
+      {
+        "instrument": "rAAPL",
+        "uri": "https://tidelight.app/replay/5d27e66c-2a87-4450-95d3-5014e1309216",
+        "scope": "Services, device cycle, and regulatory risk",
+        "quote_freshness": "stale",
+        "headlines": 40,
+        "publishers": 22,
+        "ai_synthesis": "unavailable"
+      },
+      {
+        "instrument": "rGOOGL",
+        "uri": "https://tidelight.app/replay/7ca56a20-c064-4f99-b351-806b2ddd685e",
+        "scope": "Search advertising, antitrust remedies, and AI-search competition",
+        "quote_freshness": "fresh_at_capture",
+        "headlines": 40,
+        "publishers": 17,
+        "ai_synthesis": "unavailable"
+      },
+      {
+        "instrument": "rAMZN",
+        "uri": "https://tidelight.app/replay/c67d7b29-85eb-4c27-8a29-2cbe85bd4e91",
+        "scope": "AWS investment, retail economics, logistics, and AI infrastructure",
+        "quote_freshness": "fresh_at_capture",
+        "headlines": 40,
+        "publishers": 21,
+        "ai_synthesis": "unavailable"
+      },
+      {
+        "instrument": "rNVDA",
+        "uri": "https://tidelight.app/replay/c2ffbe89-74a5-4547-bf89-5952e37efeaa",
+        "scope": "Earlier tokenized-market review"
+      },
+      {
+        "instrument": "NVDA+TSLA",
+        "uri": "https://tidelight.app/replay/91bb478a-7977-4b34-b32d-b1f558a8af75",
+        "scope": "Earlier issuer comparison"
+      }
+    ]
+  }
 }

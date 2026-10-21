@@ -37,7 +37,7 @@ export default function JudgePage() {
             <Link className="judge-primary" href="/flow?demo=1&question=Should%20I%20review%20the%20affected%20rToken%20after%20an%20after-hours%20earnings%20event%3F">Run the live research path <span>↗</span></Link>
             <Link className="judge-secondary" href="/demo">Read the product walkthrough <span>→</span></Link>
             <Link className="judge-secondary" href="/evidence">Inspect evidence manifest <span>↗</span></Link>
-            <Link className="judge-secondary" href="/replay">Open labeled research replay <span>↗</span></Link>
+            <Link className="judge-secondary" href="/replay/c5f5b22e-c995-4a5e-8193-5737c4d413b8">Read a live rTSLA review <span>↗</span></Link>
           </div>
         </div>
         <aside className="judge-hero-card" aria-label="Judge mode summary">
@@ -91,7 +91,7 @@ export default function JudgePage() {
       <div className="judge-section-heading"><span className="judge-kicker">05 / REPRODUCIBLE PROOF</span><h2>Inspect the artifacts, not just the pitch.</h2></div>
       <div className="judge-lane-grid">
         <Link href="/evidence"><span>PUBLIC EVIDENCE</span><strong>Open the evidence manifest.</strong><em>Routes, artifact status, limitations and reproduction requirements ↗</em></Link>
-        <Link href="/replay"><span>RESEARCH TRACE</span><strong>Inspect the labeled replay.</strong><em>Illustrative fixture only—not a live source or result ↗</em></Link>
+        <Link href="/replay/4e86bf9c-7295-4be1-ae52-487341e7f1ca"><span>LIVE RESEARCH TRACE</span><strong>Inspect the rMSFT evidence.</strong><em>Owner-published source and market snapshot ↗</em></Link>
         <Link href="/flow"><span>OWNER-PUBLISHED REPLAY</span><strong>Publish a real research run.</strong><em>After a completed run, share a 30-day source-linked replay with judges ↗</em><small>Publishing requires a signed-in owner and explicit consent.</small></Link>
         <Link href="/strategies"><span>ALPHA FACTORY</span><strong>Export a reproducible strategy run.</strong><em>Authenticated runs include candle fingerprints, costs and holdout data ↗</em></Link>
         <Link href="/nightwatch"><span>NIGHTWATCH</span><strong>Export private paper evidence.</strong><em>Account-scoped decisions and paper ledger; review privacy before sharing ↗</em></Link>
@@ -99,10 +99,16 @@ export default function JudgePage() {
     </section>
 
     <section className="judge-section judge-published-research" aria-labelledby="published-research-title">
-      <div className="judge-section-heading"><span className="judge-kicker">06 / OWNER-PUBLISHED RESEARCH</span><h2 id="published-research-title">Two real runs, ready for review.</h2><p>These owner-published records preserve the original question, captured sources, instrument context, risk gates, and process trace. They are research snapshots, not audited performance.</p></div>
+      <div className="judge-section-heading"><span className="judge-kicker">06 / OWNER-PUBLISHED RESEARCH</span><h2 id="published-research-title">Seven live records. One clear evidence boundary.</h2><p>Five new token reviews join the two earlier public examples. Every card opens a real owner-published snapshot with captured sources, instrument checks, and risk gates. Links expire 30 days after publication and can be revoked.</p></div>
+      <p className="judge-lede">Across the five new runs, 40 issuer headlines were collected per company from 17–30 publishers. AI synthesis was unavailable in each, so these are transparent fallback records rather than completed analyst theses. No directional assessment or trade handoff was made; each replay shows quote freshness and unmeasured token-market checks.</p>
       <div className="judge-lane-grid">
-        <Link href="/replay/c2ffbe89-74a5-4547-bf89-5952e37efeaa"><span>RNVDA · TOKENIZED MARKET</span><strong>Is the rNVDA market worth reviewing?</strong><small>Inspect what the run found about NVIDIA coverage, the instrument context, and the evidence limitations.</small><em>Open published replay ↗</em></Link>
-        <Link href="/replay/91bb478a-7977-4b34-b32d-b1f558a8af75"><span>NVDA + TSLA · COMPARISON</span><strong>Compare the latest evidence and risks.</strong><small>Review the two issuer assessments, their cited public sources, and separate decision gates.</small><em>Open published replay ↗</em></Link>
+        <Link href="/replay/c5f5b22e-c995-4a5e-8193-5737c4d413b8"><span>RTSLA · EV / AUTOMOTIVE</span><strong>Would you review the rTSLA market?</strong><small>40 issuer headlines across 30 publishers. The token quote was stale; depth, spread, and premium/discount were not measured.</small><em>Inspect published replay ↗</em></Link>
+        <Link href="/replay/4e86bf9c-7295-4be1-ae52-487341e7f1ca"><span>RMSFT · AI / CLOUD</span><strong>How do AI investment and Azure demand change the risk picture?</strong><small>40 issuer headlines across 23 publishers. The token quote was fresh at capture; market depth, spread, and premium/discount were not measured.</small><em>Inspect published replay ↗</em></Link>
+        <Link href="/replay/5d27e66c-2a87-4450-95d3-5014e1309216"><span>RAAPL · DEVICES / SERVICES</span><strong>What should a long-term rAAPL review verify?</strong><small>40 issuer headlines across 22 publishers. The token quote was stale; the run did not assess rAAPL tradability.</small><em>Inspect published replay ↗</em></Link>
+        <Link href="/replay/7ca56a20-c064-4f99-b351-806b2ddd685e"><span>RGOOGL · REGULATION / AI SEARCH</span><strong>How should antitrust remedies and AI-search competition be reviewed?</strong><small>40 issuer headlines across 17 publishers. The token quote was fresh at capture; liquidity, spread, and premium/discount were not measured.</small><em>Inspect published replay ↗</em></Link>
+        <Link href="/replay/c67d7b29-85eb-4c27-8a29-2cbe85bd4e91"><span>RAMZN · CLOUD / RETAIL</span><strong>How do AWS investment and retail economics shape the review?</strong><small>40 issuer headlines across 21 publishers. The token quote was fresh at capture; no trading handoff was made.</small><em>Inspect published replay ↗</em></Link>
+        <Link href="/replay/c2ffbe89-74a5-4547-bf89-5952e37efeaa"><span>RNVDA · TOKENIZED MARKET</span><strong>Is the rNVDA market worth reviewing?</strong><small>Earlier owner-published run. Inspect its original issuer coverage, instrument context, and stated limitations.</small><em>Inspect published replay ↗</em></Link>
+        <Link href="/replay/91bb478a-7977-4b34-b32d-b1f558a8af75"><span>NVDA + TSLA · COMPARISON</span><strong>Compare the latest evidence and risks.</strong><small>Earlier owner-published comparison with separate issuer assessments and decision gates.</small><em>Inspect published replay ↗</em></Link>
       </div>
     </section>
 
