@@ -72,7 +72,7 @@ test("schema-invalid primary response is retried before provider fallback", asyn
     }
     return gemini([{ text: JSON.stringify(answer) }]);
   });
-  assert.deepEqual(await aiJsonWithFallback(messages, valid), answer);
+  assert.deepEqual(await aiJsonWithFallback(messages, valid, { budgetMs: 45000 }), answer);
   assert.equal(qwenCalls, 2);
   assert.equal(fetch.mock.callCount(), 2);
 });
