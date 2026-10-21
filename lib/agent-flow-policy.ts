@@ -14,6 +14,17 @@ export type FlowGateInput = {
   now: number;
 };
 
+/** Evidence-only fallback used when every configured synthesis provider is unavailable. */
+export function sourceOnlyAssessment(input: { ticker: string; headlineCount: number; publishers: number; latestTitle?: string | null; latestPublisher?: string | null; latestDate?: string | null; tokenizedMarketQuestion: boolean; spotSymbol?: string | null; spotPrice?: number | null; spotTimestamp?: number | null; perpSymbol?: string | null }): FlowAssessment {
+  const { ticker } = input;
+  const summary = input.tokenizedMarketQuestion
+    ? `${input.headlineCount} issuer-level ${ticker} headline${input.headlineCount === 1 ? " was" : "s were"} collected across ${input.publishers} publisher${input.publishers === 1 ? "" : "s"}${input.latestTitle ? `; latest listed item: “${input.latestTitle.slice(0, 120)}”${input.latestPublisher ? ` (${input.latestPublisher}${input.latestDate ? `, ${input.latestDate}` : ""})` : ""}` : ""}. This coverage concerns ${ticker}, not the r${ticker} token market. ${input.spotSymbol && input.spotPrice != null ? `A tokenized spot quote was returned for ${input.spotSymbol} at ${input.spotPrice}; quote freshness ${input.spotTimestamp ? "is shown separately below" : "is unverified"}.` : `No verified r${ticker} tokenized-spot quote was returned.`} ${input.perpSymbol ? `${input.perpSymbol} is a stock-perpetual reference, not the rToken.` : "No stock-perpetual reference was verified."} r${ticker}-specific liquidity, spread, and premium or discount were not measured. Conclusion: not enough evidence to judge whether r${ticker} is worth reviewing as a trading opportunity. A due-diligence review could proceed after verifying token availability, a fresh token quote, liquidity, spread, and premium or discount. AI synthesis is unavailable; no directional assessment was made.`
+    : input.headlineCount
+      ? `Collected ${input.headlineCount} public headlines across ${input.publishers} publishers${input.latestTitle ? `. Most recent listed headline: “${input.latestTitle.slice(0, 150)}”${input.latestPublisher ? ` (${input.latestPublisher}${input.latestDate ? `, ${input.latestDate}` : ""})` : ""}` : ""}. AI synthesis is unavailable, so review the linked items directly. No directional trade assessment was made.`
+      : `No attributable public headlines were reached for ${ticker}. Check the issuer's original filings and retry later.`;
+  return { summary, stance: "unclear", confidence: 0, citedUrls: [], supportingEvidence: [], counterEvidence: [], risks: ["AI synthesis is unavailable; retrieved headlines are discovery references only.", ...(input.tokenizedMarketQuestion ? ["Issuer coverage does not establish rToken liquidity, spread, or premium/discount."] : [])], nextCheck: input.tokenizedMarketQuestion ? "Verify the rToken's live availability, quote freshness, liquidity, spread, and premium or discount from instrument-specific sources." : "Review issuer filings and completed candles." };
+}
+
 const aliases: Record<string, string[]> = {
   NVDA: ["NVIDIA"], TSLA: ["TESLA"], AAPL: ["APPLE"], AMD: ["ADVANCED MICRO DEVICES"],
   MSFT: ["MICROSOFT"], META: ["META PLATFORMS"], AMZN: ["AMAZON"],
