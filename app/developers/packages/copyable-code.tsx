@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { SyntaxCode } from "./syntax-code";
 
 export function CopyableCode({ code, language }: { code: string; language: string }) {
   const [status, setStatus] = useState<"copied" | "failed" | null>(null);
@@ -22,6 +23,6 @@ export function CopyableCode({ code, language }: { code: string; language: strin
         {status === "copied" ? "Copied" : status === "failed" ? "Copy unavailable" : "Copy code"}
       </button>
     </div>
-    <pre tabIndex={0}><code>{code}</code></pre>
+    <pre tabIndex={0}><code><SyntaxCode code={code} language={language} /></code></pre>
   </section>;
 }

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState } from "react";
 import { PackageLanguageMark } from "./package-language-mark";
+import { SyntaxCode } from "./syntax-code";
 import { RegistryFacts, useRegistryPackage } from "./registry-facts";
 import { packageCatalog, type DeveloperPackage } from "./catalog.generated";
 
@@ -142,6 +143,7 @@ export function PackageWorkbench() {
       ? [`React peers: ${compatibility?.peerDependencies?.react ?? "not declared"}`, `CI tested: ${compatibility?.testedReact?.join(" · ") ?? "not listed"}`, `Node ${compatibility?.declaredNode ?? "support not declared"} · CI ${compatibility?.testedNode?.join(" · ") ?? "not listed"}`]
       : [`Node ${compatibility?.declaredNode ? `${compatibility.declaredNode} declared` : "support not declared"}`, `CI tested: ${compatibility?.testedNode?.join(" · ") ?? "not listed"}`];
   const preview = surface === "install" ? exactInstall : surface === "verify" ? current.command : current.source;
+  const codeLanguage = surface !== "example" || selected === "cli" ? "bash" : selected === "python" ? "python" : selected === "mcp" ? "json" : "typescript";
 
   async function copySource() {
     try {
@@ -212,7 +214,7 @@ export function PackageWorkbench() {
             <div className="tic-package-preview-topline"><div role="group" aria-label={`${current.name} workbench view`}>
               {(["install", "example", "verify"] as const).map(view => <button key={view} type="button" aria-pressed={surface === view} onClick={() => { setSurface(view); setCopied(false); }}>{view === "install" ? "Install" : view === "example" ? "Example" : "Test source"}</button>)}
             </div><button className="tic-package-copy" type="button" onClick={copySource}>{copied ? "Copied" : "Copy"}</button></div>
-            <pre tabIndex={0} aria-label={surface === "install" ? "Version-pinned install command" : surface === "verify" ? "Mother repository package test command" : "Package example source"}><code>{preview}</code></pre>
+            <pre tabIndex={0} aria-label={surface === "install" ? "Version-pinned install command" : surface === "verify" ? "Mother repository package test command" : "Package example source"}><code><SyntaxCode code={preview} language={codeLanguage} /></code></pre>
             <div className="tic-package-preview-footer"><span>{surface === "install" ? (registry.version ? `PINNED TO ${registry.version}` : "REGISTRY VERSION PENDING") : surface === "verify" ? "MOTHER REPOSITORY · LOCAL TESTS" : "QUICKSTART SNIPPET · NO LIVE DATA"}</span>{surface === "verify" && <Link href="https://github.com/TidelightOrg/tidelight">Browse source ↗</Link>}</div>
           </div>
         </div>

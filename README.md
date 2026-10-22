@@ -83,50 +83,14 @@ Strategy Lab replays a baseline against historical public candles. Nightwatch an
 
 Prices, coverage, and provider availability may change. Finnhub is an optional source for aggregate analyst targets; its free plan can have usage limits. If the data is unavailable, Tidelight should say so rather than invent a target.
 
-## For people who want to build with us
+## Judge review · public evidence
 
-The product is easiest to understand by exploring the live app first. If you want to run a local copy, improve a flow, or inspect the implementation, the notes below are for you.
+Start with [**Judge Mode**](https://tidelight.app/judge) for the five-minute product path. The records below are owner-published artifacts with explicit limitations.
 
 <details>
-<summary><strong>Run Tidelight locally</strong></summary>
+<summary><strong>Open live public research replays</strong></summary>
 
-You will need Node.js, npm, and access to a Supabase project.
-
-```bash
-npm ci
-cp .env.example .env.local
-```
-
-Add the Supabase URL and publishable key to `.env.local`. Server-side AI features can use the provider keys documented in [`.env.example`](./.env.example). Keep secret keys on the server; never add them to a `NEXT_PUBLIC_` variable or commit them to Git.
-
-Then start the app:
-
-```bash
-npm run dev
-```
-
-Visit [http://localhost:3000](http://localhost:3000). Useful checks are `npm run typecheck`, `npm run lint`, and `npm run build`. Database changes are in [`supabase/migrations`](./supabase/migrations); the policies keep signed-in records scoped to their owner.
-
-Quarterly and annual issuer facts come from SEC EDGAR. Finnhub analyst-target aggregates require the server-only `FINNHUB_API_KEY`; provider quotas and coverage apply. Passkey sign-in remains hidden until the production Supabase Auth provider and relying-party domain are configured.
-
-</details>
-
-## The work ahead
-
-Tidelight is being built with a simple standard: show the evidence, label assumptions, preserve uncertainty, and keep simulations visibly separate from real trading. Follow the [product plan](./docs/planning/PROJECT_PLAN.md) and [current milestones](./docs/NEXT_BUILD_MILESTONES.md), or [open an issue](https://github.com/TidelightOrg/tidelight/issues) with a confusing moment, a missing source, or an idea that would make the desk more useful.
-
-<div align="center">
-  <br />
-  <strong>Read the story. Check the evidence. Keep your bearings.</strong>
-  <br /><br />
-  <a href="https://tidelight.app">Made for the hours between headlines · Tidelight ↗</a>
-</div>
-
-For technical contributions or responsible security reports, contact [security@tidelight.app](mailto:security@tidelight.app).
-
-## Judge research · live public replays
-
-The owner explicitly published these research runs for judges. Each link is public for 30 days from publication and can be revoked. Replays contain selected research fields, source links, market snapshots, and risk gates; they are not audited performance or trade records.
+Research links are public for 30 days from publication and can be revoked. Each replay contains selected research fields, source links, market snapshots, and risk gates; it is not an audited performance or trade record.
 
 | Token | Review scope | What the live run reports |
 | --- | --- | --- |
@@ -140,6 +104,8 @@ The owner explicitly published these research runs for judges. Each link is publ
 
 **Evidence boundary:** The five new runs collected issuer headlines, but all reported “AI synthesis unavailable,” and the replay pages show no source-linked supporting or opposing claim points. These are transparent research workflow and fallback records, not finished analyst theses. Tidelight made no directional assessment and showed no trade handoff. Quote snapshots are historical to each run, not live prices.
 
+</details>
+
 ## Research data and trading artifacts
 
 <details>
@@ -148,7 +114,7 @@ The owner explicitly published these research runs for judges. Each link is publ
 - [Public evidence manifest JSON](https://tidelight.app/evidence/manifest.json) — route inventory, reproducibility requirements, and evidence limitations.
 - Each replay row links to its downloadable, sanitized JSON record. The export is the same selected public payload shown on the replay page, not the private full account run.
 - Strategy Lab can export an authenticated owner's individual strategy run as JSON. No positive alpha result or public trade ledger is attached here.
-- Nightwatch paper decisions and ledger remain owner-scoped; they are not part of these public research links.
+- Nightwatch fills remain private until the owner publishes an individual sanitized replay. [Open the public Nightwatch replay directory](https://tidelight.app/nightwatch/replays); each trade replay omits identity, balances, and unrelated ledger rows.
 - The public research runs contain no live orders, exchange fills, or audited trading returns. Do not interpret a source-count or quote snapshot as strategy performance.
 
 </details>
@@ -178,6 +144,7 @@ Use this directory to move directly between the public product, its judge walkth
 | [Watchlist](https://tidelight.app/watchlist) | Track selected companies and instruments. |
 | [Strategy Lab](https://tidelight.app/strategies) | Review historical strategy replays and their assumptions. |
 | [Nightwatch](https://tidelight.app/nightwatch) | Inspect bounded monitoring and paper-run workflows. |
+| [Nightwatch paper replays](https://tidelight.app/nightwatch/replays) | Review owner-published, sanitized trade replays. |
 | [Futures paper desk](https://tidelight.app/futures) | Rehearse stock-perpetual ideas in a simulated paper environment. No exchange orders are placed. |
 | [Research community](https://tidelight.app/community) | Explore the community research surface. |
 | [Saved briefs](https://tidelight.app/briefs) | Review saved research briefs when signed in. |
@@ -230,4 +197,47 @@ Use this directory to move directly between the public product, its judge walkth
 | [Security contact](mailto:security@tidelight.app) | Responsible security and technical reports. |
 
 </details>
+
+
+
+## For people who want to build with us
+
+The product is easiest to understand by exploring the live app first. If you want to run a local copy, improve a flow, or inspect the implementation, the notes below are for you.
+
+<details>
+<summary><strong>Run Tidelight locally</strong></summary>
+
+You will need Node.js, npm, and access to a Supabase project.
+
+```bash
+npm ci
+cp .env.example .env.local
+```
+
+Add the Supabase URL and publishable key to `.env.local`. Server-side AI features can use the provider keys documented in [`.env.example`](./.env.example). Keep secret keys on the server; never add them to a `NEXT_PUBLIC_` variable or commit them to Git.
+
+Then start the app:
+
+```bash
+npm run dev
+```
+
+Visit [http://localhost:3000](http://localhost:3000). Useful checks are `npm run typecheck`, `npm run lint`, and `npm run build`. Database changes are in [`supabase/migrations`](./supabase/migrations); the policies keep signed-in records scoped to their owner.
+
+Quarterly and annual issuer facts come from SEC EDGAR. Finnhub analyst-target aggregates require the server-only `FINNHUB_API_KEY`; provider quotas and coverage apply. Passkey sign-in remains hidden until the production Supabase Auth provider and relying-party domain are configured.
+
+</details>
+
+## The work ahead
+
+Tidelight is being built with a simple standard: show the evidence, label assumptions, preserve uncertainty, and keep simulations visibly separate from real trading. Follow the [product plan](./docs/planning/PROJECT_PLAN.md) and [current milestones](./docs/NEXT_BUILD_MILESTONES.md), or [open an issue](https://github.com/TidelightOrg/tidelight/issues) with a confusing moment, a missing source, or an idea that would make the desk more useful.
+
+<div align="center">
+  <br />
+  <strong>Read the story. Check the evidence. Keep your bearings.</strong>
+  <br /><br />
+  <a href="https://tidelight.app">Made for the hours between headlines · Tidelight ↗</a>
+</div>
+
+For technical contributions or responsible security reports, contact [security@tidelight.app](mailto:security@tidelight.app).
 
