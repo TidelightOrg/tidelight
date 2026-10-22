@@ -81,7 +81,7 @@ test("manifest versions and published registry facts are represented separately"
       assert.match(manifest, /"private"\s*:\s*true/);
     }
     assert.equal(entry.distribution.state.kind, "published");
-    assert.equal(entry.distribution.state.version, "0.1.1");
+    assert.equal(entry.distribution.state.version, entry.source.version);
     assert.match(entry.distribution.state.url, /^https:\/\//);
   }
 });
