@@ -14,7 +14,7 @@ export const packageCatalog = [
     "source": {
       "path": "sdk/typescript",
       "manifestName": "@tidelight/sdk",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "private": true,
       "present": true
     },
@@ -40,7 +40,7 @@ export const packageCatalog = [
       "ecosystem": "TypeScript · JavaScript",
       "summary": "Typed client for supported Tidelight API v1 endpoints, async research jobs, and webhooks.",
       "stateLabel": "npm · published 0.1.1",
-      "versionLabel": "Registry: 0.1.1 · source manifest: 0.1.1",
+      "versionLabel": "Registry: 0.1.1 · source manifest: 0.1.2",
       "href": "/sdk",
       "glyph": "TS"
     }
@@ -50,7 +50,7 @@ export const packageCatalog = [
     "source": {
       "path": "public/components/mcp/server",
       "manifestName": "@tidelight/mcp",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "private": true,
       "present": true
     },
@@ -76,7 +76,7 @@ export const packageCatalog = [
       "ecosystem": "Node.js · MCP stdio",
       "summary": "Bridge stdio-only MCP clients to Tidelight's hosted, scope-filtered Streamable HTTP service.",
       "stateLabel": "npm · published 0.1.1",
-      "versionLabel": "Registry: 0.1.1 · source manifest: 0.1.1",
+      "versionLabel": "Registry: 0.1.1 · source manifest: 0.1.2",
       "href": "/mcp",
       "glyph": "M"
     }
@@ -86,7 +86,7 @@ export const packageCatalog = [
     "source": {
       "path": "sdk/python",
       "manifestName": "tidelight",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "private": null,
       "present": true
     },
@@ -111,7 +111,7 @@ export const packageCatalog = [
       "ecosystem": "Python SDK",
       "summary": "Python client for supported market, research-job, and webhook workflows.",
       "stateLabel": "pypi · published 0.1.1",
-      "versionLabel": "Registry: 0.1.1 · source manifest: 0.1.1",
+      "versionLabel": "Registry: 0.1.1 · source manifest: 0.1.2",
       "href": "/python",
       "glyph": "Py"
     }
@@ -121,7 +121,7 @@ export const packageCatalog = [
     "source": {
       "path": "packages/react",
       "manifestName": "@tidelight/react",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "private": true,
       "present": true
     },
@@ -153,7 +153,7 @@ export const packageCatalog = [
       "ecosystem": "React · hooks & UI",
       "summary": "Typed hooks and accessible market components backed by the official SDK contract.",
       "stateLabel": "npm · published 0.1.1",
-      "versionLabel": "Registry: 0.1.1 · source manifest: 0.1.1",
+      "versionLabel": "Registry: 0.1.1 · source manifest: 0.1.2",
       "href": "/react",
       "glyph": "R"
     }
@@ -163,7 +163,7 @@ export const packageCatalog = [
     "source": {
       "path": "packages/cli",
       "manifestName": "@tidelight/cli",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "private": true,
       "present": true
     },
@@ -189,7 +189,7 @@ export const packageCatalog = [
       "ecosystem": "Node.js · command line",
       "summary": "Keychain-backed terminal workflows for supported market, research-job, and webhook API operations.",
       "stateLabel": "npm · published 0.1.1",
-      "versionLabel": "Registry: 0.1.1 · source manifest: 0.1.1",
+      "versionLabel": "Registry: 0.1.1 · source manifest: 0.1.2",
       "href": "/cli",
       "glyph": "$"
     }
