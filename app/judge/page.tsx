@@ -31,7 +31,7 @@ export default function JudgePage() {
       </div>
       <div className="judge-hero-grid">
         <div>
-          <span className="judge-kicker">AI TRADING DESK / AFTER-HOURS INTELLIGENCE</span>
+          
           <h1>From an overnight event to a decision you can inspect.</h1>
           <p className="judge-lede">Tidelight is an evidence-first control room for tokenized US equities. This fixed replay shows the complete trust path in under five minutes, without pretending that a staged result is live performance.</p>
           <div className="judge-actions">
@@ -43,7 +43,7 @@ export default function JudgePage() {
         </div>
         <aside className="judge-hero-card" aria-label="Judge mode summary">
           <div className="judge-card-mark"><TidelightAnimatedMark /></div>
-          <span className="judge-card-eyebrow">THE TRUST SPINE</span>
+          
           <strong>Event → Evidence → Exposure → Scenario → Decision</strong>
           <small>One product trace. Human final say. Paper execution by default.</small>
         </aside>
@@ -52,7 +52,7 @@ export default function JudgePage() {
 
     <section className="judge-section">
       <div className="judge-section-heading">
-        <span className="judge-kicker">01 / THE FIVE-MINUTE REVIEW</span>
+        
         <h2>Follow one decision without opening a private workspace.</h2>
       </div>
       <div className="judge-evidence-grid">
@@ -67,7 +67,7 @@ export default function JudgePage() {
 
     <section className="judge-split">
       <div>
-        <span className="judge-kicker">02 / WHAT IS VERIFIED</span>
+        
         <h2>Proof is part of the interface.</h2>
         <p>Every important statement has a place in the trace. A missing source, stale quote, contradictory claim, or failed gate is visible rather than silently replaced with confidence.</p>
         <Link className="judge-inline-link" href="/evidence">Open the public evidence manifest <span>↗</span></Link>
@@ -79,7 +79,7 @@ export default function JudgePage() {
 
     <section className="judge-section judge-lanes">
       <div className="judge-section-heading">
-        <span className="judge-kicker">03 / THE OTHER TWO MODES</span>
+        
         <h2>One evidence standard across the product.</h2>
       </div>
       <div className="judge-lane-grid">
@@ -89,7 +89,7 @@ export default function JudgePage() {
     </section>
 
     <section className="judge-section">
-      <div className="judge-section-heading"><span className="judge-kicker">05 / REPRODUCIBLE PROOF</span><h2>Inspect the artifacts, not just the pitch.</h2></div>
+      <div className="judge-section-heading"><h2>Inspect the artifacts, not just the pitch.</h2></div>
       <div className="judge-lane-grid">
         <Link href="/evidence"><span>PUBLIC EVIDENCE</span><strong>Open the evidence manifest.</strong><em>Routes, artifact status, limitations and reproduction requirements ↗</em></Link>
         <Link href="/replay/4e86bf9c-7295-4be1-ae52-487341e7f1ca"><span>LIVE RESEARCH TRACE</span><strong>Inspect the rMSFT evidence.</strong><em>Owner-published source and market snapshot ↗</em></Link>
@@ -101,7 +101,7 @@ export default function JudgePage() {
     </section>
 
     <section className="judge-section judge-published-research" aria-labelledby="published-research-title">
-      <div className="judge-section-heading"><span className="judge-kicker">06 / OWNER-PUBLISHED RESEARCH</span><h2 id="published-research-title">Seven live records. One clear evidence boundary.</h2><p>Five new token reviews join the two earlier public examples. Every card opens a real owner-published snapshot with captured sources, instrument checks, and risk gates. Links expire 30 days after publication and can be revoked.</p></div>
+      <div className="judge-section-heading"><h2 id="published-research-title">Seven live records. One clear evidence boundary.</h2><p>Five new token reviews join the two earlier public examples. Every card opens a real owner-published snapshot with captured sources, instrument checks, and risk gates. Links expire 30 days after publication and can be revoked.</p></div>
       <p className="judge-lede">Across the five new runs, 40 issuer headlines were collected per company from 17–30 publishers. AI synthesis was unavailable in each, so these are transparent fallback records rather than completed analyst theses. No directional assessment or trade handoff was made; each replay shows quote freshness and unmeasured token-market checks.</p>
       <div className="judge-lane-grid">
         <Link href="/replay/c5f5b22e-c995-4a5e-8193-5737c4d413b8"><span>RTSLA · EV / AUTOMOTIVE</span><strong>Would you review the rTSLA market?</strong><small>40 issuer headlines across 30 publishers. The token quote was stale; depth, spread, and premium/discount were not measured.</small><em>Inspect published replay ↗</em></Link>
@@ -115,7 +115,7 @@ export default function JudgePage() {
     </section>
 
     <section className="judge-section judge-trade-captures" id="nightwatch-position-captures" aria-labelledby="nightwatch-captures-title">
-      <div className="judge-section-heading"><div><span className="judge-kicker">07 / NIGHTWATCH PAPER CAPTURES</span><h2 id="nightwatch-captures-title">Three owner-supplied position records.</h2></div><Link className="judge-inline-link" href="/evidence/nightwatch-position-captures.json">Open the sanitized summary JSON ↗</Link></div>
+      <div className="judge-section-heading"><div><h2 id="nightwatch-captures-title">Three owner-supplied position records.</h2></div><Link className="judge-inline-link" href="/evidence/nightwatch-position-captures.json">Open the sanitized summary JSON ↗</Link></div>
       <p className="judge-capture-note">Historical screenshots from a partial Nightwatch export captured 22 Oct 2026. The supplied export reports 23 decisions, five paper orders, and three open positions in the records loaded at export time; only these three position cards are reproduced here. These figures are simulated marks, not exchange trades, audited returns, or a live query of the current account ledger.</p>
       <div className="judge-capture-grid">
         <figure><a href="/judge-evidence/nightwatch-rnvd-position.png" target="_blank" rel="noreferrer"><Image src="/judge-evidence/nightwatch-rnvd-position.png" width={1200} height={600} alt="Owner-supplied Nightwatch screenshot of the rNVD paper position and historical mark-to-market result."/></a><figcaption><strong>rNVD</strong><span>Recorded 22 Oct 2026 · open paper position</span></figcaption></figure>
@@ -125,7 +125,7 @@ export default function JudgePage() {
     </section>
 
     <section className="judge-final">
-      <div><span className="judge-kicker">04 / THE HONEST BOUNDARY</span><h2>Useful evidence is not a promise of profit.</h2><p>This route is a reproducible product evaluation. It does not claim audited alpha, investment advice, live execution, or an invented paper fill. When the real gates do not qualify, Tidelight says so.</p></div>
+      <div><span className="judge-kicker">REVIEW BOUNDARY</span><h2>Useful evidence is not a promise of profit.</h2><p>This route is a reproducible product evaluation. It does not claim audited alpha, investment advice, live execution, or an invented paper fill. When the real gates do not qualify, Tidelight says so.</p></div>
       <div className="judge-final-actions"><Link className="judge-primary" href="/flow?demo=1&question=Compare%20the%20latest%20evidence%20for%20NVDA%20and%20TSLA%20and%20show%20the%20risks">Start evaluation <span>↗</span></Link><Link href="/">Return to Tidelight <span>→</span></Link></div>
     </section>
   </main>;
