@@ -43,7 +43,7 @@ test("Qwen receives JSON instructions and a valid result avoids fallback", async
     assert.deepEqual(JSON.parse(init.body).response_format, { type: "json_object" });
     return qwen(JSON.stringify(answer));
   });
-  assert.deepEqual(await aiJsonWithFallback(messages, valid), answer);
+  assert.deepEqual(await aiJsonWithFallback(messages, valid, { budgetMs: 45000 }), answer);
   assert.equal(fetch.mock.callCount(), 1);
 });
 
@@ -59,6 +59,21 @@ test("native Gemini excludes thought text and joins only final answer parts", as
     return gemini([{ text: "Internal thought summary", thought: true }, { text: '{"summary":' }, { text: '"Grounded result"}' }]);
   });
   assert.deepEqual(await aiJsonWithFallback(messages, valid), answer);
+  assert.equal(fetch.mock.callCount(), 2);
+});
+
+test("schema-invalid primary response is retried before provider fallback", async t => {
+  configure(t);
+  let qwenCalls = 0;
+  const fetch = t.mock.method(globalThis, "fetch", async url => {
+    if (url.includes("bitgetops")) {
+      qwenCalls++;
+      return qwen(JSON.stringify(qwenCalls === 1 ? { summary: "Wrong schema" } : answer));
+    }
+    return gemini([{ text: JSON.stringify(answer) }]);
+  });
+  assert.deepEqual(await aiJsonWithFallback(messages, valid, { budgetMs: 45000 }), answer);
+  assert.equal(qwenCalls, 2);
   assert.equal(fetch.mock.callCount(), 2);
 });
 
