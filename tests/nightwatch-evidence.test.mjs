@@ -11,7 +11,7 @@ test("Nightwatch evidence export is explicit, local, and scope-bounded", () => {
   assert.match(component, /currently loaded in this view/);
   assert.match(component, /not uploaded by this action/);
   assert.match(component, /decision_runs: allRuns/);
-  assert.match(component, /paper_orders: initialOrders/);
+  assert.match(component, /paper_orders: orders/);
 });
 
 test("public evidence inventory describes owner-scoped paper records without publishing them", () => {

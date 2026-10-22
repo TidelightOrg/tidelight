@@ -95,6 +95,7 @@ export default function JudgePage() {
         <Link href="/flow"><span>OWNER-PUBLISHED REPLAY</span><strong>Publish a real research run.</strong><em>After a completed run, share a 30-day source-linked replay with judges ↗</em><small>Publishing requires a signed-in owner and explicit consent.</small></Link>
         <Link href="/strategies"><span>ALPHA FACTORY</span><strong>Export a reproducible strategy run.</strong><em>Authenticated runs include candle fingerprints, costs and holdout data ↗</em></Link>
         <Link href="/nightwatch"><span>NIGHTWATCH</span><strong>Export private paper evidence.</strong><em>Account-scoped decisions and paper ledger; review privacy before sharing ↗</em></Link>
+        <Link href="/nightwatch/replays"><span>NIGHTWATCH · PUBLIC REPLAYS</span><strong>Inspect owner-published trade replays.</strong><em>One simulated fill, its decision context, costs, and risk notes ↗</em></Link>
       </div>
     </section>
 

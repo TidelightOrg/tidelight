@@ -5,7 +5,7 @@ import NightwatchDesk from "@/app/ui/nightwatch-desk";
 import { ALPHA_STRATEGIES, type StrategyKey } from "@/lib/backtest";
 import { getServerUser } from "@/lib/supabase/auth-user";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export default async function NightwatchPage({ searchParams }: { searchParams: Promise<{ symbol?: string; researchRunId?: string; playbook?: string }> }) {
   const { symbol: requestedSymbol, researchRunId: requestedResearchRunId, playbook: requestedPlaybook } = await searchParams;
