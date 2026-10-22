@@ -57,7 +57,7 @@ export function RegistryFacts({ packageId, compact = false }: { packageId: Packa
 }
 
 export function PackageRegistryCard({ packageId, name, summary, href, glyph, ecosystem, index }: {
-  packageId: PackageId; name: string; summary: string; href: string; ecosystem: string; index: number;
+  packageId: PackageId; name: string; summary: string; href: string; glyph?: string; ecosystem: string; index: number;
 }) {
   const { entry, checking } = useRegistryPackage(packageId);
   return <article className={`tic-package-card ${entry.status === "published" && entry.version ? "is-published" : "is-unavailable"}`}>
