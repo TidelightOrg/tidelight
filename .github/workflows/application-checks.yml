@@ -99,6 +99,38 @@ jobs:
       - name: Test replay permissions, ownership, expiry, and revocation
         run: psql -v ON_ERROR_STOP=1 -f tests/postgres/public-research-replay.sql
 
+  nightwatch-replay-database:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tidelight_nightwatch_replay_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d tidelight_nightwatch_replay_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: tidelight_nightwatch_replay_test
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare Nightwatch replay schema
+        run: psql -v ON_ERROR_STOP=1 -f tests/postgres/nightwatch-replay-prerequisites.sql
+      - name: Apply public Nightwatch replay migration
+        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261022100000_public_nightwatch_replays.sql
+      - name: Test sanitized public access, expiry, revocation, and write boundaries
+        run: psql -v ON_ERROR_STOP=1 -f tests/postgres/nightwatch-replay.sql
+
   nightwatch-database:
     runs-on: ubuntu-latest
     services:
