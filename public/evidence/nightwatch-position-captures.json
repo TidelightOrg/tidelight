@@ -1,0 +1,55 @@
+{
+  "schema_version": "tidelight.nightwatch-position-captures.v1",
+  "captured_at": "2026-10-22T18:37:03.857Z",
+  "provenance": "Owner-supplied Nightwatch export and matching position-card screenshots. This is a historical, partial account snapshot, not a live database query.",
+  "scope": {
+    "decisions_in_export": 23,
+    "paper_orders_in_export": 5,
+    "open_positions_in_export": 3,
+    "limitation": "The export included only records loaded in the owner's view. Only the three illustrated open-position captures are reproduced here; raw order rows, account identifiers, and internal record IDs are excluded."
+  },
+  "positions": [
+    {
+      "instrument": "rNVD",
+      "symbol": "RNVDUSDT",
+      "side": "long paper position",
+      "quantity_units": 125.565358,
+      "average_entry_usd": 3.986,
+      "mark_usd": 4.13,
+      "unrealized_pnl_usd": 18.08,
+      "return_percent": 3.61,
+      "recorded_at": "2026-10-22T08:00:00Z",
+      "image": "/judge-evidence/nightwatch-rnvd-position.png"
+    },
+    {
+      "instrument": "rAAPL",
+      "symbol": "RAAPLUSDT",
+      "side": "long paper position",
+      "quantity_units": 1.462969,
+      "average_entry_usd": 342.1126,
+      "mark_usd": 345.93,
+      "unrealized_pnl_usd": 5.58,
+      "return_percent": 1.12,
+      "recorded_at": "2026-10-14T07:52:00Z",
+      "image": "/judge-evidence/nightwatch-raapl-position.png"
+    },
+    {
+      "instrument": "rGOOGL",
+      "symbol": "RGOOGLUSDT",
+      "side": "long paper position",
+      "quantity_units": 1.41416,
+      "average_entry_usd": 353.9203,
+      "mark_usd": 323.18,
+      "unrealized_pnl_usd": -43.47,
+      "return_percent": -8.69,
+      "recorded_at": "2026-10-12T09:41:00Z",
+      "image": "/judge-evidence/nightwatch-rgoogl-position.png"
+    }
+  ],
+  "limitations": [
+    "All figures describe simulated paper positions, not exchange transactions or live assets.",
+    "Unrealized P&L and return are the values rendered in the supplied captures and are historical to each capture time.",
+    "These images are owner-supplied artifacts and are not independently reconciled to the currently signed-in production ledger.",
+    "This artifact is not audited performance, investment advice, a strategy backtest, or a complete account archive."
+  ]
+}

@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { parseNightwatchReplayOrderId } from "@/lib/nightwatch-replay-request";
 
 export const dynamic = "force-dynamic";
 
-const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 type Row = Record<string, unknown>;
 const object = (value: unknown): Row | null => value && typeof value === "object" && !Array.isArray(value) ? value as Row : null;
 const boundedStrings = (value: unknown, max: number) => Array.isArray(value) ? value.filter((item): item is string => typeof item === "string").slice(0, max).map(item => item.slice(0, 240)) : [];
@@ -13,9 +13,9 @@ export async function POST(request: Request) {
   const db = await createClient();
   const { data: { user } } = await db.auth.getUser();
   if (!user) return NextResponse.json({ error: "Sign in to publish a paper trade replay." }, { status: 401, headers: { "Cache-Control": "no-store" } });
-  let body: Row;
-  try { body = await request.json() as Row; } catch { return NextResponse.json({ error: "Send a valid paper fill." }, { status: 400 }); }
-  const orderId = typeof body.orderId === "string" && uuidPattern.test(body.orderId) ? body.orderId : "";
+  let parsed: unknown;
+  try { parsed = await request.json(); } catch { return NextResponse.json({ error: "Send a valid paper fill." }, { status: 400 }); }
+  const orderId = parseNightwatchReplayOrderId(parsed);
   if (!orderId) return NextResponse.json({ error: "A valid paper fill is required." }, { status: 400 });
 
   const { data: order, error: orderError } = await db.from("nightwatch_orders").select("id,run_id,symbol,side,quantity,reference_price,simulated_fill_price,notional,fee,realized_pnl,created_at").eq("id", orderId).eq("user_id", user.id).maybeSingle();

@@ -10,3 +10,15 @@
 :root[data-theme="night"] .judge-page{background:radial-gradient(circle at 88% 4%,#153a33 0,transparent 31%),#081013}
 :root[data-theme="daylight"] .judge-page{background:radial-gradient(circle at 88% 4%,#dcecdf 0,transparent 31%),#f5f3eb}
 :root[data-theme="daylight"] .judge-page .judge-primary{background:#286a4d;color:#fff!important}
+.judge-trade-captures{scroll-margin-top:30px}
+.judge-capture-note{max-width:930px;margin:-8px 0 24px;color:var(--muted);font-size:12px;line-height:1.75}
+.judge-capture-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.judge-capture-grid figure{min-width:0;margin:0;overflow:hidden;border:1px solid var(--line);border-radius:14px;background:color-mix(in srgb,var(--panel) 88%,transparent);box-shadow:0 18px 46px color-mix(in srgb,var(--text) 8%,transparent)}
+.judge-capture-grid figure>a{display:block;overflow:hidden;background:#0b1020}
+.judge-capture-grid img{display:block;width:100%;height:auto;transition:transform .3s ease}
+.judge-capture-grid figure>a:hover img{transform:scale(1.025)}
+.judge-capture-grid figcaption{display:grid;gap:5px;padding:15px 17px}
+.judge-capture-grid figcaption strong{font-size:15px;letter-spacing:-.03em}
+.judge-capture-grid figcaption span{color:var(--muted);font:9px var(--mono);letter-spacing:.04em}
+@media(max-width:900px){.judge-capture-grid{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.judge-capture-grid{grid-template-columns:1fr}.judge-capture-grid figcaption{padding:14px}.judge-capture-note{font-size:11px}}
