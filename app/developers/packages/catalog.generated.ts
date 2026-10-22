@@ -23,7 +23,7 @@ export const packageCatalog = [
       "intendedName": "@tidelight/sdk",
       "state": {
         "kind": "published",
-        "version": "0.1.1",
+        "version": "0.1.2",
         "url": "https://www.npmjs.com/package/@tidelight/sdk"
       }
     },
@@ -39,8 +39,8 @@ export const packageCatalog = [
       "name": "@tidelight/sdk",
       "ecosystem": "TypeScript · JavaScript",
       "summary": "Typed client for supported Tidelight API v1 endpoints, async research jobs, and webhooks.",
-      "stateLabel": "npm · published 0.1.1",
-      "versionLabel": "Registry: 0.1.1 · source manifest: 0.1.2",
+      "stateLabel": "npm · published 0.1.2",
+      "versionLabel": "Registry: 0.1.2 · source manifest: 0.1.2",
       "href": "/sdk",
       "glyph": "TS"
     }
@@ -59,7 +59,7 @@ export const packageCatalog = [
       "intendedName": "@tidelight/mcp",
       "state": {
         "kind": "published",
-        "version": "0.1.1",
+        "version": "0.1.2",
         "url": "https://www.npmjs.com/package/@tidelight/mcp"
       }
     },
@@ -75,8 +75,8 @@ export const packageCatalog = [
       "name": "@tidelight/mcp",
       "ecosystem": "Node.js · MCP stdio",
       "summary": "Bridge stdio-only MCP clients to Tidelight's hosted, scope-filtered Streamable HTTP service.",
-      "stateLabel": "npm · published 0.1.1",
-      "versionLabel": "Registry: 0.1.1 · source manifest: 0.1.2",
+      "stateLabel": "npm · published 0.1.2",
+      "versionLabel": "Registry: 0.1.2 · source manifest: 0.1.2",
       "href": "/mcp",
       "glyph": "M"
     }
@@ -95,7 +95,7 @@ export const packageCatalog = [
       "intendedName": "tidelight",
       "state": {
         "kind": "published",
-        "version": "0.1.1",
+        "version": "0.1.2",
         "url": "https://pypi.org/project/tidelight/"
       }
     },
@@ -110,8 +110,8 @@ export const packageCatalog = [
       "name": "tidelight",
       "ecosystem": "Python SDK",
       "summary": "Python client for supported market, research-job, and webhook workflows.",
-      "stateLabel": "pypi · published 0.1.1",
-      "versionLabel": "Registry: 0.1.1 · source manifest: 0.1.2",
+      "stateLabel": "pypi · published 0.1.2",
+      "versionLabel": "Registry: 0.1.2 · source manifest: 0.1.2",
       "href": "/python",
       "glyph": "Py"
     }
@@ -130,7 +130,7 @@ export const packageCatalog = [
       "intendedName": "@tidelight/react",
       "state": {
         "kind": "published",
-        "version": "0.1.1",
+        "version": "0.1.2",
         "url": "https://www.npmjs.com/package/@tidelight/react"
       }
     },
@@ -152,8 +152,8 @@ export const packageCatalog = [
       "name": "@tidelight/react",
       "ecosystem": "React · hooks & UI",
       "summary": "Typed hooks and accessible market components backed by the official SDK contract.",
-      "stateLabel": "npm · published 0.1.1",
-      "versionLabel": "Registry: 0.1.1 · source manifest: 0.1.2",
+      "stateLabel": "npm · published 0.1.2",
+      "versionLabel": "Registry: 0.1.2 · source manifest: 0.1.2",
       "href": "/react",
       "glyph": "R"
     }
@@ -172,7 +172,7 @@ export const packageCatalog = [
       "intendedName": "@tidelight/cli",
       "state": {
         "kind": "published",
-        "version": "0.1.1",
+        "version": "0.1.2",
         "url": "https://www.npmjs.com/package/@tidelight/cli"
       }
     },
@@ -188,8 +188,8 @@ export const packageCatalog = [
       "name": "@tidelight/cli",
       "ecosystem": "Node.js · command line",
       "summary": "Keychain-backed terminal workflows for supported market, research-job, and webhook API operations.",
-      "stateLabel": "npm · published 0.1.1",
-      "versionLabel": "Registry: 0.1.1 · source manifest: 0.1.2",
+      "stateLabel": "npm · published 0.1.2",
+      "versionLabel": "Registry: 0.1.2 · source manifest: 0.1.2",
       "href": "/cli",
       "glyph": "$"
     }
