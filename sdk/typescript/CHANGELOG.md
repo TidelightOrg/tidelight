@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.2
+
+- Publish the current tested client with registry-facing documentation aligned to the supported API and release path.
+
 ## 0.1.1
 
 - Publish the coordinated package set at `0.1.1` with no API contract changes.
