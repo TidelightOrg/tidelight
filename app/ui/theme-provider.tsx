@@ -12,9 +12,21 @@ export const themes: { id: Theme; name: string; detail: string; swatches: string
 const DEFAULT_THEME: Theme = "blue";
 const ThemeContext = createContext<{ theme: Theme; setTheme: (theme: Theme) => void }>({ theme: DEFAULT_THEME, setTheme: () => {} });
 const ExperienceContext = createContext<{ mode: ExperienceMode; setMode: (mode: ExperienceMode) => void }>({ mode: "pro", setMode: () => {} });
+const validTheme = (value: string | null): value is Theme => value === "night" || value === "daylight" || value === "blue";
+const getSharedTheme = (): Theme | null => {
+  const shared = document.cookie.split(";").map((part) => part.trim()).find((part) => part.startsWith("tidelight-theme="))?.slice("tidelight-theme=".length);
+  return validTheme(shared ?? null) ? shared as Theme : null;
+};
+const saveTheme = (theme: Theme) => {
+  window.localStorage.setItem("tidelight-theme", theme);
+  const sharedDomain = location.hostname === "tidelight.app" || location.hostname.endsWith(".tidelight.app") ? "; Domain=.tidelight.app; Secure" : "";
+  document.cookie = `tidelight-theme=${theme}; Path=/; Max-Age=31536000; SameSite=Lax${sharedDomain}`;
+};
 const getTheme = (): Theme => {
+  const shared = getSharedTheme();
+  if (shared) return shared;
   const saved = window.localStorage.getItem("tidelight-theme");
-  return saved === "night" || saved === "daylight" || saved === "blue" ? saved : DEFAULT_THEME;
+  return validTheme(saved) ? saved : DEFAULT_THEME;
 };
 const getExperienceMode = (): ExperienceMode => window.localStorage.getItem("tidelight-experience") === "mini" ? "mini" : "pro";
 const subscribe = (callback: () => void) => {
@@ -23,11 +35,11 @@ const subscribe = (callback: () => void) => {
   return () => { window.removeEventListener("storage", callback); window.removeEventListener("tidelight-theme-change", callback); };
 };
 
-export function ThemeProvider({ children }: { children: ReactNode }) {
-  const theme = useSyncExternalStore(subscribe, getTheme, (): Theme => DEFAULT_THEME);
+export function ThemeProvider({ children, initialTheme = DEFAULT_THEME }: { children: ReactNode; initialTheme?: Theme }) {
+  const theme = useSyncExternalStore(subscribe, getTheme, (): Theme => initialTheme);
   const mode = useSyncExternalStore(subscribe, getExperienceMode, (): ExperienceMode => "pro");
   const setTheme = (next: Theme) => {
-    window.localStorage.setItem("tidelight-theme", next);
+    saveTheme(next);
     window.dispatchEvent(new Event("tidelight-theme-change"));
   };
   const setMode = (next: ExperienceMode) => {
@@ -35,6 +47,8 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     window.dispatchEvent(new Event("tidelight-theme-change"));
   };
   useEffect(() => {
+    // Migrate the existing per-host preference into a cookie shared by Tidelight subdomains.
+    saveTheme(theme);
     document.documentElement.dataset.theme = theme;
     document.documentElement.dataset.experience = mode;
     document.documentElement.style.colorScheme = theme === "daylight" ? "light" : "dark";

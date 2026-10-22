@@ -13,7 +13,7 @@ test("Judge Mode promotes live owner-published research instead of the static fi
 
 test("README separates live judge research from the link directory and data exports", async () => {
   const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
-  const judge = readme.indexOf("## Judge research · live public replays");
+  const judge = readme.indexOf("## Judge review · public evidence");
   const links = readme.indexOf("## Judge links · Tidelight ecosystem");
   const data = readme.indexOf("## Research data and trading artifacts");
   assert.ok(judge >= 0 && judge < links);
