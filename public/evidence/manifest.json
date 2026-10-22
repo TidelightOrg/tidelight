@@ -130,7 +130,7 @@
       "kind": "paper_trading",
       "status": "private_owner_scoped",
       "uri": "https://tidelight.app/nightwatch",
-      "claim": "Access is limited to the owning account; public export requirements are listed below."
+      "claim": "The public index contains no private user data; ledger access remains limited to the owning account, with public export requirements listed below."
     },
     {
       "id": "research-replay",
