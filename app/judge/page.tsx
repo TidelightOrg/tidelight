@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import TidelightAnimatedMark from "@/app/ui/tidelight-animated-mark";
 import "./judge.css";
 
@@ -110,6 +111,16 @@ export default function JudgePage() {
         <Link href="/replay/c67d7b29-85eb-4c27-8a29-2cbe85bd4e91"><span>RAMZN · CLOUD / RETAIL</span><strong>How do AWS investment and retail economics shape the review?</strong><small>40 issuer headlines across 21 publishers. The token quote was fresh at capture; no trading handoff was made.</small><em>Inspect published replay ↗</em></Link>
         <Link href="/replay/c2ffbe89-74a5-4547-bf89-5952e37efeaa"><span>RNVDA · TOKENIZED MARKET</span><strong>Is the rNVDA market worth reviewing?</strong><small>Earlier owner-published run. Inspect its original issuer coverage, instrument context, and stated limitations.</small><em>Inspect published replay ↗</em></Link>
         <Link href="/replay/91bb478a-7977-4b34-b32d-b1f558a8af75"><span>NVDA + TSLA · COMPARISON</span><strong>Compare the latest evidence and risks.</strong><small>Earlier owner-published comparison with separate issuer assessments and decision gates.</small><em>Inspect published replay ↗</em></Link>
+      </div>
+    </section>
+
+    <section className="judge-section judge-trade-captures" id="nightwatch-position-captures" aria-labelledby="nightwatch-captures-title">
+      <div className="judge-section-heading"><div><span className="judge-kicker">07 / NIGHTWATCH PAPER CAPTURES</span><h2 id="nightwatch-captures-title">Three owner-supplied position records.</h2></div><Link className="judge-inline-link" href="/evidence/nightwatch-position-captures.json">Open the sanitized summary JSON ↗</Link></div>
+      <p className="judge-capture-note">Historical screenshots from a partial Nightwatch export captured 22 Oct 2026. The supplied export reports 23 decisions, five paper orders, and three open positions in the records loaded at export time; only these three position cards are reproduced here. These figures are simulated marks, not exchange trades, audited returns, or a live query of the current account ledger.</p>
+      <div className="judge-capture-grid">
+        <figure><a href="/judge-evidence/nightwatch-rnvd-position.png" target="_blank" rel="noreferrer"><Image src="/judge-evidence/nightwatch-rnvd-position.png" width={1200} height={600} alt="Owner-supplied Nightwatch screenshot of the rNVD paper position and historical mark-to-market result."/></a><figcaption><strong>rNVD</strong><span>Recorded 22 Oct 2026 · open paper position</span></figcaption></figure>
+        <figure><a href="/judge-evidence/nightwatch-raapl-position.png" target="_blank" rel="noreferrer"><Image src="/judge-evidence/nightwatch-raapl-position.png" width={1200} height={600} alt="Owner-supplied Nightwatch screenshot of the rAAPL paper position and historical mark-to-market result."/></a><figcaption><strong>rAAPL</strong><span>Recorded 14 Oct 2026 · open paper position</span></figcaption></figure>
+        <figure><a href="/judge-evidence/nightwatch-rgoogl-position.png" target="_blank" rel="noreferrer"><Image src="/judge-evidence/nightwatch-rgoogl-position.png" width={1200} height={600} alt="Owner-supplied Nightwatch screenshot of the rGOOGL paper position and historical mark-to-market result."/></a><figcaption><strong>rGOOGL</strong><span>Recorded 12 Oct 2026 · open paper position</span></figcaption></figure>
       </div>
     </section>
 

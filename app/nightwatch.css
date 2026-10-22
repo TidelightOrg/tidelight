@@ -142,3 +142,11 @@
 .nw-public-replay-empty{grid-column:1/-1;padding:25px}
 @media(max-width:780px){.nw-main-grid{grid-template-columns:minmax(0,1fr)}.nw-main-grid>.nw-panel{min-width:0}.nw-public-replay-page{padding-inline:18px}.nw-public-replay-section{grid-template-columns:1fr;gap:14px}}
 @media(max-width:520px){.nw-hero{grid-template-columns:minmax(0,1fr)}.nw-hero-copy{min-width:0}.nw-main-grid{grid-template-columns:minmax(0,1fr)}.nw-kpi-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.nw-panel-head{align-items:flex-start;flex-wrap:wrap}.nw-panel-head>div{min-width:0}.nw-position-table{max-width:100%}.nw-public-replay-page>header,.nw-public-replay-page>footer{align-items:flex-start;flex-direction:column;justify-content:center;padding:12px 0;font-size:8px}.nw-public-replay-facts{grid-template-columns:repeat(2,minmax(0,1fr))}.nw-public-replay-facts>div{min-width:0;padding:11px}.nw-public-replay-facts strong{font-size:13px}.nw-public-replay-data,.nw-public-replay-list{grid-template-columns:minmax(0,1fr)}.nw-replay-dialog{padding:21px 18px}.nw-replay-dialog-actions{align-items:stretch;flex-direction:column-reverse}.nw-replay-dialog-actions button{width:100%}}
+
+/* Keep the risk surface scannable while leaving full guardrail detail one tap away. */
+.nw-risk-summary{list-style:none;cursor:pointer}
+.nw-risk-summary::-webkit-details-marker{display:none}
+.nw-risk-summary::after{content:"+";margin-left:4px;color:var(--mint);font:14px var(--mono)}
+.nw-risk-details[open] .nw-risk-summary::after{content:"−"}
+.nw-risk-summary:focus-visible{outline:2px solid var(--mint);outline-offset:3px}
+.nw-risk-details[open] .nw-risk-list{margin-top:4px}

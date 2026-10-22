@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "product": "Tidelight",
   "purpose": "Public index of reproducible evidence and verification paths for the Tidelight S2 evaluator.",
-  "generated_at": "2026-10-21",
+  "generated_at": "2026-10-22",
   "evidence_boundary": {
     "status": "index_only",
     "note": "Evidence is grouped by public availability, account scope, and reproducibility. Evaluate performance and execution claims against the corresponding source artifacts and test records.",
@@ -72,14 +72,13 @@
         ]
       },
       "agentic": {
-        "status": "private_owner_export_available",
+        "status": "owner_supplied_static_capture",
         "requirements": [
-          "private owner-scoped export only",
-          "run timestamp and event/source lineage where recorded",
-          "decision and risk checks",
-          "paper order/fill or explicit no-fill",
-          "result",
-          "review account privacy before sharing"
+          "three owner-supplied historical Nightwatch position captures are attached",
+          "sanitized summary lists 23 decisions, 5 paper orders, and 3 open positions in the partial export scope",
+          "only the three illustrated positions are reproduced; raw private order rows and internal identifiers are excluded",
+          "capture dates, paper-only status, historical marks, and data limitations are stated",
+          "this static exhibit is not independently reconciled to the current signed-in production ledger"
         ]
       },
       "research": {
@@ -130,7 +129,22 @@
       "kind": "paper_trading",
       "status": "private_owner_scoped",
       "uri": "https://tidelight.app/nightwatch",
-      "claim": "The public index contains no private user data; ledger access remains limited to the owning account, with public export requirements listed below."
+      "claim": "The full account ledger remains owner-scoped. Judge Mode separately displays three owner-supplied historical position captures with a sanitized summary; the raw account export and internal row identifiers are not public."
+    },
+    {
+      "id": "nightwatch-position-captures",
+      "kind": "owner_supplied_static_artifact",
+      "status": "public_historical_capture",
+      "uri": "https://tidelight.app/judge#nightwatch-position-captures",
+      "summary_uri": "https://tidelight.app/evidence/nightwatch-position-captures.json",
+      "claim": "Three Nightwatch paper-position screenshots supplied by the owner, dated 12–22 Oct 2026. The display shows historical mark-to-market values; this is not a live ledger query or audited performance."
+    },
+    {
+      "id": "public-nightwatch-replays",
+      "kind": "owner_published_public_route",
+      "status": "requires_owner_publication",
+      "uri": "https://tidelight.app/nightwatch/replays",
+      "claim": "Owners can publish individual sanitized simulated fills for 30 days. Public replays are listed in this directory and exclude identity, balances, and unrelated ledger rows."
     },
     {
       "id": "research-replay",

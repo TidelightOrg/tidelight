@@ -106,6 +106,21 @@ Research links are public for 30 days from publication and can be revoked. Each 
 
 </details>
 
+<details>
+<summary><strong>Open Nightwatch position captures · 22 Oct 2026</strong></summary>
+
+These **owner-supplied screenshots** show three historical open paper positions. The partial export reported 23 decisions, five paper orders, and three positions among the records loaded at export time. The public exhibit includes only the three pictured position cards; it excludes raw order rows, account identifiers, balances, and internal record IDs.
+
+![Nightwatch rNVD paper position capture](https://tidelight.app/judge-evidence/nightwatch-rnvd-position.png)
+
+![Nightwatch rAAPL paper position capture](https://tidelight.app/judge-evidence/nightwatch-raapl-position.png)
+
+![Nightwatch rGOOGL paper position capture](https://tidelight.app/judge-evidence/nightwatch-rgoogl-position.png)
+
+See the [sanitized position summary JSON](https://tidelight.app/evidence/nightwatch-position-captures.json) or [view the image set in Judge Mode](https://tidelight.app/judge#nightwatch-position-captures). These are simulated marks captured on different dates, not exchange transactions, audited returns, current prices, or a live query of the current account ledger.
+
+</details>
+
 ## Research data and trading artifacts
 
 <details>
@@ -115,6 +130,7 @@ Research links are public for 30 days from publication and can be revoked. Each 
 - Each replay row links to its downloadable, sanitized JSON record. The export is the same selected public payload shown on the replay page, not the private full account run.
 - Strategy Lab can export an authenticated owner's individual strategy run as JSON. No positive alpha result or public trade ledger is attached here.
 - Nightwatch fills remain private until the owner publishes an individual sanitized replay. [Open the public Nightwatch replay directory](https://tidelight.app/nightwatch/replays); each trade replay omits identity, balances, and unrelated ledger rows.
+- The [Nightwatch position summary JSON](https://tidelight.app/evidence/nightwatch-position-captures.json) describes the supplied historical images only; the original private account export is not published.
 - The public research runs contain no live orders, exchange fills, or audited trading returns. Do not interpret a source-count or quote snapshot as strategy performance.
 
 </details>

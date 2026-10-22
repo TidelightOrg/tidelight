@@ -20,6 +20,9 @@ test("README separates live judge research from the link directory and data expo
   assert.ok(data >= 0 && data < links);
   assert.match(readme, /\[JSON\]\(https:\/\/tidelight\.app\/api\/research\/replays\//);
   assert.match(readme, /AI synthesis unavailable/);
+  assert.match(readme, /Open Nightwatch position captures/);
+  assert.match(readme, /nightwatch-position-captures\.json/);
+  assert.match(readme, /nightwatch-rnvd-position\.png/);
 });
 
 test("evidence manifest lists the seven owner-published judge replays and their limits", async () => {

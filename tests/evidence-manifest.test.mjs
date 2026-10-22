@@ -11,7 +11,8 @@ test("public evidence manifest separates verified checks from missing/private ar
   assert.ok(manifest.evidence_inventory.some((item) => item.status === "production_verified"));
   assert.ok(manifest.evidence_inventory.some((item) => item.status === "private_owner_scoped"));
   assert.equal(manifest.verification.reproducibility.alpha.status, "needs_run_artifact");
-  assert.equal(manifest.verification.reproducibility.agentic.status, "private_owner_export_available");
+  assert.equal(manifest.verification.reproducibility.agentic.status, "owner_supplied_static_capture");
+  assert.ok(manifest.evidence_inventory.some((item) => item.id === "nightwatch-position-captures" && item.status === "public_historical_capture"));
 });
 
 test("evidence page exposes the JSON download and names its limitations", async () => {
