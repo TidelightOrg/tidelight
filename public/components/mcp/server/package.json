@@ -1,6 +1,6 @@
 {
   "name": "@tidelight/mcp",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "type": "module",
   "description": "Local stdio bridge to the authenticated Tidelight Intelligence Cloud MCP service.",
@@ -18,7 +18,9 @@
     "directory": "public/components/mcp/server"
   },
   "homepage": "https://tidelight.app/developers/packages/mcp",
-  "bugs": { "url": "https://github.com/TidelightOrg/tidelight/issues" },
+  "bugs": {
+    "url": "https://github.com/TidelightOrg/tidelight/issues"
+  },
   "engines": {
     "node": ">=22"
   },

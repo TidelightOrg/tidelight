@@ -1,51 +1,66 @@
-# Tidelight TypeScript SDK
+<div align="center">
+  <img src="https://tidelight.app/tidelight-mark.svg" alt="Tidelight" width="56" height="56" />
+  <h1>Tidelight TypeScript SDK</h1>
+  <p><strong>Typed access to Tidelight Intelligence Cloud API v1.</strong></p>
+  <p><a href="https://tidelight.app">Product</a> · <a href="https://dev.tidelight.app/api">API guide</a> · <a href="https://github.com/TidelightOrg/tidelight">Mother repository</a></p>
+</div>
 
-Official TypeScript client for supported Tidelight Intelligence Cloud v1 market, asynchronous company research, and webhook endpoints. Research calls require `research:run`; webhook calls require `alerts:manage`.
+---
 
-Install with `npm install @tidelight/sdk`. Keep the API key on your server.
+The official TypeScript / JavaScript client supports tokenized-equity market listings, asynchronous company research jobs, and research webhooks. It preserves provider provenance and API error context, with bounded polling, timeouts, and retries.
 
-Build locally with `npm run build` in this directory.
+## Install
+
+```sh
+npm install @tidelight/sdk@0.1.2
+```
+
+Keep the project API key in trusted server code. Never expose it in a browser bundle or client-side application.
+
+## Quickstart
 
 ```ts
 import { TidelightClient } from "@tidelight/sdk";
 
 const client = new TidelightClient({ apiKey: process.env.TIDELIGHT_API_KEY! });
-const page = await client.listTokenizedEquities({ limit: 20, underlyingTicker: "AAPL" });
-for (const instrument of page.data) console.log(instrument.symbol, instrument.underlying_ticker);
-
-for await (const instrument of client.tokenizedEquities({ limit: 50 })) {
-  console.log(instrument.symbol);
-}
-
-const accepted = await client.startCompanyResearch("NVDA", crypto.randomUUID());
-const result = await client.waitForResearchJob(accepted.job_id, { intervalMs: 2000, timeoutMs: 120000 });
-if (result.status === "complete") console.log(result.result);
-
-const created = await client.createWebhook({
-  name: "Research events",
-  url: "https://your-service.example/tidelight",
-  events: ["research.job.completed", "research.job.failed"],
+const page = await client.listTokenizedEquities({
+  limit: 20,
+  underlyingTicker: "AAPL",
 });
-if (!created.signing_secret) throw new Error("The create response did not include its one-time signing secret.");
-// TODO: Persist created.signing_secret with your approved secrets manager before
-// finishing setup. Do not print it. It cannot be recovered by listing the endpoint.
-const deliveries = await client.listWebhookDeliveries();
-console.log(deliveries.deliveries);
+
+for (const instrument of page.data) {
+  console.log(instrument.symbol, instrument.underlying_ticker);
+}
 ```
 
-Webhook mutations are not retried automatically because the API does not yet accept webhook idempotency keys; this avoids duplicate endpoint creation or secret rotation after an ambiguous timeout. Webhook destination reachability and DNS safety are checked by the API. A client-side HTTPS check is not an authorization to deliver to a destination.
+## Supported workflows
 
-The client retries network errors, 429, and transient 5xx statuses at most twice by default. It enforces a 10 second request timeout and returns `TidelightApiError` with status, code, and request ID.
+| Workflow | Scope | Client methods |
+| --- | --- | --- |
+| Tokenized-equity spot listings and pagination | `market:read` | `listTokenizedEquities`, `tokenizedEquities` |
+| Company research snapshots | `research:run` | `startCompanyResearch`, `getResearchJob`, `cancelResearchJob`, `waitForResearchJob` |
+| Research webhooks and delivery history | `alerts:manage` | `createWebhook`, `updateWebhook`, `listWebhooks`, `listWebhookDeliveries` |
 
-## Run the asynchronous research example
+A tokenized-equity spot instrument is not a direct share or a stock perpetual. Market data availability follows the service's provider terms gate. The client returns that decision without inventing substitute data.
 
-From a mother-repository checkout:
+## Reliability and security
+
+Requests have a 10-second default timeout. Network errors, `429`, and transient `5xx` responses receive at most two bounded retries by default. Webhook mutations are not automatically retried because the API does not accept webhook idempotency keys. Errors retain the HTTP status, stable API code, and request ID; raw provider bodies and API keys are not returned.
+
+Webhook creation and secret rotation return a one-time signing secret. **TODO: Persist** it in your approved secret manager immediately. Do not print it; it cannot be recovered by listing the endpoint.
+
+## Build and test from source
 
 ```sh
-npm ci --prefix sdk/typescript
-npm test --prefix sdk/typescript
-export TIDELIGHT_API_KEY='tl_test_…'
-node sdk/typescript/examples/research.mjs NVDA
+npm ci
+npm test
 ```
 
-The example calls the SDK company snapshot job flow and prints a result only after the API reports `complete`. It preserves job and request IDs and never prints the key. CI injects a mock transport and makes no network calls. A live run requires `research:run` and consumes project quota (10 jobs per rolling hour).
+The SDK source is maintained in [`sdk/typescript`](https://github.com/TidelightOrg/tidelight/tree/main/sdk/typescript) in the mother repository. The standalone [TypeScript repository](https://github.com/TidelightOrg/tidelight-sdk) is a synchronized source mirror. Make source changes in the mother repository.
+
+## Further reading
+
+- [API reference](https://dev.tidelight.app/api)
+- [OpenAPI contract](https://github.com/TidelightOrg/tidelight/blob/main/docs/tic-openapi.yaml)
+- [Changelog](./CHANGELOG.md)
+- [Security policy](https://github.com/TidelightOrg/tidelight/security/policy)

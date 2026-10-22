@@ -1,6 +1,13 @@
-# `@tidelight/cli`
+<div align="center">
+  <img src="https://tidelight.app/tidelight-mark.svg" alt="Tidelight" width="56" height="56" />
+  <h1>Tidelight CLI</h1>
+  <p><strong>Secure terminal workflows for the supported Tidelight API.</strong></p>
+  <p><a href="https://tidelight.app">Product</a> · <a href="https://dev.tidelight.app/api">API guide</a> · <a href="https://github.com/TidelightOrg/tidelight">Mother repository</a></p>
+</div>
 
-The official Tidelight command-line client for supported API v1 workflows. Install globally with `npm install --global @tidelight/cli`.
+---
+
+The official Tidelight command-line client for supported API v1 workflows. Install globally with `npm install --global @tidelight/cli@0.1.2`.
 
 ## Local source setup
 

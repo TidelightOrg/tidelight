@@ -1,8 +1,21 @@
-# `@tidelight/mcp`
+<div align="center">
+  <img src="https://tidelight.app/tidelight-mark.svg" alt="Tidelight" width="56" height="56" />
+  <h1>@tidelight/mcp</h1>
+  <p><strong>A secure local stdio bridge to Tidelight’s hosted MCP service.</strong></p>
+  <p><a href="https://tidelight.app">Product</a> · <a href="https://dev.tidelight.app#mcp">Connection guide</a> · <a href="https://github.com/TidelightOrg/tidelight">Mother repository</a></p>
+</div>
 
-`@tidelight/mcp` is the official local stdio bridge for MCP clients that cannot connect directly to a remote Streamable HTTP server. It forwards tool discovery and calls to the authenticated Tidelight MCP service. The remote service continues to enforce credentials, scopes, quotas, and tenant boundaries.
+---
 
-Install with `npm install @tidelight/mcp`. Use Node.js 22 or later.
+The package forwards MCP discovery and tool calls from stdio-only clients to the authenticated Tidelight Streamable HTTP service. The remote service continues to enforce credentials, scopes, quotas, and tenant boundaries.
+
+## Install
+
+```sh
+npm install --global @tidelight/mcp@0.1.2
+```
+
+Use Node.js 22 or later. Create a project API key with only the scopes the client needs.
 
 ## Build and test from the mother repository
 
@@ -15,18 +28,18 @@ npm run build
 
 The package test suite verifies the protocol core, scoped tool discovery, remote MCP forwarding, safe endpoint validation, and that the API key is not included in tool results or connection errors.
 
-## Run the source bridge
+## Run the bridge
 
 Use Node.js 22, the runtime currently tested in package CI. Create a project API key with `market:read`, `research:run`, or both, then provide it through your local secret manager or process environment:
 
 ```sh
 export TIDELIGHT_API_KEY='YOUR_TIDELIGHT_PROJECT_KEY'
-node ./dist/cli.js
+tidelight-mcp
 ```
 
-Run the command with `public/components/mcp/server` as the working directory after building. The bridge writes MCP protocol traffic to stdout; connection errors go to stderr. It never prints the API key. The default upstream endpoint is `https://mcp.tidelight.app/mcp`. A custom `TIDELIGHT_MCP_URL` is accepted only over HTTPS, except for loopback HTTP during local testing.
+Run `tidelight-mcp` after installation. The bridge writes MCP protocol traffic to stdout; connection errors go to stderr. It never prints the API key. The default upstream endpoint is `https://mcp.tidelight.app/mcp`. A custom `TIDELIGHT_MCP_URL` is accepted only over HTTPS, except for loopback HTTP during local testing.
 
-## Client configuration from source
+## Client configuration
 
 Point a stdio-capable MCP client at the built CLI. Client configuration formats differ; the following is the general command shape, not a copyable absolute path:
 
@@ -57,7 +70,7 @@ The upstream Tidelight service returns only tools allowed by the key’s current
 
 Instrument results identify supported Reality tokenized-equity spot products; they are not direct US shares or stock perpetual contracts. Research results preserve source context and do not expose private model reasoning.
 
-## Run the published container
+## Published container
 
 The official container image is built from this repository's MCP server source and published to GitHub Container Registry. It uses the same stdio bridge as the npm package; the API key is supplied at runtime and is never baked into the image.
 
@@ -96,4 +109,4 @@ The protocol server is exported from the package root. The local-to-remote bridg
 
 Version changes follow SemVer. The package source and included documentation are licensed under Apache-2.0. See LICENSE and NOTICE in this directory. The grant applies only to this package, not the proprietary application/backend or other mother-repository paths. Do not include keys in examples, logs, issue reports, or source control.
 
-See the [hosted MCP connection guide](https://dev.tidelight.app#mcp) and [package status](https://tidelight.app/developers/packages). Registry publication, npm trusted publishing, provenance, and client-specific certification are pending.
+See the [hosted MCP connection guide](https://dev.tidelight.app#mcp) and [package status](https://tidelight.app/developers/packages). The npm package is published at version 0.1.2. Client-specific certification is not implied by package publication.

@@ -1,8 +1,23 @@
-# Tidelight Python SDK
+<div align="center">
+  <img src="https://tidelight.app/tidelight-mark.svg" alt="Tidelight" width="56" height="56" />
+  <h1>Tidelight Python SDK</h1>
+  <p><strong>Typed access to Tidelight Intelligence Cloud API v1.</strong></p>
+  <p><a href="https://tidelight.app">Product</a> · <a href="https://dev.tidelight.app/api">API guide</a> · <a href="https://github.com/TidelightOrg/tidelight">Mother repository</a></p>
+</div>
 
-Official Python client for supported Tidelight Intelligence Cloud v1 market, asynchronous company research, and webhook endpoints. Market calls require `market:read`; research calls require `research:run`; webhook calls require `alerts:manage`. Market responses can be denied with `provider_terms_unconfirmed` until redistribution terms are confirmed. The client surfaces that gate without retrying it.
+---
 
-Install with `python -m pip install tidelight`. Keep the API key on your server.
+The official Python client supports tokenized-equity market listings, asynchronous company research jobs, and research webhooks. It preserves provider provenance, stable error codes, and request IDs while applying bounded timeouts and retries.
+
+## Install
+
+```sh
+python -m pip install tidelight==0.1.2
+```
+
+Keep the project API key in trusted server code. Market calls require `market:read`; research calls require `research:run`; webhook calls require `alerts:manage`.
+
+## Quickstart
 
 ```python
 import os
@@ -10,42 +25,39 @@ from tidelight import Client
 
 client = Client(os.environ["TIDELIGHT_API_KEY"])
 page = client.list_tokenized_equities(limit=20, underlying_ticker="AAPL")
+
 for instrument in page.data:
     print(instrument.symbol, instrument.underlying_ticker)
-
-for instrument in client.tokenized_equities(limit=50):
-    print(instrument.symbol)
-
-import uuid
-accepted = client.start_company_research("NVDA", str(uuid.uuid4()))
-result = client.wait_for_research_job(accepted["job_id"], interval=2, timeout=120)
-if result.status == "complete":
-    print(result.result)
-
-created = client.create_webhook(
-    name="Research events",
-    url="https://your-service.example/tidelight",
-    events=["research.job.completed", "research.job.failed"],
-)
-signing_secret = created.get("signing_secret")
-if not signing_secret:
-    raise RuntimeError("The create response did not include its one-time signing secret")
-# TODO: Persist signing_secret with your approved secrets manager before
-# finishing setup. Do not print it. It cannot be recovered by listing the endpoint.
-deliveries = client.list_webhook_deliveries()
 ```
 
-Webhook mutations are not retried automatically because the API does not yet accept webhook idempotency keys; this avoids duplicate endpoint creation or secret rotation after an ambiguous timeout. Webhook destination reachability and DNS safety are checked by the API. A client-side HTTPS check is not an authorization to deliver to a destination.
+## Supported workflows
 
-The client retries network errors, 429, and transient 5xx statuses at most twice by default, except `provider_terms_unconfirmed`, which is returned immediately. It enforces a 10 second request timeout and raises `ApiError` with status, code, and request ID. The default transport does not follow redirects, and remote API URLs are restricted to `api.tidelight.app` so bearer credentials remain scoped to Tidelight.
+| Workflow | Scope | Client methods |
+| --- | --- | --- |
+| Tokenized-equity spot listings and pagination | `market:read` | `list_tokenized_equities`, `tokenized_equities` |
+| Company research snapshots | `research:run` | `start_company_research`, `get_research_job`, `cancel_research_job`, `wait_for_research_job` |
+| Research webhooks and delivery history | `alerts:manage` | `create_webhook`, `update_webhook`, `list_webhooks`, `list_webhook_deliveries` |
 
-## Run the asynchronous research example
+A tokenized-equity spot instrument is not a direct share or a stock perpetual. When provider terms block a market response, the SDK surfaces `provider_terms_unconfirmed` without retrying or substituting data.
 
-From a mother-repository checkout:
+## Reliability and security
+
+The default request timeout is 10 seconds. Network errors, `429`, and transient `5xx` responses receive at most two bounded retries. Webhook mutations are not automatically retried because the API does not accept webhook idempotency keys. The default transport rejects redirects and restricts bearer credentials to `api.tidelight.app`.
+
+Webhook creation and secret rotation return a one-time signing secret. **TODO: Persist** it in your approved secret manager immediately. Do not print it; it cannot be recovered by listing the endpoint.
+
+## Build and test from source
 
 ```sh
 python -m pip install -e ./sdk/python
-PYTHONPATH=sdk/python/src python sdk/python/examples/research.py NVDA
+PYTHONPATH=sdk/python/src python -m unittest discover -s sdk/python/tests -v
 ```
 
-The example calls the SDK company snapshot job flow and prints a result only after the API reports `complete`. It preserves job and request IDs and never prints the key. CI injects a mock transport and makes no network calls. A live run requires `research:run` and consumes project quota (10 jobs per rolling hour).
+Canonical source lives in [`sdk/python`](https://github.com/TidelightOrg/tidelight/tree/main/sdk/python) in the mother repository. The standalone [Python repository](https://github.com/TidelightOrg/tidelight-python) is a synchronized source mirror. Make source changes in the mother repository.
+
+## Further reading
+
+- [API reference](https://dev.tidelight.app/api)
+- [OpenAPI contract](https://github.com/TidelightOrg/tidelight/blob/main/docs/tic-openapi.yaml)
+- [Changelog](./CHANGELOG.md)
+- [Security policy](https://github.com/TidelightOrg/tidelight/security/policy)

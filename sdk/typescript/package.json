@@ -1,11 +1,13 @@
 {
   "name": "@tidelight/sdk",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "type": "module",
   "description": "Official TypeScript client for Tidelight Intelligence Cloud API v1.",
   "homepage": "https://tidelight.app/developers/packages/sdk",
-  "bugs": { "url": "https://github.com/TidelightOrg/tidelight/issues" },
+  "bugs": {
+    "url": "https://github.com/TidelightOrg/tidelight/issues"
+  },
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
