@@ -115,12 +115,18 @@ export default function JudgePage() {
     </section>
 
     <section className="judge-section judge-trade-captures" id="nightwatch-position-captures" aria-labelledby="nightwatch-captures-title">
-      <div className="judge-section-heading"><div><h2 id="nightwatch-captures-title">Three owner-supplied position records.</h2></div><Link className="judge-inline-link" href="/evidence/nightwatch-position-captures.json">Open the sanitized summary JSON ↗</Link></div>
-      <p className="judge-capture-note">Historical screenshots from a partial Nightwatch export captured 22 Oct 2026. The supplied export reports 23 decisions, five paper orders, and three open positions in the records loaded at export time; only these three position cards are reproduced here. These figures are simulated marks, not exchange trades, audited returns, or a live query of the current account ledger.</p>
+      <div className="judge-capture-heading">
+        <div className="judge-capture-title">
+          <span className="judge-kicker">NIGHTWATCH / PAPER LEDGER</span>
+          <h2 id="nightwatch-captures-title">Historical position snapshots</h2>
+          <p>Paper positions captured 12–22 October 2026. Values are simulated marks at capture time, not live holdings or audited performance.</p>
+        </div>
+        <Link className="judge-capture-data-link" href="/evidence/nightwatch-position-captures.json">Evidence details <span aria-hidden="true">↗</span></Link>
+      </div>
       <div className="judge-capture-grid">
-        <figure><a href="/judge-evidence/nightwatch-rnvd-position.png" target="_blank" rel="noreferrer"><Image src="/judge-evidence/nightwatch-rnvd-position.png" width={1200} height={600} alt="Owner-supplied Nightwatch screenshot of the rNVD paper position and historical mark-to-market result."/></a><figcaption><strong>rNVD</strong><span>Recorded 22 Oct 2026 · open paper position</span></figcaption></figure>
-        <figure><a href="/judge-evidence/nightwatch-raapl-position.png" target="_blank" rel="noreferrer"><Image src="/judge-evidence/nightwatch-raapl-position.png" width={1200} height={600} alt="Owner-supplied Nightwatch screenshot of the rAAPL paper position and historical mark-to-market result."/></a><figcaption><strong>rAAPL</strong><span>Recorded 14 Oct 2026 · open paper position</span></figcaption></figure>
-        <figure><a href="/judge-evidence/nightwatch-rgoogl-position.png" target="_blank" rel="noreferrer"><Image src="/judge-evidence/nightwatch-rgoogl-position.png" width={1200} height={600} alt="Owner-supplied Nightwatch screenshot of the rGOOGL paper position and historical mark-to-market result."/></a><figcaption><strong>rGOOGL</strong><span>Recorded 12 Oct 2026 · open paper position</span></figcaption></figure>
+        <figure><a href="/judge-evidence/nightwatch-rnvd-position.png" target="_blank" rel="noreferrer"><Image src="/judge-evidence/nightwatch-rnvd-position.png" width={1200} height={630} alt="Nightwatch paper ledger snapshot for rNVD, captured 22 October 2026."/></a><figcaption><div className="judge-capture-caption"><strong>rNVD</strong><span>Paper position</span></div><time dateTime="2026-10-22">22 Oct 2026</time></figcaption></figure>
+        <figure><a href="/judge-evidence/nightwatch-raapl-position.png" target="_blank" rel="noreferrer"><Image src="/judge-evidence/nightwatch-raapl-position.png" width={1200} height={630} alt="Nightwatch paper ledger snapshot for rAAPL, captured 14 October 2026."/></a><figcaption><div className="judge-capture-caption"><strong>rAAPL</strong><span>Paper position</span></div><time dateTime="2026-10-14">14 Oct 2026</time></figcaption></figure>
+        <figure><a href="/judge-evidence/nightwatch-rgoogl-position.png" target="_blank" rel="noreferrer"><Image src="/judge-evidence/nightwatch-rgoogl-position.png" width={1200} height={630} alt="Nightwatch paper ledger snapshot for rGOOGL, captured 12 October 2026."/></a><figcaption><div className="judge-capture-caption"><strong>rGOOGL</strong><span>Paper position</span></div><time dateTime="2026-10-12">12 Oct 2026</time></figcaption></figure>
       </div>
     </section>
 
