@@ -2,7 +2,7 @@ set role service_role;
 insert into public.public_nightwatch_replays(user_id, order_id, payload) values
   ('10000000-0000-4000-8000-000000000001', '20000000-0000-4000-8000-000000000001', '{"market":{"symbol":"RNVDUSDT","side":"buy","quantity":1},"decision":{"signal":"buy"}}'),
   ('10000000-0000-4000-8000-000000000001', '20000000-0000-4000-8000-000000000002', '{"market":{"symbol":"RAAPLUSDT"}}');
-update public.public_nightwatch_replays set expires_at = now() - interval '1 day'
+update public.public_nightwatch_replays set created_at = now() - interval '31 days', expires_at = now() - interval '1 second'
 where payload->'market'->>'symbol' = 'RAAPLUSDT';
 reset role;
 
