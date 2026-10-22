@@ -5,7 +5,7 @@
   "generated_at": "2026-10-21",
   "evidence_boundary": {
     "status": "index_only",
-    "note": "This manifest documents where verifiable evidence can be obtained. It does not claim live paper fills, profitable alpha, audited returns, or completed runtime tests.",
+    "note": "Evidence is grouped by public availability, account scope, and reproducibility. Evaluate performance and execution claims against the corresponding source artifacts and test records.",
     "fixtures_are_live_results": false
   },
   "primary_entry": {
@@ -123,28 +123,28 @@
       "kind": "quantitative_evidence",
       "status": "not_attached",
       "uri": "https://github.com/TidelightOrg/tidelight/blob/main/docs/STRATEGY_VALIDATION_2026-10-05.md",
-      "claim": "Historical strategy validation report; do not represent as a positive alpha claim."
+      "claim": "Historical validation summary; independent reproduction requires the run data, out-of-sample period, source fingerprint, cost assumptions, raw trades, equity curve, risk metrics, and reproduction command listed below."
     },
     {
       "id": "nightwatch-ledger",
       "kind": "paper_trading",
       "status": "private_owner_scoped",
       "uri": "https://tidelight.app/nightwatch",
-      "claim": "Nightwatch runs and paper ledger require the owning account; no private user data is included in this public manifest."
+      "claim": "Access is limited to the owning account; public export requirements are listed below."
     },
     {
       "id": "research-replay",
       "kind": "fixture",
       "status": "illustrative_not_live",
       "uri": "https://tidelight.app/replay",
-      "claim": "Static checklist fixture only; source, quote, provider, AI result, risk gate and paper outcome are not represented as real."
+      "claim": "Static demonstration of the research review flow; it contains no live provider output or account-owned run."
     },
     {
       "id": "public-research-replay",
       "kind": "owner_published_public_route",
       "status": "requires_owner_publication",
       "uri": "https://tidelight.app/flow",
-      "claim": "A completed research run can be explicitly published from the signed-in research desk as a sanitized, time-limited replay. No private run is public by default."
+      "claim": "The signed-in research desk supports explicit publication of sanitized, time-limited, owner-selected runs."
     },
     {
       "id": "public-replay-rtsla",
