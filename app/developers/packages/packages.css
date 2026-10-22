@@ -273,3 +273,7 @@
 .tic-package-lifecycle-all-code>.tic-package-copy{position:absolute;top:8px;right:8px;z-index:1}
 .tic-package-lifecycle-all pre{overflow:auto;margin:0;padding:40px 12px 12px;border:1px solid var(--tic-line);border-radius:7px;background:color-mix(in srgb,var(--tic-panel) 95%,var(--tic-bg));color:var(--tic-text);font:10px/1.75 var(--mono)}
 .tic-package-lifecycle-code pre{background:color-mix(in srgb,var(--tic-panel) 96%,var(--tic-bg));color:var(--tic-text)}
+
+.tic-package-workbench-tabs button>.tic-language-mark{display:grid;place-items:center;width:28px;height:28px;flex:none;padding:0;border:1px solid var(--tic-line);border-radius:7px;background:color-mix(in srgb,var(--tic-panel) 94%,var(--tic-bg));color:var(--tic-accent)}
+.tic-package-workbench-tabs button>.tic-language-mark svg{width:21px;height:21px}
+.tic-package-workbench-tabs button>.tic-language-mark .tic-language-pair svg{width:12px;height:12px}
