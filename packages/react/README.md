@@ -1,15 +1,8 @@
-<div align="center">
-  <img src="https://tidelight.app/tidelight-mark.svg" alt="Tidelight" width="56" height="56" />
-  <h1>Tidelight React</h1>
-  <p><strong>Typed, accessible React integrations for Tidelight market research.</strong></p>
-  <p><a href="https://tidelight.app">Product</a> · <a href="https://dev.tidelight.app/api">API guide</a> · <a href="https://github.com/TidelightOrg/tidelight">Mother repository</a></p>
-</div>
-
----
+# `@tidelight/react`
 
 Typed React hooks and accessible, themeable UI helpers for Tidelight market and research workflows. The source package wraps the official SDK’s typed methods; it does not duplicate API requests, authorization, billing, or research logic.
 
-Install with `npm install @tidelight/react@0.1.2 @tidelight/sdk@0.1.2 react react-dom`.
+Install with `npm install @tidelight/react @tidelight/sdk react react-dom`.
 
 ## Local development
 

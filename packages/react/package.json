@@ -1,6 +1,6 @@
 {
   "name": "@tidelight/react",
-  "version": "0.1.2",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "description": "Typed React hooks and accessible components for Tidelight research and market integrations.",
@@ -18,9 +18,7 @@
     "directory": "packages/react"
   },
   "homepage": "https://tidelight.app/developers/packages/react",
-  "bugs": {
-    "url": "https://github.com/TidelightOrg/tidelight/issues"
-  },
+  "bugs": { "url": "https://github.com/TidelightOrg/tidelight/issues" },
   "engines": {
     "node": ">=22"
   },

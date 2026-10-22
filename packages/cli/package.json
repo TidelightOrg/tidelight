@@ -1,6 +1,6 @@
 {
   "name": "@tidelight/cli",
-  "version": "0.1.2",
+  "version": "0.1.1",
   "private": true,
   "type": "module",
   "description": "Official Tidelight Intelligence Cloud command-line client.",
@@ -18,9 +18,7 @@
     "directory": "packages/cli"
   },
   "homepage": "https://tidelight.app/developers/packages/cli",
-  "bugs": {
-    "url": "https://github.com/TidelightOrg/tidelight/issues"
-  },
+  "bugs": { "url": "https://github.com/TidelightOrg/tidelight/issues" },
   "engines": {
     "node": ">=22"
   },

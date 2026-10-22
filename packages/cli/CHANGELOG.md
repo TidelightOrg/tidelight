@@ -1,9 +1,5 @@
 # Changelog
 
-## 0.1.2
-
-- Publish the current tested CLI with aligned install and compatibility guidance.
-
 ## 0.1.1
 
 - Report the installed package version accurately from its published metadata.

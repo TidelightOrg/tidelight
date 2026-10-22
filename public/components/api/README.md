@@ -1,11 +1,4 @@
-<div align="center">
-  <img src="https://tidelight.app/tidelight-mark.svg" alt="Tidelight" width="56" height="56" />
-  <h1>Tidelight Intelligence Cloud API</h1>
-  <p><strong>A versioned, scope-based REST API for market and research workflows.</strong></p>
-  <p><a href="https://tidelight.app">Product</a> · <a href="https://dev.tidelight.app/api">API guide</a> · <a href="https://github.com/TidelightOrg/tidelight">Mother repository</a></p>
-</div>
-
----
+# Tidelight Intelligence Cloud API
 
 The live, versioned REST API is at `https://api.tidelight.app/v1`. The OpenAPI 3.1 contract is published at [`openapi/tidelight.yaml`](openapi/tidelight.yaml).
 

@@ -1,9 +1,5 @@
 # Changelog
 
-## 0.1.2
-
-- Publish the current tested Python client with aligned installation and API availability guidance.
-
 ## 0.1.1
 
 - Publish the coordinated package set at `0.1.1` with no API contract changes.
