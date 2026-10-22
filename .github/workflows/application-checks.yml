@@ -127,7 +127,7 @@ jobs:
       - name: Prepare Nightwatch replay schema
         run: psql -v ON_ERROR_STOP=1 -f tests/postgres/nightwatch-replay-prerequisites.sql
       - name: Apply public Nightwatch replay migration
-        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261022100000_public_nightwatch_replays.sql
+        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261022182729_public_nightwatch_replays.sql
       - name: Test sanitized public access, expiry, revocation, and write boundaries
         run: psql -v ON_ERROR_STOP=1 -f tests/postgres/nightwatch-replay.sql
 
