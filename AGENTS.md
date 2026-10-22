@@ -11,3 +11,5 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 ## Project handoff
 
 Before continuing Tidelight Intelligence Cloud or broader Tidelight product work, read [the Codex project handoff](docs/CODEX_HANDOFF.md). It records the verified repository baseline, completed milestones, outstanding production evidence, external dependencies, and prioritized roadmap. Resume from its **Next session: exact continuation point** section; do not repeat milestones marked complete without a specific regression or new evidence.
+
+Avoid unnecessary secondary labels and descriptions. Let the layout do the explaining.
