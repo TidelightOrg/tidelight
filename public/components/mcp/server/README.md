@@ -75,12 +75,12 @@ Instrument results identify supported Reality tokenized-equity spot products; th
 The official container image is built from this repository's MCP server source and published to GitHub Container Registry. It uses the same stdio bridge as the npm package; the API key is supplied at runtime and is never baked into the image.
 
 ```sh
-docker pull ghcr.io/tidelightorg/tidelight-mcp:0.1.1
+docker pull ghcr.io/tidelightorg/tidelight-mcp:0.1.2
 export TIDELIGHT_API_KEY='YOUR_TIDELIGHT_PROJECT_KEY'
-docker run --rm -i -e TIDELIGHT_API_KEY ghcr.io/tidelightorg/tidelight-mcp:0.1.1
+docker run --rm -i -e TIDELIGHT_API_KEY ghcr.io/tidelightorg/tidelight-mcp:0.1.2
 ```
 
-Use a scoped project key with `market:read`, `research:run`, or both. For an MCP client that supports Docker-backed stdio servers, configure `docker` as the command, `run`, `--rm`, `-i`, `-e`, `TIDELIGHT_API_KEY`, and `ghcr.io/tidelightorg/tidelight-mcp:0.1.1` as arguments, with the key held in the client's protected environment. Pin a version tag for reproducible deployments; `latest` tracks the most recent main-branch build.
+Use a scoped project key with `market:read`, `research:run`, or both. For an MCP client that supports Docker-backed stdio servers, configure `docker` as the command, `run`, `--rm`, `-i`, `-e`, `TIDELIGHT_API_KEY`, and `ghcr.io/tidelightorg/tidelight-mcp:0.1.2` as arguments, with the key held in the client's protected environment. Pin a version tag for reproducible deployments; `latest` tracks the most recent main-branch build.
 
 The image supports `linux/amd64` and `linux/arm64`.
 

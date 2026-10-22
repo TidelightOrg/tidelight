@@ -21,11 +21,11 @@ export type RegistryPackage = {
 
 let registryRequest: Promise<Record<PackageId, RegistryPackage>> | undefined;
 const fallback: Record<PackageId, RegistryPackage> = {
-  sdk: { id: "sdk", registry: "npm", name: "@tidelight/sdk", url: "https://www.npmjs.com/package/@tidelight/sdk", install: "npm install @tidelight/sdk@0.1.1", version: "0.1.1", summary: "Official Tidelight TypeScript SDK", integrity: null, tarball: null, files: [], status: "unavailable" },
-  mcp: { id: "mcp", registry: "npm", name: "@tidelight/mcp", url: "https://www.npmjs.com/package/@tidelight/mcp", install: "npm install @tidelight/mcp@0.1.1", version: "0.1.1", summary: "Official Tidelight MCP stdio bridge", integrity: null, tarball: null, files: [], status: "unavailable" },
-  react: { id: "react", registry: "npm", name: "@tidelight/react", url: "https://www.npmjs.com/package/@tidelight/react", install: "npm install @tidelight/react@0.1.1", version: "0.1.1", summary: "Official Tidelight React package", integrity: null, tarball: null, files: [], status: "unavailable" },
-  cli: { id: "cli", registry: "npm", name: "@tidelight/cli", url: "https://www.npmjs.com/package/@tidelight/cli", install: "npm install @tidelight/cli@0.1.1", version: "0.1.1", summary: "Official Tidelight command line interface", integrity: null, tarball: null, files: [], status: "unavailable" },
-  python: { id: "python", registry: "pypi", name: "tidelight", url: "https://pypi.org/project/tidelight/", install: "python -m pip install tidelight==0.1.1", version: "0.1.1", summary: "Official Tidelight Intelligence Cloud Python client", integrity: null, tarball: null, files: [], status: "unavailable" },
+  sdk: { id: "sdk", registry: "npm", name: "@tidelight/sdk", url: "https://www.npmjs.com/package/@tidelight/sdk", install: "npm install @tidelight/sdk@0.1.2", version: "0.1.2", summary: "Official Tidelight TypeScript SDK", integrity: null, tarball: null, files: [], status: "unavailable" },
+  mcp: { id: "mcp", registry: "npm", name: "@tidelight/mcp", url: "https://www.npmjs.com/package/@tidelight/mcp", install: "npm install @tidelight/mcp@0.1.2", version: "0.1.2", summary: "Official Tidelight MCP stdio bridge", integrity: null, tarball: null, files: [], status: "unavailable" },
+  react: { id: "react", registry: "npm", name: "@tidelight/react", url: "https://www.npmjs.com/package/@tidelight/react", install: "npm install @tidelight/react@0.1.2", version: "0.1.2", summary: "Official Tidelight React package", integrity: null, tarball: null, files: [], status: "unavailable" },
+  cli: { id: "cli", registry: "npm", name: "@tidelight/cli", url: "https://www.npmjs.com/package/@tidelight/cli", install: "npm install @tidelight/cli@0.1.2", version: "0.1.2", summary: "Official Tidelight command line interface", integrity: null, tarball: null, files: [], status: "unavailable" },
+  python: { id: "python", registry: "pypi", name: "tidelight", url: "https://pypi.org/project/tidelight/", install: "python -m pip install tidelight==0.1.2", version: "0.1.2", summary: "Official Tidelight Intelligence Cloud Python client", integrity: null, tarball: null, files: [], status: "unavailable" },
 };
 
 export function useRegistryPackage(packageId: PackageId) {
@@ -66,7 +66,7 @@ export function PackageRegistryCard({ packageId, name, summary, href, glyph, eco
     <h3>{name}</h3><p>{summary}</p>
     <div className="tic-package-card-status"><span className="tic-package-status-mark" aria-hidden="true">{entry.status === "published" && entry.version ? "✓" : "·"}</span><span className="tic-package-source-label">{entry.status === "published" && entry.version ? `Published · ${entry.registry}` : checking ? `Checking ${entry.registry}…` : entry.version ? `Last verified · ${entry.registry}` : "Registry unavailable"}</span><code>{entry.version ? `v${entry.version}` : checking ? "Checking…" : "Version unavailable"}</code></div>
     <code className="tic-package-card-install">{entry.install}</code>
-    {packageId === "mcp" && <a className="tic-package-ghcr-link" href="https://github.com/orgs/TidelightOrg/packages/container/package/tidelight-mcp">Container · ghcr.io/tidelightorg/tidelight-mcp:0.1.1 ↗</a>}
+    {packageId === "mcp" && <a className="tic-package-ghcr-link" href="https://github.com/orgs/TidelightOrg/packages/container/package/tidelight-mcp">Container · ghcr.io/tidelightorg/tidelight-mcp:0.1.2 ↗</a>}
     <a className="tic-package-card-link" href={href.startsWith("http") ? href : `https://package.tidelight.app${href}`}>Package details <span aria-hidden="true">→</span></a>
   </article>;
 }

@@ -1,6 +1,6 @@
 # Package publishing operations
 
-This document covers future releases of the official packages in `TidelightOrg/tidelight`. The packages are already public at version `0.1.1` on npm and PyPI. The MCP stdio server is also published to GHCR.
+This document covers future releases of the official packages in `TidelightOrg/tidelight`. The packages are already public at version `0.1.2` on npm and PyPI. The MCP stdio server is also published to GHCR.
 
 ## Current publishing paths
 
@@ -24,9 +24,9 @@ This document covers future releases of the official packages in `TidelightOrg/t
 ## Image use
 
 ```sh
-docker pull ghcr.io/tidelightorg/tidelight-mcp:0.1.1
+docker pull ghcr.io/tidelightorg/tidelight-mcp:0.1.2
 export TIDELIGHT_API_KEY='YOUR_TIDELIGHT_PROJECT_KEY'
-docker run --rm -i -e TIDELIGHT_API_KEY ghcr.io/tidelightorg/tidelight-mcp:0.1.1
+docker run --rm -i -e TIDELIGHT_API_KEY ghcr.io/tidelightorg/tidelight-mcp:0.1.2
 ```
 
 Use a scoped project key and pass it at runtime. Never bake credentials into the image, Docker build arguments, Compose files committed to source control, or MCP client configuration shared across users.
