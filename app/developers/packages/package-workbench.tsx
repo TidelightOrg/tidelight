@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { PackageLanguageMark } from "./package-language-mark";
 import { RegistryFacts, useRegistryPackage } from "./registry-facts";
 import { packageCatalog, type DeveloperPackage } from "./catalog.generated";
 
@@ -180,7 +181,7 @@ export function PackageWorkbench() {
                 aria-pressed={selected === id}
                 onClick={() => { setSelected(id); setCopied(false); setSurface("install"); }}
               >
-                <span aria-hidden="true">{item.glyph}</span>
+                <PackageLanguageMark packageId={id} />
                 <span>{item.name}</span>
               </button>
             );
