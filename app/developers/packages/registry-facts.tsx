@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 
-type PackageId = "sdk" | "mcp" | "react" | "cli" | "python";
 import { PackageLanguageMark } from "./package-language-mark";
+
+type PackageId = "sdk" | "mcp" | "react" | "cli" | "python";
 export type RegistryPackage = {
   id: PackageId;
   registry: "npm" | "pypi";
