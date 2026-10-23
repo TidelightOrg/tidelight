@@ -35,3 +35,14 @@
 @media(max-width:780px){.product-quick-actions,.product-quick-actions.is-landing,.product-quick-actions:not(.is-landing){left:10px}}
 @media(max-width:600px){.product-quick-actions{bottom:calc(10px + env(safe-area-inset-bottom));gap:4px;padding:4px}.product-quick-actions button{width:36px;height:36px}.feedback-scrim{align-items:end;padding:10px 10px calc(10px + env(safe-area-inset-bottom))}.feedback-dialog{max-height:min(88dvh,700px);padding:20px 18px;border-radius:18px}.feedback-dialog h2{font-size:23px}.feedback-dialog textarea{min-height:118px}}
 @media(prefers-reduced-motion:reduce){.feedback-dialog{animation:none}.product-quick-actions button,.feedback-dialog form button{transition:none}}
+
+/* Keep global assistance clear of charts and order entry on dense workspaces. */
+@media(min-width:781px){
+  .product-quick-actions.is-dense-workspace{left:auto;right:clamp(16px,2vw,28px);top:76px;bottom:auto}
+  .tide-guide.is-dense-workspace{right:clamp(16px,2vw,28px);top:132px;bottom:auto}
+}
+@media(max-width:780px){
+  .product-quick-actions.is-dense-workspace{left:10px;top:calc(74px + env(safe-area-inset-top));right:auto;bottom:auto}
+  .tide-guide.is-dense-workspace{right:10px;top:calc(74px + env(safe-area-inset-top));bottom:auto}
+  .tide-guide.is-dense-workspace .tide-guide-panel{max-height:calc(100dvh - 150px - env(safe-area-inset-top))}
+}
