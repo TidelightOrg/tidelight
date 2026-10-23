@@ -47,4 +47,4 @@ The registry-backed Developer Center endpoint refreshes npm and PyPI metadata ev
 - Configure npm Trusted Publishing for later releases and retain the token path only as the authorized fallback for environments where npm OIDC is unavailable.
 - Review package ownership, organization/team access, provenance, dependency policy, and registry account recovery procedures on a regular cadence.
 - Maintain the Node.js, Python, React, MCP protocol, and API compatibility matrix based on tested releases.
-- Publish dated migration guidance for breaking changes and keep the mother repository as the source of truth for npm, PyPI, and GHCR artifacts.
+- Publish dated migration guidance for breaking changes and keep the canonical repository as the source of truth for npm, PyPI, and GHCR artifacts.
