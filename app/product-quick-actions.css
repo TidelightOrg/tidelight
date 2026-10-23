@@ -37,8 +37,8 @@
 @media(prefers-reduced-motion:reduce){.feedback-dialog{animation:none}.product-quick-actions button,.feedback-dialog form button{transition:none}}
 
 /* Assistance controls live in the otherwise clear utility gap on dense desktop views. */
-@media(min-width:1200px){
+@media(min-width:1320px){
   .product-quick-actions.is-dense-workspace{left:calc(246px + 32vw);top:8px;right:auto;bottom:auto}
 }
-@media(max-width:1199px){.product-quick-actions.is-dense-workspace{display:none}}
+@media(max-width:1319px){.product-quick-actions.is-dense-workspace{display:none}}
 @media(max-width:780px){.product-quick-actions.is-dense-workspace{display:none}}
