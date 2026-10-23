@@ -451,3 +451,49 @@
 .agent-flow-page .flow-work-thread .flow-stage-running .flow-stage-summary{background:linear-gradient(90deg,color-mix(in srgb,var(--flow-glow) 6%,transparent),transparent 82%)}
 .agent-flow-page .flow-method-pill{color:var(--mint)}
 @media(max-width:700px){.agent-flow-page .flow-work-thread{padding:0 7px 16px}.agent-flow-page .flow-work-thread .flow-trace{margin-left:10px;padding-left:11px}.agent-flow-page .flow-work-thread .flow-stage-detail{padding-left:20px}}
+
+
+/* In an active run, the question becomes the conversation composer and Tide's trace follows immediately. */
+.agent-flow-page .flow-hero-active{
+  width:100%;
+  min-height:0;
+  grid-template-columns:minmax(0,1fr);
+  gap:0;
+  overflow:visible;
+  padding:0 18px;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+}
+.agent-flow-page .flow-hero-active .flow-hero-copy{grid-column:1/-1;max-width:none}
+.agent-flow-page .flow-hero-active .flow-kicker,
+.agent-flow-page .flow-hero-active h1,
+.agent-flow-page .flow-hero-active .flow-hero-copy>p,
+.agent-flow-page .flow-hero-active .flow-orbit,
+.agent-flow-page .flow-hero-active .flow-prompts,
+.agent-flow-page .flow-hero-active .flow-hero-copy>.research-replay-share{display:none}
+.agent-flow-page .flow-hero-active .flow-form{max-width:none;margin:0}
+.agent-flow-page .flow-hero-active .flow-form>label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.agent-flow-page .flow-hero-active .flow-form-row{gap:7px;padding:4px;border-radius:12px;background:color-mix(in srgb,var(--panel) 82%,transparent)}
+.agent-flow-page .flow-hero-active .flow-form textarea{min-height:48px;max-height:96px;padding:10px 12px;font-size:13px}
+.agent-flow-page .flow-hero-active .flow-form button{min-width:118px;padding:10px 14px}
+.agent-flow-page .flow-work-thread{width:min(100%,1000px);box-sizing:border-box}
+.agent-flow-page .flow-work-thread .flow-state{padding:0;border:0;border-radius:0;background:transparent;color:var(--muted);font:10px/1.4 var(--font);letter-spacing:0;text-transform:none}
+.agent-flow-page .flow-work-thread .flow-state-live{color:var(--mint)}
+.agent-flow-page .flow-work-thread .flow-state-live:before{display:none}
+.agent-flow-page .flow-thread-head{margin-bottom:8px}
+.agent-flow-page .flow-work-thread .flow-stage{border:0}
+.agent-flow-page .flow-work-thread .flow-stage-summary{min-height:49px;padding:5px 4px 5px 0}
+.agent-flow-page .flow-work-thread .flow-stage-meta{font:10px/1.35 var(--font);letter-spacing:0;text-transform:none;color:var(--muted)}
+.agent-flow-page .flow-work-thread .flow-stage-meta time{display:block;min-width:25px;text-align:right;color:var(--faint);font:10px/1.35 var(--mono)}
+.agent-flow-page .flow-work-thread .flow-stage-title{font:500 13px/1.4 var(--font);letter-spacing:0}
+.agent-flow-page .flow-work-thread .flow-stage-summary:hover{background:transparent}
+.agent-flow-page .flow-work-thread .flow-stage-running .flow-stage-summary{background:linear-gradient(90deg,color-mix(in srgb,var(--flow-glow) 6%,transparent),transparent 82%)}
+@media(max-width:700px){
+  .agent-flow-page .flow-hero-active{padding:0 7px}
+  .agent-flow-page .flow-hero-active .flow-form-row{align-items:center}
+  .agent-flow-page .flow-hero-active .flow-form textarea{min-height:46px}
+  .agent-flow-page .flow-hero-active .flow-form button{min-width:104px;padding:9px 10px}
+}
+@media(prefers-reduced-motion:reduce){.agent-flow-page .flow-work-thread .flow-state-live:before{animation:none}}
