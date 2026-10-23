@@ -1,4 +1,4 @@
-# Mother repository and public distributions
+# canonical repository and public distributions
 
 `TidelightOrg/tidelight` is the canonical source of truth for the Tidelight platform. The application, research engines, private service boundaries, database migrations, and Vercel/Supabase configuration remain together here. Public GitHub repositories are generated distributions for developer-facing contracts and SDKs; they are not independent source repositories.
 
@@ -18,7 +18,7 @@ Each target repository is a generated snapshot: its root is owned by the mapped 
 
 ## Synchronization and trust boundaries
 
-`.github/workflows/sync-public-mirrors.yml` runs after relevant changes reach `main`, or by manual dispatch. It computes changed components from the push range, validates the allowlist, runs the SDK test suites, then opens one synchronization PR per changed non-empty mirror. It serializes sync runs to avoid competing branches. The copier materializes only Git-tracked source files, so ignored build and interpreter cache artifacts created by validation are not published. PRs in the mother repository run the mirror validation workflow, SDK tests, and the existing application checks configured for the repository.
+`.github/workflows/sync-public-mirrors.yml` runs after relevant changes reach `main`, or by manual dispatch. It computes changed components from the push range, validates the allowlist, runs the SDK test suites, then opens one synchronization PR per changed non-empty mirror. It serializes sync runs to avoid competing branches. The copier materializes only Git-tracked source files, so ignored build and interpreter cache artifacts created by validation are not published. PRs in the canonical repository run the mirror validation workflow, SDK tests, and the existing application checks configured for the repository.
 
 The five targets are initialized. Changes to mapped paths create synchronization branches and PRs; the workflow does not directly push over an initialized target default branch. The first-run empty-repository bootstrap path remains restricted to genuinely empty targets for future repositories. If a target has already been initialized, the script does not silently fall back to a direct push when a clone or permission check fails.
 
@@ -51,4 +51,4 @@ npm test --prefix public/components/examples && npm run test:python --prefix pub
 
 For a mapping-only or security-boundary change, also run `npm test`, `npm run typecheck`, `npm run lint`, and `npm run build`. Inspect the generated target diff in every sync PR, verify it contains only the intended public distribution, and merge through the target repository's required checks. Never put private provider credentials, service-role keys, API secrets, internal worker URLs, server implementation files, or user data in a public mirror.
 
-The live API and MCP service remain deployed from the mother repository's existing Vercel project. These GitHub source mirrors do not alter Vercel roots, Supabase integration, production routing, or service authorization.
+The live API and MCP service remain deployed from the canonical repository's existing Vercel project. These GitHub source mirrors do not alter Vercel roots, Supabase integration, production routing, or service authorization.
