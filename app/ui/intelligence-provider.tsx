@@ -15,13 +15,13 @@ function ActivityPanel({ state, onMinimize, onExpand, minimized }: { state: Acti
   return <aside className={`intelligence-activity${minimized ? " is-minimized" : ""}`} aria-label="Research agent activity" aria-live="polite">
     <button type="button" className="intelligence-activity-toggle" onClick={minimized ? onExpand : onMinimize} aria-expanded={!minimized}>
       <span className={`intelligence-activity-dot${state.busy ? " is-active" : ""}`} />
-      <span className="intelligence-activity-label">{state.busy ? "Research in progress" : state.error ? "Research paused" : "Research complete"}</span>
+      <span className="intelligence-activity-label">Research activity</span>
       <span className="intelligence-activity-state">{status}</span><span aria-hidden="true" className="intelligence-activity-chevron">{minimized ? "⌃" : "⌄"}</span>
     </button>
     {!minimized ? <div className="intelligence-activity-body">
       <p className="intelligence-activity-question">{state.question}</p>
       <ol>{state.stages.slice(-6).map((stage) => <li key={stage.id} className={`activity-${stage.status}`}><span className="activity-step-mark">{stage.status === "complete" ? "✓" : stage.status === "blocked" ? "!" : "·"}</span><span><b>{stage.agent}{stage.asset ? ` · ${stage.asset}` : ""}</b><small>{stage.title}</small></span><details><summary>Details</summary><p>{stage.detail}</p></details></li>)}</ol>
-      {state.busy ? <p className="intelligence-activity-note">Operational checkpoints only · No private model reasoning</p> : state.error ? <p className="intelligence-activity-error" role="status">{state.error}</p> : <p className="intelligence-activity-note">Evidence and gate details are available in the workspace result.</p>}
+      {state.busy ? <p className="intelligence-activity-note">Checking sources, market context, and risk gates.</p> : state.error ? <p className="intelligence-activity-error" role="status">{state.error}</p> : <p className="intelligence-activity-note">Evidence and gate details are available in the workspace result.</p>}
     </div> : null}
   </aside>;
 }
