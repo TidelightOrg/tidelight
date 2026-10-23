@@ -19,6 +19,7 @@ export default function ProductQuickActions() {
   const drag = useRef<{ pointerId: number; startX: number; startY: number; left: number; top: number; moved: boolean } | null>(null);
   const suppressClick = useRef(false);
   const [position, setPosition] = useState<{ left: number; top: number } | null>(null);
+  const denseWorkspace = pathname === "/futures" || pathname === "/trading" || pathname === "/flow" || pathname === "/markets";
   const requestId = useRef(crypto.randomUUID());
 
   useEffect(() => {
@@ -28,7 +29,7 @@ export default function ProductQuickActions() {
       if (saved) {
         const parsed = JSON.parse(saved) as { left?: unknown; top?: unknown };
         if (typeof parsed.left === "number" && typeof parsed.top === "number") {
-          timer = window.setTimeout(() => setPosition({ left: Math.max(0, Math.min(parsed.left as number, window.innerWidth - 64)), top: Math.max(0, Math.min(parsed.top as number, window.innerHeight - 64)) }), 0);
+          timer = window.setTimeout(() => setPosition(denseWorkspace ? null : { left: Math.max(0, Math.min(parsed.left as number, window.innerWidth - 64)), top: Math.max(0, Math.min(parsed.top as number, window.innerHeight - 64)) }), 0);
         }
       }
     } catch { /* Ignore malformed saved positions. */ }
@@ -125,7 +126,7 @@ export default function ProductQuickActions() {
   if (pathname === "/status") return null;
   return <>
     <nav
-      className={`product-quick-actions${pathname === "/" ? " is-landing" : ""}${position ? " is-positioned" : ""}`}
+      className={`product-quick-actions${pathname === "/" ? " is-landing" : ""}${position ? " is-positioned" : ""}${denseWorkspace ? " is-dense-workspace" : ""}`}
       aria-label="Product help and feedback"
       title="Drag to move these controls"
       style={position ? { left: position.left, top: position.top, right: "auto", bottom: "auto" } : undefined}
