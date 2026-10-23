@@ -2,7 +2,7 @@
   <img src="https://tidelight.app/tidelight-mark.svg" alt="Tidelight" width="56" height="56" />
   <h1>Tidelight TypeScript SDK</h1>
   <p><strong>Typed access to Tidelight Intelligence Cloud API v1.</strong></p>
-  <p><a href="https://tidelight.app">Product</a> · <a href="https://dev.tidelight.app/api">API guide</a> · <a href="https://github.com/TidelightOrg/tidelight">Mother repository</a></p>
+  <p><a href="https://tidelight.app">Product</a> · <a href="https://dev.tidelight.app/api">API guide</a> · <a href="https://github.com/TidelightOrg/tidelight">canonical repository</a></p>
 </div>
 
 ---
@@ -56,7 +56,7 @@ npm ci
 npm test
 ```
 
-The SDK source is maintained in [`sdk/typescript`](https://github.com/TidelightOrg/tidelight/tree/main/sdk/typescript) in the mother repository. The standalone [TypeScript repository](https://github.com/TidelightOrg/tidelight-sdk) is a synchronized source mirror. Make source changes in the mother repository.
+The SDK source is maintained in [`sdk/typescript`](https://github.com/TidelightOrg/tidelight/tree/main/sdk/typescript) in the canonical repository. The standalone [TypeScript repository](https://github.com/TidelightOrg/tidelight-sdk) is a synchronized source mirror. Make source changes in the canonical repository.
 
 ## Further reading
 
