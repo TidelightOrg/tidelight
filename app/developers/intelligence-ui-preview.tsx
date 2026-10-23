@@ -12,7 +12,7 @@ const views: { id: View; label: string }[] = [
 ];
 
 export function IntelligenceUiPreview() {
-  const [view, setView] = useState<View>("overview");
+  const [view, setView] = useState<View>("response");
 
   return (
     <div className="tic-intelligence-ui" aria-label="Interactive Intelligence Cloud interface preview">
