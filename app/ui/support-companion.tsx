@@ -106,7 +106,7 @@ export default function SupportCompanion() {
 
   useEffect(() => {
     const bounds = viewportBounds();
-    let restored: { x: number; y: number } = { x: bounds.maxX, y: denseWorkspace ? 132 : bounds.maxY };
+    let restored: { x: number; y: number } = { x: bounds.maxX, y: denseWorkspace ? 8 : bounds.maxY };
     try {
       const saved = window.localStorage.getItem("tidelight-tide-position");
       if (saved) {
@@ -117,7 +117,7 @@ export default function SupportCompanion() {
         if (Number.isFinite(oldBottom) && oldBottom > 0) restored.y = bounds.maxY;
       }
     } catch { /* Invalid saved placement falls back to the lower-right corner. */ }
-    if (denseWorkspace) restored = { x: bounds.maxX, y: 132 };
+    if (denseWorkspace) restored = { x: Math.max(260, Math.floor(window.innerWidth * 0.60)), y: 8 };
     restored = clampPosition(restored);
     const timer = window.setTimeout(() => { positionRef.current = restored; setPosition(restored); }, 0);
     return () => window.clearTimeout(timer);
