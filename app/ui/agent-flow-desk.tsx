@@ -36,6 +36,40 @@ function stageGlyph(agent: string) {
   if (value.includes("trading")) return "◇";
   return "•";
 }
+function stageAgentLabel(stage: StageEvent) {
+  const agent = stage.agent.toLowerCase();
+  if (agent.includes("coordinator")) return "Tide";
+  if (agent.includes("market scout")) return "Market research";
+  if (agent.includes("evidence search")) return "Source collection";
+  if (agent.includes("evidence scout")) return "Headline review";
+  if (agent.includes("research analyst")) return "Evidence synthesis";
+  if (agent.includes("alpha factory")) return "Signal check";
+  if (agent.includes("trading agent")) return "Risk review";
+  return stage.agent;
+}
+
+function stageDisplayTitle(stage: StageEvent, status: StageEvent["status"]) {
+  const agent = stage.agent.toLowerCase();
+  const title = stage.title.replace(new RegExp(`^${stage.asset ?? ""}:\\s*`, "i"), "");
+  if (agent.includes("coordinator")) return title === "Question framed" ? "Setting the research scope" : "Research review ready";
+  if (agent.includes("market scout")) return status === "running" ? "Mapping market and coverage" : "Market context checked";
+  if (agent.includes("evidence search")) {
+    if (title.toLowerCase().includes("agentkey added")) return title.replace(/AgentKey added/i, "AgentKey found");
+    if (title.toLowerCase().includes("public sources used")) return "Public sources reviewed";
+    if (title.toLowerCase().includes("no attributable coverage")) return "No attributable coverage found";
+  }
+  if (agent.includes("evidence scout")) {
+    const count = title.match(/(\d+) recent source headlines/i)?.[1];
+    return count ? `${count} recent headlines collected` : "Recent headlines collected";
+  }
+  if (agent.includes("research analyst")) {
+    if (status === "running") return "Cross-checking source claims";
+    if (status === "complete") return "Evidence assessment ready";
+  }
+  if (agent.includes("alpha factory")) return "Checking the completed-candle rule";
+  if (agent.includes("trading agent")) return "Research-only risk gate";
+  return title;
+}
 
 function QuoteFreshness({ market, now }: { market: AssetRead["market"]; now: number }) {
   const timestamp = market.providerTimestamp;
@@ -226,10 +260,10 @@ export default function AgentFlowDesk({ initialQuestion, favorites = [], recentQ
       <div className="flow-trace" aria-label="Research checkpoints" aria-live="polite" aria-relevant="additions text" role="list">{stages.map((stage, index) => {
         const effectiveStatus = stage.status === "running" && !busy ? error ? "blocked" : "complete" : stage.status;
         const statusLabel = effectiveStatus === "running" ? "In progress" : effectiveStatus === "blocked" ? "On hold" : "Complete";
-        return <details className={`flow-stage flow-stage-${effectiveStatus}`} key={stage.id} role="listitem" aria-current={effectiveStatus === "running" ? "step" : undefined}>
+        return <details className={`flow-stage flow-stage-${effectiveStatus}`} key={stage.id} open={index === 0 && busy} role="listitem" aria-current={effectiveStatus === "running" ? "step" : undefined}>
           <summary className="flow-stage-summary" aria-label={`${stage.agent}${stage.asset ? ` · ${stage.asset}` : ""}: ${stage.title}. ${statusLabel}`}>
             <span className={`flow-stage-node ${effectiveStatus === "running" ? "flow-stage-node-live" : ""}`} aria-hidden="true"><i>{effectiveStatus === "complete" ? "✓" : effectiveStatus === "blocked" ? "!" : <span className="flow-stage-spinner" />}</i></span>
-            <span className="flow-stage-body"><span className="flow-stage-meta"><span>{stage.agent}{stage.asset ? ` · ${stage.asset}` : ""}</span><time dateTime={stage.at || undefined}>{stage.durationMs !== undefined ? `${Math.max(1, Math.round(stage.durationMs / 1000))}s` : effectiveStatus === "running" ? `${busySeconds}s` : ""}</time></span><span className="flow-stage-title">{stage.title}</span></span>
+            <span className="flow-stage-body"><span className="flow-stage-meta"><span>{stageAgentLabel(stage)}{stage.asset ? ` · ${stage.asset}` : ""}</span><time dateTime={stage.at || undefined}>{stage.durationMs !== undefined ? `${Math.max(1, Math.round(stage.durationMs / 1000))}s` : effectiveStatus === "running" ? `${busySeconds}s` : ""}</time></span><span className="flow-stage-title">{stageDisplayTitle(stage, effectiveStatus)}</span></span>
             <span className="flow-stage-chevron" aria-hidden="true">⌄</span>
           </summary>
           <p className="flow-stage-detail">{stage.detail}</p>
