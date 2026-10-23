@@ -38,6 +38,17 @@ export function IntelligenceUiPreview() {
           <div className="tic-intelligence-ui-foot"><span><i/> Source labels remain visible</span><span>EXAMPLE CONTENT · NOT LIVE DATA</span></div>
         </> : <>
           <div className="tic-intelligence-ui-summary"><div><span>DEVELOPER RESPONSE</span><h3>One contract. Interfaces that feel native.</h3><p>Bring the same scoped service into a custom interface or the official React package.</p></div><span className="tic-intelligence-ui-state">API V1</span></div>
+          <section className="tic-response-receipt" aria-label="Illustrative research response receipt">
+            <div className="tic-response-receipt-head"><div><span>REQUEST RECEIPT</span><b>Research job</b></div><em>EXAMPLE · NOT LIVE</em></div>
+            <div className="tic-response-receipt-rows">
+              <div><span>Request</span><b>POST /v1/research/jobs</b></div>
+              <div><span>Job status</span><b className="is-ok">Complete</b></div>
+              <div><span>Instrument</span><b>AAPL · issuer snapshot</b></div>
+              <div><span>Evidence</span><b>Source links attached</b></div>
+              <div><span>Market context</span><b>Fields returned by provider</b></div>
+            </div>
+            <div className="tic-response-receipt-foot"><span>Request ID</span><code>req_example_…</code></div>
+          </section>
           <pre className="tic-intelligence-ui-code" tabIndex={0} aria-label="Example research job API response"><code>{`{
   "job_id": "job_…",
   "ticker": "AAPL",

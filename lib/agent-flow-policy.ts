@@ -14,6 +14,12 @@ export type FlowGateInput = {
   now: number;
 };
 
+/** Detect explicit token-market intent without treating ordinary words such as “right” as rTickers. */
+export function isTokenizedMarketQuestion(question: string, tickers: readonly string[]): boolean {
+  if (/\b(?:tokeni[sz]ed|reality market|r[\s-]?token)\b/i.test(question)) return true;
+  return tickers.some((ticker) => /^[A-Z]{1,6}$/i.test(ticker) && new RegExp(`\\br[\\s-]?${ticker}(?:usdt)?\\b`, "i").test(question));
+}
+
 /** Evidence-only fallback used when every configured synthesis provider is unavailable. */
 export function sourceOnlyAssessment(input: { ticker: string; headlineCount: number; publishers: number; latestTitle?: string | null; latestPublisher?: string | null; latestDate?: string | null; tokenizedMarketQuestion: boolean; spotSymbol?: string | null; spotPrice?: number | null; spotTimestamp?: number | null; perpSymbol?: string | null }): FlowAssessment {
   const { ticker } = input;

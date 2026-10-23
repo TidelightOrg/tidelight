@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { aiJsonWithFallback, configuredAiProviders } from "@/lib/ai-fallback";
 import { getBitgetAsset, getBitgetCandles, getBitgetStockPerp, STOCK_PERP_UNIVERSE } from "@/lib/bitget-market";
 import { buildSignals, prepareBacktestCandles } from "@/lib/backtest";
-import { extractFlowTickers, gateFlowTrade, normalizeFlowAssessments, sourceOnlyAssessment, tokenizedMarketReview, type FlowAssessment, type FlowSource } from "@/lib/agent-flow-policy";
+import { extractFlowTickers, gateFlowTrade, isTokenizedMarketQuestion, normalizeFlowAssessments, sourceOnlyAssessment, tokenizedMarketReview, type FlowAssessment, type FlowSource } from "@/lib/agent-flow-policy";
 import { gatherIssuerEvidence, type FlowEvidence } from "@/lib/agent-flow-sources";
 import { agentKeyIssuerEvidence } from "@/lib/agentkey-flow-sources";
 
@@ -95,7 +95,7 @@ export async function POST(request: Request) {
         push("stage", item);
       };
       try {
-        const tokenizedMarketQuestion = /\br(?:[A-Z]{1,6})(?:usdt)?\b/i.test(question) || /\b(tokenized|tokenised|reality market|r-token|rtoken)\b/i.test(question);
+        const tokenizedMarketQuestion = isTokenizedMarketQuestion(question, tickers);
         stage("Coordinator", "complete", "Question framed", `Deep research: eight bounded news searches per issuer, separate rToken and stock-perpetual market checks, Alpha Factory, and risk gates.${workspaceContext ? ` Opened from ${workspaceContext}.` : ""}`);
         stage("Market scout", "running", "Mapping current market and coverage", "Checking eight bounded news searches across four angles, an optional live search provider, and verified Bitget instruments. Headlines remain discovery references until reviewed.");
         const snapshots: MarketSnapshot[] = await Promise.all(tickers.map(async ticker => {
@@ -115,7 +115,21 @@ export async function POST(request: Request) {
           const liveEvidence = agentKeySources.status === "fulfilled" ? agentKeySources.value : [];
           const evidence = [...new Map([...feedEvidence, ...liveEvidence].map(source => [source.url, source])).values()]
             .sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? "")).slice(0, 40);
-          stage("AgentKey scout", liveEvidence.length ? "complete" : "blocked", `${ticker}: ${liveEvidence.length ? `${liveEvidence.length} linked live headlines` : "public-feed fallback active"}`, liveEvidence.length ? "AgentKey returned dated article links; the existing public feeds were checked too." : "AgentKey was unavailable, over budget, or returned no attributable coverage. Existing public feeds remain in use.", ticker);
+          stage(
+            "Evidence search",
+            liveEvidence.length || feedEvidence.length ? "complete" : "blocked",
+            liveEvidence.length
+              ? `${ticker}: AgentKey added ${liveEvidence.length} linked headlines`
+              : feedEvidence.length
+                ? `${ticker}: public sources used`
+                : `${ticker}: no attributable coverage`,
+            liveEvidence.length
+              ? "AgentKey returned dated article links; public feeds were checked alongside it."
+              : feedEvidence.length
+                ? "No attributable AgentKey headlines were available for this search. Public-feed results are shown below."
+                : "AgentKey and public feeds returned no recent, attributable article links.",
+            ticker,
+          );
           return { ticker, issuer: market?.name ?? spotAsset?.name ?? ticker, perp: market, spot: spotAsset,
             candles: candles.status === "fulfilled" ? candles.value : [], sources: evidence };
         }));

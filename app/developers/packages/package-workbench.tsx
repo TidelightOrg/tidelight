@@ -127,7 +127,7 @@ const order: PackageId[] = ["sdk", "mcp", "python", "react", "cli"];
 
 export function PackageWorkbench() {
   const [selected, setSelected] = useState<PackageId>("sdk");
-  const [surface, setSurface] = useState<"install" | "example" | "verify">("install");
+  const [surface, setSurface] = useState<"install" | "example" | "verify" | "receipt">("install");
   const [copied, setCopied] = useState(false);
   const current = previews[selected];
   const { entry: registry, checking } = useRegistryPackage(selected);
@@ -142,8 +142,8 @@ export function PackageWorkbench() {
     : selected === "react"
       ? [`React peers: ${compatibility?.peerDependencies?.react ?? "not declared"}`, `CI tested: ${compatibility?.testedReact?.join(" · ") ?? "not listed"}`, `Node ${compatibility?.declaredNode ?? "support not declared"} · CI ${compatibility?.testedNode?.join(" · ") ?? "not listed"}`]
       : [`Node ${compatibility?.declaredNode ? `${compatibility.declaredNode} declared` : "support not declared"}`, `CI tested: ${compatibility?.testedNode?.join(" · ") ?? "not listed"}`];
-  const preview = surface === "install" ? exactInstall : surface === "verify" ? current.command : current.source;
-  const codeLanguage = surface !== "example" || selected === "cli" ? "bash" : selected === "python" ? "python" : selected === "mcp" ? "json" : "typescript";
+  const preview = surface === "install" ? exactInstall : surface === "verify" ? current.command : surface === "receipt" ? JSON.stringify({ job_id: "job_example", status: "complete", result: { type: "company_snapshot", ticker: "AAPL", evidence: { mode: "headline_discovery", items: [] } }, request_id: "req_example" }, null, 2) : current.source;
+  const codeLanguage = surface === "example" && selected !== "cli" ? selected === "python" ? "python" : selected === "mcp" ? "json" : "typescript" : surface === "receipt" ? "json" : "bash";
 
   async function copySource() {
     try {
@@ -212,10 +212,23 @@ export function PackageWorkbench() {
 
           <div className="tic-package-workbench-preview" aria-label={`${current.name} package workbench`} key={`${selected}-${surface}`}>
             <div className="tic-package-preview-topline"><div role="group" aria-label={`${current.name} workbench view`}>
-              {(["install", "example", "verify"] as const).map(view => <button key={view} type="button" aria-pressed={surface === view} onClick={() => { setSurface(view); setCopied(false); }}>{view === "install" ? "Install" : view === "example" ? "Example" : "Test source"}</button>)}
+              {(["install", "example", "verify", "receipt"] as const).map(view => <button key={view} type="button" aria-pressed={surface === view} onClick={() => { setSurface(view); setCopied(false); }}>{view === "install" ? "Install" : view === "example" ? "Example" : view === "verify" ? "Test source" : "Receipt"}</button>)}
             </div><button className="tic-package-copy" type="button" onClick={copySource}>{copied ? "Copied" : "Copy"}</button></div>
-            <pre tabIndex={0} aria-label={surface === "install" ? "Version-pinned install command" : surface === "verify" ? "Tidelight repository package test command" : "Package example source"}><code><SyntaxCode code={preview} language={codeLanguage} /></code></pre>
-            <div className="tic-package-preview-footer"><span>{surface === "install" ? (registry.version ? `PINNED TO ${registry.version}` : "REGISTRY VERSION PENDING") : surface === "verify" ? "Tidelight repository · LOCAL TESTS" : "QUICKSTART SNIPPET · NO LIVE DATA"}</span>{surface === "verify" && <Link href="https://github.com/TidelightOrg/tidelight">Browse source ↗</Link>}</div>
+            {surface === "receipt" ? <>
+              <section className="tic-package-response-receipt" aria-label="Illustrative research job response">
+                <div className="tic-package-response-receipt-head"><div><span>RESEARCH JOB</span><b>Response receipt</b></div><em>EXAMPLE · NOT LIVE</em></div>
+                <div className="tic-package-response-receipt-rows">
+                  <div><span>Status</span><b className="is-complete">Complete</b></div>
+                  <div><span>Instrument</span><b>AAPL</b></div>
+                  <div><span>Result type</span><b>Company snapshot</b></div>
+                  <div><span>Evidence mode</span><b>Headline discovery</b></div>
+                  <div><span>Evidence items</span><b>0 in this fixture</b></div>
+                </div>
+                <div className="tic-package-response-receipt-foot"><span>Request ID</span><code>req_example</code></div>
+              </section>
+              <pre tabIndex={0} aria-label="Illustrative research response JSON"><code><SyntaxCode code={preview} language={codeLanguage} /></code></pre>
+            </> : <pre tabIndex={0} aria-label={surface === "install" ? "Version-pinned install command" : surface === "verify" ? "Tidelight repository package test command" : "Package example source"}><code><SyntaxCode code={preview} language={codeLanguage} /></code></pre>}
+            <div className="tic-package-preview-footer"><span>{surface === "install" ? (registry.version ? `PINNED TO ${registry.version}` : "REGISTRY VERSION PENDING") : surface === "verify" ? "TIDELIGHT REPOSITORY · LOCAL TESTS" : surface === "receipt" ? "ILLUSTRATIVE RESPONSE · NO LIVE REQUEST" : "QUICKSTART SNIPPET · NO LIVE DATA"}</span>{surface === "verify" && <Link href="https://github.com/TidelightOrg/tidelight">Browse source ↗</Link>}</div>
           </div>
         </div>
       </div>
