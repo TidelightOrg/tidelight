@@ -262,7 +262,7 @@ export default function AgentFlowDesk({ initialQuestion, favorites = [], recentQ
         const statusLabel = effectiveStatus === "running" ? "In progress" : effectiveStatus === "blocked" ? "On hold" : "Complete";
         return <details className={`flow-stage flow-stage-${effectiveStatus}`} key={stage.id} open={index === 0 && busy} role="listitem" aria-current={effectiveStatus === "running" ? "step" : undefined}>
           <summary className="flow-stage-summary" aria-label={`${stage.agent}${stage.asset ? ` · ${stage.asset}` : ""}: ${stage.title}. ${statusLabel}`}>
-            <span className={`flow-stage-node ${effectiveStatus === "running" ? "flow-stage-node-live" : ""}`} aria-hidden="true"><i>{effectiveStatus === "complete" ? "✓" : effectiveStatus === "blocked" ? "!" : <span className="flow-stage-spinner" />}</i></span>
+            <span className={`flow-stage-node flow-stage-node-${effectiveStatus}`} aria-hidden="true"><i>{effectiveStatus === "running" ? <span className="flow-stage-spinner" /> : effectiveStatus === "blocked" ? "!" : stageGlyph(stage.agent)}</i></span>
             <span className="flow-stage-body"><span className="flow-stage-meta"><span>{stageAgentLabel(stage)}{stage.asset ? ` · ${stage.asset}` : ""}</span><time dateTime={stage.at || undefined}>{stage.durationMs !== undefined ? `${Math.max(1, Math.round(stage.durationMs / 1000))}s` : effectiveStatus === "running" ? `${busySeconds}s` : ""}</time></span><span className="flow-stage-title">{stageDisplayTitle(stage, effectiveStatus)}</span></span>
             <span className="flow-stage-chevron" aria-hidden="true">⌄</span>
           </summary>
