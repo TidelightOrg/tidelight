@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { aiJsonWithFallback, configuredAiProviders } from "@/lib/ai-fallback";
-import { getBitgetAsset, getBitgetCandles, getBitgetStockPerp, STOCK_PERP_UNIVERSE } from "@/lib/bitget-market";
+import { getBitgetAsset, getBitgetCandles, getBitgetStockPerp, getIssuerName, STOCK_PERP_UNIVERSE } from "@/lib/bitget-market";
 import { buildSignals, prepareBacktestCandles } from "@/lib/backtest";
 import { extractFlowTickers, gateFlowTrade, isTokenizedMarketQuestion, normalizeFlowAssessments, sourceOnlyAssessment, tokenizedMarketReview, type FlowAssessment, type FlowSource } from "@/lib/agent-flow-policy";
 import { gatherIssuerEvidence, type FlowEvidence } from "@/lib/agent-flow-sources";
@@ -106,8 +106,8 @@ export async function POST(request: Request) {
             settleWithin(getBitgetStockPerp(symbol), 18_000),
             tokenizedMarketQuestion ? settleWithin(getBitgetAsset(`R${ticker}USDT`), 18_000) : Promise.resolve(null),
             settleWithin(getBitgetCandles(symbol, "4H", 100, "USDT-FUTURES"), 18_000),
-            settleWithin(gatherIssuerEvidence(ticker, ticker), 18_000),
-            settleWithin(agentKeyIssuerEvidence(ticker, ticker), 12_000),
+            settleWithin(gatherIssuerEvidence(ticker, getIssuerName(ticker)), 18_000),
+            settleWithin(agentKeyIssuerEvidence(ticker, getIssuerName(ticker)), 12_000),
           ]);
           const market = perp.status === "fulfilled" ? perp.value : null;
           const spotAsset = spot.status === "fulfilled" && spot.value?.isReality && spot.value.underlyingTicker === ticker ? spot.value : null;
