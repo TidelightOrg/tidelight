@@ -420,3 +420,5 @@
 .flow-reply .flow-asset-card{border-radius:13px}
 @media(max-width:700px){.flow-work-thread{padding:15px 12px 16px;border-radius:14px}.flow-work-thread .flow-trace{margin-left:10px}.flow-work-thread .flow-stage{padding-left:10px}.flow-reply{margin-top:18px;padding:16px 12px;border-radius:14px}.flow-user-prompt,.flow-reply-intro,.flow-reply .flow-asset-grid{margin-left:0}.flow-reply-head{margin-bottom:12px}}
 @media(prefers-reduced-motion:reduce){.flow-work-thread .flow-stage-running:before{animation:none}}
+
+.flow-reply .flow-asset-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr))}
