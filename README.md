@@ -17,7 +17,7 @@
 <br />
 
 <p align="center">
-  <img src="./docs/readme-assets/tidelight-macbook.png" alt="Tidelight's DYOR experience: a glowing market signal connects evidence to the Tidelight mark." width="100%" />
+  <img src="./docs/readme-assets/tidelight-macbook.png" alt="Tidelight's Tidelight research connects a company event to its evidence and potential market exposure." width="100%" />
 </p>
 
 <p align="center"><sub>A calmer research desk for the hours between headlines.</sub></p>
@@ -109,7 +109,7 @@ Research links are public for 30 days from publication and can be revoked. Each 
 <details>
 <summary><strong>Open Nightwatch position captures · 22 Oct 2026</strong></summary>
 
-These **owner-supplied screenshots** show three historical open paper positions. The partial export reported 23 decisions, five paper orders, and three positions among the records loaded at export time. The public exhibit includes only the three pictured position cards; it excludes raw order rows, account identifiers, balances, and internal record IDs.
+The public exhibit contains three historical Nightwatch paper positions from a partial account export. The export reported 23 decisions, five paper orders, and three open positions; only the pictured position cards are shown. Raw order rows, account identifiers, balances, and internal record IDs are excluded.
 
 ![Nightwatch rNVD paper position capture](https://tidelight.app/judge-evidence/nightwatch-rnvd-position.png)
 

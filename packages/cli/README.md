@@ -2,7 +2,7 @@
   <img src="https://tidelight.app/tidelight-mark.svg" alt="Tidelight" width="56" height="56" />
   <h1>Tidelight CLI</h1>
   <p><strong>Secure terminal workflows for the supported Tidelight API.</strong></p>
-  <p><a href="https://tidelight.app">Product</a> · <a href="https://dev.tidelight.app/api">API guide</a> · <a href="https://github.com/TidelightOrg/tidelight">Mother repository</a></p>
+  <p><a href="https://tidelight.app">Product</a> · <a href="https://dev.tidelight.app/api">API guide</a> · <a href="https://github.com/TidelightOrg/tidelight">canonical repository</a></p>
 </div>
 
 ---
@@ -62,4 +62,4 @@ HTTP status, stable API error code, and request ID are shown when the API provid
 See [CHANGELOG.md](./CHANGELOG.md) for release history.
 
 
-The clean consumer rehearsal is `npm run test:package-consumers` from the mother repository. It installs the packaged CLI with its matching SDK in an isolated project, checks installed `--help`, then confirms an unauthenticated research command exits before making a network request. It does not publish either archive.
+The clean consumer rehearsal is `npm run test:package-consumers` from the canonical repository. It installs the packaged CLI with its matching SDK in an isolated project, checks installed `--help`, then confirms an unauthenticated research command exits before making a network request. It does not publish either archive.

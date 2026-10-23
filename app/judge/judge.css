@@ -21,7 +21,7 @@
 .judge-capture-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px}
 .judge-capture-grid figure{min-width:0;margin:0;overflow:hidden;border:1px solid var(--line);border-radius:18px;background:color-mix(in srgb,var(--panel) 90%,transparent);box-shadow:0 20px 52px color-mix(in srgb,var(--text) 9%,transparent);transition:transform .24s,border-color .24s,box-shadow .24s}
 .judge-capture-grid figure:hover{transform:translateY(-3px);border-color:color-mix(in srgb,var(--mint) 42%,var(--line));box-shadow:0 26px 58px color-mix(in srgb,var(--text) 13%,transparent)}
-.judge-capture-grid figure>a{display:block;overflow:hidden;background:#0b1020}
+.judge-capture-grid figure>a{display:block;overflow:hidden;background:#0b1020;position:relative}.judge-capture-grid figure>a:after{content:"";position:absolute;inset:0;border:1px solid color-mix(in srgb,var(--mint) 10%,transparent);pointer-events:none}.judge-capture-grid figure img{filter:saturate(.92)}
 .judge-capture-grid img{display:block;width:100%;height:auto;transition:transform .35s ease}
 .judge-capture-grid figure>a:hover img{transform:scale(1.02)}
 .judge-capture-grid figcaption{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px 18px}

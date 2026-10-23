@@ -1,12 +1,12 @@
 {
   "schema_version": "tidelight.nightwatch-position-captures.v1",
   "captured_at": "2026-10-22T18:37:03.857Z",
-  "provenance": "Owner-supplied Nightwatch export and matching position-card screenshots. This is a historical, partial account snapshot, not a live database query.",
+  "provenance": "Owner-supplied historical Nightwatch account export and matching position-card screenshots prepared for this exhibit. This is a historical, partial account snapshot, not a live database query.",
   "scope": {
     "decisions_in_export": 23,
     "paper_orders_in_export": 5,
     "open_positions_in_export": 3,
-    "limitation": "The export included only records loaded in the owner's view. Only the three illustrated open-position captures are reproduced here; raw order rows, account identifiers, and internal record IDs are excluded."
+    "limitation": "The export included only records loaded in the account view. Only the three illustrated open-position captures are reproduced here; raw order rows, account identifiers, and internal record IDs are excluded."
   },
   "positions": [
     {

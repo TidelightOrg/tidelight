@@ -27,18 +27,16 @@ export default function JudgePage() {
     <section className="judge-hero">
       <div className="judge-hero-top">
         <span className="judge-brand"><TidelightAnimatedMark /> TIDELIGHT</span>
-        <span className="judge-badge">PUBLIC EVALUATOR MODE · NO LOGIN</span>
+        <span className="judge-badge">PUBLIC EVALUATION</span>
       </div>
       <div className="judge-hero-grid">
         <div>
           
           <h1>From an overnight event to a decision you can inspect.</h1>
-          <p className="judge-lede">Tidelight is an evidence-first control room for tokenized US equities. This fixed replay shows the complete trust path in under five minutes, without pretending that a staged result is live performance.</p>
+          <p className="judge-lede">Review an after-hours research path across issuer news, instrument data, exposure, and risk gates. Historical and simulated results are identified where they appear.</p>
           <div className="judge-actions">
-            <Link className="judge-primary" href="/flow?demo=1&question=Should%20I%20review%20the%20affected%20rToken%20after%20an%20after-hours%20earnings%20event%3F">Run the live research path <span>↗</span></Link>
-            <Link className="judge-secondary" href="/demo">Read the product walkthrough <span>→</span></Link>
+            <Link className="judge-primary" href="/flow?demo=1&question=Should%20I%20review%20the%20affected%20rToken%20after%20an%20after-hours%20earnings%20event%3F">Start research <span>↗</span></Link>
             <Link className="judge-secondary" href="/evidence">Inspect evidence manifest <span>↗</span></Link>
-            <Link className="judge-secondary" href="/replay/c5f5b22e-c995-4a5e-8193-5737c4d413b8">Read a live rTSLA review <span>↗</span></Link>
           </div>
         </div>
         <aside className="judge-hero-card" aria-label="Judge mode summary">
@@ -53,7 +51,7 @@ export default function JudgePage() {
     <section className="judge-section">
       <div className="judge-section-heading">
         
-        <h2>Follow one decision without opening a private workspace.</h2>
+        <h2>Follow a decision from event to risk gate.</h2>
       </div>
       <div className="judge-evidence-grid">
         {evidence.map((item, index) => <article className="judge-evidence-card" key={item.label}>
@@ -117,16 +115,16 @@ export default function JudgePage() {
     <section className="judge-section judge-trade-captures" id="nightwatch-position-captures" aria-labelledby="nightwatch-captures-title">
       <div className="judge-capture-heading">
         <div className="judge-capture-title">
-          <span className="judge-kicker">NIGHTWATCH / PAPER LEDGER</span>
-          <h2 id="nightwatch-captures-title">Historical position snapshots</h2>
-          <p>Paper positions captured 12–22 October 2026. Values are simulated marks at capture time, not live holdings or audited performance.</p>
+          
+          <h2 id="nightwatch-captures-title">Nightwatch paper positions</h2>
+          <p>Captured 12–22 October 2026. Values are simulated marks, not live holdings or audited performance.</p>
         </div>
-        <Link className="judge-capture-data-link" href="/evidence/nightwatch-position-captures.json">Evidence details <span aria-hidden="true">↗</span></Link>
+        <Link className="judge-capture-data-link" href="/evidence/nightwatch-position-captures.json">Evidence record <span aria-hidden="true">↗</span></Link>
       </div>
       <div className="judge-capture-grid">
-        <figure><a href="/judge-evidence/nightwatch-rnvd-position.png" target="_blank" rel="noreferrer"><Image src="/judge-evidence/nightwatch-rnvd-position.png" width={1200} height={630} alt="Nightwatch paper ledger snapshot for rNVD, captured 22 October 2026."/></a><figcaption><div className="judge-capture-caption"><strong>rNVD</strong><span>Paper position</span></div><time dateTime="2026-10-22">22 Oct 2026</time></figcaption></figure>
-        <figure><a href="/judge-evidence/nightwatch-raapl-position.png" target="_blank" rel="noreferrer"><Image src="/judge-evidence/nightwatch-raapl-position.png" width={1200} height={630} alt="Nightwatch paper ledger snapshot for rAAPL, captured 14 October 2026."/></a><figcaption><div className="judge-capture-caption"><strong>rAAPL</strong><span>Paper position</span></div><time dateTime="2026-10-14">14 Oct 2026</time></figcaption></figure>
-        <figure><a href="/judge-evidence/nightwatch-rgoogl-position.png" target="_blank" rel="noreferrer"><Image src="/judge-evidence/nightwatch-rgoogl-position.png" width={1200} height={630} alt="Nightwatch paper ledger snapshot for rGOOGL, captured 12 October 2026."/></a><figcaption><div className="judge-capture-caption"><strong>rGOOGL</strong><span>Paper position</span></div><time dateTime="2026-10-12">12 Oct 2026</time></figcaption></figure>
+        <figure><a href="/judge-evidence/nightwatch-rnvd-position.png" target="_blank" rel="noreferrer"><Image src="/judge-evidence/nightwatch-rnvd-position.png" width={1200} height={630} alt="Nightwatch paper ledger snapshot for rNVD, captured 22 October 2026."/></a><figcaption><div className="judge-capture-caption"><strong>rNVD</strong></div><time dateTime="2026-10-22">22 Oct 2026</time></figcaption></figure>
+        <figure><a href="/judge-evidence/nightwatch-raapl-position.png" target="_blank" rel="noreferrer"><Image src="/judge-evidence/nightwatch-raapl-position.png" width={1200} height={630} alt="Nightwatch paper ledger snapshot for rAAPL, captured 14 October 2026."/></a><figcaption><div className="judge-capture-caption"><strong>rAAPL</strong></div><time dateTime="2026-10-14">14 Oct 2026</time></figcaption></figure>
+        <figure><a href="/judge-evidence/nightwatch-rgoogl-position.png" target="_blank" rel="noreferrer"><Image src="/judge-evidence/nightwatch-rgoogl-position.png" width={1200} height={630} alt="Nightwatch paper ledger snapshot for rGOOGL, captured 12 October 2026."/></a><figcaption><div className="judge-capture-caption"><strong>rGOOGL</strong></div><time dateTime="2026-10-12">12 Oct 2026</time></figcaption></figure>
       </div>
     </section>
 

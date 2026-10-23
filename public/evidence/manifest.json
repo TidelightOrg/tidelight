@@ -74,7 +74,7 @@
       "agentic": {
         "status": "owner_supplied_static_capture",
         "requirements": [
-          "three owner-supplied historical Nightwatch position captures are attached",
+          "three historical Nightwatch position captures are attached",
           "sanitized summary lists 23 decisions, 5 paper orders, and 3 open positions in the partial export scope",
           "only the three illustrated positions are reproduced; raw private order rows and internal identifiers are excluded",
           "capture dates, paper-only status, historical marks, and data limitations are stated",
