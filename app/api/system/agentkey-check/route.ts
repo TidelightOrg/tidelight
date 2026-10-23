@@ -1,4 +1,5 @@
 import { configuredAgentKey } from "@/lib/agentkey";
+import { inspectAgentKeySearchDescription } from "@/lib/agentkey-flow-sources";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -21,8 +22,11 @@ export async function POST(request: Request) {
   let state = "available";
   let failure = "";
   try {
-    // Catalog discovery only. No billable execute_tool call and no user input.
-    await client.findTools("Find public US equity company news and market sources");
+    // Check the exact bounded search capability used by research, without a billable data query.
+    const catalog = await client.findTools("Search dated public news headlines for a US listed company with attributable article links");
+    if (!JSON.stringify(catalog).includes("agentkey_search")) throw new Error("research-search-tool-unavailable");
+    const description = await client.describeTool("agentkey_search");
+    if (!inspectAgentKeySearchDescription(description).withinBudget) throw new Error("research-search-cost-unverified");
   } catch (cause) {
     state = "unavailable";
     failure = cause instanceof Error ? cause.message : "agentkey-upstream";

@@ -28,10 +28,10 @@ test("public export is an explicit owner action and strips private route context
   assert.match(route, /createAdminClient\(\)/);
   assert.match(route, /existing/);
   assert.doesNotMatch(route, /workspaceContext|\.handoff|email|user\.email/);
-  assert.match(control, /Anyone with the link can see this research question/);
-  assert.match(control, /expires after 30 days and can be revoked/);
-  assert.match(control, /Publish this research run/);
-  assert.match(control, /Your shared replays\./);
+  assert.match(control, /order controls are excluded/);
+  assert.match(control, /Links expire after 30 days and can be revoked/);
+  assert.match(control, /aria-modal="true" aria-labelledby="replay-share-title"/);
+  assert.match(control, /loadLinks\(\)/);
   assert.match(control, /No public replays yet/);
 });
 

@@ -72,7 +72,7 @@
         ]
       },
       "agentic": {
-        "status": "owner_supplied_static_capture",
+        "status": "historical_static_capture",
         "requirements": [
           "three historical Nightwatch position captures are attached",
           "sanitized summary lists 23 decisions, 5 paper orders, and 3 open positions in the partial export scope",
@@ -129,15 +129,15 @@
       "kind": "paper_trading",
       "status": "private_owner_scoped",
       "uri": "https://tidelight.app/nightwatch",
-      "claim": "The full account ledger remains owner-scoped. Judge Mode separately displays three owner-supplied historical position captures with a sanitized summary; the raw account export and internal row identifiers are not public."
+      "claim": "The full account ledger remains private to its account. Judge Mode displays three dated historical paper-position captures with a sanitized summary; raw account exports and internal row identifiers are excluded."
     },
     {
       "id": "nightwatch-position-captures",
-      "kind": "owner_supplied_static_artifact",
+      "kind": "historical_static_artifact",
       "status": "public_historical_capture",
       "uri": "https://tidelight.app/judge#nightwatch-position-captures",
       "summary_uri": "https://tidelight.app/evidence/nightwatch-position-captures.json",
-      "claim": "Three Nightwatch paper-position screenshots supplied by the owner, dated 12–22 Oct 2026. The display shows historical mark-to-market values; this is not a live ledger query or audited performance."
+      "claim": "Three Nightwatch paper-position captures dated 12–22 Oct 2026. The display shows historical mark-to-market values; this is not a live ledger query or audited performance."
     },
     {
       "id": "public-nightwatch-replays",

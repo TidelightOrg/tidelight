@@ -52,12 +52,12 @@ export function RegistryFacts({ packageId, compact = false }: { packageId: Packa
   return <section className={`tic-registry-facts${compact ? " is-compact" : ""}`} aria-label={`${entry.name} registry release details`}>
     <div className="tic-registry-facts-head"><span className="tic-registry-live-dot" aria-hidden="true"/><strong>{entry.status === "published" ? `Published on ${entry.registry === "npm" ? "npm" : "PyPI"}` : checking ? `Checking ${entry.registry === "npm" ? "npm" : "PyPI"} registry…` : entry.version ? `Last verified release · ${entry.registry === "npm" ? "npm" : "PyPI"}` : "Registry check unavailable"}</strong><span className="tic-registry-version">{entry.version ? `v${entry.version}` : checking ? "Checking…" : "Version unavailable"}</span></div>
     {!compact && <p>{entry.summary ?? `Official ${entry.name} distribution.`}</p>}
-    <code className="tic-registry-install">{entry.install}</code>
+    <div className="tic-registry-install-row"><span>Install</span><code className="tic-registry-install">{entry.install}</code></div>
     <div className="tic-registry-actions"><a href={entry.url} target="_blank" rel="noreferrer">Open registry page <span aria-hidden="true">↗</span></a>{entry.tarball && <a href={entry.tarball}>Download archive <span aria-hidden="true">↓</span></a>}{entry.integrity && <span title={entry.integrity}>npm SHA-512 integrity verified by registry</span>}{entry.files.find(file => file.sha256) && <span title={entry.files.find(file => file.sha256)?.sha256}>PyPI SHA-256 published</span>}</div>
   </section>;
 }
 
-export function PackageRegistryCard({ packageId, name, summary, href, glyph, ecosystem, index }: {
+export function PackageRegistryCard({ packageId, name, summary, href, ecosystem, index }: {
   packageId: PackageId; name: string; summary: string; href: string; glyph?: string; ecosystem: string; index: number;
 }) {
   const { entry, checking } = useRegistryPackage(packageId);

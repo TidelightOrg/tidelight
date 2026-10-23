@@ -90,41 +90,41 @@ export default function JudgePage() {
       <div className="judge-section-heading"><h2>Inspect the artifacts, not just the pitch.</h2></div>
       <div className="judge-lane-grid">
         <Link href="/evidence"><span>PUBLIC EVIDENCE</span><strong>Open the evidence manifest.</strong><em>Routes, artifact status, limitations and reproduction requirements ↗</em></Link>
-        <Link href="/replay/4e86bf9c-7295-4be1-ae52-487341e7f1ca"><span>LIVE RESEARCH TRACE</span><strong>Inspect the rMSFT evidence.</strong><em>Owner-published source and market snapshot ↗</em></Link>
-        <Link href="/flow"><span>OWNER-PUBLISHED REPLAY</span><strong>Publish a real research run.</strong><em>After a completed run, share a 30-day source-linked replay with judges ↗</em><small>Publishing requires a signed-in owner and explicit consent.</small></Link>
+        <Link href="/replay/4e86bf9c-7295-4be1-ae52-487341e7f1ca"><span>PUBLIC RESEARCH SNAPSHOT</span><strong>Inspect the rMSFT evidence.</strong><em>Sources, instrument context, and risk gates ↗</em></Link>
+        <Link href="/flow"><span>RESEARCH REPLAY</span><strong>Publish a research run.</strong><em>Create a source-linked replay that expires after 30 days ↗</em><small>Sign in and confirm before publishing.</small></Link>
         <Link href="/strategies"><span>ALPHA FACTORY</span><strong>Export a reproducible strategy run.</strong><em>Authenticated runs include candle fingerprints, costs and holdout data ↗</em></Link>
         <Link href="/nightwatch"><span>NIGHTWATCH</span><strong>Export private paper evidence.</strong><em>Account-scoped decisions and paper ledger; review privacy before sharing ↗</em></Link>
-        <Link href="/nightwatch/replays"><span>NIGHTWATCH · PUBLIC REPLAYS</span><strong>Inspect owner-published trade replays.</strong><em>One simulated fill, its decision context, costs, and risk notes ↗</em></Link>
+        <Link href="/nightwatch/replays"><span>NIGHTWATCH · PUBLIC REPLAYS</span><strong>Inspect paper trade replays.</strong><em>Simulated fill, decision context, costs, and risk notes ↗</em></Link>
       </div>
     </section>
 
     <section className="judge-section judge-published-research" aria-labelledby="published-research-title">
-      <div className="judge-section-heading"><h2 id="published-research-title">Seven live records. One clear evidence boundary.</h2><p>Five new token reviews join the two earlier public examples. Every card opens a real owner-published snapshot with captured sources, instrument checks, and risk gates. Links expire 30 days after publication and can be revoked.</p></div>
-      <p className="judge-lede">Across the five new runs, 40 issuer headlines were collected per company from 17–30 publishers. AI synthesis was unavailable in each, so these are transparent fallback records rather than completed analyst theses. No directional assessment or trade handoff was made; each replay shows quote freshness and unmeasured token-market checks.</p>
+      <div className="judge-section-heading"><h2 id="published-research-title">Published research replays</h2><p>Seven public snapshots show source coverage, quote freshness, instrument checks, and risk gates. Links expire 30 days after publication and can be revoked.</p></div>
+      <p className="judge-lede">Five of these runs collected 40 issuer headlines per company across 17–30 publishers. AI synthesis was unavailable, so they show a source-only fallback with no directional assessment or trade handoff. Quote freshness is recorded; token depth, spread, and premium/discount were not measured.</p>
       <div className="judge-lane-grid">
         <Link href="/replay/c5f5b22e-c995-4a5e-8193-5737c4d413b8"><span>RTSLA · EV / AUTOMOTIVE</span><strong>Would you review the rTSLA market?</strong><small>40 issuer headlines across 30 publishers. The token quote was stale; depth, spread, and premium/discount were not measured.</small><em>Inspect published replay ↗</em></Link>
         <Link href="/replay/4e86bf9c-7295-4be1-ae52-487341e7f1ca"><span>RMSFT · AI / CLOUD</span><strong>How do AI investment and Azure demand change the risk picture?</strong><small>40 issuer headlines across 23 publishers. The token quote was fresh at capture; market depth, spread, and premium/discount were not measured.</small><em>Inspect published replay ↗</em></Link>
         <Link href="/replay/5d27e66c-2a87-4450-95d3-5014e1309216"><span>RAAPL · DEVICES / SERVICES</span><strong>What should a long-term rAAPL review verify?</strong><small>40 issuer headlines across 22 publishers. The token quote was stale; the run did not assess rAAPL tradability.</small><em>Inspect published replay ↗</em></Link>
         <Link href="/replay/7ca56a20-c064-4f99-b351-806b2ddd685e"><span>RGOOGL · REGULATION / AI SEARCH</span><strong>How should antitrust remedies and AI-search competition be reviewed?</strong><small>40 issuer headlines across 17 publishers. The token quote was fresh at capture; liquidity, spread, and premium/discount were not measured.</small><em>Inspect published replay ↗</em></Link>
         <Link href="/replay/c67d7b29-85eb-4c27-8a29-2cbe85bd4e91"><span>RAMZN · CLOUD / RETAIL</span><strong>How do AWS investment and retail economics shape the review?</strong><small>40 issuer headlines across 21 publishers. The token quote was fresh at capture; no trading handoff was made.</small><em>Inspect published replay ↗</em></Link>
-        <Link href="/replay/c2ffbe89-74a5-4547-bf89-5952e37efeaa"><span>RNVDA · TOKENIZED MARKET</span><strong>Is the rNVDA market worth reviewing?</strong><small>Earlier owner-published run. Inspect its original issuer coverage, instrument context, and stated limitations.</small><em>Inspect published replay ↗</em></Link>
-        <Link href="/replay/91bb478a-7977-4b34-b32d-b1f558a8af75"><span>NVDA + TSLA · COMPARISON</span><strong>Compare the latest evidence and risks.</strong><small>Earlier owner-published comparison with separate issuer assessments and decision gates.</small><em>Inspect published replay ↗</em></Link>
+        <Link href="/replay/c2ffbe89-74a5-4547-bf89-5952e37efeaa"><span>RNVDA · TOKENIZED MARKET</span><strong>Is the rNVDA market worth reviewing?</strong><small>Earlier published run with issuer coverage, instrument context, and stated limitations.</small><em>Inspect published replay ↗</em></Link>
+        <Link href="/replay/91bb478a-7977-4b34-b32d-b1f558a8af75"><span>NVDA + TSLA · COMPARISON</span><strong>Compare the latest evidence and risks.</strong><small>Separate issuer assessments and decision gates.</small><em>Inspect published replay ↗</em></Link>
       </div>
     </section>
 
     <section className="judge-section judge-trade-captures" id="nightwatch-position-captures" aria-labelledby="nightwatch-captures-title">
       <div className="judge-capture-heading">
         <div className="judge-capture-title">
-          
-          <h2 id="nightwatch-captures-title">Nightwatch paper positions</h2>
-          <p>Captured 12–22 October 2026. Values are simulated marks, not live holdings or audited performance.</p>
+          <span className="judge-kicker">NIGHTWATCH / LEDGER EXHIBITS</span>
+          <h2 id="nightwatch-captures-title">Historical paper positions</h2>
+          <p>Captured 12–22 October 2026. Values are simulated marks; they do not represent live holdings or audited performance.</p>
         </div>
-        <Link className="judge-capture-data-link" href="/evidence/nightwatch-position-captures.json">Evidence record <span aria-hidden="true">↗</span></Link>
+        <Link className="judge-capture-data-link" href="/evidence/nightwatch-position-captures.json">Capture metadata <span aria-hidden="true">↗</span></Link>
       </div>
       <div className="judge-capture-grid">
-        <figure><a href="/judge-evidence/nightwatch-rnvd-position.png" target="_blank" rel="noreferrer"><Image src="/judge-evidence/nightwatch-rnvd-position.png" width={1200} height={630} alt="Nightwatch paper ledger snapshot for rNVD, captured 22 October 2026."/></a><figcaption><div className="judge-capture-caption"><strong>rNVD</strong></div><time dateTime="2026-10-22">22 Oct 2026</time></figcaption></figure>
-        <figure><a href="/judge-evidence/nightwatch-raapl-position.png" target="_blank" rel="noreferrer"><Image src="/judge-evidence/nightwatch-raapl-position.png" width={1200} height={630} alt="Nightwatch paper ledger snapshot for rAAPL, captured 14 October 2026."/></a><figcaption><div className="judge-capture-caption"><strong>rAAPL</strong></div><time dateTime="2026-10-14">14 Oct 2026</time></figcaption></figure>
-        <figure><a href="/judge-evidence/nightwatch-rgoogl-position.png" target="_blank" rel="noreferrer"><Image src="/judge-evidence/nightwatch-rgoogl-position.png" width={1200} height={630} alt="Nightwatch paper ledger snapshot for rGOOGL, captured 12 October 2026."/></a><figcaption><div className="judge-capture-caption"><strong>rGOOGL</strong></div><time dateTime="2026-10-12">12 Oct 2026</time></figcaption></figure>
+        <figure><a href="/judge-evidence/nightwatch-rnvd-position.png" target="_blank" rel="noreferrer"><Image src="/judge-evidence/nightwatch-rnvd-position.png" width={1200} height={630} alt="Nightwatch simulated ledger position in rNVD, captured 22 October 2026."/></a><figcaption><div className="judge-capture-caption"><strong>rNVD</strong><span>NVIDIA token</span></div><time dateTime="2026-10-22"><small>CAPTURED</small>22 Oct 2026</time></figcaption></figure>
+        <figure><a href="/judge-evidence/nightwatch-raapl-position.png" target="_blank" rel="noreferrer"><Image src="/judge-evidence/nightwatch-raapl-position.png" width={1200} height={630} alt="Nightwatch simulated ledger position in rAAPL, captured 14 October 2026."/></a><figcaption><div className="judge-capture-caption"><strong>rAAPL</strong><span>Apple token</span></div><time dateTime="2026-10-14"><small>CAPTURED</small>14 Oct 2026</time></figcaption></figure>
+        <figure><a href="/judge-evidence/nightwatch-rgoogl-position.png" target="_blank" rel="noreferrer"><Image src="/judge-evidence/nightwatch-rgoogl-position.png" width={1200} height={630} alt="Nightwatch simulated ledger position in rGOOGL, captured 12 October 2026."/></a><figcaption><div className="judge-capture-caption"><strong>rGOOGL</strong><span>Alphabet token</span></div><time dateTime="2026-10-12"><small>CAPTURED</small>12 Oct 2026</time></figcaption></figure>
       </div>
     </section>
 

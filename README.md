@@ -109,7 +109,7 @@ Research links are public for 30 days from publication and can be revoked. Each 
 <details>
 <summary><strong>Open Nightwatch position captures · 22 Oct 2026</strong></summary>
 
-The public exhibit contains three historical Nightwatch paper positions from a partial account export. The export reported 23 decisions, five paper orders, and three open positions; only the pictured position cards are shown. Raw order rows, account identifiers, balances, and internal record IDs are excluded.
+The public exhibit presents three historical Nightwatch paper positions. The source reports 23 decisions, five paper orders, and three open positions; only the pictured positions are included. Raw order rows, account identifiers, balances, and internal record IDs are excluded.
 
 ![Nightwatch rNVD paper position capture](https://tidelight.app/judge-evidence/nightwatch-rnvd-position.png)
 

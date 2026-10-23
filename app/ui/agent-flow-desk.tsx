@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEvent } from "react";
 import { useExperience } from "@/app/ui/theme-provider";
 import ResearchReplayShare from "@/app/ui/research-replay-share";
 
@@ -18,7 +18,13 @@ type AssetRead = {
 };
 type FlowResult = { researchRunId?: string; question: string; assets: AssetRead[]; tradeable: boolean; handoff?: unknown; trace: StageEvent[]; researchCoverage?: { mode: string; lookbackDays: number; queriesPerTicker: number; collectedItems: number; publishers: number; sourceDomains: number; collectedAt: string; limitations: string[] } };
 
-const EXAMPLES = ["What do you think about NVDA and TSLA?", "Compare Apple and Microsoft after the latest news", "Is the rNVDA market worth reviewing?"];
+const DEFAULT_FAVORITES = ["NVDA", "TSLA", "AAPL", "MSFT"];
+const QUESTION_PATTERNS = [
+  (ticker: string) => `What changed for ${ticker} since the latest evidence?`,
+  (ticker: string) => `What are the key risks around ${ticker} right now?`,
+  (ticker: string) => `Review recent evidence and market context for ${ticker}`,
+  (ticker: string) => `Is the r${ticker} market supported by current evidence?`,
+];
 
 function QuoteFreshness({ market, now }: { market: AssetRead["market"]; now: number }) {
   const timestamp = market.providerTimestamp;
@@ -41,7 +47,7 @@ function safeDeskLink(destination: Destination) {
   return null;
 }
 
-export default function AgentFlowDesk({ initialQuestion, evaluatorMode = false }: { initialQuestion: string; evaluatorMode?: boolean }) {
+export default function AgentFlowDesk({ initialQuestion, favorites = [], evaluatorMode = false }: { initialQuestion: string; favorites?: string[]; evaluatorMode?: boolean }) {
   const { mode, setMode } = useExperience();
   const [question, setQuestion] = useState(initialQuestion);
   const [stages, setStages] = useState<StageEvent[]>([]);
@@ -51,11 +57,31 @@ export default function AgentFlowDesk({ initialQuestion, evaluatorMode = false }
   const [busySince, setBusySince] = useState<number | null>(null);
   const [busySeconds, setBusySeconds] = useState(0);
   const [quoteNow, setQuoteNow] = useState(0);
+  const [focused, setFocused] = useState(false);
+  const [activeSuggestion, setActiveSuggestion] = useState(0);
+  const [suggestionOffset, setSuggestionOffset] = useState(0);
   const controller = useRef<AbortController | null>(null);
   const handoffRef = useRef<HTMLDivElement>(null);
   const tradeableAssets = result?.assets.filter((asset) => asset.tradeable && asset.handoff?.destinations.length) ?? [];
+  const questionOptions = useMemo(() => {
+    const tickers = [...new Set([...favorites, ...DEFAULT_FAVORITES].map((ticker) => ticker.toUpperCase()).filter((ticker) => /^[A-Z]{1,6}$/.test(ticker)))];
+    return tickers.flatMap((ticker) => QUESTION_PATTERNS.map((makeQuestion) => makeQuestion(ticker)));
+  }, [favorites]);
+  const suggestions = useMemo(() => {
+    const typed = question.trim().toLowerCase();
+    const matching = typed ? questionOptions.filter((option) => option.toLowerCase().startsWith(typed) && option.toLowerCase() !== typed) : questionOptions;
+    const visible = matching.length ? matching : typed ? questionOptions.filter((option) => option.toLowerCase().includes(typed)) : questionOptions;
+    if (!visible.length) return [];
+    const offset = typed ? 0 : suggestionOffset % visible.length;
+    return Array.from({ length: Math.min(3, visible.length) }, (_, index) => visible[(offset + index) % visible.length]);
+  }, [question, questionOptions, suggestionOffset]);
 
   useEffect(() => () => controller.current?.abort(), []);
+  useEffect(() => {
+    if (focused || question.trim()) return;
+    const timer = window.setInterval(() => setSuggestionOffset((offset) => offset + 1), 6500);
+    return () => window.clearInterval(timer);
+  }, [focused, question]);
   useEffect(() => {
     if (!busy || busySince === null) return;
     const update = () => setBusySeconds(Math.max(0, Math.floor((Date.now() - busySince) / 1000)));
@@ -141,6 +167,18 @@ export default function AgentFlowDesk({ initialQuestion, evaluatorMode = false }
     }
   }
 
+  function completeSuggestion(value: string) {
+    setQuestion(value);
+    setActiveSuggestion(0);
+    setFocused(false);
+  }
+  function handleQuestionKeyDown(event: KeyboardEvent<HTMLTextAreaElement>) {
+    if (!suggestions.length || !focused) return;
+    if (event.key === "ArrowDown") { event.preventDefault(); setActiveSuggestion((index) => (index + 1) % suggestions.length); }
+    if (event.key === "ArrowUp") { event.preventDefault(); setActiveSuggestion((index) => (index - 1 + suggestions.length) % suggestions.length); }
+    if (event.key === "Tab" && suggestions[activeSuggestion]) { event.preventDefault(); completeSuggestion(suggestions[activeSuggestion]); }
+  }
+
   return <div className="content-wrap inner-page agent-flow-page">
     {evaluatorMode ? <section className="flow-evaluator" aria-label="Evaluator guide">
       <div><span className="flow-kicker">TIDELIGHT / EVALUATOR VIEW</span><h2>Follow one real question through the gates.</h2><p>This guided run uses the same source-bound workflow as the workspace. Watch the evidence, quote freshness, and confidence gate; a review link appears only when the result qualifies.</p></div>
@@ -150,14 +188,16 @@ export default function AgentFlowDesk({ initialQuestion, evaluatorMode = false }
       <div className="flow-hero-copy"><span className="flow-kicker"><i /> TIDELIGHT / CONNECTED RESEARCH</span>
         <h1 id="flow-title">Ask once.<br /><span>Follow every step.</span></h1>
         <p>Bring a question about a company or its tokenized market. Tidelight separates issuer news from instrument-specific evidence, checks market context, and explains what the research can—and cannot—support.</p>
-        <form className="flow-form" onSubmit={runFlow}><label htmlFor="flow-question">Your market question <span className="flow-depth-badge">DEEP RESEARCH · UP TO 30 DAYS</span></label><div className="flow-form-row"><textarea id="flow-question" value={question} maxLength={280} rows={2} onChange={(event) => setQuestion(event.target.value)} placeholder="What do you think about NVDA and TSLA?" disabled={busy} /><button type="submit" disabled={busy}>{busy ? "Following the evidence…" : "Begin research ↗"}</button></div></form>
-        <div className="flow-prompts"><span>TRY A QUESTION</span>{EXAMPLES.map((example) => <button type="button" key={example} onClick={() => setQuestion(example)} disabled={busy}>{example}</button>)}</div>
+        <form className="flow-form" onSubmit={runFlow}><label htmlFor="flow-question">Research question</label><span id="flow-suggestion-instructions" className="sr-only">Type to filter suggested questions. Use the up and down arrows to choose one, then press Tab to complete it.</span><div className="flow-form-row"><textarea id="flow-question" value={question} maxLength={280} rows={2} onFocus={() => setFocused(true)} onBlur={() => window.setTimeout(() => setFocused(false), 150)} onKeyDown={handleQuestionKeyDown} onChange={(event) => { setQuestion(event.target.value); setActiveSuggestion(0); }} placeholder={favorites.length ? `What changed for ${favorites[0]}?` : "Ask about a company or tokenized market…"} disabled={busy} autoComplete="off" aria-autocomplete="list" aria-controls={focused && suggestions.length ? "flow-suggestions" : undefined} aria-describedby="flow-suggestion-instructions" /><button type="submit" disabled={busy}>{busy ? "Researching…" : "Research ↗"}</button></div>
+          {suggestions.length && focused && !busy ? <div className="flow-suggestion-list" id="flow-suggestions" aria-label="Suggested research questions">{suggestions.map((suggestion, index) => <button type="button" data-active={index === activeSuggestion} key={suggestion} onMouseDown={(event) => event.preventDefault()} onClick={() => completeSuggestion(suggestion)}><span>{suggestion}</span><kbd>↵</kbd></button>)}</div> : null}
+        </form>
+        {!focused ? <div className="flow-prompts" aria-label="Suggested questions"><span>Suggested</span>{suggestions.map((suggestion) => <button type="button" key={suggestion} onClick={() => completeSuggestion(suggestion)} disabled={busy}>{suggestion}<b aria-hidden="true">↗</b></button>)}</div> : null}
         <ResearchReplayShare researchRunId={result?.researchRunId} />
       </div>
       <div className="flow-orbit" aria-hidden="true"><div className="flow-orbit-ring"><span>EVENT</span><span>EVIDENCE</span><span>EXPOSURE</span><span>DECISION</span></div><div className="flow-orbit-core"><Image src="/tidelight-mark.svg" alt="" width={42} height={42} /><small>TIDELIGHT</small></div></div>
     </section>
 
-    {(busy || stages.length > 0) ? <section className="flow-glass" aria-label="Research activity" aria-busy={busy}><div className="flow-section-head"><div><h2>Research activity</h2></div><span className={`flow-state ${busy ? "flow-state-live" : ""}`}>{busy ? "RUNNING" : error ? "PAUSED" : "COMPLETE"}</span></div>
+    {(busy || stages.length > 0) ? <section className="flow-glass" aria-label="Research trace" aria-busy={busy}><div className="flow-section-head"><div><h2>{error ? "Research paused" : "Research trace"}</h2></div><span className={`flow-state ${busy ? "flow-state-live" : ""}`}>{busy ? `RUNNING · ${busySeconds}s` : error ? "PAUSED" : "COMPLETE"}</span></div>
       <div className="flow-trace" aria-label="Research checkpoints" aria-live="polite" aria-relevant="additions text" role="list">{stages.map((stage, index) => {
         const effectiveStatus = stage.status === "running" && !busy ? error ? "blocked" : "complete" : stage.status;
         const statusLabel = effectiveStatus === "running" ? "In progress" : effectiveStatus === "blocked" ? "On hold" : "Complete";
@@ -165,12 +205,12 @@ export default function AgentFlowDesk({ initialQuestion, evaluatorMode = false }
           <summary className="flow-stage-summary">
             <span className="flow-stage-node" aria-hidden="true">{effectiveStatus === "complete" ? "✓" : effectiveStatus === "blocked" ? "!" : String(index + 1).padStart(2, "0")}</span>
             <span className="flow-stage-body"><span className="flow-stage-meta"><span>{stage.agent}{stage.asset ? ` · ${stage.asset}` : ""}</span><time>{stage.at ? new Date(stage.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}</time></span><span className="flow-stage-title">{stage.title}</span></span>
-            <span className="flow-stage-status">{statusLabel}</span>
+            <span className={`flow-stage-status flow-stage-mark-${effectiveStatus}`} aria-label={statusLabel} title={statusLabel}>{effectiveStatus === "complete" ? "✓" : effectiveStatus === "blocked" ? "!" : ""}</span>
             <span className="flow-stage-chevron" aria-hidden="true">⌄</span>
           </summary>
           <p className="flow-stage-detail">{stage.detail}</p>
         </details>;
-      })}{busy && stages.length === 0 ? <div className="flow-wait" role="listitem"><i aria-hidden="true" /><span>{busySeconds < 8 ? "Opening the research path…" : "Connecting market and evidence sources"}{busySeconds >= 15 ? <small>Tidelight is checking current coverage and verified market data. Progress appears here as each check completes.</small> : <small>Market context · eight news searches per company · corroboration and counter-evidence · market and risk gates</small>}</span><time dateTime={`PT${busySeconds}S`}>{busySeconds}s</time></div> : null}{busy && stages.length > 0 && busySeconds >= 15 ? <div className="flow-progress-note" role="listitem"><p role="status">Research is still running. Search, source validation and synthesis may take up to two minutes.</p></div> : null}</div>
+      })}{busy && stages.length === 0 ? <div className="flow-wait" role="listitem"><i aria-hidden="true" /><span>{busySeconds < 8 ? "Opening the research path…" : "Connecting market and evidence sources"}{busySeconds >= 15 ? <small>Checking coverage and verified market data.</small> : <small>Market context · evidence coverage · corroboration · risk gates</small>}</span><time dateTime={`PT${busySeconds}S`}>{busySeconds}s</time></div> : null}</div>
     </section> : null}
 
     {error ? <div className="flow-error" role="alert"><b>Research paused</b><span>{error}</span>{error.toLowerCase().includes("sign in") ? <Link href="/login">Sign in ↗</Link> : <button type="button" onClick={() => void runFlow()} disabled={busy}>Try again ↗</button>}</div> : null}
