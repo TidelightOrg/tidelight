@@ -36,5 +36,9 @@
 @media(max-width:600px){.product-quick-actions{bottom:calc(10px + env(safe-area-inset-bottom));gap:4px;padding:4px}.product-quick-actions button{width:36px;height:36px}.feedback-scrim{align-items:end;padding:10px 10px calc(10px + env(safe-area-inset-bottom))}.feedback-dialog{max-height:min(88dvh,700px);padding:20px 18px;border-radius:18px}.feedback-dialog h2{font-size:23px}.feedback-dialog textarea{min-height:118px}}
 @media(prefers-reduced-motion:reduce){.feedback-dialog{animation:none}.product-quick-actions button,.feedback-dialog form button{transition:none}}
 
-@media(min-width:781px){.product-quick-actions.is-dense-workspace{left:auto;right:clamp(16px,2vw,28px);top:76px;bottom:auto}}
-@media(max-width:780px){.product-quick-actions.is-dense-workspace{left:10px;top:calc(74px + env(safe-area-inset-top));right:auto;bottom:auto}}
+/* Assistance controls live in the otherwise clear utility gap on dense desktop views. */
+@media(min-width:1081px){
+  .product-quick-actions.is-dense-workspace{left:calc(246px + 32vw);top:8px;right:auto;bottom:auto}
+}
+@media(min-width:781px) and (max-width:1080px){.product-quick-actions.is-dense-workspace{display:none}}
+@media(max-width:780px){.product-quick-actions.is-dense-workspace{display:none}}
