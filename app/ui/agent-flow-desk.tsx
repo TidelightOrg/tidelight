@@ -65,7 +65,7 @@ export default function AgentFlowDesk({ initialQuestion, favorites = [], recentQ
   const tradeableAssets = result?.assets.filter((asset) => asset.tradeable && asset.handoff?.destinations.length) ?? [];
   const questionOptions = useMemo(() => {
     const tickers = [...new Set([...favorites, ...recentQuestions.flatMap((item) => item.tickers), ...DEFAULT_FAVORITES].map((ticker) => ticker.toUpperCase()).filter((ticker) => /^[A-Z]{1,6}$/.test(ticker)))];
-    const recent = recentQuestions.map((item) => item.question.trim().replace(/\\s+/g, " ")).filter((item) => item.length >= 5 && item.length <= 220);
+    const recent = recentQuestions.map((item) => item.question.trim().replace(/\s+/g, " ")).filter((item) => item.length >= 5 && item.length <= 220);
     return [...new Set([...recent, ...tickers.flatMap((ticker) => QUESTION_PATTERNS.map((makeQuestion) => makeQuestion(ticker)))])];
   }, [favorites, recentQuestions]);
   const suggestions = useMemo(() => {
