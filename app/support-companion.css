@@ -65,3 +65,15 @@
 .tide-guide.is-open .tide-guide-launcher>span,.tide-guide.is-open .tide-guide-launcher>i{display:none}
 .tide-guide.is-open .tide-guide-launcher .tide-guide-mark{width:39px;height:39px}
 @media(max-width:600px){.tide-guide.is-open .tide-guide-launcher{width:42px;min-width:42px;height:42px;min-height:42px}.tide-guide.is-open .tide-guide-launcher .tide-guide-mark{width:35px;height:35px}}
+
+
+/* Research activity: compact evidence-ledger rows across the assistant and result surfaces. */
+.tide-guide-research-progress>ol{gap:0;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.tide-guide-research-progress>ol>li{position:relative;min-height:48px;padding:10px 12px;border:0;border-bottom:1px solid var(--line-soft);border-radius:0;background:transparent}
+.tide-guide-research-progress>ol>li:last-child{border-bottom:0}
+.tide-guide-research-progress>ol>li.activity-running{background:linear-gradient(90deg,color-mix(in srgb,var(--mint) 8%,var(--panel)),var(--panel) 76%)}
+.tide-guide-research-progress>ol>li.activity-running>i{border-color:color-mix(in srgb,var(--mint) 45%,var(--line));box-shadow:0 0 0 3px color-mix(in srgb,var(--mint) 10%,transparent);animation:assistant-step-pulse 1.8s ease-in-out infinite}
+.tide-guide-research-progress>ol>li.activity-complete>i{border-color:color-mix(in srgb,var(--mint) 45%,var(--line));color:var(--mint)}
+.tide-guide-research-progress>ol>li.activity-blocked>i{border-color:color-mix(in srgb,var(--amber) 42%,var(--line));color:var(--amber)}
+@keyframes assistant-step-pulse{0%,100%{box-shadow:0 0 0 3px color-mix(in srgb,var(--mint) 8%,transparent)}50%{box-shadow:0 0 0 6px color-mix(in srgb,var(--mint) 15%,transparent)}}
+@media(prefers-reduced-motion:reduce){.tide-guide-research-progress>ol>li.activity-running>i{animation:none}}
