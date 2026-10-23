@@ -19,21 +19,32 @@ export default function ProductQuickActions() {
   const drag = useRef<{ pointerId: number; startX: number; startY: number; left: number; top: number; moved: boolean } | null>(null);
   const suppressClick = useRef(false);
   const [position, setPosition] = useState<{ left: number; top: number } | null>(null);
+  const [footerVisible, setFooterVisible] = useState(false);
+  const denseWorkspace = pathname === "/futures" || pathname === "/trading" || pathname === "/flow" || pathname === "/markets";
   const requestId = useRef(crypto.randomUUID());
 
   useEffect(() => {
+    if (denseWorkspace) { setPosition(null); return; }
     let timer = 0;
     try {
       const saved = window.localStorage.getItem(QUICK_ACTIONS_POSITION_KEY);
       if (saved) {
         const parsed = JSON.parse(saved) as { left?: unknown; top?: unknown };
         if (typeof parsed.left === "number" && typeof parsed.top === "number") {
-          timer = window.setTimeout(() => setPosition({ left: Math.max(0, Math.min(parsed.left as number, window.innerWidth - 64)), top: Math.max(0, Math.min(parsed.top as number, window.innerHeight - 64)) }), 0);
+          timer = window.setTimeout(() => setPosition(denseWorkspace ? null : { left: Math.max(0, Math.min(parsed.left as number, window.innerWidth - 64)), top: Math.max(0, Math.min(parsed.top as number, window.innerHeight - 64)) }), 0);
         }
       }
     } catch { /* Ignore malformed saved positions. */ }
     return () => window.clearTimeout(timer);
-  }, []);
+  }, [denseWorkspace]);
+
+  useEffect(() => {
+    const footer = document.querySelector(".page-footer");
+    if (!footer) return;
+    const observer = new IntersectionObserver(([entry]) => setFooterVisible(Boolean(entry?.isIntersecting)), { threshold: 0.01 });
+    observer.observe(footer);
+    return () => observer.disconnect();
+  }, [pathname]);
 
   function startDrag(event: ReactPointerEvent<HTMLElement>) {
     if (event.button !== 0 || (event.target as HTMLElement).closest("button") === null) return;
@@ -125,7 +136,7 @@ export default function ProductQuickActions() {
   if (pathname === "/status") return null;
   return <>
     <nav
-      className={`product-quick-actions${pathname === "/" ? " is-landing" : ""}${position ? " is-positioned" : ""}`}
+      className={`product-quick-actions${pathname === "/" ? " is-landing" : ""}${position ? " is-positioned" : ""}${denseWorkspace ? " is-dense-workspace" : ""}${footerVisible && !open ? " is-footer-visible" : ""}`}
       aria-label="Product help and feedback"
       title="Drag to move these controls"
       style={position ? { left: position.left, top: position.top, right: "auto", bottom: "auto" } : undefined}

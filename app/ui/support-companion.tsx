@@ -77,6 +77,8 @@ export default function SupportCompanion() {
   const positionRef = useRef<{ x: number; y: number } | null>(null);
   const draggedRef = useRef(false);
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
+  const [footerVisible, setFooterVisible] = useState(false);
+  const denseWorkspace = pathname === "/futures" || pathname === "/trading" || pathname === "/flow" || pathname === "/markets";
   const viewportBounds = useCallback(() => {
     const viewport = window.visualViewport;
     const width = Math.max(1, Math.floor(viewport?.width ?? document.documentElement.clientWidth ?? window.innerWidth));
@@ -105,7 +107,7 @@ export default function SupportCompanion() {
 
   useEffect(() => {
     const bounds = viewportBounds();
-    let restored: { x: number; y: number } = { x: bounds.maxX, y: bounds.maxY };
+    let restored: { x: number; y: number } = { x: bounds.maxX, y: denseWorkspace ? 8 : bounds.maxY };
     try {
       const saved = window.localStorage.getItem("tidelight-tide-position");
       if (saved) {
@@ -116,10 +118,11 @@ export default function SupportCompanion() {
         if (Number.isFinite(oldBottom) && oldBottom > 0) restored.y = bounds.maxY;
       }
     } catch { /* Invalid saved placement falls back to the lower-right corner. */ }
+    if (denseWorkspace) restored = { x: Math.max(260, Math.floor(window.innerWidth * 0.60)), y: 8 };
     restored = clampPosition(restored);
     const timer = window.setTimeout(() => { positionRef.current = restored; setPosition(restored); }, 0);
     return () => window.clearTimeout(timer);
-  }, [clampPosition, viewportBounds]);
+  }, [clampPosition, viewportBounds, denseWorkspace]);
 
   function saveConversation(nextMessages: Message[], updatedAt: number) {
     if (!nextMessages.length) return;
@@ -149,6 +152,13 @@ export default function SupportCompanion() {
   }
 
   useEffect(() => { if (open) inputRef.current?.focus(); }, [open]);
+  useEffect(() => {
+    const footer = document.querySelector(".page-footer");
+    if (!footer) return;
+    const observer = new IntersectionObserver(([entry]) => setFooterVisible(Boolean(entry?.isIntersecting)), { threshold: 0.01 });
+    observer.observe(footer);
+    return () => observer.disconnect();
+  }, [pathname]);
   useEffect(() => {
     const closeGuide = () => { setOpen(false); setHistoryOpen(false); };
     const openGuide = (event: Event) => {
@@ -257,7 +267,7 @@ export default function SupportCompanion() {
   const availableHeight = position ? Math.max(190, Math.min(600, viewportHeight - 32, opensDown ? viewportHeight - position.y - 64 : position.y - 20)) : Math.min(600, viewportHeight - 32);
   const widgetStyle = position ? { left: position.x, top: position.y, right: "auto", bottom: "auto", "--tide-panel-x": `${panelOffset}px`, "--tide-panel-available": `${availableHeight}px` } as CSSProperties : undefined;
   if (pathname === "/status" || pathname.startsWith("/developers/support")) return null;
-  return <div className={`tide-guide${open ? " is-open" : ""}${opensDown ? " opens-down" : " opens-up"}`} style={widgetStyle}>
+  return <div className={`tide-guide${open ? " is-open" : ""}${opensDown ? " opens-down" : " opens-up"}${denseWorkspace ? " is-dense-workspace" : ""}${footerVisible && !open ? " is-footer-visible" : ""}`} style={widgetStyle}>
     {open ? <section className="tide-guide-panel" role="dialog" aria-modal="false" aria-label="Tide, Tidelight product guide">
       <header className="tide-guide-head"><span className="tide-guide-head-avatar"><TideGuideMark small /></span><div><span className="tide-guide-kicker">TIDELIGHT GUIDE</span><h2>Tide <span className="tide-guide-online" aria-label="Available" /></h2><p>Your guide to research and controls.</p></div><div className="tide-guide-head-actions">{view === "guide" && messages.length ? <button type="button" onClick={startConversation} aria-label="Start a new Tide conversation" title="Start over">↺</button> : null}{view === "guide" ? <button type="button" onClick={() => setHistoryOpen((value) => !value)} aria-label="Show Tide conversation history" title="Conversation history">☷</button> : null}<button type="button" onClick={() => setOpen(false)} aria-label="Close Tide guide">×</button></div></header>
       <nav className="tide-guide-modes" aria-label="Tide workspace mode"><button type="button" className={view === "guide" ? "active" : ""} aria-pressed={view === "guide"} onClick={() => { setView("guide"); setHistoryOpen(false); }}>Guide</button><button type="button" className={view === "research" ? "active" : ""} aria-pressed={view === "research"} onClick={() => { setView("research"); setHistoryOpen(false); }}>Research</button></nav>
