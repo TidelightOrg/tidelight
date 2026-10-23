@@ -390,6 +390,17 @@
 
 
 /* Agent conversation: visible work log followed by a source-led research reply. */
+.flow-work-thread .flow-state{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid var(--line);border-radius:999px;color:var(--faint);font:8px var(--mono);letter-spacing:.06em;text-transform:uppercase}
+.flow-work-thread .flow-state-live{border-color:color-mix(in srgb,var(--flow-glow) 40%,var(--line));background:color-mix(in srgb,var(--flow-glow) 8%,var(--panel));color:var(--text)}
+.flow-state-pulse{width:6px;height:6px;border-radius:50%;background:var(--flow-glow);box-shadow:0 0 0 3px color-mix(in srgb,var(--flow-glow) 14%,transparent);animation:flow-node-pulse 1.8s ease-in-out infinite}
+.flow-work-thread .flow-stage-running .flow-stage-summary{background:linear-gradient(90deg,color-mix(in srgb,var(--flow-glow) 9%,transparent),transparent 82%)}
+.flow-work-thread .flow-stage-summary:focus-visible{outline:2px solid var(--flow-glow);outline-offset:2px;border-radius:8px}
+.flow-reply-head{align-items:center}
+.flow-method-pill{margin-left:auto;flex:none;padding:7px 9px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font:7px var(--mono);letter-spacing:.07em}
+.flow-method-model{border-color:color-mix(in srgb,var(--flow-glow) 42%,var(--line));background:color-mix(in srgb,var(--flow-glow) 7%,var(--panel));color:var(--mint)}
+.flow-reply-intro h2{margin-bottom:0}
+@media(max-width:520px){.flow-method-pill{max-width:43%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+@media(prefers-reduced-motion:reduce){.flow-state-pulse{animation:none}}
 .flow-work-thread{position:relative;overflow:visible;padding:20px 22px 22px;border:1px solid color-mix(in srgb,var(--flow-glow) 20%,var(--line));border-radius:18px;background:linear-gradient(145deg,color-mix(in srgb,var(--flow-glow) 5%,var(--panel)),var(--panel) 56%);box-shadow:0 20px 56px color-mix(in srgb,var(--bg) 24%,transparent)}
 .flow-thread-head,.flow-reply-head{display:flex;align-items:center;gap:11px;min-height:34px;margin-bottom:15px}
 .flow-agent-mark{display:grid;place-items:center;flex:none;width:30px;height:30px;border:1px solid color-mix(in srgb,var(--flow-glow) 44%,var(--line));border-radius:10px;background:color-mix(in srgb,var(--flow-glow) 12%,var(--panel));color:var(--flow-glow);font:700 15px/1 var(--font);text-transform:lowercase;box-shadow:inset 0 0 14px color-mix(in srgb,var(--flow-glow) 10%,transparent)}
