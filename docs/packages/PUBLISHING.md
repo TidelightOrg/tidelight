@@ -14,7 +14,7 @@ This document covers future releases of the official packages in `TidelightOrg/t
 
 ## Before a release
 
-1. Update the package manifests and changelogs in the mother repository. Keep SDK dependency ranges aligned across React and CLI.
+1. Update the package manifests and changelogs in the canonical repository. Keep SDK dependency ranges aligned across React and CLI.
 2. Run `npm run test:public-mirrors`, `npm run test:package-consumers`, `npm run typecheck`, `npm test`, and `npm run check:package-catalog` as applicable.
 3. Verify npm package archives and the Python wheel. Preserve the produced archive checksums and compare the published registry integrity values with the tested artifacts.
 4. Confirm npm Trusted Publishing is configured for the exact GitHub repository, workflow, and environment. If OIDC is unavailable for a package, use the approved environment-scoped token path; never print or copy its value into logs.
