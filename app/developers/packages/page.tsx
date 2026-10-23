@@ -23,7 +23,7 @@ export default function DeveloperPackagesPage() {
   return <main className="tic tic-landing tic-packages-page">
     <PlatformNav active="packages" packageHome />
     <header className="tic-packages-hero">
-      <div><p className="tic-eyebrow"><span className="tic-status-dot"/> OFFICIAL DEVELOPER PACKAGES</p><h1>Tidelight packages<br/><em>for your stack.</em></h1><p>TypeScript, React, Python, MCP, and CLI packages with live versions and installation commands.</p>
+      <div><p className="tic-eyebrow"><span className="tic-status-dot"/> OFFICIAL DEVELOPER PACKAGES</p><h1>Tidelight packages<br/><em>for your stack.</em></h1><p>TypeScript, React, Python, MCP, and CLI packages. Versions are refreshed from npm and PyPI.</p>
         <div className="tic-package-hero-actions"><Link className="tic-button tic-primary" href="https://package.tidelight.app/dashboard">Open package dashboard <span aria-hidden="true">→</span></Link><Link className="tic-button" href="#package-directory-title">Browse packages <span aria-hidden="true">↓</span></Link></div>
       </div>
       <div className="tic-package-constellation" role="img" aria-label="Tidelight's shared API connects the SDK, MCP, Python, React, and CLI packages. ">
