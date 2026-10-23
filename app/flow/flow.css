@@ -472,7 +472,7 @@
 .agent-flow-page .flow-hero-active .flow-hero-copy>p,
 .agent-flow-page .flow-hero-active .flow-orbit,
 .agent-flow-page .flow-hero-active .flow-prompts,
-.agent-flow-page .flow-hero-active .flow-hero-copy>.research-replay-share{display:none}
+.agent-flow-page .flow-hero-active .flow-hero-copy>.replay-share-control{display:none}
 .agent-flow-page .flow-hero-active .flow-form{max-width:none;margin:0}
 .agent-flow-page .flow-hero-active .flow-form>label{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .agent-flow-page .flow-hero-active .flow-form-row{gap:7px;padding:4px;border-radius:12px;background:color-mix(in srgb,var(--panel) 82%,transparent)}
