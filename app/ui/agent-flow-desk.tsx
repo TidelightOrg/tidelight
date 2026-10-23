@@ -219,7 +219,7 @@ export default function AgentFlowDesk({ initialQuestion, favorites = [], recentQ
       <div className="flow-trace" aria-label="Research checkpoints" aria-live="polite" aria-relevant="additions text" role="list">{stages.map((stage, index) => {
         const effectiveStatus = stage.status === "running" && !busy ? error ? "blocked" : "complete" : stage.status;
         const statusLabel = effectiveStatus === "running" ? "In progress" : effectiveStatus === "blocked" ? "On hold" : "Complete";
-        return <details className={`flow-stage flow-stage-${effectiveStatus}`} key={stage.id} role="listitem" aria-current={effectiveStatus === "running" ? "step" : undefined} open={effectiveStatus === "running"}>
+        return <details className={`flow-stage flow-stage-${effectiveStatus}`} key={stage.id} role="listitem" aria-current={effectiveStatus === "running" ? "step" : undefined}>
           <summary className="flow-stage-summary">
             <span className={`flow-stage-node ${effectiveStatus === "running" ? "flow-stage-node-live" : ""}`} aria-hidden="true"><i>{effectiveStatus === "complete" ? "✓" : effectiveStatus === "blocked" ? "!" : stageGlyph(stage.agent)}</i></span>
             <span className="flow-stage-body"><span className="flow-stage-meta"><span>{stage.agent}{stage.asset ? ` · ${stage.asset}` : ""}</span><time dateTime={stage.at || undefined}>{stage.at ? new Date(stage.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}</time></span><span className="flow-stage-title">{stage.title}</span></span>
