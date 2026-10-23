@@ -497,3 +497,37 @@
   .agent-flow-page .flow-hero-active .flow-form button{min-width:104px;padding:9px 10px}
 }
 @media(prefers-reduced-motion:reduce){.agent-flow-page .flow-work-thread .flow-state-live:before{animation:none}}
+
+
+/* Use compact stage symbols on the rail, matching the conversational work log. */
+.agent-flow-page .flow-work-thread .flow-stage-node{
+  width:16px;
+  min-height:16px;
+  height:16px;
+  border:0;
+  border-radius:0;
+  background:transparent;
+  box-shadow:none;
+  color:var(--flow-glow);
+  font:13px/1 var(--font);
+}
+.agent-flow-page .flow-work-thread .flow-stage-node>i{
+  display:grid;
+  place-items:center;
+  font-style:normal;
+}
+.agent-flow-page .flow-work-thread .flow-stage-node-complete{color:var(--mint)}
+.agent-flow-page .flow-work-thread .flow-stage-node-blocked{color:var(--amber)}
+.agent-flow-page .flow-work-thread .flow-stage-node-running{color:var(--flow-glow)}
+.agent-flow-page .flow-work-thread .flow-stage-spinner{
+  display:block;
+  width:11px;
+  height:11px;
+  border:1.5px solid color-mix(in srgb,var(--flow-glow) 30%,transparent);
+  border-top-color:var(--flow-glow);
+  border-radius:50%;
+  animation:flow-node-spin .8s linear infinite;
+}
+@media(prefers-reduced-motion:reduce){
+  .agent-flow-page .flow-work-thread .flow-stage-spinner{animation:none}
+}
