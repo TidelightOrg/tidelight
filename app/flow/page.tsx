@@ -13,11 +13,13 @@ export default async function FlowPage({ searchParams }: { searchParams: Promise
   const initialQuestion = question || q || "";
   const supabase = await createClient();
   const user = await getServerUser();
-  const { data } = user ? await supabase.from("watchlist_items").select("symbol").order("created_at", { ascending: true }).limit(12) : { data: null };
-  const favorites = (data ?? []).map((item) => item.symbol.replace(/^R/i, "").replace(/USDT$/i, "").toUpperCase()).filter((ticker) => /^[A-Z]{1,6}$/.test(ticker));
-  const { data: recentRuns } = user ? await supabase.from("research_runs").select("question, summary").eq("user_id", user.id).eq("event_type", "agent_flow").eq("status", "complete").order("created_at", { ascending: false }).limit(8) : { data: null };
-  const recentQuestions = (recentRuns ?? []).flatMap((run) => {
-    const question = typeof run.question === "string" ? run.question.trim().replace(/\\s+/g, " ").slice(0, 220) : "";
+  const [watchlistResult, historyResult] = user ? await Promise.all([
+    supabase.from("watchlist_items").select("symbol").order("created_at", { ascending: true }).limit(12),
+    supabase.from("research_runs").select("question, summary").eq("user_id", user.id).eq("event_type", "agent_flow").eq("status", "complete").order("created_at", { ascending: false }).limit(8),
+  ]) : [{ data: null }, { data: null }];
+  const favorites = (watchlistResult.data ?? []).map((item) => item.symbol.replace(/^R/i, "").replace(/USDT$/i, "").toUpperCase()).filter((ticker) => /^[A-Z]{1,6}$/.test(ticker));
+  const recentQuestions = (historyResult.data ?? []).flatMap((run) => {
+    const question = typeof run.question === "string" ? run.question.trim().replace(/\s+/g, " ").slice(0, 220) : "";
     if (question.length < 5) return [];
     const summary = run.summary && typeof run.summary === "object" && !Array.isArray(run.summary) ? run.summary as Record<string, unknown> : {};
     const assets = Array.isArray(summary.assets) ? summary.assets : [];
