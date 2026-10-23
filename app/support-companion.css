@@ -82,3 +82,5 @@
 @media(prefers-reduced-motion:reduce){.tide-guide-progress-pulse,.tide-guide-research-progress>ol>li.activity-running>i,.intelligence-activity-body li.activity-running .activity-step-mark{animation:none}}
 
 @media(max-width:1319px){.tide-guide.is-dense-workspace{display:none}}
+
+.tide-guide.is-footer-visible{display:none}
