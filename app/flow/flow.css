@@ -434,26 +434,20 @@
 
 .flow-reply .flow-asset-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr))}
 
-.flow-agent-mark{overflow:hidden}
-.flow-agent-mark img{width:21px;height:21px;object-fit:contain}
-.flow-agent-mark-live{border-color:color-mix(in srgb,var(--flow-glow) 58%,var(--line));box-shadow:0 0 0 4px color-mix(in srgb,var(--flow-glow) 9%,transparent),inset 0 0 14px color-mix(in srgb,var(--flow-glow) 14%,transparent)}
-.flow-thread-identity b{font-size:13px}
-.flow-agent-narration{position:relative;display:grid;grid-template-columns:22px minmax(0,1fr) auto;align-items:start;gap:12px;margin:2px 0 16px 25px;padding:14px 16px;border:1px solid color-mix(in srgb,var(--flow-glow) 22%,var(--line));border-radius:13px;background:linear-gradient(112deg,color-mix(in srgb,var(--flow-glow) 8%,var(--panel)),color-mix(in srgb,var(--panel) 92%,transparent));box-shadow:inset 0 1px color-mix(in srgb,var(--text) 4%,transparent)}
-.flow-narration-orb{position:relative;display:grid;place-items:center;width:21px;height:21px;border:1px solid color-mix(in srgb,var(--flow-glow) 52%,var(--line));border-radius:50%;background:color-mix(in srgb,var(--flow-glow) 13%,var(--panel))}
-.flow-narration-orb:before,.flow-narration-orb:after,.flow-narration-orb i{content:"";position:absolute;border:1px solid color-mix(in srgb,var(--flow-glow) 35%,transparent);border-radius:50%;inset:4px}
-.flow-narration-orb:after{inset:-5px;opacity:.5}
-.flow-narration-orb i{inset:7px;background:var(--flow-glow);box-shadow:0 0 9px color-mix(in srgb,var(--flow-glow) 55%,transparent)}
-.flow-agent-narration>div{display:grid;gap:4px;min-width:0}
-.flow-agent-narration b{color:var(--text);font:600 12px/1.35 var(--font);letter-spacing:-.01em}
-.flow-agent-narration p{margin:0;color:var(--muted);font:11px/1.55 var(--font)}
-.flow-narration-time{padding:4px 0;color:var(--faint);font:8px/1.4 var(--mono)}
-.flow-work-thread .flow-stage-node{border:0;background:transparent}
-.flow-work-thread .flow-stage-node i{display:grid;place-items:center;width:23px;height:23px;border:1px solid color-mix(in srgb,var(--flow-glow) 36%,var(--line));border-radius:50%;background:var(--panel);color:var(--mint);font:10px/1 var(--mono);font-style:normal}
-.flow-work-thread .flow-stage-complete .flow-stage-node i{border-color:color-mix(in srgb,var(--mint) 52%,var(--line));background:color-mix(in srgb,var(--mint) 12%,var(--panel))}
-.flow-work-thread .flow-stage-blocked .flow-stage-node i{border-color:color-mix(in srgb,var(--amber) 48%,var(--line));color:var(--amber)}
-.flow-work-thread .flow-stage-node-live i{border-color:var(--flow-glow);box-shadow:0 0 0 4px color-mix(in srgb,var(--flow-glow) 10%,transparent);animation:flow-node-pulse 1.8s ease-in-out infinite}
-.flow-stage-spinner{display:inline-block;width:10px;height:10px;border:1.5px solid color-mix(in srgb,var(--flow-glow) 24%,transparent);border-top-color:var(--flow-glow);border-radius:50%;animation:flow-stage-spin .85s linear infinite;vertical-align:middle}
-@keyframes flow-stage-spin{to{transform:rotate(360deg)}}
-.flow-work-thread .flow-stage-status{display:grid;place-items:center;min-width:18px;min-height:18px;color:var(--mint)}
-@media(max-width:700px){.flow-agent-narration{grid-template-columns:20px minmax(0,1fr);margin-left:10px;padding:12px}.flow-narration-time{grid-column:2;padding:0}}
-@media(prefers-reduced-motion:reduce){.flow-stage-spinner{animation:none;border-color:var(--flow-glow)}}
+/* Agent progress follows an open conversation rail; checkpoint details remain inline and expandable. */
+.agent-flow-page .flow-work-thread{max-width:1000px;margin:2px auto 0;padding:0 18px 18px;border:0;border-radius:0;background:transparent;box-shadow:none}
+.agent-flow-page .flow-thread-head{gap:11px;min-height:34px;margin:0 0 10px}
+.agent-flow-page .flow-thread-identity b{font-size:12px}
+.agent-flow-page .flow-thread-identity>span{font-size:10px}
+.agent-flow-page .flow-work-thread .flow-trace{margin:0 0 0 14px;padding:0 0 0 15px;border:0;border-left:1px solid color-mix(in srgb,var(--flow-glow) 35%,var(--line));border-radius:0;background:transparent;overflow:visible}
+.agent-flow-page .flow-work-thread .flow-stage{margin:0;padding:0 0 0 0;border:0;border-bottom:1px solid color-mix(in srgb,var(--line) 52%,transparent);border-radius:0;background:transparent}
+.agent-flow-page .flow-work-thread .flow-stage:last-of-type{border-bottom:0}
+.agent-flow-page .flow-work-thread .flow-stage:before{display:none}
+.agent-flow-page .flow-work-thread .flow-stage-summary{grid-template-columns:24px minmax(0,1fr) 12px;min-height:52px;padding:7px 4px 7px 0;border-radius:0;background:transparent}
+.agent-flow-page .flow-work-thread .flow-stage-summary:hover{background:color-mix(in srgb,var(--flow-glow) 4%,transparent)}
+.agent-flow-page .flow-work-thread .flow-stage-title{font-size:11px;font-weight:550}
+.agent-flow-page .flow-work-thread .flow-stage-meta{font-size:7px}
+.agent-flow-page .flow-work-thread .flow-stage-detail{max-width:68ch;margin:0;padding:0 20px 12px 24px;color:var(--muted);font:11px/1.6 var(--font)}
+.agent-flow-page .flow-work-thread .flow-stage-running .flow-stage-summary{background:linear-gradient(90deg,color-mix(in srgb,var(--flow-glow) 6%,transparent),transparent 82%)}
+.agent-flow-page .flow-method-pill{color:var(--mint)}
+@media(max-width:700px){.agent-flow-page .flow-work-thread{padding:0 7px 16px}.agent-flow-page .flow-work-thread .flow-trace{margin-left:10px;padding-left:11px}.agent-flow-page .flow-work-thread .flow-stage-detail{padding-left:20px}}
