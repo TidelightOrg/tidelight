@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { extractFlowTickers, gateFlowTrade, normalizeFlowAssessment, normalizeFlowAssessments, sourceOnlyAssessment, tokenizedMarketReview } from "../lib/agent-flow-policy.ts";
+import { extractFlowTickers, gateFlowTrade, isTokenizedMarketQuestion, normalizeFlowAssessment, normalizeFlowAssessments, sourceOnlyAssessment, tokenizedMarketReview } from "../lib/agent-flow-policy.ts";
 
 const now = Date.now();
 const sources = [
@@ -9,6 +9,14 @@ const sources = [
 ];
 const assessment = { summary: "Two recent publishers describe an earnings and outlook development requiring an original-source check.", stance: "bullish", confidence: 0.8, citedUrls: sources.map(item => item.url), risks: ["Gap risk"], nextCheck: "Read the issuer release" };
 const base = { assessment, sources, marketVerified: true, marketTimestamp: now - 30000, lastCompletedCandleEnd: now - 3600000, completedCandles: 80, currentSignal: true, previousSignal: false, now };
+
+test("rToken research scope requires explicit instrument wording or an rTicker", () => {
+  assert.equal(isTokenizedMarketQuestion("What are the key risks around NVDA right now?", ["NVDA"]), false);
+  assert.equal(isTokenizedMarketQuestion("Is the rNVDA market supported by evidence?", ["NVDA"]), true);
+  assert.equal(isTokenizedMarketQuestion("Review RNVDAUSDT liquidity", ["NVDA"]), true);
+  assert.equal(isTokenizedMarketQuestion("Review the tokenized market for NVIDIA", ["NVDA"]), true);
+  assert.equal(isTokenizedMarketQuestion("Is the NVDA stock market worth reviewing?", ["NVDA"]), false);
+});
 
 test("source-only rToken research distinguishes issuer coverage from token-market evidence", () => {
   const result = sourceOnlyAssessment({ ticker: "NVDA", headlineCount: 40, publishers: 19, latestTitle: "NVIDIA issuer update", latestPublisher: "Example News", latestDate: "Oct 21, 2026", tokenizedMarketQuestion: true, perpSymbol: "NVDAUSDT", perpPrice: 220, perpTimestamp: now });

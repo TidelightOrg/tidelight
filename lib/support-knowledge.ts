@@ -102,7 +102,7 @@ export function supportTopicsFor(question: string, pathname = "/"): SupportTopic
 
 export function supportFallback(topics: SupportTopic[]): { answer: string; links: SupportLink[]; source: "knowledge" } {
   if (!topics.length) return {
-    answer: "I can guide you through Tidelight’s research, markets, Agent Flow, community, account settings, and Bitget demo or live controls. Tell me what you are trying to do, and I’ll show you the right page and steps. Please keep passwords, API keys, and verification codes out of chat.",
+    answer: "I can guide you through market research, markets, community, account settings, and Bitget demo or live controls. Tell me what you are trying to do and I’ll point you to the right page. Keep passwords, API keys, and verification codes out of chat.",
     links: [{ label: "Start here", href: "/guide" }], source: "knowledge",
   };
   return { answer: topics[0].answer, links: topics[0].links, source: "knowledge" };
