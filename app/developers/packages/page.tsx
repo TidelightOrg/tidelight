@@ -33,6 +33,26 @@ export default function DeveloperPackagesPage() {
         <span className="tic-package-connector connector-a"/><span className="tic-package-connector connector-b"/><span className="tic-package-connector connector-c"/><span className="tic-package-connector connector-d"/><span className="tic-package-connector connector-e"/>
       </div>
     </header>
+    <section className="tic-package-proof" aria-labelledby="package-proof-title">
+      <div className="tic-package-proof-copy">
+        <p className="tic-eyebrow">A RESPONSE YOU CAN INSPECT</p>
+        <h2 id="package-proof-title">Useful output, with its trail attached.</h2>
+        <p>Every integration follows the same request contract: scoped access, a durable job, and a result that keeps evidence and limitations in view.</p>
+        <Link href="https://dev.tidelight.app#research">Review the API contract <span aria-hidden="true">→</span></Link>
+      </div>
+      <article className="tic-package-receipt" aria-label="Illustrative Tidelight research response">
+        <header><span className="tic-package-receipt-mark" aria-hidden="true">✓</span><div><small>RESEARCH RESPONSE</small><strong>Issuer snapshot</strong></div><span className="tic-package-receipt-status">COMPLETE</span></header>
+        <div className="tic-package-receipt-meta"><span>POST <b>/v1/research/jobs</b></span><span>JOB <b>job_example_…</b></span></div>
+        <div className="tic-package-receipt-rule" aria-hidden="true"><i/></div>
+        <dl>
+          <div><dt>Instrument</dt><dd>AAPL · common stock</dd></div>
+          <div><dt>Evidence</dt><dd>Source links attached</dd></div>
+          <div><dt>Market data</dt><dd>Provider timestamped</dd></div>
+          <div><dt>Access</dt><dd>Project scoped</dd></div>
+        </dl>
+        <footer><span>ILLUSTRATIVE RESPONSE · NOT LIVE DATA</span><code>request_id&nbsp; req_example_…</code></footer>
+      </article>
+    </section>
     <section className="tic-package-directory" aria-labelledby="package-directory-title">
       <div className="tic-package-section-head"><div><h2 id="package-directory-title">Available packages</h2><p>Install commands, release history, and canonical source for each package.</p></div><span className="tic-package-live-label"><i/> CURRENT RELEASES</span></div>
       <div className="tic-package-grid">{packageCatalog.map((item, index) => <PackageRegistryCard key={item.id} packageId={item.id} name={item.display.name} summary={item.display.summary} href={item.display.href} ecosystem={item.display.ecosystem} index={index} />)}</div>
