@@ -157,10 +157,10 @@ export default function AgentFlowDesk({ initialQuestion, evaluatorMode = false }
       <div className="flow-orbit" aria-hidden="true"><div className="flow-orbit-ring"><span>EVENT</span><span>EVIDENCE</span><span>EXPOSURE</span><span>DECISION</span></div><div className="flow-orbit-core"><Image src="/tidelight-mark.svg" alt="" width={42} height={42} /><small>TIDELIGHT</small></div></div>
     </section>
 
-    {(busy || stages.length > 0) ? <section className="flow-glass" aria-label="Research activity" aria-busy={busy}><div className="flow-section-head"><div><span className="flow-kicker">MARKET RESEARCH ACTIVITY</span><h2>What Tidelight is checking</h2><p>Follow current sources, market data, and review gates as they complete. Private model reasoning stays private.</p></div><span className={`flow-state ${busy ? "flow-state-live" : ""}`}>{busy ? "● RUNNING" : error ? "PAUSED" : "COMPLETE"}</span></div>
-      <div className="flow-trace" aria-label="Public research checkpoints" aria-live="polite" aria-relevant="additions text" role="list">{stages.map((stage, index) => {
+    {(busy || stages.length > 0) ? <section className="flow-glass" aria-label="Research activity" aria-busy={busy}><div className="flow-section-head"><div><h2>Research activity</h2></div><span className={`flow-state ${busy ? "flow-state-live" : ""}`}>{busy ? "RUNNING" : error ? "PAUSED" : "COMPLETE"}</span></div>
+      <div className="flow-trace" aria-label="Research checkpoints" aria-live="polite" aria-relevant="additions text" role="list">{stages.map((stage, index) => {
         const effectiveStatus = stage.status === "running" && !busy ? error ? "blocked" : "complete" : stage.status;
-        const statusLabel = effectiveStatus === "running" ? "In progress" : effectiveStatus === "blocked" ? "On hold" : index < stages.length - 1 ? "Passed forward" : "Captured";
+        const statusLabel = effectiveStatus === "running" ? "In progress" : effectiveStatus === "blocked" ? "On hold" : "Complete";
         return <details className={`flow-stage flow-stage-${effectiveStatus}`} key={stage.id} role="listitem" aria-current={effectiveStatus === "running" ? "step" : undefined} open={effectiveStatus === "running"}>
           <summary className="flow-stage-summary">
             <span className="flow-stage-node" aria-hidden="true">{effectiveStatus === "complete" ? "✓" : effectiveStatus === "blocked" ? "!" : String(index + 1).padStart(2, "0")}</span>
