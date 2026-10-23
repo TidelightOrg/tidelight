@@ -387,3 +387,36 @@
 .flow-stage-summary{grid-template-columns:28px minmax(0,1fr) 26px 12px}.flow-stage-meta time{display:none}.flow-stage-status{display:grid;place-items:center;width:24px;height:24px;padding:0;border-radius:50%;font:11px/1 var(--font);letter-spacing:0}.flow-stage-running .flow-stage-status{position:relative;border-color:transparent;color:transparent}.flow-stage-running .flow-stage-status::before{content:"";position:absolute;inset:3px;border:1.5px solid color-mix(in srgb,var(--flow-glow) 35%,transparent);border-top-color:var(--flow-glow);border-radius:50%;animation:flow-node-spin .8s linear infinite}.flow-stage-mark-complete{border-color:color-mix(in srgb,var(--mint) 25%,var(--line));color:var(--mint)}.flow-stage-mark-blocked{border-color:color-mix(in srgb,var(--amber) 34%,var(--line));color:var(--amber)}@keyframes flow-node-spin{to{transform:rotate(360deg)}}
 @media(max-width:600px){.flow-suggestion-list{left:-1px;right:-1px}.flow-stage-summary{grid-template-columns:22px minmax(0,1fr) 24px 9px;gap:7px}}
 @media(prefers-reduced-motion:reduce){.flow-stage-running .flow-stage-status::before{animation:none}}
+
+
+/* Agent conversation: visible work log followed by a source-led research reply. */
+.flow-work-thread{position:relative;overflow:visible;padding:20px 22px 22px;border:1px solid color-mix(in srgb,var(--flow-glow) 20%,var(--line));border-radius:18px;background:linear-gradient(145deg,color-mix(in srgb,var(--flow-glow) 5%,var(--panel)),var(--panel) 56%);box-shadow:0 20px 56px color-mix(in srgb,var(--bg) 24%,transparent)}
+.flow-thread-head,.flow-reply-head{display:flex;align-items:center;gap:11px;min-height:34px;margin-bottom:15px}
+.flow-agent-mark{display:grid;place-items:center;flex:none;width:30px;height:30px;border:1px solid color-mix(in srgb,var(--flow-glow) 44%,var(--line));border-radius:10px;background:color-mix(in srgb,var(--flow-glow) 12%,var(--panel));color:var(--flow-glow);font:700 15px/1 var(--font);text-transform:lowercase;box-shadow:inset 0 0 14px color-mix(in srgb,var(--flow-glow) 10%,transparent)}
+.flow-thread-identity,.flow-reply-head>div{display:grid;gap:3px;min-width:0}
+.flow-thread-identity b,.flow-reply-head b{color:var(--text);font:600 12px/1.2 var(--font);letter-spacing:.01em}
+.flow-thread-identity>span,.flow-reply-head>div>span{color:var(--muted);font:10px/1.4 var(--font)}
+.flow-thread-head>.flow-state{margin-left:auto;flex:none}
+.flow-work-thread .flow-trace{position:relative;margin-left:14px;border:0;border-left:1px solid color-mix(in srgb,var(--flow-glow) 30%,var(--line));border-radius:0;background:transparent;overflow:visible}
+.flow-work-thread .flow-stage{position:relative;margin-left:0;padding-left:14px;border-bottom:1px solid color-mix(in srgb,var(--line) 55%,transparent)}
+.flow-work-thread .flow-stage:last-of-type{border-bottom:0}
+.flow-work-thread .flow-stage:before{content:"";position:absolute;left:-4px;top:24px;width:7px;height:7px;border:1px solid var(--line);border-radius:50%;background:var(--panel)}
+.flow-work-thread .flow-stage-complete:before{border-color:var(--mint);background:var(--mint);box-shadow:0 0 0 3px color-mix(in srgb,var(--mint) 10%,transparent)}
+.flow-work-thread .flow-stage-running:before{border-color:var(--flow-glow);background:var(--panel);box-shadow:0 0 0 4px color-mix(in srgb,var(--flow-glow) 12%,transparent);animation:flow-node-pulse 1.8s ease-in-out infinite}
+.flow-work-thread .flow-stage-summary{min-height:58px;padding:9px 9px 9px 2px}
+.flow-work-thread .flow-stage-title{font-size:12px;letter-spacing:0}
+.flow-work-thread .flow-stage-meta{font-size:8px}
+.flow-work-thread .flow-stage-detail{max-width:68ch;margin:0;padding:0 16px 14px 2px;color:var(--muted);font:11px/1.65 var(--font)}
+.flow-work-thread .flow-stage-running{background:linear-gradient(90deg,color-mix(in srgb,var(--flow-glow) 7%,transparent),transparent 85%)}
+.flow-reply{position:relative;max-width:1040px;margin:26px auto 0;padding:22px 24px 24px;border:1px solid var(--line);border-radius:18px;background:var(--panel);box-shadow:0 20px 56px color-mix(in srgb,var(--bg) 22%,transparent)}
+.flow-reply-head{padding-bottom:14px;border-bottom:1px solid var(--line)}
+.flow-user-prompt{margin:15px 0 20px 40px;padding:11px 14px;border:1px solid color-mix(in srgb,var(--line) 82%,transparent);border-radius:12px;background:color-mix(in srgb,var(--bg) 20%,var(--panel))}
+.flow-user-prompt>span{display:block;margin-bottom:5px;color:var(--faint);font:8px/1.3 var(--mono);letter-spacing:.09em;text-transform:uppercase}
+.flow-user-prompt p{margin:0;color:var(--muted);font:12px/1.55 var(--font)}
+.flow-reply-intro{margin:0 0 15px 40px}
+.flow-reply-intro h2{margin:0 0 4px;color:var(--text);font:600 clamp(19px,2.4vw,25px)/1.18 var(--font);letter-spacing:-.035em}
+.flow-reply-intro p{margin:0;color:var(--muted);font:11px/1.5 var(--font)}
+.flow-reply .flow-asset-grid{margin-left:40px}
+.flow-reply .flow-asset-card{border-radius:13px}
+@media(max-width:700px){.flow-work-thread{padding:15px 12px 16px;border-radius:14px}.flow-work-thread .flow-trace{margin-left:10px}.flow-work-thread .flow-stage{padding-left:10px}.flow-reply{margin-top:18px;padding:16px 12px;border-radius:14px}.flow-user-prompt,.flow-reply-intro,.flow-reply .flow-asset-grid{margin-left:0}.flow-reply-head{margin-bottom:12px}}
+@media(prefers-reduced-motion:reduce){.flow-work-thread .flow-stage-running:before{animation:none}}
