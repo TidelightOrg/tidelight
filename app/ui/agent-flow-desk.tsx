@@ -26,6 +26,17 @@ const QUESTION_PATTERNS = [
   (ticker: string) => `Is the r${ticker} market supported by current evidence?`,
 ];
 
+function stageGlyph(agent: string) {
+  const value = agent.toLowerCase();
+  if (value.includes("coordinator")) return "✳";
+  if (value.includes("market")) return "⌁";
+  if (value.includes("evidence")) return "↗";
+  if (value.includes("analyst")) return "◉";
+  if (value.includes("alpha")) return "⌘";
+  if (value.includes("trading")) return "◇";
+  return "•";
+}
+
 function QuoteFreshness({ market, now }: { market: AssetRead["market"]; now: number }) {
   const timestamp = market.providerTimestamp;
   const known = typeof timestamp === "number" && Number.isFinite(timestamp) && timestamp > 0 && timestamp <= now + 60_000;
@@ -198,15 +209,19 @@ export default function AgentFlowDesk({ initialQuestion, favorites = [], recentQ
       <div className="flow-orbit" aria-hidden="true"><div className="flow-orbit-ring"><span>EVENT</span><span>EVIDENCE</span><span>EXPOSURE</span><span>DECISION</span></div><div className="flow-orbit-core"><Image src="/tidelight-mark.svg" alt="" width={42} height={42} /><small>TIDELIGHT</small></div></div>
     </section>
 
-    {(busy || stages.length > 0) ? <section className="flow-glass flow-work-thread" aria-label="Research activity" aria-busy={busy}><div className="flow-thread-head"><span className="flow-agent-mark" aria-hidden="true">t</span><div className="flow-thread-identity"><b>Research process</b><span>{error ? "Research paused" : busy ? "Checking evidence and market context" : "Process trace"}</span></div><span className={`flow-state ${busy ? "flow-state-live" : ""}`} aria-live="polite">{busy ? <><i className="flow-state-pulse" aria-hidden="true" />{busySeconds}s</> : error ? "PAUSED" : `${stages.length} steps`}</span></div>
+    {(busy || stages.length > 0) ? <section className="flow-work-thread" aria-label="Research activity" aria-busy={busy}>
+      <div className="flow-thread-head">
+        <span className={`flow-agent-mark ${busy ? "flow-agent-mark-live" : ""}`} aria-hidden="true"><Image src="/tidelight-mark.svg" alt="" width={21} height={21} /></span>
+        <div className="flow-thread-identity"><b>Tide</b><span>{error ? "Research paused" : busy ? "Tide is researching…" : "Research complete"}</span></div>
+        <span className={`flow-state ${busy ? "flow-state-live" : ""}`}>{busy ? <><i className="flow-state-pulse" aria-hidden="true" />{busySeconds}s</> : error ? "PAUSED" : `${stages.length} steps`}</span>
+      </div>
       <div className="flow-trace" aria-label="Research checkpoints" aria-live="polite" aria-relevant="additions text" role="list">{stages.map((stage, index) => {
         const effectiveStatus = stage.status === "running" && !busy ? error ? "blocked" : "complete" : stage.status;
         const statusLabel = effectiveStatus === "running" ? "In progress" : effectiveStatus === "blocked" ? "On hold" : "Complete";
-        return <details className={`flow-stage flow-stage-${effectiveStatus}`} key={stage.id} role="listitem" aria-current={effectiveStatus === "running" ? "step" : undefined} open={effectiveStatus === "running"}>
-          <summary className="flow-stage-summary">
-            <span className="flow-stage-node" aria-hidden="true">{effectiveStatus === "complete" ? "✓" : effectiveStatus === "blocked" ? "!" : String(index + 1).padStart(2, "0")}</span>
+        return <details className={`flow-stage flow-stage-${effectiveStatus}`} key={stage.id} role="listitem" aria-current={effectiveStatus === "running" ? "step" : undefined}>
+          <summary className="flow-stage-summary" aria-label={`${stage.agent}${stage.asset ? ` · ${stage.asset}` : ""}: ${stage.title}. ${statusLabel}`}>
+            <span className={`flow-stage-node ${effectiveStatus === "running" ? "flow-stage-node-live" : ""}`} aria-hidden="true"><i>{effectiveStatus === "complete" ? "✓" : effectiveStatus === "blocked" ? "!" : <span className="flow-stage-spinner" />}</i></span>
             <span className="flow-stage-body"><span className="flow-stage-meta"><span>{stage.agent}{stage.asset ? ` · ${stage.asset}` : ""}</span><time dateTime={stage.at || undefined}>{stage.at ? new Date(stage.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}</time></span><span className="flow-stage-title">{stage.title}</span></span>
-            <span className={`flow-stage-status flow-stage-mark-${effectiveStatus}`} aria-label={statusLabel} title={statusLabel}>{effectiveStatus === "complete" ? "✓" : effectiveStatus === "blocked" ? "!" : ""}</span>
             <span className="flow-stage-chevron" aria-hidden="true">⌄</span>
           </summary>
           <p className="flow-stage-detail">{stage.detail}</p>
