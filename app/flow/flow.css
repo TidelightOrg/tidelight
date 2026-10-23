@@ -531,3 +531,107 @@
 @media(prefers-reduced-motion:reduce){
   .agent-flow-page .flow-work-thread .flow-stage-spinner{animation:none}
 }
+
+/* Restored research entry surface: theme-aware glass, clear hierarchy, calm depth. */
+.agent-flow-page .flow-hero{
+  min-height:430px;
+  padding:clamp(30px,5vw,66px);
+  border-color:color-mix(in srgb,var(--flow-glow) 18%,var(--line));
+  background:
+    radial-gradient(ellipse at 82% 50%,color-mix(in srgb,var(--flow-glow) 9%,transparent),transparent 42%),
+    linear-gradient(145deg,color-mix(in srgb,var(--panel) 94%,transparent),color-mix(in srgb,var(--panel-2) 82%,var(--panel)));
+  box-shadow:0 24px 70px color-mix(in srgb,#000 13%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 7%,transparent);
+  backdrop-filter:blur(24px) saturate(125%);
+  -webkit-backdrop-filter:blur(24px) saturate(125%);
+  transition:min-height .35s ease,padding .35s ease,border-color .25s ease,background .25s ease,box-shadow .25s ease;
+}
+.agent-flow-page .flow-hero:not(.flow-hero-active) .flow-hero-copy>p{
+  max-width:570px;
+  font-size:14px;
+  line-height:1.72;
+}
+.agent-flow-page .flow-hero:not(.flow-hero-active) h1{
+  max-width:660px;
+  margin:24px 0 15px;
+  font-size:clamp(42px,5.1vw,68px);
+  line-height:1.02;
+  letter-spacing:-.06em;
+}
+.agent-flow-page .flow-hero:not(.flow-hero-active) h1 span{
+  background:linear-gradient(105deg,var(--mint),color-mix(in srgb,var(--mint) 50%,var(--text)));
+  background-clip:text;
+  -webkit-background-clip:text;
+  color:transparent;
+}
+.agent-flow-page .flow-form{margin-top:29px;gap:10px}
+.agent-flow-page .flow-form>label{color:var(--muted);letter-spacing:.11em}
+.agent-flow-page .flow-form-row{
+  gap:10px;
+  padding:6px;
+  border-color:color-mix(in srgb,var(--text) 9%,var(--line));
+  border-radius:14px;
+  background:color-mix(in srgb,var(--bg) 66%,var(--panel));
+  box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 4%,transparent);
+  transition:border-color .2s ease,box-shadow .2s ease,background .2s ease;
+}
+.agent-flow-page .flow-form-row:focus-within{
+  border-color:color-mix(in srgb,var(--flow-glow) 70%,var(--line));
+  box-shadow:0 0 0 3px color-mix(in srgb,var(--flow-glow) 12%,transparent),0 10px 30px color-mix(in srgb,var(--flow-glow) 7%,transparent);
+  background:color-mix(in srgb,var(--bg) 78%,var(--panel));
+}
+.agent-flow-page .flow-form textarea{min-height:64px;padding:13px 14px}
+.agent-flow-page .flow-form button{
+  min-width:142px;
+  border-radius:10px;
+  background:linear-gradient(135deg,var(--mint-2),var(--mint));
+  box-shadow:0 5px 18px color-mix(in srgb,var(--flow-glow) 18%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 22%,transparent);
+  transition:transform .18s ease,filter .18s ease,box-shadow .18s ease;
+}
+.agent-flow-page .flow-form button:hover:not(:disabled){
+  filter:brightness(1.06);
+  transform:translateY(-1px);
+  box-shadow:0 8px 24px color-mix(in srgb,var(--flow-glow) 25%,transparent),inset 0 1px 0 color-mix(in srgb,#fff 25%,transparent);
+}
+.agent-flow-page .flow-prompts{gap:7px;margin-top:17px}
+.agent-flow-page .flow-prompts span{width:100%;margin-bottom:1px;color:var(--faint);font-size:8px}
+.agent-flow-page .flow-prompts button{
+  max-width:100%;
+  padding:7px 10px;
+  border-color:color-mix(in srgb,var(--text) 8%,var(--line));
+  background:color-mix(in srgb,var(--panel) 70%,transparent);
+  font-size:10px;
+}
+.agent-flow-page .flow-orbit-ring{animation:flow-orbit-breathe 8s ease-in-out infinite alternate}
+.agent-flow-page .flow-orbit-core{transition:transform .4s ease,box-shadow .4s ease}
+.agent-flow-page .flow-hero:not(.flow-hero-active):hover .flow-orbit-core{
+  transform:scale(1.04);
+  box-shadow:0 0 54px color-mix(in srgb,var(--flow-glow) 30%,transparent);
+}
+@keyframes flow-orbit-breathe{from{box-shadow:inset 0 0 38px color-mix(in srgb,var(--flow-glow) 5%,transparent),0 0 36px color-mix(in srgb,var(--flow-glow) 4%,transparent)}to{box-shadow:inset 0 0 55px color-mix(in srgb,var(--flow-glow) 10%,transparent),0 0 58px color-mix(in srgb,var(--flow-glow) 8%,transparent)}}
+.agent-flow-page .flow-suggestion-list{
+  z-index:5;
+  padding:5px;
+  border:1px solid color-mix(in srgb,var(--flow-glow) 22%,var(--line));
+  border-radius:12px;
+  background:color-mix(in srgb,var(--panel) 94%,transparent);
+  box-shadow:0 18px 45px color-mix(in srgb,#000 24%,transparent);
+  backdrop-filter:blur(18px) saturate(125%);
+  -webkit-backdrop-filter:blur(18px) saturate(125%);
+}
+.agent-flow-page .flow-suggestion-list button{border-radius:8px;transition:background .16s ease,color .16s ease}
+@media(max-width:800px){
+  .agent-flow-page .flow-hero:not(.flow-hero-active){grid-template-columns:minmax(0,1fr) 190px;gap:16px;padding:32px}
+  .agent-flow-page .flow-hero:not(.flow-hero-active) .flow-orbit{width:190px}
+}
+@media(max-width:600px){
+  .agent-flow-page .flow-hero:not(.flow-hero-active){grid-template-columns:1fr;gap:10px;padding:27px 20px}
+  .agent-flow-page .flow-hero:not(.flow-hero-active) .flow-orbit{display:none}
+  .agent-flow-page .flow-hero:not(.flow-hero-active) h1{margin-top:20px;font-size:clamp(38px,11vw,52px)}
+  .agent-flow-page .flow-form-row{flex-direction:column}
+  .agent-flow-page .flow-form textarea{min-height:74px}
+  .agent-flow-page .flow-form button{min-height:48px}
+}
+@media(prefers-reduced-motion:reduce){
+  .agent-flow-page .flow-orbit-ring{animation:none}
+  .agent-flow-page .flow-hero,.agent-flow-page .flow-form-row,.agent-flow-page .flow-form button,.agent-flow-page .flow-orbit-core{transition:none}
+}
