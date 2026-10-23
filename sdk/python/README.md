@@ -2,7 +2,7 @@
   <img src="https://tidelight.app/tidelight-mark.svg" alt="Tidelight" width="56" height="56" />
   <h1>Tidelight Python SDK</h1>
   <p><strong>Typed access to Tidelight Intelligence Cloud API v1.</strong></p>
-  <p><a href="https://tidelight.app">Product</a> · <a href="https://dev.tidelight.app/api">API guide</a> · <a href="https://github.com/TidelightOrg/tidelight">Mother repository</a></p>
+  <p><a href="https://tidelight.app">Product</a> · <a href="https://dev.tidelight.app/api">API guide</a> · <a href="https://github.com/TidelightOrg/tidelight">canonical repository</a></p>
 </div>
 
 ---
@@ -53,7 +53,7 @@ python -m pip install -e ./sdk/python
 PYTHONPATH=sdk/python/src python -m unittest discover -s sdk/python/tests -v
 ```
 
-Canonical source lives in [`sdk/python`](https://github.com/TidelightOrg/tidelight/tree/main/sdk/python) in the mother repository. The standalone [Python repository](https://github.com/TidelightOrg/tidelight-python) is a synchronized source mirror. Make source changes in the mother repository.
+Canonical source lives in [`sdk/python`](https://github.com/TidelightOrg/tidelight/tree/main/sdk/python) in the canonical repository. The standalone [Python repository](https://github.com/TidelightOrg/tidelight-python) is a synchronized source mirror. Make source changes in the canonical repository.
 
 ## Further reading
 
