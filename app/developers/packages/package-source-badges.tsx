@@ -27,7 +27,7 @@ export function PackageSourceBadges({ packageId }: { packageId: PackageId }) {
 
   return <div className="tic-package-detail-badges" aria-label="Package source and compatibility facts">
     <span className="tic-package-state-pill"><i aria-hidden="true"/> {status}</span>
-    <span>Mother repository · {item.source.path}</span>
+    <span>Tidelight repository · {item.source.path}</span>
     <span>{compatibilityLabel(packageId)}</span>
     <RegistryFacts packageId={packageId} compact />
   </div>;

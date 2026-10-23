@@ -32,3 +32,4 @@
 @media(max-width:900px){.judge-capture-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:760px){.judge-capture-heading{align-items:flex-start;flex-direction:column;gap:18px}.judge-capture-data-link{margin:0}}
 @media(max-width:560px){.judge-capture-grid{grid-template-columns:1fr}.judge-capture-grid figcaption{padding:15px 16px}.judge-capture-title h2{font-size:clamp(34px,10vw,48px)}.judge-capture-title p{font-size:13px}}
+.judge-capture-title .judge-kicker{display:block;margin-bottom:12px}.judge-capture-caption span{color:var(--muted);font:11px var(--font);letter-spacing:0;text-transform:none}.judge-capture-grid figcaption time{display:grid;gap:4px;text-align:right}.judge-capture-grid figcaption time small{color:var(--faint);font:8px var(--mono);letter-spacing:.1em}

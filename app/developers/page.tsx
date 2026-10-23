@@ -42,8 +42,8 @@ export default function DevelopersPage() {
     </section>
 
     <section className="tic-platform-strip" aria-label="Platform services">
-      <p>THREE CLEAR ENTRY POINTS</p>
-      <div>{routeCards.map(card => <Link href={card.label === "DOCUMENTATION" ? "https://dev.tidelight.app" : card.label === "REMOTE MCP" ? "https://mcp.tidelight.app/mcp" : "https://api.tidelight.app/v1"} key={card.number} className="tic-route-card"><span className="tic-route-number">{card.number}</span><div><strong>{card.label}</strong><code>{card.host}{card.path}</code><small>{card.note}</small></div><span className="tic-route-arrow" aria-hidden="true">↗</span></Link>)}</div>
+      <p>Service directory</p>
+      <div>{routeCards.map(card => <Link href={card.label === "DOCUMENTATION" ? "https://dev.tidelight.app" : card.label === "REMOTE MCP" ? "https://mcp.tidelight.app/mcp" : "https://api.tidelight.app/v1"} key={card.number} className="tic-route-card"><div><strong>{card.label}</strong><small>{card.note}</small></div><code>{card.host}{card.path}</code><span className="tic-route-arrow" aria-hidden="true">↗</span></Link>)}</div>
     </section>
 
     <section className="tic-cloud-workspace" aria-labelledby="tic-cloud-workspace-title">

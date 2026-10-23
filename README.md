@@ -17,7 +17,7 @@
 <br />
 
 <p align="center">
-  <img src="./docs/readme-assets/tidelight-macbook.png" alt="Tidelight's Tidelight research connects a company event to its evidence and potential market exposure." width="100%" />
+  <img src="./docs/readme-assets/tidelight-macbook.png" alt="Tidelight research connects company events to evidence and potential market exposure." width="100%" />
 </p>
 
 <p align="center"><sub>A calmer research desk for the hours between headlines.</sub></p>
@@ -85,7 +85,7 @@ Prices, coverage, and provider availability may change. Finnhub is an optional s
 
 ## Judge review · public evidence
 
-Start with [**Judge Mode**](https://tidelight.app/judge) for the five-minute product path. The records below are owner-published artifacts with explicit limitations.
+Start with [**Judge Mode**](https://tidelight.app/judge) for a concise product review. Each public record states its scope and limitations.
 
 <details>
 <summary><strong>Open live public research replays</strong></summary>
@@ -99,8 +99,8 @@ Research links are public for 30 days from publication and can be revoked. Each 
 | [rAAPL replay](https://tidelight.app/replay/5d27e66c-2a87-4450-95d3-5014e1309216) · [JSON](https://tidelight.app/api/research/replays/5d27e66c-2a87-4450-95d3-5014e1309216?format=json) | Services, device cycle, and regulatory risk | 40 headlines across 22 publishers; token quote marked stale; AI synthesis unavailable. |
 | [rGOOGL replay](https://tidelight.app/replay/7ca56a20-c064-4f99-b351-806b2ddd685e) · [JSON](https://tidelight.app/api/research/replays/7ca56a20-c064-4f99-b351-806b2ddd685e?format=json) | Search advertising, antitrust remedies, and AI-search competition | 40 headlines across 17 publishers; token quote fresh at capture; AI synthesis unavailable. |
 | [rAMZN replay](https://tidelight.app/replay/c67d7b29-85eb-4c27-8a29-2cbe85bd4e91) · [JSON](https://tidelight.app/api/research/replays/c67d7b29-85eb-4c27-8a29-2cbe85bd4e91?format=json) | AWS investment, retail economics, logistics, and AI infrastructure | 40 headlines across 21 publishers; token quote fresh at capture; AI synthesis unavailable. |
-| [rNVDA replay](https://tidelight.app/replay/c2ffbe89-74a5-4547-bf89-5952e37efeaa) · [JSON](https://tidelight.app/api/research/replays/c2ffbe89-74a5-4547-bf89-5952e37efeaa?format=json) | Earlier tokenized-market review | Original owner-published run; inspect its own captured limitations and gate. |
-| [NVDA + TSLA replay](https://tidelight.app/replay/91bb478a-7977-4b34-b32d-b1f558a8af75) · [JSON](https://tidelight.app/api/research/replays/91bb478a-7977-4b34-b32d-b1f558a8af75?format=json) | Compare issuer evidence and risks | Earlier owner-published comparison; inspect both source sets and separate gates. |
+| [rNVDA replay](https://tidelight.app/replay/c2ffbe89-74a5-4547-bf89-5952e37efeaa) · [JSON](https://tidelight.app/api/research/replays/c2ffbe89-74a5-4547-bf89-5952e37efeaa?format=json) | Earlier tokenized-market review | Earlier published run; inspect its captured limitations and gate. |
+| [NVDA + TSLA replay](https://tidelight.app/replay/91bb478a-7977-4b34-b32d-b1f558a8af75) · [JSON](https://tidelight.app/api/research/replays/91bb478a-7977-4b34-b32d-b1f558a8af75?format=json) | Compare issuer evidence and risks | Earlier published comparison with separate source sets and decision gates. |
 
 **Evidence boundary:** The five new runs collected issuer headlines, but all reported “AI synthesis unavailable,” and the replay pages show no source-linked supporting or opposing claim points. These are transparent research workflow and fallback records, not finished analyst theses. Tidelight made no directional assessment and showed no trade handoff. Quote snapshots are historical to each run, not live prices.
 
@@ -109,7 +109,7 @@ Research links are public for 30 days from publication and can be revoked. Each 
 <details>
 <summary><strong>Open Nightwatch position captures · 22 Oct 2026</strong></summary>
 
-The public exhibit contains three historical Nightwatch paper positions from a partial account export. The export reported 23 decisions, five paper orders, and three open positions; only the pictured position cards are shown. Raw order rows, account identifiers, balances, and internal record IDs are excluded.
+The public exhibit presents three historical Nightwatch paper positions. The source reports 23 decisions, five paper orders, and three open positions; only the pictured positions are included. Raw order rows, account identifiers, balances, and internal record IDs are excluded.
 
 ![Nightwatch rNVD paper position capture](https://tidelight.app/judge-evidence/nightwatch-rnvd-position.png)
 
@@ -130,7 +130,7 @@ See the [sanitized position summary JSON](https://tidelight.app/evidence/nightwa
 - Each replay row links to its downloadable, sanitized JSON record. The export is the same selected public payload shown on the replay page, not the private full account run.
 - Strategy Lab can export an authenticated owner's individual strategy run as JSON. No positive alpha result or public trade ledger is attached here.
 - Nightwatch fills remain private until the owner publishes an individual sanitized replay. [Open the public Nightwatch replay directory](https://tidelight.app/nightwatch/replays); each trade replay omits identity, balances, and unrelated ledger rows.
-- The [Nightwatch position summary JSON](https://tidelight.app/evidence/nightwatch-position-captures.json) describes the supplied historical images only; the original private account export is not published.
+- The [Nightwatch position summary JSON](https://tidelight.app/evidence/nightwatch-position-captures.json) describes the historical captures only; the full account export is not public.
 - The public research runs contain no live orders, exchange fills, or audited trading returns. Do not interpret a source-count or quote snapshot as strategy performance.
 
 </details>
@@ -160,7 +160,7 @@ Use this directory to move directly between the public product, its judge walkth
 | [Watchlist](https://tidelight.app/watchlist) | Track selected companies and instruments. |
 | [Strategy Lab](https://tidelight.app/strategies) | Review historical strategy replays and their assumptions. |
 | [Nightwatch](https://tidelight.app/nightwatch) | Inspect bounded monitoring and paper-run workflows. |
-| [Nightwatch paper replays](https://tidelight.app/nightwatch/replays) | Review owner-published, sanitized trade replays. |
+| [Nightwatch paper replays](https://tidelight.app/nightwatch/replays) | Review sanitized paper-trade replays and their source decisions. |
 | [Futures paper desk](https://tidelight.app/futures) | Rehearse stock-perpetual ideas in a simulated paper environment. No exchange orders are placed. |
 | [Research community](https://tidelight.app/community) | Explore the community research surface. |
 | [Saved briefs](https://tidelight.app/briefs) | Review saved research briefs when signed in. |

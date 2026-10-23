@@ -49,7 +49,7 @@
       },
       {
         "path": "/replay/{token}",
-        "purpose": "Owner-published, expiring and revocable source-linked replay; contains only the fields explicitly disclosed before publishing."
+        "purpose": "Time-limited, revocable source-linked replay shared after explicit confirmation; contains only the disclosed fields."
       },
       {
         "path": "/evidence",
@@ -72,7 +72,7 @@
         ]
       },
       "agentic": {
-        "status": "owner_supplied_static_capture",
+        "status": "historical_static_capture",
         "requirements": [
           "three historical Nightwatch position captures are attached",
           "sanitized summary lists 23 decisions, 5 paper orders, and 3 open positions in the partial export scope",
@@ -129,15 +129,15 @@
       "kind": "paper_trading",
       "status": "private_owner_scoped",
       "uri": "https://tidelight.app/nightwatch",
-      "claim": "The full account ledger remains owner-scoped. Judge Mode separately displays three owner-supplied historical position captures with a sanitized summary; the raw account export and internal row identifiers are not public."
+      "claim": "The full account ledger remains private to its account. Judge Mode displays three dated historical paper-position captures with a sanitized summary; raw account exports and internal row identifiers are excluded."
     },
     {
       "id": "nightwatch-position-captures",
-      "kind": "owner_supplied_static_artifact",
+      "kind": "historical_static_artifact",
       "status": "public_historical_capture",
       "uri": "https://tidelight.app/judge#nightwatch-position-captures",
       "summary_uri": "https://tidelight.app/evidence/nightwatch-position-captures.json",
-      "claim": "Three Nightwatch paper-position screenshots supplied by the owner, dated 12–22 Oct 2026. The display shows historical mark-to-market values; this is not a live ledger query or audited performance."
+      "claim": "Three Nightwatch paper-position captures dated 12–22 Oct 2026. The display shows historical mark-to-market values; this is not a live ledger query or audited performance."
     },
     {
       "id": "public-nightwatch-replays",
@@ -165,42 +165,42 @@
       "kind": "owner_published_public_route",
       "status": "published_30_day_link",
       "uri": "https://tidelight.app/replay/c5f5b22e-c995-4a5e-8193-5737c4d413b8",
-      "claim": "Owner-published rTSLA research snapshot. 40 issuer headlines across 30 publishers; AI synthesis unavailable; quote freshness stale; no trade handoff."
+      "claim": "Public rTSLA research snapshot. 40 issuer headlines across 30 publishers; AI synthesis unavailable; quote freshness stale; no trade handoff."
     },
     {
       "id": "public-replay-rmsft",
       "kind": "owner_published_public_route",
       "status": "published_30_day_link",
       "uri": "https://tidelight.app/replay/4e86bf9c-7295-4be1-ae52-487341e7f1ca",
-      "claim": "Owner-published rMSFT research snapshot. 40 issuer headlines across 23 publishers; AI synthesis unavailable; quote freshness fresh_at_capture; no trade handoff."
+      "claim": "Public rMSFT research snapshot. 40 issuer headlines across 23 publishers; AI synthesis unavailable; quote freshness fresh_at_capture; no trade handoff."
     },
     {
       "id": "public-replay-raapl",
       "kind": "owner_published_public_route",
       "status": "published_30_day_link",
       "uri": "https://tidelight.app/replay/5d27e66c-2a87-4450-95d3-5014e1309216",
-      "claim": "Owner-published rAAPL research snapshot. 40 issuer headlines across 22 publishers; AI synthesis unavailable; quote freshness stale; no trade handoff."
+      "claim": "Public rAAPL research snapshot. 40 issuer headlines across 22 publishers; AI synthesis unavailable; quote freshness stale; no trade handoff."
     },
     {
       "id": "public-replay-rgoogl",
       "kind": "owner_published_public_route",
       "status": "published_30_day_link",
       "uri": "https://tidelight.app/replay/7ca56a20-c064-4f99-b351-806b2ddd685e",
-      "claim": "Owner-published rGOOGL research snapshot. 40 issuer headlines across 17 publishers; AI synthesis unavailable; quote freshness fresh_at_capture; no trade handoff."
+      "claim": "Public rGOOGL research snapshot. 40 issuer headlines across 17 publishers; AI synthesis unavailable; quote freshness fresh_at_capture; no trade handoff."
     },
     {
       "id": "public-replay-ramzn",
       "kind": "owner_published_public_route",
       "status": "published_30_day_link",
       "uri": "https://tidelight.app/replay/c67d7b29-85eb-4c27-8a29-2cbe85bd4e91",
-      "claim": "Owner-published rAMZN research snapshot. 40 issuer headlines across 21 publishers; AI synthesis unavailable; quote freshness fresh_at_capture; no trade handoff."
+      "claim": "Public rAMZN research snapshot. 40 issuer headlines across 21 publishers; AI synthesis unavailable; quote freshness fresh_at_capture; no trade handoff."
     }
   ],
   "owner_published_research": {
     "status": "active_public_links",
     "expires_after_days": 30,
     "revoked_by_owner": true,
-    "evidence_boundary": "These are owner-published research snapshots, not audited performance, investment advice, strategy backtests, live orders, or trade fills.",
+    "evidence_boundary": "These are publicly shared research snapshots, not audited performance, investment advice, strategy backtests, live orders, or trade fills.",
     "limitations": [
       "Five new runs used public-feed fallback and report AI synthesis unavailable.",
       "No directional assessment or trade handoff was made in the five new runs.",

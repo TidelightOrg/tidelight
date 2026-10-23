@@ -75,7 +75,7 @@ export async function POST(request: Request) {
   }).slice(0, 40) : [];
   const citedUrlSet = new Set(assets.flatMap(asset => asset.sources));
   const publicSources = sources.filter(source => citedUrlSet.has(source.url));
-  const payload = { schemaVersion: 1, question: String(run.question).slice(0, 500), capturedAt: typeof run.completed_at === "string" ? run.completed_at : new Date().toISOString(), assets, sources: publicSources, trace, notice: "Owner-published public replay. Market values are snapshots, AI summaries are interpretations, and this is not investment advice or audited performance." };
+  const payload = { schemaVersion: 1, question: String(run.question).slice(0, 500), capturedAt: typeof run.completed_at === "string" ? run.completed_at : new Date().toISOString(), assets, sources: publicSources, trace, notice: "Public research replay. Market values are snapshots, AI summaries are interpretations, and this is not investment advice or audited performance." };
   const expiresAt = new Date(Date.now() + 30 * 86_400_000).toISOString();
   const admin = createAdminClient();
   const now = new Date().toISOString();

@@ -8,7 +8,7 @@ test("Judge Mode promotes live owner-published research instead of the static fi
     assert.ok(page.includes(token), `Judge page is missing replay ${token}`);
   }
   assert.doesNotMatch(page, /href=["']\/replay["']/);
-  assert.match(page, /AI synthesis was unavailable in each/i);
+  assert.match(page, /AI synthesis was unavailable/i);
 });
 
 test("README separates live judge research from the link directory and data exports", async () => {

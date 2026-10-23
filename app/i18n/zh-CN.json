@@ -1967,7 +1967,7 @@
   "This view does not certify a database restore, provider SLA, external security audit, or underlying-issuer session alignment. Those require measured operational rehearsals and independent review.": "该视图不验证数据库恢复、提供商 SLA、外部安全审计或基础颁发者会话对齐。这些需要经过严格的操作演练和独立审查。",
   "Thread unavailable.": "线程不可用。",
   "Three disjoint trailing windows after estimated costs. The selected rule is fixed; prior candles provide indicator context and are not used to tune parameters. Mean window return:": "估计成本后的三个不相交的跟踪窗口。选择的规则是固定的；先前的蜡烛图提供指标背景，不用于调整参数。平均窗口返回：",
-  "Three hackathon tracks, one traceable workflow.": "三个黑客马拉松赛道，一个可追踪的工作流程。",
+  "Three workflows. One evidence trail.": "三个工作流程，一条证据链。",
   "Three ways to use Tidelight.": "使用 Tidelight 的三种方法。",
   "Three ways to use the desk.": "办公桌的三种使用方式。",
   "Thu": "星期四",

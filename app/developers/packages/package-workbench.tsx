@@ -114,7 +114,7 @@ function MarketPanel() {
     glyph: "$",
     description: "Manage authorized research and market workflows from a terminal or CI job.",
     command: "cd sdk/typescript && npm ci && npm test && cd ../../packages/cli && npm ci && npm test",
-    source: `# Build and run from the mother repository
+    source: `# Build and run from the Tidelight repository
 cd sdk/typescript && npm ci && npm test
 cd ../../packages/cli
 npm ci && npm test
@@ -161,7 +161,7 @@ export function PackageWorkbench() {
         <div>
           <p className="tic-eyebrow">BUILT AROUND YOUR WORKFLOW</p>
           <h2 id="package-workbench-title">One platform. Five ways in.</h2>
-          <p>Preview package interfaces, install the published release, or run source checks in the mother repository.</p>
+          <p>Preview package interfaces, install the published release, or run source checks in the Tidelight repository.</p>
         </div>
           <span className={`tic-package-workbench-status ${registry.status === "published" && registry.version ? "is-verified" : "is-pending"}`}><i aria-hidden="true"/>{registry.status === "published" && registry.version ? "Registry verified" : checking ? "Checking registry…" : registry.version ? "Using last verified" : "Registry unavailable"}</span>
       </div>
@@ -214,8 +214,8 @@ export function PackageWorkbench() {
             <div className="tic-package-preview-topline"><div role="group" aria-label={`${current.name} workbench view`}>
               {(["install", "example", "verify"] as const).map(view => <button key={view} type="button" aria-pressed={surface === view} onClick={() => { setSurface(view); setCopied(false); }}>{view === "install" ? "Install" : view === "example" ? "Example" : "Test source"}</button>)}
             </div><button className="tic-package-copy" type="button" onClick={copySource}>{copied ? "Copied" : "Copy"}</button></div>
-            <pre tabIndex={0} aria-label={surface === "install" ? "Version-pinned install command" : surface === "verify" ? "Mother repository package test command" : "Package example source"}><code><SyntaxCode code={preview} language={codeLanguage} /></code></pre>
-            <div className="tic-package-preview-footer"><span>{surface === "install" ? (registry.version ? `PINNED TO ${registry.version}` : "REGISTRY VERSION PENDING") : surface === "verify" ? "MOTHER REPOSITORY · LOCAL TESTS" : "QUICKSTART SNIPPET · NO LIVE DATA"}</span>{surface === "verify" && <Link href="https://github.com/TidelightOrg/tidelight">Browse source ↗</Link>}</div>
+            <pre tabIndex={0} aria-label={surface === "install" ? "Version-pinned install command" : surface === "verify" ? "Tidelight repository package test command" : "Package example source"}><code><SyntaxCode code={preview} language={codeLanguage} /></code></pre>
+            <div className="tic-package-preview-footer"><span>{surface === "install" ? (registry.version ? `PINNED TO ${registry.version}` : "REGISTRY VERSION PENDING") : surface === "verify" ? "Tidelight repository · LOCAL TESTS" : "QUICKSTART SNIPPET · NO LIVE DATA"}</span>{surface === "verify" && <Link href="https://github.com/TidelightOrg/tidelight">Browse source ↗</Link>}</div>
           </div>
         </div>
       </div>
