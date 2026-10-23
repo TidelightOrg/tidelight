@@ -137,6 +137,11 @@ const issuerNames: Record<string, string> = {
   SOXL: "Direxion Daily Semiconductor Bull 3X Shares",
 };
 
+export function getIssuerName(ticker: string): string {
+  const symbol = ticker.trim().toUpperCase();
+  return issuerNames[symbol] ?? symbol;
+}
+
 async function fetchBitget<T>(path: string, revalidate: number, timeoutMs = 9000): Promise<BitgetEnvelope<T>> {
   const response = await fetch(`${API}${path}`, {
     headers: { Accept: "application/json" },
