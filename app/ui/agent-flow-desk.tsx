@@ -6,7 +6,7 @@ import { useEffect, useMemo, useRef, useState, type FormEvent, type KeyboardEven
 import { useExperience } from "@/app/ui/theme-provider";
 import ResearchReplayShare from "@/app/ui/research-replay-share";
 
-type StageEvent = { id: string; agent: string; status: "running" | "complete" | "blocked"; title: string; detail: string; at: string; asset?: string };
+type StageEvent = { id: string; agent: string; status: "running" | "complete" | "blocked"; title: string; detail: string; at: string; durationMs?: number; asset?: string };
 type Destination = { mode: "paper_futures" | "live_spot"; label: string; href: string };
 type AssetRead = {
   ticker: string; issuer: string; summary: string; stance: "bullish" | "bearish" | "mixed" | "unclear";
@@ -72,6 +72,7 @@ export default function AgentFlowDesk({ initialQuestion, favorites = [], recentQ
   const [activeSuggestion, setActiveSuggestion] = useState(0);
   const [suggestionOffset, setSuggestionOffset] = useState(0);
   const controller = useRef<AbortController | null>(null);
+  const stageStartedAt = useRef(new Map<string, number>());
   const handoffRef = useRef<HTMLDivElement>(null);
   const tradeableAssets = result?.assets.filter((asset) => asset.tradeable && asset.handoff?.destinations.length) ?? [];
   const questionOptions = useMemo(() => {
@@ -122,7 +123,7 @@ export default function AgentFlowDesk({ initialQuestion, favorites = [], recentQ
     controller.current?.abort();
     const request = new AbortController();
     controller.current = request;
-    setBusy(true); setBusySince(Date.now()); setBusySeconds(0); setError(""); setResult(null); setStages([]);
+    setBusy(true); setBusySince(Date.now()); setBusySeconds(0); setError(""); setResult(null); setStages([]); stageStartedAt.current.clear();
     let completed = false;
     try {
       const response = await fetch("/api/research/agent-flow", {
@@ -144,6 +145,13 @@ export default function AgentFlowDesk({ initialQuestion, favorites = [], recentQ
         if (kind === "stage") {
           const stage = data as StageEvent;
           if (!stage.id || !stage.title) return;
+          const eventAt = Date.parse(stage.at);
+          if (stage.status === "running" && !stageStartedAt.current.has(stage.id) && Number.isFinite(eventAt)) stageStartedAt.current.set(stage.id, eventAt);
+          const startedAt = stageStartedAt.current.get(stage.id);
+          if (stage.status !== "running" && startedAt !== undefined && Number.isFinite(eventAt)) {
+            stage.durationMs = Math.max(0, eventAt - startedAt);
+            stageStartedAt.current.delete(stage.id);
+          }
           setStages((previous) => {
             const index = previous.findIndex((item) => item.id === stage.id);
             if (index < 0) return [...previous, stage];
@@ -196,7 +204,7 @@ export default function AgentFlowDesk({ initialQuestion, favorites = [], recentQ
       <div><span className="flow-kicker">TIDELIGHT / EVALUATOR VIEW</span><h2>Follow one real question through the gates.</h2><p>This guided run uses the same source-bound workflow as the workspace. Watch the evidence, quote freshness, and confidence gate; a review link appears only when the result qualifies.</p></div>
       <ol><li><b>Evidence</b><span>Source links and captured publishers</span></li><li><b>Exposure</b><span>Reality instrument and quote timestamp</span></li><li><b>Decision</b><span>Confidence and risk gates stay visible</span></li></ol>
     </section> : null}
-    <section className="flow-hero" aria-labelledby="flow-title">
+    <section className={`flow-hero${busy || stages.length ? " flow-hero-active" : ""}`} aria-labelledby="flow-title">
       <div className="flow-hero-copy"><span className="flow-kicker"><i /> TIDELIGHT / CONNECTED RESEARCH</span>
         <h1 id="flow-title">Ask once.<br /><span>Follow every step.</span></h1>
         <p>Bring a question about a company or its tokenized market. Tidelight separates issuer news from instrument-specific evidence, checks market context, and explains what the research can—and cannot—support.</p>
@@ -213,7 +221,7 @@ export default function AgentFlowDesk({ initialQuestion, favorites = [], recentQ
       <div className="flow-thread-head">
         <span className={`flow-agent-mark ${busy ? "flow-agent-mark-live" : ""}`} aria-hidden="true"><Image src="/tidelight-mark.svg" alt="" width={21} height={21} /></span>
         <div className="flow-thread-identity"><b>Tide</b><span>{error ? "Research paused" : busy ? "Tide is researching…" : "Research complete"}</span></div>
-        <span className={`flow-state ${busy ? "flow-state-live" : ""}`}>{busy ? <><i className="flow-state-pulse" aria-hidden="true" />{busySeconds}s</> : error ? "PAUSED" : `${stages.length} steps`}</span>
+        <span className={`flow-state ${busy ? "flow-state-live" : ""}`}>{busy ? <><i className="flow-state-pulse" aria-hidden="true" />Working · {busySeconds}s</> : error ? "Paused" : `Worked for ${Math.max(1, busySeconds)}s · ${stages.length} steps`}</span>
       </div>
       <div className="flow-trace" aria-label="Research checkpoints" aria-live="polite" aria-relevant="additions text" role="list">{stages.map((stage, index) => {
         const effectiveStatus = stage.status === "running" && !busy ? error ? "blocked" : "complete" : stage.status;
@@ -221,7 +229,7 @@ export default function AgentFlowDesk({ initialQuestion, favorites = [], recentQ
         return <details className={`flow-stage flow-stage-${effectiveStatus}`} key={stage.id} role="listitem" aria-current={effectiveStatus === "running" ? "step" : undefined}>
           <summary className="flow-stage-summary" aria-label={`${stage.agent}${stage.asset ? ` · ${stage.asset}` : ""}: ${stage.title}. ${statusLabel}`}>
             <span className={`flow-stage-node ${effectiveStatus === "running" ? "flow-stage-node-live" : ""}`} aria-hidden="true"><i>{effectiveStatus === "complete" ? "✓" : effectiveStatus === "blocked" ? "!" : <span className="flow-stage-spinner" />}</i></span>
-            <span className="flow-stage-body"><span className="flow-stage-meta"><span>{stage.agent}{stage.asset ? ` · ${stage.asset}` : ""}</span><time dateTime={stage.at || undefined}>{stage.at ? new Date(stage.at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : ""}</time></span><span className="flow-stage-title">{stage.title}</span></span>
+            <span className="flow-stage-body"><span className="flow-stage-meta"><span>{stage.agent}{stage.asset ? ` · ${stage.asset}` : ""}</span><time dateTime={stage.at || undefined}>{stage.durationMs !== undefined ? `${Math.max(1, Math.round(stage.durationMs / 1000))}s` : effectiveStatus === "running" ? `${busySeconds}s` : ""}</time></span><span className="flow-stage-title">{stage.title}</span></span>
             <span className="flow-stage-chevron" aria-hidden="true">⌄</span>
           </summary>
           <p className="flow-stage-detail">{stage.detail}</p>
