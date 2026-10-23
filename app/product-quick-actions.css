@@ -42,3 +42,5 @@
 }
 @media(max-width:1319px){.product-quick-actions.is-dense-workspace{display:none}}
 @media(max-width:780px){.product-quick-actions.is-dense-workspace{display:none}}
+
+.product-quick-actions.is-footer-visible{display:none}
