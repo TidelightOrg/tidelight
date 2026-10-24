@@ -1,13 +1,14 @@
 import Link from "next/link";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import BriefLibrary from "@/app/ui/brief-library";
 import { getServerUser } from "@/lib/supabase/auth-user";
 
+export const dynamic = "force-dynamic";
+
 export default async function BriefsPage() {
-  const supabase = await createClient();
   const user = await getServerUser();
   const { data } = user
-    ? await supabase.from("research_runs").select("id, question, status, summary, model_name, event_type, created_at").order("created_at", { ascending: false }).limit(50)
+    ? await createAdminClient().from("research_runs").select("id, question, status, summary, model_name, event_type, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(50)
     : { data: [] };
 
   return <div className="content-wrap inner-page briefs-page">
