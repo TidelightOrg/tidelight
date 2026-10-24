@@ -62,6 +62,10 @@
       {
         "path": "/judge#live-route-test-recording",
         "purpose": "Full signed-out Playwright route smoke-test video and machine-readable results"
+      },
+      {
+        "path": "/judge-evidence/npm-python-install-walkthrough-fresh-20261024.mp4",
+        "purpose": "Playable Chromium capture of fresh npm and Python package installation and entry-point checks"
       }
     ],
     "source_repository": "https://github.com/TidelightOrg/tidelight",
@@ -279,6 +283,15 @@
       "summary_uri": "https://tidelight.app/evidence/research-benchmark-review-20261024.json",
       "dataset_uri": "https://tidelight.app/benchmarks/research-benchmark-frozen-2026-10-24.json",
       "claim": "A single-reviewer descriptive product score of 2.5/10 is published separately from the protocol score. The protocol score remains pending its required two independent claim reviews and adjudication."
+    },
+    {
+      "id": "npm-python-live-install-walkthrough-fresh-20261024",
+      "kind": "browser_recorded_package_install",
+      "status": "all_12_recorded_commands_passed",
+      "uri": "https://tidelight.app/judge#package-install-evidence",
+      "video_uri": "https://tidelight.app/judge-evidence/npm-python-install-walkthrough-fresh-20261024.mp4",
+      "summary_uri": "https://tidelight.app/evidence/npm-python-install-walkthrough-fresh-20261024.json",
+      "claim": "A 3:58 Chromium capture records four npm 0.1.2 packages installed from a clean consumer and the tidelight 0.1.2 Python package installed/imported under Python 3.12.14. All 12 commands exited 0; npm audit --omit=dev reported zero vulnerabilities. A Python 3.9 probe was below the package's declared Requires-Python >=3.10 minimum. No authenticated API or MCP research request was made."
     }
   ],
   "owner_published_research": {

@@ -1,0 +1,187 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "live_browser_package_install_walkthrough",
+  "captured_at": "2026-10-24T20:49:36Z",
+  "environment": {
+    "isolation": "Fresh Vercel sandbox with separate clean npm and Python consumer directories",
+    "browser": "Chromium 156.0.8078.4; Playwright video capture; same walkthrough observed in connected Chrome",
+    "node": "v24.22.1",
+    "npm": "11.19.1",
+    "python": "3.12.14",
+    "pip": "23.2.1"
+  },
+  "recording": {
+    "path": "public/judge-evidence/npm-python-install-walkthrough-fresh-20261024.mp4",
+    "uri": "https://tidelight.app/judge-evidence/npm-python-install-walkthrough-fresh-20261024.mp4",
+    "duration_seconds": 238.42,
+    "source_viewport": "1280x720",
+    "encoded_resolution": "960x540",
+    "frames_per_second": 10,
+    "codec": "H.264",
+    "bytes": 572937,
+    "sha256": "8f6c686f92cf30ea65ddfa82dc196b8841915c2bc971a094f34345664af168d5",
+    "decode_check": "passed"
+  },
+  "summary": {
+    "steps": 12,
+    "steps_passed": 12,
+    "steps_failed": 0,
+    "npm_packages_installed": 4,
+    "python_packages_installed": 1,
+    "npm_consumer_audit": "zero vulnerabilities"
+  },
+  "steps": [
+    {
+      "order": 1,
+      "name": "Create clean npm consumer",
+      "command": "mkdir -p /vercel/fresh-npm-consumer && cd /vercel/fresh-npm-consumer && npm init -y",
+      "exit_code": 0,
+      "result": "Fresh consumer package.json created."
+    },
+    {
+      "order": 2,
+      "name": "Check published npm versions",
+      "command": "npm view @tidelight/sdk@0.1.2 version && npm view @tidelight/mcp@0.1.2 version && npm view @tidelight/react@0.1.2 version && npm view @tidelight/cli@0.1.2 version",
+      "exit_code": 0,
+      "result": "All four registries returned version 0.1.2."
+    },
+    {
+      "order": 3,
+      "name": "Install TypeScript SDK",
+      "command": "cd /vercel/fresh-npm-consumer && npm install @tidelight/sdk@0.1.2",
+      "exit_code": 0,
+      "result": "Installed; npm reported zero vulnerabilities."
+    },
+    {
+      "order": 4,
+      "name": "Install MCP package",
+      "command": "cd /vercel/fresh-npm-consumer && npm install @tidelight/mcp@0.1.2",
+      "exit_code": 0,
+      "result": "Installed; npm reported zero vulnerabilities."
+    },
+    {
+      "order": 5,
+      "name": "Install React package",
+      "command": "cd /vercel/fresh-npm-consumer && npm install @tidelight/react@0.1.2",
+      "exit_code": 0,
+      "result": "Installed; npm reported zero vulnerabilities."
+    },
+    {
+      "order": 6,
+      "name": "Install CLI package",
+      "command": "cd /vercel/fresh-npm-consumer && npm install @tidelight/cli@0.1.2",
+      "exit_code": 0,
+      "result": "Installed; npm reported zero vulnerabilities."
+    },
+    {
+      "order": 7,
+      "name": "Verify dependency tree, imports, and CLI",
+      "command": "cd /vercel/fresh-npm-consumer && npm ls --depth=0 && node --input-type=module -e 'for (const p of [\"@tidelight/sdk\",\"@tidelight/mcp\",\"@tidelight/react\"]) {const m=await import(p);console.log(p,\"exports\",Object.keys(m))}' && ./node_modules/.bin/tidelight --help",
+      "exit_code": 0,
+      "result": "All four dependencies present; SDK, MCP, and React ESM imports passed; CLI help rendered."
+    },
+    {
+      "order": 8,
+      "name": "Inspect all published npm package archives",
+      "command": "cd /vercel/fresh-npm-consumer && npm pack @tidelight/sdk@0.1.2 --dry-run && npm pack @tidelight/mcp@0.1.2 --dry-run && npm pack @tidelight/react@0.1.2 --dry-run && npm pack @tidelight/cli@0.1.2 --dry-run",
+      "exit_code": 0,
+      "result": "All four npm pack dry-runs completed."
+    },
+    {
+      "order": 9,
+      "name": "Create a fresh Python 3.12 environment",
+      "command": "mkdir -p /vercel/fresh-python-consumer && rm -rf /vercel/fresh-python-consumer/venv && python3.12 --version && python3.12 -m venv /vercel/fresh-python-consumer/venv && /vercel/fresh-python-consumer/venv/bin/python -m pip --version",
+      "exit_code": 0,
+      "result": "Python 3.12.14 and pip 23.2.1 in a newly recreated Python 3.12 virtual environment."
+    },
+    {
+      "order": 10,
+      "name": "Install Python client from PyPI",
+      "command": "/vercel/fresh-python-consumer/venv/bin/python -m pip install tidelight==0.1.2",
+      "exit_code": 0,
+      "result": "PyPI wheel downloaded/cached and tidelight 0.1.2 installed. pip emitted a non-fatal latest-version check warning."
+    },
+    {
+      "order": 11,
+      "name": "Import Python client and inspect installed metadata",
+      "command": "/vercel/fresh-python-consumer/venv/bin/python -c 'import tidelight; from tidelight import Client; import inspect; print(\"Tidelight import: PASS\"); print(\"Client signature:\",inspect.signature(Client))' && /vercel/fresh-python-consumer/venv/bin/python -m pip show tidelight",
+      "exit_code": 0,
+      "result": "Import passed; Client signature and tidelight 0.1.2 metadata displayed."
+    },
+    {
+      "order": 12,
+      "name": "Review final dependency tree and npm audit",
+      "command": "cd /vercel/fresh-npm-consumer && npm ls --depth=0 && npm audit --omit=dev",
+      "exit_code": 0,
+      "result": "All four npm packages present; zero vulnerabilities reported."
+    }
+  ],
+  "package_results": [
+    {
+      "distribution": "@tidelight/sdk",
+      "version": "0.1.2",
+      "registry": "npm",
+      "status": "passed",
+      "checks": [
+        "install",
+        "ESM import",
+        "package dry-run"
+      ]
+    },
+    {
+      "distribution": "@tidelight/mcp",
+      "version": "0.1.2",
+      "registry": "npm",
+      "status": "passed",
+      "checks": [
+        "install",
+        "ESM import",
+        "package dry-run"
+      ],
+      "limitation": "No authenticated research:run call was made."
+    },
+    {
+      "distribution": "@tidelight/react",
+      "version": "0.1.2",
+      "registry": "npm",
+      "status": "passed",
+      "checks": [
+        "install",
+        "ESM import",
+        "package dry-run"
+      ]
+    },
+    {
+      "distribution": "@tidelight/cli",
+      "version": "0.1.2",
+      "registry": "npm",
+      "status": "passed",
+      "checks": [
+        "install",
+        "CLI help",
+        "package dry-run"
+      ]
+    },
+    {
+      "distribution": "tidelight",
+      "version": "0.1.2",
+      "registry": "PyPI",
+      "runtime": "Python 3.12.14",
+      "status": "passed",
+      "checks": [
+        "pip install",
+        "import tidelight",
+        "from tidelight import Client",
+        "pip show"
+      ]
+    }
+  ],
+  "compatibility_note": {
+    "python_3_9": "An earlier fresh probe with Python 3.9.25 returned no matching distribution because the published package declares Python >=3.10. The supported Python 3.12.14 installation and import passed in this capture."
+  },
+  "scope_limits": [
+    "This records package installation and entry-point smoke checks only.",
+    "No credentials were entered and no authenticated API or MCP research request was made.",
+    "The result is specific to the versions and environment recorded above."
+  ]
+}
