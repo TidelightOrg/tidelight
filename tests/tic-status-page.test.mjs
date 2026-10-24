@@ -39,3 +39,13 @@ test("dedicated status hostname rewrites its public routes to the status app", a
   assert.match(config, /source: "\/health", destination: "\/api\/system\/health"/);
   assert.equal((config.match(/type: "host", value: "status\.tidelight\.app"/g) ?? []).length, 4);
 });
+
+
+test("all status routes bypass workspace chrome and the dedicated host skips account setup", async () => {
+  const shell = await readFile(new URL("../app/ui/workspace-shell.tsx", import.meta.url), "utf8");
+  const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
+  assert.match(shell, /pathname\\.startsWith\\("\\/status\\/"\)/);
+  assert.match(layout, /const isStandaloneStatusHost = requestHost === "status\\.tidelight\\.app"/);
+  assert.match(layout, /const supabase = isStandalonePublicHost \\? null : await createClient\\(\\)/);
+  assert.match(layout, /const user = isStandalonePublicHost \\? null : await getServerUser\\(\\)/);
+});
