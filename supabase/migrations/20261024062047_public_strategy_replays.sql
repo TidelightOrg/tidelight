@@ -22,6 +22,10 @@ create policy "Public strategy replays are readable by unguessable active link"
   on public.public_strategy_replays for select to anon
   using (revoked_at is null and expires_at > now());
 
+create policy "Active strategy replays are readable by signed-in link visitors"
+  on public.public_strategy_replays for select to authenticated
+  using (revoked_at is null and expires_at > now());
+
 create policy "Owners read their strategy replay shares"
   on public.public_strategy_replays for select to authenticated
   using ((select auth.uid()) = user_id);
