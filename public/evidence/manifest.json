@@ -58,6 +58,10 @@
       {
         "path": "/judge#codex-mcp-evidence",
         "purpose": "Codex Tidelight MCP connection and captured read-only tool test"
+      },
+      {
+        "path": "/judge#live-route-test-recording",
+        "purpose": "Full signed-out Playwright route smoke-test video and machine-readable results"
       }
     ],
     "source_repository": "https://github.com/TidelightOrg/tidelight",
@@ -223,6 +227,15 @@
       "uri": "https://tidelight.app/judge#codex-mcp-evidence",
       "summary_uri": "https://tidelight.app/evidence/tidelight-codex-mcp.json",
       "claim": "Codex plugin registration, OAuth resource metadata, and an active market:read grant were verified. The connected Tidelight MCP search tool returned 100 instruments (the response limit) with request ID 6efee181-ed3b-49bb-a1fb-2a1d3f0ac0ff."
+    },
+    {
+      "id": "live-route-test-recording-20261024",
+      "kind": "browser_route_smoke_test",
+      "status": "production_candidate_recorded",
+      "uri": "https://tidelight.app/judge#live-route-test-recording",
+      "video_uri": "https://tidelight.app/judge-evidence/tidelight-live-route-test-20261024.mp4",
+      "summary_uri": "https://tidelight.app/evidence/tidelight-live-route-test-20261024.json",
+      "claim": "A 68-second signed-out 1280x720 Playwright browser recording navigates seven public Tidelight routes. All seven returned HTTP 200. It is a route smoke test only and does not verify authenticated actions or product data."
     }
   ],
   "owner_published_research": {
