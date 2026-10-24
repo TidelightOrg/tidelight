@@ -83,9 +83,13 @@ export default function JudgePage() {
         <Link className="judge-primary" href="/strategies">Open Strategy Lab <span aria-hidden="true">↗</span></Link>
       </div>
       <aside className="judge-strategy-proof">
-        <span>VALIDATION STATUS</span>
-        <strong>Run artifact required</strong>
-        <p>No public strategy replay is linked here. Publish one from a saved run after reviewing its contents.</p>
+        <span>PUBLIC REPLAY · APPLE · 4H</span>
+        <strong>−0.76% after costs</strong>
+        <p>Holdout return trailed buy and hold (+2.12%) over 32 days. Historical simulation; costs estimated, no live orders.</p>
+        <div className="judge-strategy-links">
+          <a href="https://tidelight.app/strategy-replay/58348395-ff65-4a4c-be5a-019234379587">Open replay <span aria-hidden="true">↗</span></a>
+          <a href="https://tidelight.app/api/strategy-replays/58348395-ff65-4a4c-be5a-019234379587">Download JSON <span aria-hidden="true">↓</span></a>
+        </div>
       </aside>
     </section>
 
