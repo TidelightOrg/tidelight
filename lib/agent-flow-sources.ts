@@ -37,7 +37,20 @@ function historicalSearchContext(question: string) {
   const dated = /\b(?:19|20)\d{2}-\d{2}-\d{2}\b|\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{1,2},?\s+(?:19|20)\d{2}\b/i.test(question);
   const hasHistoricalPeriod = years.length > 0 && (periods.length > 0 || /\b(?:results?|earnings|release|outlook|capital[- ]spending|guidance)\b/i.test(question));
   const terms = [...new Set([...years, ...periods].map(term => term.toLowerCase().replace(/\s+/g, " ")))];
-  return { historical: dated || hasHistoricalPeriod, terms };
+  const quarter = periods[0]?.match(/q([1-4])|first|second|third|fourth/i)?.[0]?.toLowerCase() ?? null;
+  const quarterNumber = quarter ? ({ first: "1", second: "2", third: "3", fourth: "4", q1: "1", q2: "2", q3: "3", q4: "4" } as Record<string, string>)[quarter] : null;
+  return { historical: dated || hasHistoricalPeriod, terms, year: years[0] ?? null, quarterNumber };
+}
+
+function matchesRequestedPeriod(item: FlowEvidence, context: ReturnType<typeof historicalSearchContext>) {
+  if (!context.historical || !context.year) return true;
+  const text = `${item.title} ${item.snippet}`.toLowerCase();
+  if (!text.includes(context.year)) return false;
+  if (!context.quarterNumber) return true;
+  const quarterForms = [new RegExp(`\\bq${context.quarterNumber}\\b`, "i")];
+  const match = text.match(/\b(first|second|third|fourth)[ -]+(?:fiscal[ -]+)?quarter\b/i)?.[1]?.toLowerCase();
+  const ordinalNumber = match ? ({ first: "1", second: "2", third: "3", fourth: "4" } as Record<string, string>)[match] : null;
+  return quarterForms[0].test(text) || ordinalNumber === context.quarterNumber;
 }
 
 function storyKey(item: FlowEvidence) {
@@ -57,7 +70,9 @@ export function buildIssuerNewsQueries(ticker: string, issuer: string, question 
   const context = historicalSearchContext(question);
   const historicalTerm = context.terms.length ? ` (${context.terms.join(" ")})` : "";
   return [
-    `"${name}" OR "${ticker}"${historicalTerm} (earnings OR filing OR results)`,
+    context.historical
+      ? `"${name}" OR "${ticker}" ${context.terms.join(" ")} (earnings OR filing OR results)`
+      : `"${name}" OR "${ticker}"${historicalTerm} (earnings OR filing OR results)`,
     `"${name}" OR "${ticker}" (guidance OR revenue OR product)`,
     `"${name}" OR "${ticker}" (regulation OR lawsuit OR analyst)`,
     `"${name}" OR "${ticker}" (industry OR supply chain OR market)`,
@@ -87,7 +102,7 @@ export async function gatherIssuerEvidence(ticker: string, issuer: string, quest
       const relevant = new RegExp(`(^|[^a-z0-9])${ticker}([^a-z0-9]|$)`, "i").test(headline) ||
         (name.length >= 4 && headline.toLowerCase().includes(name.toLowerCase()));
       const maxAge = context.historical ? HISTORICAL_EVIDENCE_AGE_MS : MAX_EVIDENCE_AGE_MS;
-      if (!relevant || !withinResearchWindow(item, now, maxAge)) continue;
+      if (!relevant || !withinResearchWindow(item, now, maxAge) || !matchesRequestedPeriod(item, context)) continue;
       const key = storyKey(item);
       const previous = stories.get(key);
       if (!previous || (item.snippet.length > previous.snippet.length && item.via === "Public feeds")) stories.set(key, item);
@@ -95,7 +110,13 @@ export async function gatherIssuerEvidence(ticker: string, issuer: string, quest
   }
   if (!stories.size && results.some(result => result.status === "fulfilled")) console.warn("agent-flow-source-empty", ticker, results.map(result => result.status === "fulfilled" ? result.value.length : "failed"));
   return [...stories.values()]
-    .sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? ""))
+    .sort((a, b) => {
+      if (context.historical && context.year) {
+        const aMatches = matchesRequestedPeriod(a, context), bMatches = matchesRequestedPeriod(b, context);
+        if (aMatches !== bMatches) return aMatches ? -1 : 1;
+      }
+      return Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? "");
+    })
     .slice(0, MAX_DISCOVERY_ITEMS);
 }
 
