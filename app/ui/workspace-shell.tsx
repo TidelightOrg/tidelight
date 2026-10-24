@@ -61,7 +61,7 @@ export default function WorkspaceShell({ children, email, avatarUrl, displayName
 
   useEffect(() => { if (mobileMenuOpen) window.dispatchEvent(new Event("tidelight:close-guide")); }, [mobileMenuOpen]);
 
-  if (pathname === "/status" || pathname === "/judge" || pathname === "/evidence" || pathname === "/replay" || pathname.startsWith("/replay/")) return <>{children}</>;
+  if (pathname === "/status" || pathname.startsWith("/status/") || pathname === "/judge" || pathname === "/evidence" || pathname === "/replay" || pathname.startsWith("/replay/")) return <>{children}</>;
   if (pathname.startsWith("/login") || pathname.startsWith("/auth/") || pathname.startsWith("/developers") || pathname === "/") return <>{children}<AnalyticsConsent /></>;
 
   return (
