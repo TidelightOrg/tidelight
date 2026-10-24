@@ -1,0 +1,44 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "codex_mcp_connection_check",
+  "captured_date": "2026-10-24",
+  "client": {
+    "name": "Codex",
+    "plugin": "Tidelight Research",
+    "registration": "registered",
+    "endpoint": "https://mcp.tidelight.app/mcp",
+    "transport": "Streamable HTTP",
+    "authentication": "OAuth 2.1"
+  },
+  "authorization": {
+    "status": "consent_pending",
+    "requested_scopes": [
+      "market:read"
+    ],
+    "scope_description": "Read supported tokenized equity market data."
+  },
+  "checks": [
+    {
+      "name": "Codex plugin registration",
+      "status": "passed",
+      "detail": "Custom Tidelight Research plugin appears in the Codex Plugins installed list."
+    },
+    {
+      "name": "Protected resource metadata",
+      "status": "passed",
+      "uri": "https://mcp.tidelight.app/.well-known/oauth-protected-resource/mcp",
+      "detail": "The endpoint advertises Tidelight as its authorization server and lists market:read and research:run as supported scopes."
+    },
+    {
+      "name": "OAuth consent",
+      "status": "not_approved",
+      "detail": "The consent screen requested market:read. Authorization was not submitted."
+    },
+    {
+      "name": "Authenticated MCP tool call",
+      "status": "not_run",
+      "detail": "A tool call needs the pending OAuth grant; no usage result is claimed."
+    }
+  ],
+  "evidence_boundary": "This is a setup and authorization status record. It is not a successful authenticated MCP interoperability test."
+}
