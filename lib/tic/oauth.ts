@@ -5,6 +5,12 @@ export const TIC_MCP_RESOURCE = "https://mcp.tidelight.app/mcp";
 export const TIC_OAUTH_SCOPES = ["market:read", "research:run"] as const;
 export type TicOauthScope = typeof TIC_OAUTH_SCOPES[number];
 
+export function requestedOAuthClientScopes(value: unknown): TicOauthScope[] | null {
+  if (typeof value !== "string") return [...TIC_OAUTH_SCOPES];
+  // parseOAuthScopes checks against TIC_OAUTH_SCOPES by default.
+  return parseOAuthScopes(value) as TicOauthScope[] | null;
+}
+
 export function hashOAuthSecret(secret: string) {
   return createHash("sha256").update(secret).digest("hex");
 }
