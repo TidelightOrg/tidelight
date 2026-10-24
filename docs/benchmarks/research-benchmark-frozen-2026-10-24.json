@@ -8,9 +8,9 @@
     "capturedAt": "2026-10-24T07:35:03Z",
     "cutoffDate": "2026-10-24",
     "reviewProtocol": "docs/RESEARCH_EVALUATION_PROTOCOL.md",
-    "status": "PARTIAL_BASELINE_8_OF_10_RUNS_HUMAN_REVIEW_PENDING",
+    "status": "ALL_10_RUNS_CAPTURED_HUMAN_REVIEW_PENDING",
     "captureLog": "docs/benchmarks/research-benchmark-capture-log-2026-10-24.md",
-    "notes": "Event IDs, event dates, neutral evaluation questions, sources and human-authored reference notes are frozen before any research prompt change. Eight actual Tidelight runs were captured; the final two were blocked by the hourly research limit. The capture log records observed results and durations. No reviewer labels, adjudications or benchmark score are supplied. Source capture timestamps are the browser research capture time; publicationAt is null where the publisher exposed only a date. Independent reporting was included where located. The captured snippets are short factual excerpts, not complete articles. The report must retain source distinctions and limitations."
+    "notes": "All ten frozen events now have actual production run observations. The two runs previously blocked by the hourly limit were captured on 2026-10-24; details are in each event's run_capture and supplementary capture log. Frozen source captures remain unchanged. Observed elapsed UI duration is recorded, but exact start timestamps and saved-note completion times were not captured, so taskTimeSeconds remains null and protocol task time was not measured. No reviewer labels, source-fit adjudications, claim validation, or benchmark score are supplied. Original source capture timestamps remain unchanged."
   },
   "events": [
     {
@@ -272,7 +272,22 @@
           "accessible": true,
           "capturedText": "Economists polled by Reuters had forecast payrolls advancing 90,000 after a previously reported 162,000 surge in August."
         }
-      ]
+      ],
+      "run_capture": {
+        "capturedAt": "2026-10-24",
+        "environment": "Production Tidelight Market Research page, signed-in browser session",
+        "observedElapsedUiSeconds": 42,
+        "taskTimeMeasured": false,
+        "status": "source_only",
+        "sourcesReturned": 7,
+        "aiSynthesis": "unavailable",
+        "confidencePercent": 0,
+        "claimsValidated": false,
+        "reviewerLabels": null,
+        "adjudications": null,
+        "marketOrTradingHandoff": false,
+        "observation": "Completed in 4 research steps. Source-based macro brief only; no verified AI assessment or factual macro conclusion established."
+      }
     },
     {
       "id": "us-cpi-2026-09-release-2026-10-14",
@@ -301,7 +316,22 @@
           "accessible": true,
           "capturedText": "The CPI rose 0.6% last month after climbing 0.4% in August, the Labor Department's Bureau of Labor Statistics said, in line with economists' expectations."
         }
-      ]
+      ],
+      "run_capture": {
+        "capturedAt": "2026-10-24",
+        "environment": "Production Tidelight Market Research page, signed-in browser session",
+        "observedElapsedUiSeconds": 41,
+        "taskTimeMeasured": false,
+        "status": "source_only",
+        "sourcesReturned": 15,
+        "aiSynthesis": "unavailable",
+        "confidencePercent": 0,
+        "claimsValidated": false,
+        "reviewerLabels": null,
+        "adjudications": null,
+        "marketOrTradingHandoff": false,
+        "observation": "Completed in 4 research steps. Source-based macro brief only; no verified AI assessment or factual macro conclusion established. Expanded source list included off-topic regional, PPI, Canada, and India items; retained as an unadjudicated relevance concern."
+      }
     }
   ]
 }
