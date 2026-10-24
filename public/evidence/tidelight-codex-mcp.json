@@ -8,10 +8,11 @@
     "registration": "registered",
     "endpoint": "https://mcp.tidelight.app/mcp",
     "transport": "Streamable HTTP",
-    "authentication": "OAuth 2.1"
+    "authentication": "OAuth 2.1",
+    "host_context": "Codex workspace"
   },
   "authorization": {
-    "status": "consent_pending",
+    "status": "authorized_active",
     "requested_scopes": [
       "market:read"
     ],
@@ -21,7 +22,7 @@
     {
       "name": "Codex plugin registration",
       "status": "passed",
-      "detail": "Custom Tidelight Research plugin appears in the Codex Plugins installed list."
+      "detail": "The Tidelight Research custom plugin is registered and connected in the Codex workspace."
     },
     {
       "name": "Protected resource metadata",
@@ -31,14 +32,22 @@
     },
     {
       "name": "OAuth consent",
-      "status": "not_approved",
-      "detail": "The consent screen requested market:read. Authorization was not submitted."
+      "status": "passed",
+      "detail": "The user approved the requested market:read scope. Tidelight's developer console shows an active ChatGPT client grant with market:read."
     },
     {
       "name": "Authenticated MCP tool call",
-      "status": "not_run",
-      "detail": "A tool call needs the pending OAuth grant; no usage result is claimed."
+      "status": "passed",
+      "tool": "Tidelight search tokenized equities",
+      "request_id": "6efee181-ed3b-49bb-a1fb-2a1d3f0ac0ff",
+      "result": {
+        "instruments_returned": 100,
+        "response_limit": 100,
+        "more_available": true,
+        "source": "Bitget Reality spot tokenized equities"
+      },
+      "detail": "Read-only request completed from the connected Codex plugin."
     }
   ],
-  "evidence_boundary": "This is a setup and authorization status record. It is not a successful authenticated MCP interoperability test."
+  "evidence_boundary": "This records one successful authenticated read-only MCP call returning the first 100 supported instruments. It does not test research:run, other tools, order execution, or the completeness and quality of the full instrument universe."
 }
