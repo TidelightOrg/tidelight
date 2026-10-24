@@ -5,6 +5,8 @@
   <p><a href="https://tidelight.app">Product</a> · <a href="https://dev.tidelight.app#mcp">Connection guide</a> · <a href="https://github.com/TidelightOrg/tidelight">Mother repository</a></p>
 </div>
 
+简体中文版：[README.zh-CN.md](README.zh-CN.md)
+
 ---
 
 The package forwards MCP discovery and tool calls from stdio-only clients to the authenticated Tidelight Streamable HTTP service. The remote service continues to enforce credentials, scopes, quotas, and tenant boundaries.

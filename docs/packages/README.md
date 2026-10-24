@@ -1,5 +1,7 @@
 # Official Tidelight packages
 
+简体中文版：[README.zh-CN.md](README.zh-CN.md)
+
 `TidelightOrg/tidelight` is the canonical source repository. The first public package release is `0.1.2` (2026-10-18). The Developer Center reads current versions from npm and PyPI and links to each registry artifact.
 
 ## Published packages

@@ -123,3 +123,19 @@ test("Simplified Chinese JSON has no duplicate keys and preserves Tidelight iden
     if (typeof value === "string") assert.doesNotMatch(value, /潮光|潮汐灯/, "Tidelight must keep its trademark spelling");
   }
 });
+
+test("ecosystem READMEs link complete Simplified Chinese companions", async () => {
+  for (const path of [
+    "docs/packages/README.md",
+    "production/tidelight-hackathon-cinematic-demo/README.md",
+    "public/components/mcp/server/README.md",
+    "public/evidence/README.md",
+  ]) {
+    const english = await readFile(new URL(path, root), "utf8");
+    const chinesePath = path.replace(/README\.md$/, "README.zh-CN.md");
+    const chinese = await readFile(new URL(chinesePath, root), "utf8");
+    assert.match(english, /README\.zh-CN\.md/, `${path} must link its Chinese companion`);
+    assert.match(chinese, /English version: \[README\.md\]\(README\.md\)/, `${chinesePath} must link back to English`);
+    assert.ok(chinese.includes("Tidelight"), `${chinesePath} must preserve the product name`);
+  }
+});
