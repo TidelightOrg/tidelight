@@ -12,11 +12,11 @@ This log supplements the frozen ten-event source set. It records the eight live 
 | Alphabet FY2025 Q4 | 12 s | Qwen response based on one headline. The model reported no usable results and 10% confidence; no trade handoff. |
 | Federal Reserve January 2026 decision | 34 s | Eighteen macro sources collected. AI synthesis unavailable; output remained source-only without a factual summary. |
 | U.S. August 2026 CPI | 40 s | Ten macro sources collected. AI synthesis unavailable; output remained source-only. |
-| September 2026 labor market | Not run | The UI blocked the request before starting: hourly research limit reached. |
-| September 2026 CPI | Not run | Not attempted after the same hourly limit blocked the ninth event. |
+| September 2026 labor market | 42 s UI | Captured on production: 7 macro sources; source-only brief, AI synthesis unavailable, confidence 0%, no verified macro conclusion or handoff. Four steps. Exact task time not measured. |
+| September 2026 CPI | 41 s UI | Captured on production: 15 macro sources; source-only brief, AI synthesis unavailable, confidence 0%, no verified macro conclusion or handoff. Four steps. Source list included off-topic regional, PPI, Canada, and India results; relevance is unadjudicated. |
 
 ## Interpretation boundary
 
-The first eight rows are the results actually observed. The last two do not have outputs or task times. No values have been imputed for either. Exact browser start timestamps and saved-note completion times were not captured for these runs, so the elapsed UI durations are not treated as protocol task-time measurements. The human claim labels, source-fit labels, counter-evidence judgments and adjudications have not been performed; therefore the benchmark scorer must continue to report an incomplete gate and no benchmark score.
+All ten rows now have observed production outputs. The final two were rerun after the hourly limit cleared; their results are actual source-only outputs, not imputed values. Exact browser start timestamps and saved-note completion times were not captured for any run, so elapsed UI durations are not treated as protocol task-time measurements. The human claim labels, source-fit labels, counter-evidence judgments and adjudications have not been performed; therefore the benchmark scorer must continue to report an incomplete gate and no benchmark score.
 
 The observed failures include missing or single-source coverage, source-only output when synthesis was unavailable, stale or questionable claims, and absent counter-evidence. These are qualitative findings from the captured outputs. No aggregate rate is calculated without the required claim-level review.
