@@ -100,6 +100,23 @@ export default function JudgePage() {
       </aside>
     </section>
 
+    <section className="judge-section judge-mcp" id="codex-mcp-evidence" aria-labelledby="codex-mcp-title">
+      <div className="judge-section-heading">
+        <div><span className="judge-kicker">CODEX · MCP CONNECTION</span><h2 id="codex-mcp-title">Tidelight MCP in Codex</h2></div>
+        <p>The Tidelight Research plugin is registered in Codex. Its OAuth request is limited to <code>market:read</code>. Consent is still pending, so no authenticated MCP tool call is claimed here.</p>
+      </div>
+      <div className="judge-mcp-steps" aria-label="Codex MCP setup status">
+        <article><span>01</span><div><b>Plugin</b><small>Tidelight Research · Streamable HTTP</small></div><i className="is-complete">Registered</i></article>
+        <article><span>02</span><div><b>Authorization</b><small>OAuth · <code>market:read</code> read-only market data</small></div><i>Consent pending</i></article>
+        <article><span>03</span><div><b>Tool call</b><small>Authenticated request requires the grant</small></div><i>Not run</i></article>
+      </div>
+      <div className="judge-inline-actions">
+        <a href="https://dev.tidelight.app/#connect-with-the-mcp-server">MCP connection guide <span aria-hidden="true">↗</span></a>
+        <a href="https://mcp.tidelight.app/.well-known/oauth-protected-resource/mcp">OAuth resource metadata <span aria-hidden="true">↗</span></a>
+        <Link href="/evidence/tidelight-codex-mcp.json">Connection record <span aria-hidden="true">↗</span></Link>
+      </div>
+    </section>
+
     <section className="judge-section judge-nightwatch" aria-labelledby="nightwatch-title">
       <div className="judge-capture-heading">
         <div className="judge-capture-title">
