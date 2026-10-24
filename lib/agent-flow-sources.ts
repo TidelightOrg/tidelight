@@ -51,6 +51,7 @@ async function rss(url: URL): Promise<FlowEvidence[]> {
 const MAX_EVIDENCE_AGE_MS = 30 * 86_400_000;
 const HISTORICAL_EVIDENCE_AGE_MS = 365 * 86_400_000;
 const MAX_DISCOVERY_ITEMS = 40;
+const queryStopwords = new Set(["a", "an", "and", "are", "after", "based", "be", "between", "by", "can", "could", "does", "face", "faces", "for", "from", "how", "i", "in", "is", "it", "latest", "market", "more", "of", "on", "or", "our", "public", "right", "should", "source", "sources", "the", "their", "this", "to", "using", "what", "when", "where", "which", "who", "why", "with", "would"]);
 
 function historicalSearchContext(question: string) {
   const years = [...question.matchAll(/\b(?:FY\s*|fiscal\s+)?(20\d{2})\b/gi)].map(match => match[1]);
@@ -168,7 +169,13 @@ export function buildIssuerNewsQueries(ticker: string, issuer: string, question 
   const name = issuerNames[ticker] ?? issuer;
   const context = historicalSearchContext(question);
   const historicalTerm = context.terms.length ? ` (${context.terms.join(" ")})` : "";
+  const excluded = new Set([ticker, `${ticker}usdt`, `r${ticker}`, ...name.toLowerCase().split(/[^a-z0-9]+/).filter(Boolean)]);
+  const focusTerms = [...new Set(question.toLowerCase().match(/[a-z][a-z0-9-]{2,}/g) ?? [])]
+    .filter(term => !queryStopwords.has(term) && !excluded.has(term) && !/^20\d{2}$/.test(term) && !/^q[1-4]$/.test(term))
+    .slice(0, 6);
+  const questionFocus = focusTerms.length ? `"${name}" OR "${ticker}" ${focusTerms.map(term => `"${term}"`).join(" ")}${historicalTerm}` : null;
   return [
+    ...(questionFocus ? [questionFocus] : []),
     context.historical
       ? `"${name}" OR "${ticker}" ${context.terms.join(" ")} (earnings OR filing OR results)`
       : `"${name}" OR "${ticker}"${historicalTerm} (earnings OR filing OR results)`,

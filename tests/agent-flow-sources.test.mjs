@@ -17,6 +17,13 @@ test("research builds eight complementary bounded discovery queries", () => {
   assert.ok(queries.some(query => /supply chain|industry/.test(query)));
 });
 
+test("company research reserves a query for the question's specific subject", () => {
+  const queries = buildIssuerNewsQueries("NVDA", "NVIDIA", "What risks does NVDA face from export restrictions and China revenue?");
+  assert.equal(queries.length, 5);
+  assert.match(queries[0], /export.*restrictions.*china.*revenue/i);
+  assert.ok(queries.some(query => /earnings|filing/.test(query)));
+});
+
 test("dated fiscal-period questions add period terms and widen the search window without changing current research", () => {
   const question = "Summarize NVIDIA's FY2026 fourth-quarter results using the captured sources.";
   assert.equal(issuerEvidenceLookbackDays(question), 365);

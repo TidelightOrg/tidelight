@@ -125,12 +125,12 @@ export default function JudgePage() {
     <section className="judge-section judge-mcp" id="codex-mcp-evidence" aria-labelledby="codex-mcp-title">
       <div className="judge-section-heading">
         <div><span className="judge-kicker">CODEX · MCP CONNECTION</span><h2 id="codex-mcp-title">Tidelight MCP in Codex</h2></div>
-        <p>The current Codex connection completed read-only tokenized-market lookup and search calls for NVDA. The connected registry exposes <code>market:read</code>; it does not expose the company research job tools that require <code>research:run</code>. The separate web research replay is linked above and was not an MCP research call.</p>
+        <p>Two authenticated Codex MCP calls verified NVDA instrument lookup and search, with provider timestamps and request IDs recorded below. The connected tool registry exposes market reads only; it does not currently expose an MCP company research job action. The separate web research replay linked above was not an MCP research call.</p>
       </div>
       <div className="judge-mcp-steps" aria-label="Codex MCP setup status">
-        <article><span>01</span><div><b>Connection</b><small>Codex · Tidelight MCP · OAuth 2.1 / Streamable HTTP</small></div><i>Connected</i></article>
-        <article><span>02</span><div><b>Market tools</b><small><code>market:read</code> · NVDA instrument lookup and search succeeded</small></div><i>Verified</i></article>
-        <article><span>03</span><div><b>Research tools</b><small><code>research:run</code> not granted to the active Codex connection</small></div><i>Unavailable</i></article>
+        <article><span>01</span><div><b>Connection</b><small>Codex · Tidelight MCP · authenticated connector</small></div><i>Connected</i></article>
+        <article><span>02</span><div><b>Market tools</b><small><code>market:read</code> · NVDA lookup and search returned fresh provider data</small></div><i>Verified</i></article>
+        <article><span>03</span><div><b>Research tools</b><small>No company research job action is exposed in the connected Codex tool registry</small></div><i>Not exposed</i></article>
       </div>
       <div className="judge-inline-actions">
         <Link href="/replay/ed08a907-14b0-41dd-b731-78870fe3255b">Open fresh NVDA replay <span aria-hidden="true">↗</span></Link>
@@ -138,6 +138,7 @@ export default function JudgePage() {
         <a href="https://mcp.tidelight.app/.well-known/oauth-protected-resource/mcp">OAuth resource metadata <span aria-hidden="true">↗</span></a>
         <Link href="/evidence/tidelight-codex-mcp.json">Historical connection record <span aria-hidden="true">↗</span></Link>
         <Link href="/evidence/tidelight-codex-mcp-install-attempt-20261024.json">Fresh install attempt <span aria-hidden="true">↗</span></Link>
+        <Link href="/evidence/tidelight-codex-mcp-market-check-20261024.json">Live Codex market calls <span aria-hidden="true">↗</span></Link>
       </div>
     </section>
 
