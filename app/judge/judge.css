@@ -99,3 +99,13 @@
 .judge-mcp-steps i.is-complete{color:var(--mint)}
 .judge-mcp code{padding:2px 5px;border:1px solid var(--judge-line);border-radius:5px;color:var(--text);font:10px var(--mono)}
 @media(max-width:760px){.judge-mcp-steps{grid-template-columns:1fr}.judge-mcp-steps article{grid-template-columns:24px minmax(0,1fr) auto;align-items:center;padding:15px;border-right:0;border-bottom:1px solid var(--judge-line)}.judge-mcp-steps article:last-child{border-bottom:0}.judge-mcp-steps i{grid-column:3;grid-row:1;white-space:nowrap}}
+
+.judge-test-video-frame{margin:0;padding:10px;border:1px solid var(--judge-line);border-radius:18px;background:linear-gradient(145deg,color-mix(in srgb,var(--mint) 10%,var(--panel)),var(--panel));box-shadow:0 24px 70px color-mix(in srgb,var(--text) 7%,transparent)}
+.judge-test-video-frame video{display:block;width:100%;max-height:min(70vh,720px);aspect-ratio:16/9;object-fit:contain;border-radius:11px;background:#060909}
+.judge-test-video-frame figcaption{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:13px 8px 4px;color:var(--muted);font:10px var(--mono)}
+.judge-test-video-frame figcaption a,.judge-test-video+.judge-section-note{color:var(--mint)}
+.judge-test-route-list{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px;margin-top:14px}
+.judge-test-route-list span{display:flex;align-items:center;gap:8px;min-width:0;padding:10px 12px;border:1px solid var(--judge-line);border-radius:9px;background:color-mix(in srgb,var(--panel) 80%,transparent);font:10px var(--mono)}
+.judge-test-route-list i{color:var(--mint);font-style:normal;font-weight:700}.judge-test-route-list code{overflow:hidden;text-overflow:ellipsis}
+@media(max-width:900px){.judge-test-route-list{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(max-width:560px){.judge-test-route-list{grid-template-columns:repeat(2,minmax(0,1fr))}.judge-test-video-frame figcaption{align-items:flex-start;flex-direction:column}.judge-test-video-frame video{aspect-ratio:9/10;max-height:72vh}}
