@@ -126,17 +126,18 @@ export default function JudgePage() {
     <section className="judge-section judge-mcp" id="codex-mcp-evidence" aria-labelledby="codex-mcp-title">
       <div className="judge-section-heading">
         <div><span className="judge-kicker">CODEX · MCP CONNECTION</span><h2 id="codex-mcp-title">Tidelight MCP in Codex</h2></div>
-        <p>An earlier Codex connection completed two read-only market checks under <code>market:read</code>. That plugin was removed for a fresh reconnect. Current Codex discovery does not list Tidelight, and a direct call to the previous tool returns “Unknown tool.” No fresh OAuth grant or company research run is recorded.</p>
+        <p>A new Codex Cloud attempt in the tidelight Org environment could not install the connector: the Cloud agent reported that no Tidelight tools or Codex Cloud UI controls were exposed. No OAuth grant, live tool list, or research run is claimed. The earlier <code>market:read</code> calls are historical; the plugin was removed before this attempt.</p>
       </div>
       <div className="judge-mcp-steps" aria-label="Codex MCP setup status">
         <article><span>01</span><div><b>Plugin</b><small>Tidelight Research · Streamable HTTP</small></div><i>Removed after prior capture</i></article>
         <article><span>02</span><div><b>Authorization</b><small>Previous capture · <code>market:read</code> read-only market data</small></div><i>Historical</i></article>
-        <article><span>03</span><div><b>Tool call</b><small>Prior market calls · details in the evidence record</small></div><i>Past evidence</i></article>
+        <article><span>03</span><div><b>Fresh attempt</b><small>Requested <code>market:read</code> + <code>research:run</code>; connector tools unavailable in Codex Cloud</small></div><i>Not installed</i></article>
       </div>
       <div className="judge-inline-actions">
         <a href="https://dev.tidelight.app/#connect-with-the-mcp-server">MCP connection guide <span aria-hidden="true">↗</span></a>
         <a href="https://mcp.tidelight.app/.well-known/oauth-protected-resource/mcp">OAuth resource metadata <span aria-hidden="true">↗</span></a>
-        <Link href="/evidence/tidelight-codex-mcp.json">Connection record <span aria-hidden="true">↗</span></Link>
+        <Link href="/evidence/tidelight-codex-mcp.json">Historical connection record <span aria-hidden="true">↗</span></Link>
+        <Link href="/evidence/tidelight-codex-mcp-install-attempt-20261024.json">Fresh install attempt <span aria-hidden="true">↗</span></Link>
       </div>
     </section>
 
