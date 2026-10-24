@@ -202,7 +202,7 @@ export default function JudgePage() {
       <p className="judge-section-note">This is a capture-completion score, not an accuracy or usefulness score. The protocol scorer rejects incomplete reviews. Task time was not measured; displayed UI durations are retained as observations only. The September CPI run returned 15 sources, including visibly off-topic items; source relevance has not been adjudicated.</p>
       <div className="judge-inline-actions">
         <a href="/evidence/research-benchmark-summary-20261024.json">Benchmark summary ↗</a>
-        <a href="/benchmarks/research-benchmark-frozen-2026-10-24.json">Frozen event set ↗</a>
+        <a href="https://github.com/TidelightOrg/tidelight/blob/main/docs/benchmarks/research-benchmark-frozen-2026-10-24.json">Frozen event set ↗</a>
         <a href="https://github.com/TidelightOrg/tidelight/tree/main/docs/benchmarks">GitHub benchmark files ↗</a>
       </div>
     </section>
