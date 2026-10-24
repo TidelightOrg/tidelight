@@ -24,6 +24,12 @@
 
 ---
 
+
+## Live Judge evidence
+
+- [Judge Mode](https://tidelight.app/judge) includes a full 68-second signed-out browser route-test video. It records seven public routes returning HTTP 200; [capture details](https://tidelight.app/evidence/tidelight-live-route-test-20261024.json) state the coverage boundary.
+- [Codex Tidelight MCP evidence](https://tidelight.app/judge#codex-mcp-evidence) records the authenticated read-only `market:read` tool test and its request ID.
+
 ## Make sense of the story behind the price
 
 A company update, a policy decision, or a shift in another sector can move a market while the usual headlines are quiet. Tidelight gives you one place to ask what changed, inspect the source, and follow the possible connections.
