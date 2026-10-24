@@ -237,7 +237,11 @@ export default function JudgePage() {
         <article><span>PUBLIC MIRRORS</span><strong>5 validated</strong><small>SDK, MCP, React, CLI, and Python package paths checked.</small></article>
         <article><span>FRESH CONSUMER INSTALLS</span><strong>5 packages</strong><small>SDK, MCP, React, CLI, and Python 0.1.2 installs passed; module imports and CLI help were exercised.</small></article>
       </div>
-      <p className="judge-section-note">The fresh package-only npm install reported zero vulnerabilities. The separate monorepo install reported four advisories (2 moderate, 1 high, 1 critical). This record includes command results; no screen-recorded install video was captured in the available runner.</p>
+      <p className="judge-section-note">The fresh package-only npm install reported zero vulnerabilities. The separate monorepo install reported four advisories (2 moderate, 1 high, 1 critical). The live terminal session was recorded separately and covers the npm consumer install, package imports, CLI help, PyPI install, and Python Client import.</p>
+      <figure className="judge-test-video-frame judge-install-recording">
+        <iframe src="/judge-evidence/tidelight-npm-python-install-usage-20261024.html" title="Recorded npm and Python package installation and usage checks" loading="lazy" style={{ width: "100%", height: "min(70vh, 720px)", border: 0, borderRadius: "18px", background: "#0d1513" }} />
+        <figcaption><span>Separate recorded package install and usage session · 1280 × 720</span><a href="/judge-evidence/tidelight-npm-python-install-usage-20261024.html" target="_blank" rel="noreferrer">Open recording ↗</a></figcaption>
+      </figure>
       <div className="judge-inline-actions">
         <a href="/evidence/package-install-verification-20261024.json">Install verification record ↗</a>
         <a href="https://github.com/TidelightOrg/tidelight/tree/main/packages">Package source in GitHub ↗</a>
