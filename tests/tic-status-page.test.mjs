@@ -44,8 +44,8 @@ test("dedicated status hostname rewrites its public routes to the status app", a
 test("all status routes bypass workspace chrome and the dedicated host skips account setup", async () => {
   const shell = await readFile(new URL("../app/ui/workspace-shell.tsx", import.meta.url), "utf8");
   const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
-  assert.match(shell, /pathname\\.startsWith\\("\\/status\\/"\)/);
-  assert.match(layout, /const isStandaloneStatusHost = requestHost === "status\\.tidelight\\.app"/);
+  assert.match(shell, /pathname\.startsWith\("\/status\/"\)/);
+  assert.match(layout, /const isStandaloneStatusHost = requestHost === "status\.tidelight\.app"/);
   assert.match(layout, /const supabase = isStandalonePublicHost \\? null : await createClient\\(\\)/);
   assert.match(layout, /const user = isStandalonePublicHost \\? null : await getServerUser\\(\\)/);
 });
