@@ -125,6 +125,14 @@
       "claim": "Historical validation summary; independent reproduction requires the run data, out-of-sample period, source fingerprint, cost assumptions, raw trades, equity curve, risk metrics, and reproduction command listed below."
     },
     {
+      "id": "owner-published-strategy-replay-raaplusdt-20261024",
+      "kind": "owner_published_strategy_replay",
+      "status": "active_public_link_expires_2026-11-23T08:38:38Z",
+      "uri": "https://tidelight.app/strategy-replay/58348395-ff65-4a4c-be5a-019234379587",
+      "data_uri": "https://tidelight.app/api/strategy-replays/58348395-ff65-4a4c-be5a-019234379587",
+      "claim": "Apple Inc. RAAPLUSDT 4H trend SMA 20/50 replay; 525 archived candles from 2026-07-26 through 2026-10-24. The 32-day holdout returned -0.76% after estimated costs versus +2.12% buy and hold; maximum drawdown -4.04%; three trades, 33.33% win rate. Candle archive SHA-256 43fb9fa6a4da2bd084046798a77fbbdd36d366ab97e154a53fd19a4b3c740f78. Historical simulation only, not a forecast or audited performance; no live orders or account data included."
+    },
+    {
       "id": "nightwatch-ledger",
       "kind": "paper_trading",
       "status": "private_owner_scoped",
