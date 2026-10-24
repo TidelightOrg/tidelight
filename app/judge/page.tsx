@@ -64,7 +64,7 @@ export default function JudgePage() {
         {researchReplays.map((replay) => <Link className="judge-replay-card" href={`/replay/${replay.id}`} key={replay.id}>
           <div className="judge-replay-top"><span>{replay.symbol}</span><small>{replay.focus}</small></div>
           <h3>{replay.question}</h3>
-          <p>{replay.detail}</p>
+          <p>{replay.detail.split(" · ").map((part, index) => <span key={`${replay.id}-${part}`}>{index ? " · " : null}{part}</span>)}</p>
           <b>Open replay <span aria-hidden="true">↗</span></b>
         </Link>)}
       </div>

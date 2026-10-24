@@ -54,7 +54,9 @@ test("dynamic stock suggestions localize ticker templates while preserving Engli
   assert.equal(localizeResearchSuggestion("A user-written research question", "zh-CN"), "A user-written research question");
 });
 
-test("Simplified Chinese covers the Judge evaluation path and public evidence disclosures", () => {
+test("Simplified Chinese covers the Judge evaluation path and public evidence disclosures", async () => {
+  const judge = await readFile(new URL("app/judge/page.tsx", root), "utf8");
+  assert.ok(judge.includes('replay.detail.split(" · ")'), "Judge replay metadata should expose translatable segments");
   for (const key of [
     "AI TRADING DESK · PUBLIC EVALUATION", "Inspect the decision.",
     "Trace an after-hours market question through its sources, tokenized instrument context, scenarios, and risk gates.",
@@ -75,6 +77,15 @@ test("Simplified Chinese covers the Judge evaluation path and public evidence di
     "Evidence manifest", "Capture data", "Delivery record", "Open Gmail capture",
     "Open the full Gmail screenshot for the RNVDUSDT Nightwatch email", "Browse published paper replays", "Download JSON",
     "PUBLIC REPLAY", "after costs", "Holdout return trailed buy and hold (+2.12%) over 32 days. Historical simulation; costs estimated, no live orders.",
+    "Evaluation path", "Evaluation stages", "Would you review the rTSLA market?",
+    "How do AI investment and Azure demand change the risk picture?", "What should a long-term rAAPL review verify?",
+    "How should antitrust remedies and AI-search competition be reviewed?", "How do AWS investment and retail economics shape the review?",
+    "Compare the latest evidence and risks.", "Separate issuer assessments", "decision gates", "PUBLIC REPLAY · APPLE · 4H",
+    "−0.76% after costs", "Open Strategy Lab", "NVIDIA token", "Apple token", "Alphabet token", "22 Oct 2026", "14 Oct 2026", "12 Oct 2026",
+    "Historical Nightwatch simulated ledger position in rNVD, captured 22 October 2026.",
+    "Historical Nightwatch simulated ledger position in rAAPL, captured 14 October 2026.",
+    "Historical Nightwatch simulated ledger position in rGOOGL, captured 12 October 2026.",
+    "Publish an eligible research run", "Open Nightwatch",
   ]) assert.equal(typeof translations[key], "string", `Missing Simplified Chinese entry for ${key}`);
 });
 
