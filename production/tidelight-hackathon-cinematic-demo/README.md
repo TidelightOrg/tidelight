@@ -1,5 +1,7 @@
 # Tidelight cinematic demo production
 
+简体中文版：[README.zh-CN.md](README.zh-CN.md)
+
 A self-contained production folder for the public desktop demonstration film created for the Bitget AI Base Camp Hackathon S2. It contains the final 1080p master, narration and timed captions, original Tide character files, source media used in the edit, and reusable capture/render scripts.
 
 ## Master deliverable
