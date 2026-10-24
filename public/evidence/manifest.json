@@ -236,6 +236,23 @@
       "video_uri": "https://tidelight.app/judge-evidence/tidelight-live-route-test-20261024.mp4",
       "summary_uri": "https://tidelight.app/evidence/tidelight-live-route-test-20261024.json",
       "claim": "A 68-second signed-out 1280x720 Playwright browser recording navigates seven public Tidelight routes. All seven returned HTTP 200. It is a route smoke test only and does not verify authenticated actions or product data."
+    },
+    {
+      "id": "research-benchmark-capture-score-20261024",
+      "kind": "research_benchmark",
+      "status": "all_10_runs_captured_quality_review_pending",
+      "uri": "https://tidelight.app/judge#research-benchmark",
+      "summary_uri": "https://tidelight.app/evidence/research-benchmark-summary-20261024.json",
+      "dataset_uri": "https://tidelight.app/benchmarks/research-benchmark-frozen-2026-10-24.json",
+      "claim": "Capture completion is 10/10. Two runs returned AI synthesis (2/10); the other eight were source-only or had no synthesis. This is not a quality score. The protocol benchmark score remains pending two independent claim reviews and adjudications. Task time is not measured."
+    },
+    {
+      "id": "npm-package-install-verification-20261024",
+      "kind": "package_consumer_install_verification",
+      "status": "install_and_test_workflows_passed_with_dependency_advisories",
+      "uri": "https://tidelight.app/judge#package-install-evidence",
+      "summary_uri": "https://tidelight.app/evidence/package-install-verification-20261024.json",
+      "claim": "Root npm ci, 266 repository tests, typecheck, production build, lint, five public mirror mappings, and four staged npm consumer install workflows completed successfully. Root install reported four dependency advisories (2 moderate, 1 high, 1 critical)."
     }
   ],
   "owner_published_research": {

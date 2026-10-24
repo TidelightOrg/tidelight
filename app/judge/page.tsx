@@ -189,6 +189,40 @@ export default function JudgePage() {
       </div>
     </section>
 
+    <section className="judge-section judge-evidence-score" id="research-benchmark" aria-labelledby="benchmark-title">
+      <div className="judge-section-heading">
+        <div><span className="judge-kicker">RESEARCH · FROZEN TEN EVENT SET</span><h2 id="benchmark-title">Ten runs captured. Review score pending.</h2></div>
+        <p>Every frozen question now has an observed production run. Capture completion is 10/10; the protocol quality score remains pending independent claim review.</p>
+      </div>
+      <div className="judge-score-grid">
+        <article><span>RUN CAPTURE</span><strong>10 / 10</strong><small>All frozen events have production observations.</small></article>
+        <article><span>AI SYNTHESIS</span><strong>2 / 10</strong><small>Two runs returned model synthesis; eight were source-only or had no synthesis.</small></article>
+        <article><span>QUALITY SCORE</span><strong>Pending</strong><small>Two reviewer labels and adjudication are missing for displayed claims.</small></article>
+      </div>
+      <p className="judge-section-note">This is a capture-completion score, not an accuracy or usefulness score. The protocol scorer rejects incomplete reviews. Task time was not measured; displayed UI durations are retained as observations only. The September CPI run returned 15 sources, including visibly off-topic items; source relevance has not been adjudicated.</p>
+      <div className="judge-inline-actions">
+        <a href="/evidence/research-benchmark-summary-20261024.json">Benchmark summary ↗</a>
+        <a href="https://github.com/TidelightOrg/tidelight/blob/main/docs/benchmarks/research-benchmark-frozen-2026-10-24.json">Frozen event set ↗</a>
+        <a href="https://github.com/TidelightOrg/tidelight/tree/main/docs/benchmarks">GitHub benchmark files ↗</a>
+      </div>
+    </section>
+    <section className="judge-section judge-evidence-score" id="package-install-evidence" aria-labelledby="package-test-title">
+      <div className="judge-section-heading">
+        <div><span className="judge-kicker">DEVELOPER ECOSYSTEM · CLEAN INSTALLS</span><h2 id="package-test-title">Packages tested from a consumer install.</h2></div>
+        <p>Install and build evidence covers the monorepo, public package mirrors, and staged npm consumer workflows.</p>
+      </div>
+      <div className="judge-score-grid judge-package-grid">
+        <article><span>REPOSITORY</span><strong>266 passed</strong><small>Root unit tests; typecheck, build, and lint completed.</small></article>
+        <article><span>PUBLIC MIRRORS</span><strong>5 validated</strong><small>SDK, MCP, React, CLI, and Python package paths checked.</small></article>
+        <article><span>CONSUMER INSTALLS</span><strong>4 packages</strong><small>SDK, MCP, React, and CLI clean-install/import workflows passed.</small></article>
+      </div>
+      <p className="judge-section-note">The install report records package install checks and boundaries. Root npm install reported four dependency advisories (2 moderate, 1 high, 1 critical); this is disclosed for follow-up, not hidden by the passing test count.</p>
+      <div className="judge-inline-actions">
+        <a href="/evidence/package-install-verification-20261024.json">Install verification record ↗</a>
+        <a href="https://github.com/TidelightOrg/tidelight/tree/main/packages">Package source in GitHub ↗</a>
+        <a href="https://github.com/TidelightOrg/tidelight/actions">GitHub Actions ↗</a>
+      </div>
+    </section>
     <footer className="judge-footer">
       <p>Historical simulations are not audited results. Research is not investment advice; live execution is not enabled.</p>
       <Link href="/evidence">Evidence manifest <span aria-hidden="true">↗</span></Link>

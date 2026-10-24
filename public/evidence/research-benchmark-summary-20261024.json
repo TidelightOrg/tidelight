@@ -1,0 +1,40 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "research_benchmark_capture_summary",
+  "captured_date": "2026-10-24",
+  "benchmark": "Tidelight frozen real-event research set 2026-10-24-v1",
+  "event_count": 10,
+  "run_capture_completion": {
+    "numerator": 10,
+    "denominator": 10,
+    "rate": 1
+  },
+  "ai_synthesis_returned": {
+    "numerator": 2,
+    "denominator": 10,
+    "rate": 0.2
+  },
+  "source_only_or_no_synthesis": 8,
+  "protocol_quality_score": {
+    "status": "pending",
+    "score": null,
+    "reason": "Two independent reviewer labels and adjudication are required for every displayed factual claim. They have not been completed; the protocol scorer therefore rejects the set as incomplete."
+  },
+  "task_time": {
+    "status": "not_measured",
+    "protocol_values": null,
+    "ui_elapsed_observations_seconds": {
+      "nvidia": 29,
+      "apple": 42,
+      "microsoft": 30,
+      "amazon": 3,
+      "tesla": 32,
+      "alphabet": 12,
+      "fed": 34,
+      "august_cpi": 40,
+      "september_employment": 42,
+      "september_cpi": 41
+    }
+  },
+  "limitation": "Synthesis availability and capture completion do not measure claim accuracy, citation validity, usefulness, or overall product quality. Review the frozen run log and source records before drawing conclusions."
+}

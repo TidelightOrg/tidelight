@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "package_install_verification",
+  "captured_date": "2026-10-24",
+  "environment": "Isolated Vercel sandbox consumer environment; repo snapshot preceding the Judge evidence-only PRs",
+  "checks": [
+    {
+      "name": "root npm ci",
+      "status": "passed",
+      "detail": "445 packages installed."
+    },
+    {
+      "name": "root npm test",
+      "status": "passed",
+      "detail": "266 tests passed."
+    },
+    {
+      "name": "typecheck",
+      "status": "passed"
+    },
+    {
+      "name": "production build",
+      "status": "passed"
+    },
+    {
+      "name": "lint",
+      "status": "passed_with_warnings",
+      "detail": "9 existing unused-variable warnings; no lint errors."
+    },
+    {
+      "name": "public mirror validation",
+      "status": "passed",
+      "detail": "5 public mirror mappings validated; mirrored package checks executed."
+    },
+    {
+      "name": "consumer installs",
+      "status": "passed",
+      "packages": [
+        "@tidelight/sdk@0.1.2",
+        "@tidelight/mcp (staged)",
+        "@tidelight/react@0.1.2",
+        "@tidelight/cli@0.1.2"
+      ],
+      "detail": "Imports, React SSR/CSS, CLI help, and no-credential pre-network rejection exercised; no packages were published."
+    },
+    {
+      "name": "npm audit --omit=dev",
+      "status": "findings_reported",
+      "detail": "Root npm install reported 4 advisories: 2 moderate, 1 high, 1 critical. Full dependency remediation was not part of this verification."
+    }
+  ],
+  "boundary": "These checks verify the recorded repo snapshot and consumer workflows. They do not prove every registry release is the latest published source, and no package publish was performed."
+}
