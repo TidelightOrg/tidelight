@@ -126,12 +126,12 @@ export default function JudgePage() {
     <section className="judge-section judge-mcp" id="codex-mcp-evidence" aria-labelledby="codex-mcp-title">
       <div className="judge-section-heading">
         <div><span className="judge-kicker">CODEX · MCP CONNECTION</span><h2 id="codex-mcp-title">Tidelight MCP in Codex</h2></div>
-        <p>The Tidelight Research plugin is connected in Codex with the read-only <code>market:read</code> scope. Its market search returned 100 supported instruments, the response limit. This verifies one market read path.</p>
+        <p>The connected Tidelight Research tools have read-only <code>market:read</code> access. One search returned 100 supported instruments; a fresh NVDA lookup returned RNVDAUSDT at $211.39 from Bitget Reality spot. The endpoint advertises <code>research:run</code>, but the connected Codex tool list exposes no company research operation, so no MCP research job is claimed.</p>
       </div>
       <div className="judge-mcp-steps" aria-label="Codex MCP setup status">
         <article><span>01</span><div><b>Plugin</b><small>Tidelight Research · Streamable HTTP</small></div><i className="is-complete">Registered</i></article>
         <article><span>02</span><div><b>Authorization</b><small>OAuth · <code>market:read</code> read-only market data</small></div><i className="is-complete">Active</i></article>
-        <article><span>03</span><div><b>Tool call</b><small>Tidelight search tokenized equities · request ID in the evidence record</small></div><i className="is-complete">100 returned</i></article>
+        <article><span>03</span><div><b>Tool call</b><small>Two read-only calls · request IDs in the evidence record</small></div><i className="is-complete">Passed</i></article>
       </div>
       <div className="judge-inline-actions">
         <a href="https://dev.tidelight.app/#connect-with-the-mcp-server">MCP connection guide <span aria-hidden="true">↗</span></a>
@@ -210,14 +210,14 @@ export default function JudgePage() {
     <section className="judge-section judge-evidence-score" id="package-install-evidence" aria-labelledby="package-test-title">
       <div className="judge-section-heading">
         <div><span className="judge-kicker">DEVELOPER ECOSYSTEM · CLEAN INSTALLS</span><h2 id="package-test-title">Packages tested from a consumer install.</h2></div>
-        <p>Install and build evidence covers the monorepo, public package mirrors, and staged npm consumer workflows.</p>
+        <p>A fresh clean consumer environment installed the current npm and PyPI releases, then exercised their documented entry points.</p>
       </div>
       <div className="judge-score-grid judge-package-grid">
         <article><span>REPOSITORY</span><strong>266 passed</strong><small>Root unit tests; typecheck, build, and lint completed.</small></article>
         <article><span>PUBLIC MIRRORS</span><strong>5 validated</strong><small>SDK, MCP, React, CLI, and Python package paths checked.</small></article>
-        <article><span>CONSUMER INSTALLS</span><strong>4 packages</strong><small>SDK, MCP, React, and CLI clean-install/import workflows passed.</small></article>
+        <article><span>FRESH CONSUMER INSTALLS</span><strong>5 packages</strong><small>SDK, MCP, React, CLI, and Python 0.1.2 installs passed; module imports and CLI help were exercised.</small></article>
       </div>
-      <p className="judge-section-note">The install report records package install checks and boundaries. Root npm install reported four dependency advisories (2 moderate, 1 high, 1 critical); this is disclosed for follow-up, not hidden by the passing test count.</p>
+      <p className="judge-section-note">The fresh package-only npm install reported zero vulnerabilities. The separate monorepo install reported four advisories (2 moderate, 1 high, 1 critical). This record includes command results; no screen-recorded install video was captured in the available runner.</p>
       <div className="judge-inline-actions">
         <a href="/evidence/package-install-verification-20261024.json">Install verification record ↗</a>
         <a href="https://github.com/TidelightOrg/tidelight/tree/main/packages">Package source in GitHub ↗</a>
