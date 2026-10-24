@@ -21,7 +21,21 @@ test("Simplified Chinese preserves the Tidelight product name and covers package
     "Research job lifecycle", "Supported operations", "Bounded behavior, protected credentials.",
     "Open full research with source discovery", "OFFICIAL SOURCE STARTERS", "BLS · Consumer Price Index",
     "Feed freshness", "A TIDELIGHT TRADE CARD", "Exposure", "Paper portfolio summary",
+    "Bring a question about a company, its tokenized market, or a dated Fed/BLS release. Tidelight separates issuer news from instrument-specific evidence, checks market context, and explains what the research can—and cannot—support.",
+    "FEDERAL RESERVE / BLS SOURCES", "Macro measurements, official decisions, and market interpretation are kept separate. This is not a policy forecast.",
+    "Official source", "Independent reporting", "No instrument or trading decision is generated.",
   ]) assert.equal(typeof translations[key], "string", `Missing Simplified Chinese entry for ${key}`);
+});
+
+test("macro research prompt and result terminology have Simplified Chinese coverage", async () => {
+  const desk = await readFile(new URL("app/ui/agent-flow-desk.tsx", root), "utf8");
+  const prompt = "Bring a question about a company, its tokenized market, or a dated Fed/BLS release. Tidelight separates issuer news from instrument-specific evidence, checks market context, and explains what the research can—and cannot—support.";
+  const placeholder = "Ask about a company, tokenized market, or dated Fed/BLS release…";
+  assert.ok(desk.includes(prompt), "Research page should advertise dated Fed/BLS questions");
+  assert.ok(desk.includes(placeholder), "Research prompt should guide macro questions");
+  for (const key of [prompt, placeholder, "FEDERAL RESERVE / BLS SOURCES", "Official source", "Independent reporting", "No instrument or trading decision is generated."]) {
+    assert.equal(typeof translations[key], "string", `Missing Simplified Chinese entry for ${key}`);
+  }
 });
 
 test("developer pages expose a language toggle and share the language preference across Tidelight subdomains", async () => {
