@@ -28,32 +28,45 @@ async function rss(url: URL): Promise<FlowEvidence[]> {
 }
 
 const MAX_EVIDENCE_AGE_MS = 30 * 86_400_000;
+const HISTORICAL_EVIDENCE_AGE_MS = 365 * 86_400_000;
 const MAX_DISCOVERY_ITEMS = 40;
+
+function historicalSearchContext(question: string) {
+  const years = [...question.matchAll(/\b(?:FY\s*|fiscal\s+)?(20\d{2})\b/gi)].map(match => match[1]);
+  const periods = [...question.matchAll(/\b(?:Q[1-4]|first|second|third|fourth)\s*[- ]?quarter\b/gi)].map(match => match[0]);
+  const dated = /\b(?:19|20)\d{2}-\d{2}-\d{2}\b|\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{1,2},?\s+(?:19|20)\d{2}\b/i.test(question);
+  const hasHistoricalPeriod = years.length > 0 && (periods.length > 0 || /\b(?:results?|earnings|release|outlook|capital[- ]spending|guidance)\b/i.test(question));
+  const terms = [...new Set([...years, ...periods].map(term => term.toLowerCase().replace(/\s+/g, " ")))];
+  return { historical: dated || hasHistoricalPeriod, terms };
+}
 
 function storyKey(item: FlowEvidence) {
   const normalized = item.title.toLowerCase().replace(/\s+-\s+[^-]+$/, "").replace(/[^a-z0-9]/g, "");
   return normalized.replace(/quarterly|reports|results|reporting|announces|announced/g, "");
 }
 
-function withinResearchWindow(item: FlowEvidence, now: number) {
+function withinResearchWindow(item: FlowEvidence, now: number, maxAgeMs = MAX_EVIDENCE_AGE_MS) {
   if (!item.publishedAt) return false;
   const published = Date.parse(item.publishedAt);
-  return Number.isFinite(published) && published <= now + 5 * 60_000 && now - published <= MAX_EVIDENCE_AGE_MS;
+  return Number.isFinite(published) && published <= now + 5 * 60_000 && now - published <= maxAgeMs;
 }
 
 /** Bounded multi-query public headline discovery. Search results are pointers, not verified article contents. */
-export function buildIssuerNewsQueries(ticker: string, issuer: string): string[] {
+export function buildIssuerNewsQueries(ticker: string, issuer: string, question = ""): string[] {
   const name = issuerNames[ticker] ?? issuer;
+  const context = historicalSearchContext(question);
+  const historicalTerm = context.terms.length ? ` (${context.terms.join(" ")})` : "";
   return [
-    `"${name}" OR "${ticker}" (stock OR earnings OR filing)`,
+    `"${name}" OR "${ticker}"${historicalTerm} (earnings OR filing OR results)`,
     `"${name}" OR "${ticker}" (guidance OR revenue OR product)`,
     `"${name}" OR "${ticker}" (regulation OR lawsuit OR analyst)`,
     `"${name}" OR "${ticker}" (industry OR supply chain OR market)`,
   ];
 }
-export async function gatherIssuerEvidence(ticker: string, issuer: string): Promise<FlowEvidence[]> {
+export async function gatherIssuerEvidence(ticker: string, issuer: string, question = ""): Promise<FlowEvidence[]> {
   const name = issuerNames[ticker] ?? issuer;
-  const queries = buildIssuerNewsQueries(ticker, issuer);
+  const context = historicalSearchContext(question);
+  const queries = buildIssuerNewsQueries(ticker, issuer, question);
   const urls = queries.flatMap(query => {
     const google = new URL("https://news.google.com/rss/search");
     google.search = new URLSearchParams({ q: query, hl: "en-US", gl: "US", ceid: "US:en" }).toString();
@@ -73,7 +86,8 @@ export async function gatherIssuerEvidence(ticker: string, issuer: string): Prom
       const headline = `${item.title} ${item.snippet}`;
       const relevant = new RegExp(`(^|[^a-z0-9])${ticker}([^a-z0-9]|$)`, "i").test(headline) ||
         (name.length >= 4 && headline.toLowerCase().includes(name.toLowerCase()));
-      if (!relevant || !withinResearchWindow(item, now)) continue;
+      const maxAge = context.historical ? HISTORICAL_EVIDENCE_AGE_MS : MAX_EVIDENCE_AGE_MS;
+      if (!relevant || !withinResearchWindow(item, now, maxAge)) continue;
       const key = storyKey(item);
       const previous = stories.get(key);
       if (!previous || (item.snippet.length > previous.snippet.length && item.via === "Public feeds")) stories.set(key, item);
@@ -83,4 +97,8 @@ export async function gatherIssuerEvidence(ticker: string, issuer: string): Prom
   return [...stories.values()]
     .sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? ""))
     .slice(0, MAX_DISCOVERY_ITEMS);
+}
+
+export function issuerEvidenceLookbackDays(question: string) {
+  return historicalSearchContext(question).historical ? 365 : 30;
 }

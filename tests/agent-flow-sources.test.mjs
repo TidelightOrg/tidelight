@@ -6,7 +6,7 @@ const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
   if (specifier === "./agent-flow-policy") return nextResolve("./agent-flow-policy.ts", context);
   return nextResolve(specifier, context);
 } });
-const { buildIssuerNewsQueries, gatherIssuerEvidence } = await import("../lib/agent-flow-sources.ts");
+const { buildIssuerNewsQueries, gatherIssuerEvidence, issuerEvidenceLookbackDays } = await import("../lib/agent-flow-sources.ts");
 hooks.deregister();
 
 test("research builds eight complementary bounded discovery queries", () => {
@@ -15,6 +15,13 @@ test("research builds eight complementary bounded discovery queries", () => {
   assert.ok(queries.some(query => /earnings|filing/.test(query)));
   assert.ok(queries.some(query => /regulation|lawsuit/.test(query)));
   assert.ok(queries.some(query => /supply chain|industry/.test(query)));
+});
+
+test("dated fiscal-period questions add period terms and widen the search window without changing current research", () => {
+  const question = "Summarize NVIDIA's FY2026 fourth-quarter results using the captured sources.";
+  assert.equal(issuerEvidenceLookbackDays(question), 365);
+  assert.equal(issuerEvidenceLookbackDays("What changed for NVDA right now?"), 30);
+  assert.match(buildIssuerNewsQueries("NVDA", "NVIDIA", question)[0], /2026 fourth-quarter/);
 });
 
 test("public feeds retain only relevant, recent dated HTTPS stories and deduplicate coverage", async () => {
@@ -44,5 +51,26 @@ test("public feeds retain only relevant, recent dated HTTPS stories and deduplic
     assert.equal(new Set(items.map(item => new URL(item.url).hostname)).size, 2);
     assert.ok(items.every(item => item.publishedAt && item.via === "Public feeds"));
     assert.ok(items.some(item => item.publisher === "Publisher One" || item.publisher === "Publisher Two"));
+  } finally { globalThis.fetch = previousFetch; }
+});
+
+test("explicit historical issuer questions can retrieve dated event coverage outside the current-news window", async () => {
+  const now = Date.now();
+  const previousFetch = globalThis.fetch;
+  const historicalDate = new Date(now - 120 * 86_400_000).toUTCString();
+  globalThis.fetch = async input => {
+    const query = new URL(input).searchParams.get("q") ?? "";
+    const match = query.includes("earnings") || query.includes("results")
+      ? `<item><title>NVIDIA FY2026 fourth-quarter results</title><link>https://issuer.example/fy26-q4</link><source>NVIDIA IR</source><pubDate>${historicalDate}</pubDate><description>Reported quarterly revenue</description></item>`
+      : "";
+    return new Response(`<rss><channel>${match}</channel></rss>`, { status: 200, headers: { "content-type": "application/rss+xml" } });
+  };
+  try {
+    const question = "Summarize NVIDIA's FY2026 fourth-quarter results.";
+    const history = await gatherIssuerEvidence("NVDA", "NVIDIA", question);
+    const current = await gatherIssuerEvidence("NVDA", "NVIDIA", "What changed for NVDA right now?");
+    assert.equal(history.length, 1);
+    assert.equal(history[0].url, "https://issuer.example/fy26-q4");
+    assert.equal(current.length, 0);
   } finally { globalThis.fetch = previousFetch; }
 });

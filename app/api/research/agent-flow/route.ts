@@ -4,7 +4,7 @@ import { aiJsonWithFallback, configuredAiProviders } from "@/lib/ai-fallback";
 import { getBitgetAsset, getBitgetCandles, getBitgetStockPerp, getIssuerName, STOCK_PERP_UNIVERSE } from "@/lib/bitget-market";
 import { buildSignals, prepareBacktestCandles } from "@/lib/backtest";
 import { extractFlowTickers, gateFlowTrade, isTokenizedMarketQuestion, normalizeFlowAssessments, sourceOnlyAssessment, tokenizedMarketReview, type FlowAssessment, type FlowSource } from "@/lib/agent-flow-policy";
-import { gatherIssuerEvidence, type FlowEvidence } from "@/lib/agent-flow-sources";
+import { gatherIssuerEvidence, issuerEvidenceLookbackDays, type FlowEvidence } from "@/lib/agent-flow-sources";
 import { agentKeyIssuerEvidence } from "@/lib/agentkey-flow-sources";
 
 export const dynamic = "force-dynamic";
@@ -106,7 +106,7 @@ export async function POST(request: Request) {
             settleWithin(getBitgetStockPerp(symbol), 18_000),
             tokenizedMarketQuestion ? settleWithin(getBitgetAsset(`R${ticker}USDT`), 18_000) : Promise.resolve(null),
             settleWithin(getBitgetCandles(symbol, "4H", 100, "USDT-FUTURES"), 18_000),
-            settleWithin(gatherIssuerEvidence(ticker, getIssuerName(ticker)), 18_000),
+            settleWithin(gatherIssuerEvidence(ticker, getIssuerName(ticker), question), 18_000),
             settleWithin(agentKeyIssuerEvidence(ticker, getIssuerName(ticker)), 12_000),
           ]);
           const market = perp.status === "fulfilled" ? perp.value : null;
@@ -133,7 +133,8 @@ export async function POST(request: Request) {
           return { ticker, issuer: market?.name ?? spotAsset?.name ?? ticker, perp: market, spot: spotAsset,
             candles: candles.status === "fulfilled" ? candles.value : [], sources: evidence };
         }));
-        for (const snap of snapshots) stage("Evidence scout", snap.sources.length ? "complete" : "blocked", `${snap.ticker}: ${snap.sources.length} recent source headlines`, snap.sources.length ? `Collected up to 30 days of dated headlines across ${new Set(snap.sources.map(source => source.publisher)).size} publishers; ${new Set(snap.sources.map(source => new URL(source.url).hostname)).size} source domains, original links attached below.` : "No recent, attributable public coverage was reached.", snap.ticker);
+        const lookbackDays = issuerEvidenceLookbackDays(question);
+        for (const snap of snapshots) stage("Evidence scout", snap.sources.length ? "complete" : "blocked", `${snap.ticker}: ${snap.sources.length} source headlines`, snap.sources.length ? `Collected dated headlines from the last ${lookbackDays} days across ${new Set(snap.sources.map(source => source.publisher)).size} publishers; ${new Set(snap.sources.map(source => new URL(source.url).hostname)).size} source domains, original links attached below.` : `No attributable public coverage was reached within the ${lookbackDays}-day search window.`, snap.ticker);
         stage("Market scout", "complete", "Market and coverage map complete", `Checked ${snapshots.reduce((n, snap) => n + snap.sources.length, 0)} dated source items across ${snapshots.reduce((n, snap) => n + new Set(snap.sources.map(source => source.publisher)).size, 0)} ticker-publisher pairs. Verified ${snapshots.filter(snap => snap.perp).length} of ${snapshots.length} stock perpetual references${tokenizedMarketQuestion ? ` and ${snapshots.filter(snap => snap.spot).length} requested tokenized spot markets` : ""}.`);
         const allSources = snapshots.flatMap(snap => snap.sources.map(source => ({ research_run_id: run.id, url: source.url, title: source.title.slice(0, 300), publisher: source.publisher.slice(0, 120), published_at: source.publishedAt, source_type: "web", excerpt: source.snippet.slice(0, 1000) })));
         if (allSources.length) {
@@ -186,7 +187,7 @@ export async function POST(request: Request) {
             risks: assessment.risks, nextCheck: assessment.nextCheck };
         });
         stage("Coordinator", "complete", "Review ready", assets.some(asset => asset.tradeable) ? "One or more scenarios may proceed to a separate trade review. Nothing was sent to Bitget or the paper ledger." : "Keep watching the evidence and market. No scenario passed every trade review gate.");
-        const result = { researchRunId: run.id, question, synthesis: synthesisProvider ? { mode: "model" as const, provider: synthesisProvider } : { mode: "source_only" as const, provider: null }, researchCoverage: { mode: "deep", lookbackDays: 30, queriesPerTicker: 8, collectedItems: snapshots.reduce((count, snap) => count + snap.sources.length, 0), publishers: [...new Set(snapshots.flatMap(snap => snap.sources.map(source => source.publisher)))].length, sourceDomains: [...new Set(snapshots.flatMap(snap => snap.sources.map(source => new URL(source.url).hostname)))].length, collectedAt: new Date().toISOString(), limitations: ["Headlines and snippets are discovery references, not full article reads.", "Public-feed coverage is bounded and cannot represent the entire internet."] }, assets, tradeable: assets.some(asset => asset.tradeable), trace, contextRunId, ...(workspaceContext ? { workspaceContext } : {}) };
+        const result = { researchRunId: run.id, question, synthesis: synthesisProvider ? { mode: "model" as const, provider: synthesisProvider } : { mode: "source_only" as const, provider: null }, researchCoverage: { mode: "deep", lookbackDays, queriesPerTicker: 8, collectedItems: snapshots.reduce((count, snap) => count + snap.sources.length, 0), publishers: [...new Set(snapshots.flatMap(snap => snap.sources.map(source => source.publisher)))].length, sourceDomains: [...new Set(snapshots.flatMap(snap => snap.sources.map(source => new URL(source.url).hostname)))].length, collectedAt: new Date().toISOString(), limitations: ["Headlines and snippets are discovery references, not full article reads.", "Public-feed coverage is bounded and cannot represent the entire internet."] }, assets, tradeable: assets.some(asset => asset.tradeable), trace, contextRunId, ...(workspaceContext ? { workspaceContext } : {}) };
         const { error: saveError } = await supabase.from("research_runs").update({ status: "complete", completed_at: new Date().toISOString(), summary: result }).eq("id", run.id);
         if (saveError) {
           stage("Coordinator", "blocked", "Private trace could not be saved", "No trade handoff was offered because the research record was not committed.");
