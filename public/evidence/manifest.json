@@ -57,7 +57,7 @@
       },
       {
         "path": "/judge#codex-mcp-evidence",
-        "purpose": "Codex Tidelight MCP setup state, requested scope, and test boundary"
+        "purpose": "Codex Tidelight MCP connection and captured read-only tool test"
       }
     ],
     "source_repository": "https://github.com/TidelightOrg/tidelight",
@@ -219,10 +219,10 @@
     {
       "id": "codex-tidelight-mcp-setup",
       "kind": "mcp_interoperability",
-      "status": "registered_auth_pending",
+      "status": "authenticated_read_test_passed",
       "uri": "https://tidelight.app/judge#codex-mcp-evidence",
       "summary_uri": "https://tidelight.app/evidence/tidelight-codex-mcp.json",
-      "claim": "Codex plugin registration and the public OAuth resource metadata were observed. OAuth requested market:read; consent was not approved and no authenticated MCP tool call was made."
+      "claim": "Codex plugin registration, OAuth resource metadata, and an active market:read grant were verified. The connected Tidelight MCP search tool returned 100 instruments (the response limit) with request ID 6efee181-ed3b-49bb-a1fb-2a1d3f0ac0ff."
     }
   ],
   "owner_published_research": {
