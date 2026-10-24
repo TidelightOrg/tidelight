@@ -61,7 +61,7 @@ test("explicit historical issuer questions can retrieve dated event coverage out
   globalThis.fetch = async input => {
     const query = new URL(input).searchParams.get("q") ?? "";
     const match = query.includes("earnings") || query.includes("results")
-      ? `${query.includes("2026") ? `<item><title>NVIDIA FY2026 fourth-quarter results</title><link>https://issuer.example/fy26-q4</link><source>NVIDIA IR</source><pubDate>${historicalDate}</pubDate><description>Reported quarterly revenue</description></item>` : ""}<item><title>NVIDIA shares rise after product news</title><link>https://recent.example/product-news</link><source>Recent News</source><pubDate>${new Date(now - 60_000).toUTCString()}</pubDate><description>Current company coverage</description></item>`
+      ? `${query.includes("2026") ? `<item><title>NVIDIA FY2026 fourth-quarter results</title><link>https://issuer.example/fy26-q4</link><source>NVIDIA IR</source><pubDate>${historicalDate}</pubDate><description>Reported quarterly revenue</description></item><item><title>Reuters: NVIDIA reports fourth-quarter revenue</title><link>https://reuters.example/nvidia-q4</link><source>Reuters</source><pubDate>${historicalDate}</pubDate><description>Independent earnings coverage</description></item>` : ""}<item><title>NVIDIA shares rise after product news</title><link>https://recent.example/product-news</link><source>Recent News</source><pubDate>${new Date(now - 60_000).toUTCString()}</pubDate><description>Current company coverage</description></item>`
       : "";
     return new Response(`<rss><channel>${match}</channel></rss>`, { status: 200, headers: { "content-type": "application/rss+xml" } });
   };
@@ -69,8 +69,8 @@ test("explicit historical issuer questions can retrieve dated event coverage out
     const question = "Summarize NVIDIA's FY2026 fourth-quarter results.";
     const history = await gatherIssuerEvidence("NVDA", "NVIDIA", question);
     const current = await gatherIssuerEvidence("NVDA", "NVIDIA", "What changed for NVDA right now?");
-    assert.equal(history.length, 1);
-    assert.equal(history[0].url, "https://issuer.example/fy26-q4");
+    assert.equal(history.length, 2);
+    assert.deepEqual(new Set(history.map(item => item.url)), new Set(["https://issuer.example/fy26-q4", "https://reuters.example/nvidia-q4"]));
     assert.equal(current.length, 1);
     assert.equal(current[0].url, "https://recent.example/product-news");
   } finally { globalThis.fetch = previousFetch; }

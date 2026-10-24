@@ -74,6 +74,17 @@ function matchesRequestedPeriod(item: FlowEvidence, context: ReturnType<typeof h
   return quarterForms[0].test(text) || ordinalNumber === context.quarterNumber;
 }
 
+function matchesRelatedEventWindow(item: FlowEvidence, anchors: FlowEvidence[]) {
+  if (!anchors.length || !item.publishedAt) return false;
+  const text = `${item.title} ${item.snippet}`.toLowerCase();
+  if (!/\b(?:earnings?|results?|revenue|sales|profit|eps|quarter|outlook|guidance|capital[- ]spending|capex)\b/i.test(text)) return false;
+  const publishedAt = Date.parse(item.publishedAt);
+  return anchors.some(anchor => {
+    if (!anchor.publishedAt) return false;
+    return Math.abs(publishedAt - Date.parse(anchor.publishedAt)) <= 3 * 86_400_000;
+  });
+}
+
 function storyKey(item: FlowEvidence) {
   const normalized = item.title.toLowerCase().replace(/\s+-\s+[^-]+$/, "").replace(/[^a-z0-9]/g, "");
   return normalized.replace(/quarterly|reports|results|reporting|announces|announced/g, "");
@@ -190,14 +201,18 @@ export async function gatherIssuerEvidence(ticker: string, issuer: string, quest
       const relevant = new RegExp(`(^|[^a-z0-9])${ticker}([^a-z0-9]|$)`, "i").test(headline) ||
         (name.length >= 4 && headline.toLowerCase().includes(name.toLowerCase()));
       const maxAge = context.historical ? HISTORICAL_EVIDENCE_AGE_MS : MAX_EVIDENCE_AGE_MS;
-      if (!relevant || !withinResearchWindow(item, now, maxAge) || !matchesRequestedPeriod(item, context)) continue;
+      if (!relevant || !withinResearchWindow(item, now, maxAge)) continue;
       const key = storyKey(item);
       const previous = stories.get(key);
       if (!previous || (item.snippet.length > previous.snippet.length && item.via === "Public feeds")) stories.set(key, item);
     }
   }
+  const matchingPeriodStories = [...stories.values()].filter(item => matchesRequestedPeriod(item, context));
+  const eligibleStories = context.historical && context.year
+    ? [...stories.values()].filter(item => matchesRequestedPeriod(item, context) || matchesRelatedEventWindow(item, matchingPeriodStories))
+    : [...stories.values()];
   if (!stories.size && results.some(result => result.status === "fulfilled")) console.warn("agent-flow-source-empty", ticker, results.map(result => result.status === "fulfilled" ? result.value.length : "failed"));
-  const ranked = [...stories.values()]
+  const ranked = eligibleStories
     .sort((a, b) => {
       if (context.historical && context.year) {
         const aMatches = matchesRequestedPeriod(a, context), bMatches = matchesRequestedPeriod(b, context);
