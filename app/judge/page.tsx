@@ -201,6 +201,25 @@ export default function JudgePage() {
         <article><span>QUALITY SCORE</span><strong>Pending</strong><small>Two reviewer labels and adjudication are missing for displayed claims.</small></article>
       </div>
       <p className="judge-section-note">This is a capture-completion score, not an accuracy or usefulness score. The protocol scorer rejects incomplete reviews. Task time was not measured; displayed UI durations are retained as observations only. The September CPI run returned 15 sources, including visibly off-topic items; source relevance has not been adjudicated.</p>
+      <details className="judge-benchmark-run-table" open>
+        <summary>Run-by-run production captures</summary>
+        <div className="judge-benchmark-table-scroll"><table>
+          <caption>Observed UI durations and outputs. These are not protocol task-time or claim-quality scores.</caption>
+          <thead><tr><th scope="col">Frozen event</th><th scope="col">UI elapsed</th><th scope="col">Observed output</th></tr></thead>
+          <tbody>
+            <tr><th scope="row">NVIDIA FY2026 Q4</th><td>29 s</td><td>Gemini synthesis; reported 75% data-center revenue growth. No source-linked counter-evidence or trade handoff; quote freshness available.</td></tr>
+            <tr><th scope="row">Apple FY2026 Q1</th><td>42 s</td><td>Source-only fallback with three headlines; no AI analysis. Exact frozen question was rerun after an earlier paraphrased run surfaced Q2 coverage.</td></tr>
+            <tr><th scope="row">Microsoft FY2026 Q2</th><td>30 s</td><td>Gemini synthesis included a $678B backlog claim, up 84%, and institutional fund sales; no counter-evidence; quote stale.</td></tr>
+            <tr><th scope="row">Amazon FY2025 Q4</th><td>3 s</td><td>No attributable sources returned; no synthesis.</td></tr>
+            <tr><th scope="row">Tesla FY2025 Q4</th><td>32 s</td><td>Source-only fallback with 15 headlines across 11 publishers; synthesis unavailable.</td></tr>
+            <tr><th scope="row">Alphabet FY2025 Q4</th><td>12 s</td><td>Qwen response based on one headline; no usable results; 10% model-reported confidence; no handoff.</td></tr>
+            <tr><th scope="row">Federal Reserve January 2026 decision</th><td>34 s</td><td>18 macro sources collected; synthesis unavailable; no factual summary.</td></tr>
+            <tr><th scope="row">U.S. August 2026 CPI</th><td>40 s</td><td>10 macro sources collected; synthesis unavailable; source-only output.</td></tr>
+            <tr><th scope="row">U.S. September 2026 labor market</th><td>42 s</td><td>7 macro sources; source-only; 0% confidence; no verified conclusion or handoff; four steps.</td></tr>
+            <tr><th scope="row">U.S. September 2026 CPI</th><td>41 s</td><td>15 macro sources; source-only; 0% confidence; no verified conclusion or handoff. Results included off-topic regional, PPI, Canada, and India items.</td></tr>
+          </tbody>
+        </table></div>
+      </details>
       <div className="judge-inline-actions">
         <a href="/evidence/research-benchmark-summary-20261024.json">Benchmark summary ↗</a>
         <a href="https://github.com/TidelightOrg/tidelight/blob/main/docs/benchmarks/research-benchmark-frozen-2026-10-24.json">Frozen event set ↗</a>
