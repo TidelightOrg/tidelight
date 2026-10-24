@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "nightwatch_email_notification_captures",
+  "captured_at": "2026-10-24",
+  "timezone": "Africa/Lagos",
+  "notifications": [
+    {
+      "id": "nightwatch-raaplusdt-buy-alert",
+      "instrument": "RAAPLUSDT",
+      "subject": "Nightwatch alert · BUY signal · RAAPLUSDT",
+      "event": "paper_buy_signal",
+      "message_time": "01:40",
+      "screenshot_uri": "/judge-evidence/nightwatch-raaplusdt-buy-alert.jpg",
+      "claim": "The screenshot shows a Gmail notification displaying a Nightwatch BUY signal for RAAPLUSDT.",
+      "scope": "Email delivery and message rendering. The screenshot alone does not establish an exchange order or account ledger state."
+    },
+    {
+      "id": "nightwatch-raaplusdt-paper-fill",
+      "instrument": "RAAPLUSDT",
+      "subject": "Nightwatch alert · Paper buy filled · RAAPLUSDT",
+      "event": "paper_buy_fill_notification",
+      "message_time": "01:40",
+      "screenshot_uri": "/judge-evidence/nightwatch-raaplusdt-paper-fill.jpg",
+      "claim": "The screenshot shows a Gmail notification reporting a Nightwatch paper buy fill for RAAPLUSDT.",
+      "scope": "Email delivery and message rendering. The screenshot itself is not an exchange execution receipt or audited performance record."
+    }
+  ]
+}

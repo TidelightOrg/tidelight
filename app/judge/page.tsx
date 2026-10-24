@@ -42,6 +42,13 @@ export default function JudgePage() {
           </div>
         </div>
         <aside className="judge-hero-card" aria-label="Evaluation path">
+          <svg className="judge-signal-art" viewBox="0 0 440 240" role="img" aria-label="Research evidence signals converging into a market finding">
+            <defs><linearGradient id="judge-ribbon" x1="0" x2="1"><stop stopColor="var(--mint)" stopOpacity=".08"/><stop offset=".55" stopColor="var(--mint)" stopOpacity=".62"/><stop offset="1" stopColor="#7bd8c2" stopOpacity=".16"/></linearGradient><radialGradient id="judge-glow"><stop stopColor="var(--mint)" stopOpacity=".26"/><stop offset="1" stopColor="var(--mint)" stopOpacity="0"/></radialGradient></defs>
+            <ellipse cx="300" cy="108" rx="126" ry="103" fill="url(#judge-glow)"/><path className="judge-art-grid" d="M20 38H420M20 88H420M20 138H420M20 188H420M70 20V218M150 20V218M230 20V218M310 20V218M390 20V218"/>
+            <path className="judge-art-band" d="M22 176C77 170 88 122 130 130S193 180 236 126 306 57 348 92 389 104 418 54V151C384 194 371 162 344 157S286 143 244 180 176 211 132 178 78 202 22 211Z"/><path className="judge-art-line" d="M22 193C77 187 88 143 130 151S193 196 236 153 306 83 348 118 389 129 418 82"/>
+            <g className="judge-art-nodes"><circle cx="130" cy="151" r="5"/><circle cx="236" cy="153" r="5"/><circle cx="348" cy="118" r="5"/><circle cx="418" cy="82" r="6"/></g>
+            <g className="judge-art-labels"><rect x="34" y="47" width="84" height="24" rx="12"/><text x="76" y="63" textAnchor="middle">SOURCES</text><rect x="162" y="26" width="84" height="24" rx="12"/><text x="204" y="42" textAnchor="middle">CONTEXT</text><rect x="282" y="198" width="82" height="24" rx="12"/><text x="323" y="214" textAnchor="middle">RISK GATE</text></g>
+          </svg>
           <div className="judge-card-mark"><TidelightAnimatedMark /></div>
           <div className="judge-path"><span>Event</span><i>→</i><span>Evidence</span><i>→</i><span>Exposure</span><i>→</i><span>Risk gate</span></div>
           <p>Research is reviewable. Actions remain paper-only and user-controlled.</p>
@@ -123,6 +130,20 @@ export default function JudgePage() {
           <Image src="/judge-evidence/nightwatch-rnvdusdt-email.jpeg" width={598} height={1536} alt="Gmail screenshot of a Tidelight Nightwatch analysis email for RNVDUSDT, received at 9:00 AM. The message says HOLD was rejected because an existing long position was active." />
         </a>
       </article>
+      <section className="judge-notification-proof" aria-labelledby="notification-evidence-title">
+        <div className="judge-notification-heading"><div><span className="judge-kicker">NIGHTWATCH · EMAIL EVIDENCE</span><h3 id="notification-evidence-title">Signal and simulated fill notifications</h3></div><a href="/evidence/nightwatch-email-notifications.json">Evidence record ↗</a></div>
+        <div className="judge-notification-proof-grid">
+          <article className="judge-notification-card">
+            <a className="judge-notification-image" href="/judge-evidence/nightwatch-raaplusdt-buy-alert.jpg" target="_blank" rel="noreferrer" aria-label="Open RAAPLUSDT Nightwatch buy alert screenshot"><Image src="/judge-evidence/nightwatch-raaplusdt-buy-alert.jpg" width={705} height={1639} alt="Gmail screenshot of a Tidelight Nightwatch BUY signal alert for RAAPLUSDT, received at 1:40 AM." /></a>
+            <div><span className="judge-kicker">PAPER SIGNAL</span><h4>RAAPLUSDT buy alert</h4><p>Gmail capture of the Nightwatch BUY signal email and its rendered alert details.</p><a href="/judge-evidence/nightwatch-raaplusdt-buy-alert.jpg" target="_blank" rel="noreferrer">Open screenshot ↗</a></div>
+          </article>
+          <article className="judge-notification-card">
+            <a className="judge-notification-image" href="/judge-evidence/nightwatch-raaplusdt-paper-fill.jpg" target="_blank" rel="noreferrer" aria-label="Open RAAPLUSDT Nightwatch paper fill screenshot"><Image src="/judge-evidence/nightwatch-raaplusdt-paper-fill.jpg" width={720} height={1648} alt="Gmail screenshot of a Tidelight Nightwatch paper buy filled notification for RAAPLUSDT, received at 1:40 AM." /></a>
+            <div><span className="judge-kicker">PAPER FILL</span><h4>RAAPLUSDT paper buy filled</h4><p>Gmail capture of the Nightwatch simulated fill email and its rendered details.</p><a href="/judge-evidence/nightwatch-raaplusdt-paper-fill.jpg" target="_blank" rel="noreferrer">Open screenshot ↗</a></div>
+          </article>
+        </div>
+        <p className="judge-section-note">These captures show Gmail delivery and message content. The messages are not exchange receipts or audited performance records.</p>
+      </section>
       <div className="judge-inline-actions">
         <Link href="/nightwatch/replays">Browse published paper replays <span aria-hidden="true">↗</span></Link>
         <Link href="/nightwatch">Open Nightwatch <span aria-hidden="true">↗</span></Link>
