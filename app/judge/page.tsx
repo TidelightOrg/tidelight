@@ -192,15 +192,15 @@ export default function JudgePage() {
 
     <section className="judge-section judge-evidence-score" id="research-benchmark" aria-labelledby="benchmark-title">
       <div className="judge-section-heading">
-        <div><span className="judge-kicker">RESEARCH · FROZEN TEN EVENT SET</span><h2 id="benchmark-title">Ten runs captured. Review score pending.</h2></div>
-        <p>Every frozen question now has an observed production run. Capture completion is 10/10; the protocol quality score remains pending independent claim review.</p>
+        <div><span className="judge-kicker">RESEARCH · FROZEN TEN EVENT SET</span><h2 id="benchmark-title">Ten runs captured. Internal score 2.5/10.</h2></div>
+        <p>All ten frozen questions have production captures. My single-reviewer product score is 2.5/10; the formal protocol score remains pending claim labels and adjudication.</p>
       </div>
       <div className="judge-score-grid">
         <article><span>RUN CAPTURE</span><strong>10 / 10</strong><small>All frozen events have production observations.</small></article>
         <article><span>AI SYNTHESIS</span><strong>2 / 10</strong><small>Two runs returned model synthesis; eight were source-only or had no synthesis.</small></article>
-        <article><span>QUALITY SCORE</span><strong>Pending</strong><small>Two reviewer labels and adjudication are missing for displayed claims.</small></article>
+        <article><span>INTERNAL REVIEW</span><strong>2.5 / 10</strong><small>Single-reviewer descriptive score; protocol claim-quality score remains pending.</small></article>
       </div>
-      <p className="judge-section-note">This is a capture-completion score, not an accuracy or usefulness score. The protocol scorer rejects incomplete reviews. Task time was not measured; displayed UI durations are retained as observations only. The September CPI run returned 15 sources, including visibly off-topic items; source relevance has not been adjudicated.</p>
+      <p className="judge-section-note">The 2.5/10 score is my provisional product judgment from the ten captured outputs: synthesis appeared in 2/10 runs, both with material evidence concerns, while eight returned source-only or no usable synthesis. It is not a verified factual-accuracy rate. The formal protocol score remains pending two independent labels and adjudication for every displayed claim. Task time was not measured; the September CPI run also included visibly off-topic sources.</p>
       <details className="judge-benchmark-run-table" open>
         <summary>Run-by-run production captures</summary>
         <div className="judge-benchmark-table-scroll"><table>
@@ -221,7 +221,8 @@ export default function JudgePage() {
         </table></div>
       </details>
       <div className="judge-inline-actions">
-        <a href="/evidence/research-benchmark-summary-20261024.json">Benchmark summary ↗</a>
+        <a href="/evidence/research-benchmark-review-20261024.json">Single-review assessment ↗</a>
+        <a href="/evidence/research-benchmark-summary-20261024.json">Capture summary ↗</a>
         <a href="https://github.com/TidelightOrg/tidelight/blob/main/docs/benchmarks/research-benchmark-frozen-2026-10-24.json">Frozen event set ↗</a>
         <a href="https://github.com/TidelightOrg/tidelight/blob/main/docs/benchmarks/research-benchmark-capture-log-2026-10-24.md">Run-by-run capture log ↗</a>
         <a href="https://github.com/TidelightOrg/tidelight/tree/main/docs/benchmarks">GitHub benchmark files ↗</a>
