@@ -24,7 +24,7 @@ export default function ProductQuickActions() {
   const requestId = useRef(crypto.randomUUID());
 
   useEffect(() => {
-    if (denseWorkspace) { setPosition(null); return; }
+    if (denseWorkspace) return;
     let timer = 0;
     try {
       const saved = window.localStorage.getItem(QUICK_ACTIONS_POSITION_KEY);
@@ -136,10 +136,10 @@ export default function ProductQuickActions() {
   if (pathname === "/status") return null;
   return <>
     <nav
-      className={`product-quick-actions${pathname === "/" ? " is-landing" : ""}${position ? " is-positioned" : ""}${denseWorkspace ? " is-dense-workspace" : ""}${footerVisible && !open ? " is-footer-visible" : ""}`}
+      className={`product-quick-actions${pathname === "/" ? " is-landing" : ""}${position && !denseWorkspace ? " is-positioned" : ""}${denseWorkspace ? " is-dense-workspace" : ""}${footerVisible && !open ? " is-footer-visible" : ""}`}
       aria-label="Product help and feedback"
       title="Drag to move these controls"
-      style={position ? { left: position.left, top: position.top, right: "auto", bottom: "auto" } : undefined}
+      style={position && !denseWorkspace ? { left: position.left, top: position.top, right: "auto", bottom: "auto" } : undefined}
       onPointerDown={startDrag}
       onPointerMove={moveDrag}
       onPointerUp={endDrag}
