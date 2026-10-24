@@ -100,6 +100,15 @@
           "public link expires after 30 days and can be revoked by the owner",
           "published replay is an AI research record, not audited performance or advice"
         ]
+      },
+      "research_benchmark": {
+        "status": "single_reviewer_provisional_2_5_of_10_protocol_score_pending",
+        "requirements": [
+          "Frozen 10-event set and 10 production captures are linked",
+          "Single-reviewer product assessment is descriptive and provisional",
+          "Protocol score still requires two independent claim reviewers and adjudication",
+          "Task time remains unmeasured by the published method"
+        ]
       }
     }
   },
@@ -253,6 +262,23 @@
       "uri": "https://tidelight.app/judge#package-install-evidence",
       "summary_uri": "https://tidelight.app/evidence/package-install-verification-20261024.json",
       "claim": "Root npm ci, 266 repository tests, typecheck, production build, lint, five public mirror mappings, and four staged npm consumer install workflows completed successfully. Root install reported four dependency advisories (2 moderate, 1 high, 1 critical)."
+    },
+    {
+      "id": "codex-mcp-fresh-reconnect-attempt-20261024",
+      "kind": "mcp_interoperability",
+      "status": "fresh_connection_not_available",
+      "uri": "https://tidelight.app/judge#codex-mcp-evidence",
+      "summary_uri": "https://tidelight.app/evidence/tidelight-codex-mcp-install-attempt-20261024.json",
+      "claim": "A fresh Codex Cloud attempt could not install the Tidelight connector because Codex Cloud controls and Tidelight tools were not exposed to the session. No current OAuth grant, live research tool list, or research run is claimed."
+    },
+    {
+      "id": "research-benchmark-single-reviewer-20261024",
+      "kind": "single_reviewer_benchmark_assessment",
+      "status": "provisional_2_5_of_10_protocol_score_pending",
+      "uri": "https://tidelight.app/judge#research-benchmark",
+      "summary_uri": "https://tidelight.app/evidence/research-benchmark-review-20261024.json",
+      "dataset_uri": "https://tidelight.app/benchmarks/research-benchmark-frozen-2026-10-24.json",
+      "claim": "A single-reviewer descriptive product score of 2.5/10 is published separately from the protocol score. The protocol score remains pending its required two independent claim reviews and adjudication."
     }
   ],
   "owner_published_research": {
