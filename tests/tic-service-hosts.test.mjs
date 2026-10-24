@@ -17,6 +17,8 @@ test("the MCP hostname maps only its public Streamable HTTP path", () => {
 test("the status hostname serves the page and live health check only", () => {
   assert.deepEqual(resolveServiceHostRoute("status.tidelight.app", "/"), { kind: "rewrite", pathname: "/status" });
   assert.deepEqual(resolveServiceHostRoute("status.tidelight.app", "/health"), { kind: "rewrite", pathname: "/api/health" });
+  assert.deepEqual(resolveServiceHostRoute("status.tidelight.app", "/incidents"), { kind: "rewrite", pathname: "/status/incidents" });
+  assert.deepEqual(resolveServiceHostRoute("status.tidelight.app", "/maintenance"), { kind: "rewrite", pathname: "/status/maintenance" });
   assert.deepEqual(resolveServiceHostRoute("status.tidelight.app", "/admin"), { kind: "not-found" });
   for (const path of ["/icon.svg", "/tidelight-mark.svg", "/manifest.webmanifest", "/api/privacy/analytics-consent"]) {
     assert.equal(resolveServiceHostRoute("status.tidelight.app", path), null);
