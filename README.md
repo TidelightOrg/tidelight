@@ -27,6 +27,9 @@
 
 ## Live Judge evidence
 
+- [Research benchmark capture score](https://tidelight.app/judge#research-benchmark): all ten frozen production runs captured (10/10); AI synthesis returned in two (2/10). This is a capture score, not a claim-quality score. The protocol score awaits independent claim labels and adjudication.
+- [Package install verification](https://tidelight.app/judge#package-install-evidence) records root tests and clean consumer installs for the SDK, MCP, React, and CLI packages, along with disclosed dependency advisories.
+
 - [Judge Mode](https://tidelight.app/judge) includes a full 68-second signed-out browser route-test video. It records seven public routes returning HTTP 200; [capture details](https://tidelight.app/evidence/tidelight-live-route-test-20261024.json) state the coverage boundary.
 - [Codex Tidelight MCP evidence](https://tidelight.app/judge#codex-mcp-evidence) records the authenticated read-only `market:read` tool test and its request ID.
 
