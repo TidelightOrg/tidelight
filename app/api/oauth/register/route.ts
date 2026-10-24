@@ -1,5 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { createOAuthClientId, parseOAuthScopes, validateOAuthRedirectUris, oauthNoStoreHeaders } from "@/lib/tic/oauth";
+import { createOAuthClientId, requestedOAuthClientScopes, validateOAuthRedirectUris, oauthNoStoreHeaders } from "@/lib/tic/oauth";
 import { reserveOAuthRateLimit } from "@/lib/tic/oauth-rate-limit";
 
 export const dynamic = "force-dynamic";
@@ -25,7 +25,11 @@ export async function POST(request: Request) {
   const grantTypes = body.grant_types ?? ["authorization_code", "refresh_token"];
   const responseTypes = body.response_types ?? ["code"];
   const authMethod = body.token_endpoint_auth_method ?? "none";
-  const requestedScopes = typeof body.scope === "string" ? parseOAuthScopes(body.scope) : ["market:read"];
+  // MCP clients may omit `scope` during dynamic client registration. Default
+  // them to the scopes this server actually exposes so research tools are not
+  // silently hidden after OAuth (the consent screen still requires explicit
+  // approval and a project key with these scopes).
+  const requestedScopes = requestedOAuthClientScopes(body.scope);
   if (!clientName || clientName.length > 120 || !redirectUris || !Array.isArray(grantTypes) || grantTypes.length !== 2 || !grantTypes.includes("authorization_code") || !grantTypes.includes("refresh_token") || !Array.isArray(responseTypes) || responseTypes.length !== 1 || responseTypes[0] !== "code" || authMethod !== "none" || !requestedScopes) {
     return Response.json({ error: "invalid_client_metadata", error_description: "Tidelight supports public clients using authorization code with PKCE and HTTPS or loopback redirect URIs." }, { status: 400, headers: registrationHeaders() });
   }
