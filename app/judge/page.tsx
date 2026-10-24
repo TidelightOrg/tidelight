@@ -194,7 +194,7 @@ export default function JudgePage() {
     <section className="judge-section judge-evidence-score" id="research-benchmark" aria-labelledby="benchmark-title">
       <div className="judge-section-heading">
         <div><span className="judge-kicker">RESEARCH · FROZEN TEN EVENT SET</span><h2 id="benchmark-title">Ten runs captured. Internal score 2.5/10.</h2></div>
-        <p>All ten frozen questions have production captures. My single-reviewer product score is 2.5/10; the formal protocol score remains pending claim labels and adjudication.</p>
+        <p>All ten frozen questions have production captures. The internal single-reviewer product score is 2.5/10. The formal claim-quality score still requires two independent reviews and adjudication; task time remains unmeasured.</p>
       </div>
       <div className="judge-score-grid">
         <article><span>RUN CAPTURE</span><strong>10 / 10</strong><small>All frozen events have production observations.</small></article>
