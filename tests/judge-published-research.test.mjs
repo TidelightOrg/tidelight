@@ -10,7 +10,9 @@ test("Judge Mode promotes live owner-published research instead of the static fi
   assert.doesNotMatch(page, /href=["']\/replay["']/);
   assert.match(page, /AI synthesis was unavailable/i);
   assert.match(page, /href="\/strategies"/);
-  assert.match(page, /No public strategy replay is linked here/);
+  assert.match(page, /strategy-replay\/58348395-ff65-4a4c-be5a-019234379587/);
+  assert.match(page, /api\/strategy-replays\/58348395-ff65-4a4c-be5a-019234379587/);
+  assert.match(page, /−0\.76% after costs/);
   assert.match(page, /nightwatch-rnvd-position\.png/);
   assert.match(page, /nightwatch-raapl-position\.png/);
   assert.match(page, /nightwatch-rgoogl-position\.png/);
@@ -36,6 +38,8 @@ test("README separates live judge research from the link directory and data expo
   assert.match(readme, /Nightwatch email delivery evidence/);
   assert.match(readme, /nightwatch-rnvdusdt-email\.jpeg/);
   assert.match(readme, /nightwatch-email-delivery\.json/);
+  assert.match(readme, /strategy-replay\/58348395-ff65-4a4c-be5a-019234379587/);
+  assert.match(readme, /−0\.76% after estimated costs/);
 });
 
 test("Gmail delivery evidence is linked publicly without mailbox identifiers", async () => {
@@ -61,4 +65,14 @@ test("evidence manifest lists the seven owner-published judge replays and their 
   assert.equal(manifest.owner_published_research.replays.length, 7);
   assert.equal(manifest.owner_published_research.expires_after_days, 30);
   assert.equal(manifest.owner_published_research.replays.filter((run) => run.ai_synthesis === "unavailable").length, 5);
+});
+
+test("evidence manifest records the live negative strategy replay and archived data link", async () => {
+  const manifest = JSON.parse(await readFile(new URL("../public/evidence/manifest.json", import.meta.url), "utf8"));
+  const strategy = manifest.evidence_inventory.find((item) => item.id === "owner-published-strategy-replay-raaplusdt-20261024");
+  assert.equal(strategy.status, "active_public_link_expires_2026-11-23T08:38:38Z");
+  assert.equal(strategy.uri, "https://tidelight.app/strategy-replay/58348395-ff65-4a4c-be5a-019234379587");
+  assert.equal(strategy.data_uri, "https://tidelight.app/api/strategy-replays/58348395-ff65-4a4c-be5a-019234379587");
+  assert.match(strategy.claim, /-0\.76% after estimated costs versus \+2\.12% buy and hold/);
+  assert.match(strategy.claim, /43fb9fa6a4da2bd084046798a77fbbdd36d366ab97e154a53fd19a4b3c740f78/);
 });
