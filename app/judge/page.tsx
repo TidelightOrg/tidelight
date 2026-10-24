@@ -126,7 +126,7 @@ export default function JudgePage() {
     <section className="judge-section judge-mcp" id="codex-mcp-evidence" aria-labelledby="codex-mcp-title">
       <div className="judge-section-heading">
         <div><span className="judge-kicker">CODEX · MCP CONNECTION</span><h2 id="codex-mcp-title">Tidelight MCP in Codex</h2></div>
-        <p>A new Codex Cloud attempt in the tidelight Org environment could not install the connector: the Cloud agent reported that no Tidelight tools or Codex Cloud UI controls were exposed. No OAuth grant, live tool list, or research run is claimed. The earlier <code>market:read</code> calls are historical; the plugin was removed before this attempt.</p>
+        <p>A fresh attempt in the tidelight Org Codex Cloud environment could not install or authorize the connector: the Cloud session exposed neither Tidelight MCP tools nor Codex Cloud connection controls. No new OAuth grant, live tool registry, or research run is claimed. The earlier <code>market:read</code> calls are historical. The current attempt and its boundaries are recorded below.</p>
       </div>
       <div className="judge-mcp-steps" aria-label="Codex MCP setup status">
         <article><span>01</span><div><b>Plugin</b><small>Tidelight Research · Streamable HTTP</small></div><i>Removed after prior capture</i></article>
@@ -194,7 +194,7 @@ export default function JudgePage() {
     <section className="judge-section judge-evidence-score" id="research-benchmark" aria-labelledby="benchmark-title">
       <div className="judge-section-heading">
         <div><span className="judge-kicker">RESEARCH · FROZEN TEN EVENT SET</span><h2 id="benchmark-title">Ten runs captured. Internal score 2.5/10.</h2></div>
-        <p>All ten frozen questions have production captures. My single-reviewer product score is 2.5/10; the formal protocol score remains pending claim labels and adjudication.</p>
+        <p>All ten frozen questions have production captures. The internal single-reviewer product score is 2.5/10. The formal claim-quality score still requires two independent reviews and adjudication; task time remains unmeasured.</p>
       </div>
       <div className="judge-score-grid">
         <article><span>RUN CAPTURE</span><strong>10 / 10</strong><small>All frozen events have production observations.</small></article>

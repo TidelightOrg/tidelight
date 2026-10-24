@@ -232,10 +232,10 @@
     {
       "id": "codex-tidelight-mcp-setup",
       "kind": "mcp_interoperability",
-      "status": "authenticated_read_test_passed",
+      "status": "historical_connection_removed",
       "uri": "https://tidelight.app/judge#codex-mcp-evidence",
       "summary_uri": "https://tidelight.app/evidence/tidelight-codex-mcp.json",
-      "claim": "Codex plugin registration, OAuth resource metadata, and an active market:read grant were verified. The connected Tidelight MCP search tool returned 100 instruments (the response limit) with request ID 6efee181-ed3b-49bb-a1fb-2a1d3f0ac0ff."
+      "claim": "An earlier Codex plugin registration, OAuth grant, and market:read call were captured. The plugin was later removed. A fresh Codex Cloud attempt did not expose connector controls; this historical record is not the current connection state."
     },
     {
       "id": "live-route-test-recording-20261024",
@@ -249,11 +249,11 @@
     {
       "id": "research-benchmark-capture-score-20261024",
       "kind": "research_benchmark",
-      "status": "all_10_runs_captured_quality_review_pending",
+      "status": "all_10_runs_captured_single_reviewer_score_2_5_protocol_score_pending",
       "uri": "https://tidelight.app/judge#research-benchmark",
       "summary_uri": "https://tidelight.app/evidence/research-benchmark-summary-20261024.json",
       "dataset_uri": "https://tidelight.app/benchmarks/research-benchmark-frozen-2026-10-24.json",
-      "claim": "Capture completion is 10/10. Two runs returned AI synthesis (2/10); the other eight were source-only or had no synthesis. This is not a quality score. The protocol benchmark score remains pending two independent claim reviews and adjudications. Task time is not measured."
+      "claim": "Capture completion is 10/10. A single-reviewer descriptive product score of 2.5/10 is published separately; the formal protocol score still requires two independent claim reviews and adjudication. Task time is not measured."
     },
     {
       "id": "npm-package-install-verification-20261024",
