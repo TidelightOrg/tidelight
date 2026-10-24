@@ -2,7 +2,7 @@ import Link from "next/link";
 import ResearchWorkspace from "../ui/research-workspace";
 import MarketRadar from "../ui/market-radar";
 import { getBitgetMarketUniverse } from "@/lib/bitget-market";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import MarketSessionIndicator from "@/app/ui/market-session-indicator";
 import TidelightAnimatedMark from "@/app/ui/tidelight-animated-mark";
 import TokenPulse from "@/app/ui/token-pulse";
@@ -13,12 +13,11 @@ export const dynamic = "force-dynamic";
 
 export default async function Overview() {
   const today = new Intl.DateTimeFormat("en-US", { weekday: "long", month: "long", day: "numeric", timeZone: "America/New_York" }).format(new Date());
-  const supabase = await createClient();
   const user = await getServerUser();
   const market = await getBitgetMarketUniverse().catch(() => null);
   const radarTickers = new Set(["NVDA", "TSLA", "MSFT", "AMZN"]);
   const initialRadarAssets = market?.assets.filter((asset) => asset.isReality && radarTickers.has(asset.underlyingTicker ?? "")) ?? [];
-  const { data: savedRuns } = user ? await supabase.from("research_runs").select("id, question, status, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(4) : { data: [] };
+  const { data: savedRuns } = user ? await createAdminClient().from("research_runs").select("id, question, status, created_at").eq("user_id", user.id).order("created_at", { ascending: false }).limit(4) : { data: [] };
 
   return <div className="content-wrap dashboard-page">
     <section className="welcome-row dashboard-welcome"><div><div className="eyebrow dashboard-market-eyebrow"><span className="eyebrow-line" /> {today.toUpperCase()} <span className="eyebrow-divider">/</span> YOUR MARKET BRIEF <MarketSessionIndicator session={market?.session ?? null} status={market?.marketSessionStatus ?? "unavailable"} /></div><h1>{user ? "Welcome back" : "See what moves"}<span className="mint-dot">.</span></h1><p className="welcome-copy">Follow after-hours events with current evidence and clear source context.</p></div><div className="dashboard-welcome-actions"><Link className="date-button" href="/flow">Research a market question <span>↗</span></Link><Link className="welcome-guide-link" href="/guide">New here? Follow the quick guide <span>→</span></Link></div></section>
