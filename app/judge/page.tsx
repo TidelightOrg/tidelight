@@ -130,7 +130,7 @@ export default function JudgePage() {
           <Image src="/judge-evidence/nightwatch-rnvdusdt-email.jpeg" width={598} height={1536} alt="Gmail screenshot of a Tidelight Nightwatch analysis email for RNVDUSDT, received at 9:00 AM. The message says HOLD was rejected because an existing long position was active." />
         </a>
       </article>
-      <section className="judge-notification-proof" aria-labelledby="notification-evidence-title">
+      <section className="judge-notification-proof" id="nightwatch-notification-evidence" aria-labelledby="notification-evidence-title">
         <div className="judge-notification-heading"><div><span className="judge-kicker">NIGHTWATCH · EMAIL EVIDENCE</span><h3 id="notification-evidence-title">Signal and simulated fill notifications</h3></div><a href="/evidence/nightwatch-email-notifications.json">Evidence record ↗</a></div>
         <div className="judge-notification-proof-grid">
           <article className="judge-notification-card">
