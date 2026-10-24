@@ -103,12 +103,12 @@ export default function JudgePage() {
     <section className="judge-section judge-mcp" id="codex-mcp-evidence" aria-labelledby="codex-mcp-title">
       <div className="judge-section-heading">
         <div><span className="judge-kicker">CODEX · MCP CONNECTION</span><h2 id="codex-mcp-title">Tidelight MCP in Codex</h2></div>
-        <p>The Tidelight Research plugin is registered in Codex. Its OAuth request is limited to <code>market:read</code>. Consent is still pending, so no authenticated MCP tool call is claimed here.</p>
+        <p>The Tidelight Research plugin is connected in Codex with the read-only <code>market:read</code> scope. Its market search returned 100 supported instruments, the response limit. This verifies one market read path.</p>
       </div>
       <div className="judge-mcp-steps" aria-label="Codex MCP setup status">
         <article><span>01</span><div><b>Plugin</b><small>Tidelight Research · Streamable HTTP</small></div><i className="is-complete">Registered</i></article>
-        <article><span>02</span><div><b>Authorization</b><small>OAuth · <code>market:read</code> read-only market data</small></div><i>Consent pending</i></article>
-        <article><span>03</span><div><b>Tool call</b><small>Authenticated request requires the grant</small></div><i>Not run</i></article>
+        <article><span>02</span><div><b>Authorization</b><small>OAuth · <code>market:read</code> read-only market data</small></div><i className="is-complete">Active</i></article>
+        <article><span>03</span><div><b>Tool call</b><small>Tidelight search tokenized equities · request ID in the evidence record</small></div><i className="is-complete">100 returned</i></article>
       </div>
       <div className="judge-inline-actions">
         <a href="https://dev.tidelight.app/#connect-with-the-mcp-server">MCP connection guide <span aria-hidden="true">↗</span></a>
