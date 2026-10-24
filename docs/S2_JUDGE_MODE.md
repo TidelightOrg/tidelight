@@ -38,3 +38,8 @@ One sentence: **Tidelight turns overnight tokenized-stock events into source-ver
 
 The Judge page and repository README list five additional token reviews alongside the original rNVDA and NVDA/TSLA examples. The five new runs cover rTSLA, rMSFT, rAAPL, rGOOGL, and rAMZN. All five collected issuer headlines but reported that AI synthesis was unavailable; they must be presented as transparent fallback records, not completed analyst theses or directional recommendations. Their published links expire after 30 days and can be revoked by the owner.
 
+
+
+## Codex MCP connection record
+
+The public Judge page includes the Codex MCP status record at [`/judge#codex-mcp-evidence`](https://tidelight.app/judge#codex-mcp-evidence), with its machine-readable artifact at [`/evidence/tidelight-codex-mcp.json`](https://tidelight.app/evidence/tidelight-codex-mcp.json). The Tidelight Research custom plugin is registered in Codex and points to the official Streamable HTTP endpoint. The connection requested the read-only `market:read` OAuth scope. Consent remains pending; this record does not claim an authenticated MCP tool call or usage result.
