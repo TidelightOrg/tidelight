@@ -31,7 +31,7 @@ test("macro research prompt and result terminology have Simplified Chinese cover
   const desk = await readFile(new URL("app/ui/agent-flow-desk.tsx", root), "utf8");
   const prompt = "Bring a question about a company, its tokenized market, or a dated Fed/BLS release. Tidelight separates issuer news from instrument-specific evidence, checks market context, and explains what the research can—and cannot—support.";
   const placeholder = "Ask about a company, tokenized market, or dated Fed/BLS release…";
-  const deskControls = ["Research ↗", "Shared replays", "What changed for NVDA since the latest evidence?", "What are the key risks around NVDA right now?", "Review recent evidence and market context for NVDA"];
+  const deskControls = ["Research ↗", "Research question", "Suggested questions", "Shared replays", "What changed for NVDA since the latest evidence?", "What are the key risks around NVDA right now?", "Review recent evidence and market context for NVDA"];
   assert.ok(desk.includes(prompt), "Research page should advertise dated Fed/BLS questions");
   assert.ok(desk.includes(placeholder), "Research prompt should guide macro questions");
   for (const key of [prompt, placeholder, "FEDERAL RESERVE / BLS SOURCES", "Official source", "Independent reporting", "No instrument or trading decision is generated.", ...deskControls]) {
