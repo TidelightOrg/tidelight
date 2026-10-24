@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
+import { headers } from "next/headers";
 import Link from "next/link";
 import { getSystemStatus } from "@/lib/tic/system-status";
+import { resolveStatusPagePath } from "@/lib/tic/status-links";
 import "./status.css";
 
 export const dynamic = "force-dynamic";
@@ -10,16 +12,19 @@ export const metadata: Metadata = {
 };
 
 export default async function StatusPage() {
-  const status = await getSystemStatus();
+  const [status, requestHeaders] = await Promise.all([getSystemStatus(), headers()]);
+  const statusPath = resolveStatusPagePath(requestHeaders.get("host"), "/status");
+  const maintenancePath = resolveStatusPagePath(requestHeaders.get("host"), "/status/maintenance");
+  const incidentsPath = resolveStatusPagePath(requestHeaders.get("host"), "/status/incidents");
   const label = status.status === "operational" ? "All monitored services operational" : "A service is experiencing issues";
   const checked = new Date(status.checkedAt).toLocaleString("en", { timeZone: "UTC", timeZoneName: "short" });
   return <main className="tic-status-page">
     <header className="tic-status-header">
       <a className="tic-status-wordmark" href="https://tidelight.app" aria-label="Tidelight home">tide<span>light</span></a>
       <nav aria-label="Status navigation">
-        <Link aria-current="page" href="/">Status</Link>
-        <Link href="/maintenance">Maintenance</Link>
-        <Link href="/incidents">Previous incidents</Link>
+        <Link aria-current="page" href={statusPath}>Status</Link>
+        <Link href={maintenancePath}>Maintenance</Link>
+        <Link href={incidentsPath}>Previous incidents</Link>
         <a href="https://tidelight.app/support">Get in touch</a>
       </nav>
     </header>

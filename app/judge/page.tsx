@@ -124,7 +124,7 @@ export default function JudgePage() {
     <section className="judge-section judge-mcp" id="codex-mcp-evidence" aria-labelledby="codex-mcp-title">
       <div className="judge-section-heading">
         <div><span className="judge-kicker">CODEX · MCP CONNECTION</span><h2 id="codex-mcp-title">Tidelight MCP in Codex</h2></div>
-        <p>The Tidelight MCP plugin is now installed and connected in ChatGPT/Codex. Its live registry exposes two read-only market tools, while the company research-job tool is still absent. The earlier market calls remain historical; no research job has been submitted in this session.</p>
+        <p>The Tidelight MCP plugin is installed and connected in ChatGPT/Codex. Its current registry exposes two read-only market tools, while the company research-job tool is absent. The Codex Cloud SDK attempt found no preconfigured research API key and stopped before installing packages or submitting jobs. No credentials or grants were changed.</p>
       </div>
       <div className="judge-mcp-steps" aria-label="Codex MCP setup status">
         <article><span>01</span><div><b>Plugin</b><small>Tidelight MCP Live Research · Streamable HTTP</small></div><i>Installed · connected</i></article>
@@ -135,6 +135,7 @@ export default function JudgePage() {
         <a href="https://dev.tidelight.app/#connect-with-the-mcp-server">MCP connection guide <span aria-hidden="true">↗</span></a>
         <a href="https://mcp.tidelight.app/.well-known/oauth-protected-resource/mcp">OAuth resource metadata <span aria-hidden="true">↗</span></a>
         <Link href="/evidence/tidelight-codex-mcp.json">Current registry check <span aria-hidden="true">↗</span></Link>
+        <Link href="/evidence/tidelight-research-job-client-attempt-20261024.json">Authenticated job attempt record <span aria-hidden="true">↗</span></Link>
         <Link href="/evidence/tidelight-codex-mcp-install-attempt-20261024.json">Earlier unavailable-session record <span aria-hidden="true">↗</span></Link>
       </div>
     </section>

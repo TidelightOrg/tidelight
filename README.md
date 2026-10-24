@@ -33,6 +33,7 @@
 
 - [Judge Mode](https://tidelight.app/judge) includes a signed-out browser route-test record for seven public routes returning HTTP 200; the linked MP4 failed the production integrity/playback check and is not counted as delivered video evidence. The [capture details](https://tidelight.app/evidence/tidelight-live-route-test-20261024.json) state the coverage boundary.
 - [Codex Tidelight MCP evidence](https://tidelight.app/judge#codex-mcp-evidence) records two historical authenticated read-only `market:read` calls and the current connected plugin's market-only tool registry. The server supports `research:run`, but Codex does not currently expose a company research-job tool, so no research run is claimed.
+- [Authenticated npm/Python/MCP job attempt](https://tidelight.app/evidence/tidelight-research-job-client-attempt-20261024.json) records the Codex Cloud credential check and live tool list. No SDK install or research job ran because the environment had no preconfigured `research:run` key; the current MCP registry is market-only.
 - [Ecosystem status](https://status.tidelight.app) checks the public product, developer docs, package directory, REST API, protected research-job endpoint, MCP metadata, npm/PyPI registries, and database. Background job execution, delivery history, incidents, and scheduled uptime are not independently monitored yet.
 
 ## Make sense of the story behind the price

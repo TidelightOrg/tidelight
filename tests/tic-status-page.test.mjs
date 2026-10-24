@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { resolveStatusPagePath } from "../lib/tic/status-links.ts";
 
 test("ecosystem status groups real service checks and labels unmonitored workloads", async () => {
   const page = await readFile(new URL("../app/status/page.tsx", import.meta.url), "utf8");
@@ -17,8 +18,15 @@ test("status navigation exposes current status, maintenance, and incident histor
   const page = await readFile(new URL("../app/status/page.tsx", import.meta.url), "utf8");
   const incidents = await readFile(new URL("../app/status/incidents/page.tsx", import.meta.url), "utf8");
   const maintenance = await readFile(new URL("../app/status/maintenance/page.tsx", import.meta.url), "utf8");
-  assert.match(page, /href="\/maintenance"/);
-  assert.match(page, /href="\/incidents"/);
+  assert.match(page, /href=\{maintenancePath\}/);
+  assert.match(page, /href=\{incidentsPath\}/);
   assert.match(incidents, /Incident archive not connected/);
   assert.match(maintenance, /no connected maintenance calendar/i);
+});
+
+test("status navigation resolves both the dedicated hostname and preview paths", () => {
+  assert.equal(resolveStatusPagePath("status.tidelight.app", "/status"), "/");
+  assert.equal(resolveStatusPagePath("status.tidelight.app", "/status/maintenance"), "/maintenance");
+  assert.equal(resolveStatusPagePath("status.tidelight.app:443", "/status/incidents"), "/incidents");
+  assert.equal(resolveStatusPagePath("tidelight-git-preview.vercel.app", "/status/maintenance"), "/status/maintenance");
 });

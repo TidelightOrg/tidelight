@@ -292,6 +292,14 @@
       "claim": "The Tidelight MCP plugin is installed and connected. The current Codex registry exposes two read-only market tools but no company research-job tool; no current research run is claimed. The earlier unavailable-session record remains separately linked."
     },
     {
+      "id": "authenticated-research-job-client-attempt-20261024",
+      "kind": "authenticated_research_job_attempt",
+      "status": "blocked_missing_preconfigured_research_key",
+      "uri": "https://tidelight.app/judge#codex-mcp-evidence",
+      "summary_uri": "https://tidelight.app/evidence/tidelight-research-job-client-attempt-20261024.json",
+      "claim": "Codex Cloud inspected SDK guidance, found no configured research API key, and stopped before npm/Python installation or job submission. The exposed MCP registry remains market-only. No credentials or grants were changed."
+    },
+    {
       "id": "codex-mcp-earlier-unavailable-session-20261024",
       "kind": "mcp_interoperability_attempt",
       "status": "historical_connection_not_available_in_that_session",
