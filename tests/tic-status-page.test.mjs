@@ -30,3 +30,12 @@ test("status navigation resolves both the dedicated hostname and preview paths",
   assert.equal(resolveStatusPagePath("status.tidelight.app:443", "/status/incidents"), "/incidents");
   assert.equal(resolveStatusPagePath("tidelight-git-preview.vercel.app", "/status/maintenance"), "/status/maintenance");
 });
+
+test("dedicated status hostname rewrites its public routes to the status app", async () => {
+  const config = await readFile(new URL("../next.config.ts", import.meta.url), "utf8");
+  assert.match(config, /source: "\/", destination: "\/status"/);
+  assert.match(config, /source: "\/incidents", destination: "\/status\/incidents"/);
+  assert.match(config, /source: "\/maintenance", destination: "\/status\/maintenance"/);
+  assert.match(config, /source: "\/health", destination: "\/api\/system\/health"/);
+  assert.equal((config.match(/type: "host", value: "status\.tidelight\.app"/g) ?? []).length, 4);
+});
