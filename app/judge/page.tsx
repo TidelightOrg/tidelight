@@ -62,6 +62,28 @@ export default function JudgePage() {
       </div>
     </section>
 
+    <section className="judge-section judge-test-video" id="live-route-test-recording" aria-labelledby="test-video-title">
+      <div className="judge-section-heading">
+        <div><span className="judge-kicker">LIVE SITE · BROWSER CAPTURE</span><h2 id="test-video-title">A full route check, on screen.</h2></div>
+        <p>Recorded while signed out at 1280 × 720. The browser opened all seven public routes below and received HTTP 200 from each.</p>
+      </div>
+      <figure className="judge-test-video-frame">
+        <video controls preload="metadata" playsInline aria-label="Full browser recording of the signed-out Tidelight public route check">
+          <source src="/judge-evidence/tidelight-live-route-test-20261024.mp4" type="video/mp4" />
+          Your browser does not support HTML video.
+        </video>
+        <figcaption><span>68 sec · 7 routes · logged out</span><a href="/judge-evidence/tidelight-live-route-test-20261024.mp4" download>Download full video ↓</a></figcaption>
+      </figure>
+      <div className="judge-test-route-list" aria-label="Routes checked in the video">
+        {["/", "/markets", "/research", "/flow", "/strategies", "/nightwatch", "/judge"].map(path => <span key={path}><i aria-hidden="true">200</i><code>{path}</code></span>)}
+      </div>
+      <p className="judge-section-note">This smoke test confirms public route responses only. Signed-in research, publish actions, strategy execution, account data, and trading behavior are not represented.</p>
+      <div className="judge-inline-actions">
+        <Link href="/evidence/tidelight-live-route-test-20261024.json">Open capture record <span aria-hidden="true">↗</span></Link>
+        <a href="https://github.com/TidelightOrg/tidelight/blob/main/public/judge-evidence/tidelight-live-route-test-20261024.mp4" target="_blank" rel="noreferrer">Video in GitHub <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+
     <section className="judge-section" aria-labelledby="research-title">
       <div className="judge-section-heading">
         <div><span className="judge-kicker">PUBLIC RESEARCH</span><h2 id="research-title">Published research replays</h2></div>
