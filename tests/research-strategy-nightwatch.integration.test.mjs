@@ -8,7 +8,11 @@ const sourceRows = [
   { title: "Synthetic issuer update one", url: "https://fixture.example/source-a", publisher: "Fixture Journal A", publishedAt: new Date().toISOString(), snippet: "Synthetic test fixture only." },
   { title: "Synthetic issuer update two", url: "https://fixture.example/source-b", publisher: "Fixture Journal B", publishedAt: new Date().toISOString(), snippet: "Synthetic test fixture only." },
 ];
-const captures = { rpc: [], research: [], nightwatch: null, orders: [] };
+const macroRows = [
+  { title: "Federal Reserve issues September 2026 FOMC statement", url: "https://news.google.com/rss/articles/fomc", publisher: "Federal Reserve", publishedAt: new Date().toISOString(), snippet: "The Committee decided to maintain the target range.", sourceKind: "official" },
+  { title: "Fed holds rates in September, Reuters reports", url: "https://news.google.com/rss/articles/reuters", publisher: "Reuters", publishedAt: new Date().toISOString(), snippet: "Economists expected a decision to maintain rates.", sourceKind: "independent_reporting" },
+];
+const captures = { rpc: [], research: [], nightwatch: null, orders: [], marketCalls: 0, macroCalls: 0 };
 const candle = (index) => ({ timestamp: Date.now() - (100 - index) * 4 * 60 * 60 * 1000, close: 100 + index / 100, open: 100, high: 101, low: 99, volume: 1000 });
 const candles = Array.from({ length: 100 }, (_, index) => candle(index));
 
@@ -31,12 +35,13 @@ function queryFor(table) {
 }
 
 globalThis.flowTest = {
+  macroCalls: 0,
   auth: { getUser: async () => ({ data: { user }, error: null }) },
   from: queryFor,
   rpc: async (...args) => globalThis.flowTest.admin.rpc(...args),
-  asset: async (symbol) => ({ symbol, isReality: true, underlyingTicker: "NVDA", name: "Synthetic NVIDIA fixture", lastPrice: 100, providerTimestamp: Date.now() }),
-  perp: async (symbol) => ({ symbol, name: "Synthetic NVDA perpetual fixture", lastPrice: 100, providerTimestamp: Date.now() }),
-  candles: async () => candles,
+  asset: async (symbol) => { captures.marketCalls++; return ({ symbol, isReality: true, underlyingTicker: "NVDA", name: "Synthetic NVIDIA fixture", lastPrice: 100, providerTimestamp: Date.now() }); },
+  perp: async (symbol) => { captures.marketCalls++; return ({ symbol, name: "Synthetic NVDA perpetual fixture", lastPrice: 100, providerTimestamp: Date.now() }); },
+  candles: async () => { captures.marketCalls++; return candles; },
   admin: {
     from: queryFor,
     rpc: async (name, args) => {
@@ -54,10 +59,11 @@ const modules = {
   "next/server": "export const after=()=>{}; export const NextResponse=class extends Response { static json(data,init={}) { return Response.json(data,init); } };",
   "@/lib/supabase/server": "export const createClient=async()=>globalThis.flowTest;",
   "@/lib/supabase/admin": "export const createAdminClient=()=>globalThis.flowTest.admin;",
-  "@/lib/ai-fallback": `export const configuredAiProviders=()=>["fixture"]; export const aiJsonWithFallback=async()=>({assets:[{ticker:"NVDA",summary:"Synthetic fixture: two current independent publishers agree on a directional scenario for test coverage only.",stance:"bullish",confidence:0.9,citedUrls:["${sourceRows[0].url}","${sourceRows[1].url}"],risks:["Synthetic fixture only"],nextCheck:"Remove the fixture after the isolated test."}]});`,
+  "@/lib/ai-fallback": `export const configuredAiProviders=()=>["fixture"]; export const aiJsonWithFallback=async(messages)=>{const text=messages.map(message=>message.content).join(" ");return /FOMC/.test(text)?{assets:[{ticker:"MACRO",summary:"The Federal Reserve maintained the target range in its September 2026 decision. The supplied official source states the decision; Reuters reports economist expectations as context. The sources do not establish the next policy move.",stance:"unclear",confidence:0.3,citedUrls:["${macroRows[0].url}","${macroRows[1].url}"],supportingEvidence:[{text:"The Committee maintained the target range.",citedUrls:["${macroRows[0].url}"]}],counterEvidence:[{text:"Economists had expected the same decision.",citedUrls:["${macroRows[1].url}"]}],risks:["This is not a forecast of the next policy move."],nextCheck:"Read the next official statement and minutes."}]}:{assets:[{ticker:"NVDA",summary:"Synthetic fixture: two current independent publishers agree on a directional scenario for test coverage only.",stance:"bullish",confidence:0.9,citedUrls:["${sourceRows[0].url}","${sourceRows[1].url}"],risks:["Synthetic fixture only"],nextCheck:"Remove the fixture after the isolated test."}]};};`,
   "@/lib/bitget-market": "export const STOCK_PERP_UNIVERSE=[\"NVDAUSDT\"]; export const getIssuerName=()=>\"Synthetic NVIDIA\"; export const getBitgetAsset=(...args)=>globalThis.flowTest.asset(...args); export const getBitgetStockPerp=(...args)=>globalThis.flowTest.perp(...args); export const getBitgetCandles=(...args)=>globalThis.flowTest.candles(...args);",
   "@/lib/backtest": "export const prepareBacktestCandles=()=>Array.from({length:80},(_,i)=>({timestamp:Date.now()-(80-i)*14400000-60000,close:100})); export const buildSignals=()=>Array.from({length:80},(_,i)=>i===79); export const ALPHA_STRATEGIES={sma_trend_v1:{label:\"Synthetic SMA fixture\"}};",
   "@/lib/agent-flow-sources": `export const gatherIssuerEvidence=async()=>${JSON.stringify(sourceRows)}; export const issuerEvidenceLookbackDays=()=>30;`,
+  "@/lib/macro-research-sources": `export const classifyMacroQuestion=question=>/FOMC/i.test(question)?"monetary_policy":null; export const buildMacroNewsQueries=()=>["site:federalreserve.gov FOMC","FOMC Reuters"]; export const macroResearchLookbackDays=()=>365; export const gatherMacroEvidence=async()=>{globalThis.flowTest.macroCalls++; return ${JSON.stringify(macroRows)};};`,
   "@/lib/agentkey-flow-sources": "export const agentKeyIssuerEvidence=async()=>[];",
   "@/lib/futures-paper-agent": "export const decideFuturesPaper=async input=>{globalThis.flowTest.strategyResearch=input.research;return{action:\"hold\",confidence:0.8,rationale:\"Synthetic Strategy fixture hold; no paper fill.\",evidence:[\"Synthetic completed candle\"],risks:[],invalidation:\"Fixture ends\"};};",
   "@/lib/futures-paper-policy": "export const normalizeFuturesProposal=()=>null;",
@@ -112,4 +118,33 @@ test("synthetic positive handoff preserves lineage through Research → paper St
   assert.equal(nightwatchCommit.args.p_snapshot.researchRunId, researchId);
   assert.equal(nightwatchCommit.args.p_signal, "hold");
   assert.deepEqual(captures.orders, ["hold"], "the fixture did not create a paper fill or any live order");
+});
+
+test("macro-only research saves a source-bound brief and bypasses stock providers and trade handoff", async () => {
+  captures.marketCalls = 0;
+  captures.macroCalls = 0;
+  globalThis.flowTest.macroCalls = 0;
+  const response = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
+    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: "Explain the September 16, 2026 FOMC decision and the evidence relevant to its stated rationale." }),
+  }));
+  assert.equal(response.status, 200);
+  const events = (await response.text()).split("\n\n").filter(Boolean).map(frame => JSON.parse(frame.split("\ndata: ")[1]));
+  const result = events.findLast(frame => frame.researchRunId);
+  assert.ok(result, "macro route emitted a saved result");
+  assert.equal(result.researchType, "macro");
+  assert.equal(result.macroTopic, "monetary_policy");
+  assert.equal(result.assets.length, 1);
+  assert.equal(result.assets[0].ticker, "MACRO");
+  assert.equal(result.tradeable, false);
+  assert.equal(result.assets[0].tradeable, false);
+  assert.equal(result.assets[0].handoff, null);
+  assert.equal(result.assets[0].market.perpSymbol, null);
+  assert.equal(result.assets[0].market.lastPrice, null);
+  assert.deepEqual(result.assets[0].sources.map(source => source.via), ["Official source", "Independent reporting"]);
+  assert.ok(result.assets[0].gateReasons.some(reason => reason.includes("information-only")));
+  assert.equal(globalThis.flowTest.macroCalls, 1);
+  assert.equal(captures.marketCalls, 0, "macro-only run never called Bitget or candle providers");
+  assert.ok(!result.trace.some(stage => stage.agent === "Alpha Factory" || stage.agent === "Trading agent"));
+  assert.ok(captures.research.some(call => call.table === "research_sources" && call.operation === "upsert"));
+  assert.ok(captures.research.some(call => call.table === "research_runs" && call.operation === "update" && call.values?.status === "complete" && call.values?.summary?.researchType === "macro"));
 });
