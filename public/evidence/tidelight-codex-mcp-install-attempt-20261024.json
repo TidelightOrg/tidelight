@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.1.0",
+  "kind": "codex_mcp_install_and_research_attempt",
+  "captured_date": "2026-10-24",
+  "client": "Codex Cloud, tidelight Org environment",
+  "requested": {
+    "endpoint": "https://mcp.tidelight.app/mcp",
+    "scopes": [
+      "market:read",
+      "research:run"
+    ],
+    "task": "Run a neutral, read-only NVDA company research job; no trades."
+  },
+  "outcome": {
+    "connection": "not_installed",
+    "live_tool_registry": "not_available",
+    "research_run": "not_performed",
+    "reason": "The Codex Cloud agent reported that no Tidelight MCP tools or Codex Cloud UI controls were exposed in its session. Earlier browser discovery in this workspace had no current Tidelight entry after removal."
+  },
+  "evidence": {
+    "cloud_session": "Task started from https://chatgpt.com/codex/cloud with tidelight Org selected.",
+    "browser_ui": "The task reported Chromium and FFmpeg availability.",
+    "package_tasks": "Npm consumer install and import checks completed in a Vercel sandbox; see package-install-verification-20261024.json.",
+    "transcript": "https://chatgpt.com/local/01a16f60-8bbb-7069-a4d1-d86c28fb500e",
+    "sandbox": "sbx_e7PBJXqFs5n2kTrSkTnuAaOLOhHI",
+    "sandbox_status": "stopped; post-stop file reads and command logs returned 410 sandbox_stopped"
+  },
+  "evidence_boundary": "This is a failed fresh MCP reconnect attempt. It does not claim OAuth consent, a live tool list, or a research result. Previously captured market:read data remains historical in this record."
+}
