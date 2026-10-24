@@ -43,3 +43,8 @@ The Judge page and repository README list five additional token reviews alongsid
 ## Codex MCP connection record
 
 The public Judge page includes the Codex MCP status record at [`/judge#codex-mcp-evidence`](https://tidelight.app/judge#codex-mcp-evidence), with its machine-readable artifact at [`/evidence/tidelight-codex-mcp.json`](https://tidelight.app/evidence/tidelight-codex-mcp.json). The Tidelight Research custom plugin is registered in Codex and points to the official Streamable HTTP endpoint. The user approved the read-only `market:read` OAuth scope. The active grant appears in Tidelight's developer console. A read-only call through the connected plugin returned 100 supported instruments (the response limit) with request ID `6efee181-ed3b-49bb-a1fb-2a1d3f0ac0ff`. This verifies one market read path only; it does not test the research job scope or other MCP tools.
+
+
+## Live route test recording
+
+The Judge page embeds the full browser capture at [`/judge#live-route-test-recording`](https://tidelight.app/judge#live-route-test-recording). The 68-second Playwright recording was captured signed out at 1280 × 720 on 24 October 2026. It navigates `/`, `/markets`, `/research`, `/flow`, `/strategies`, `/nightwatch`, and `/judge`; each returned HTTP 200. The evidence record is [`tidelight-live-route-test-20261024.json`](../public/evidence/tidelight-live-route-test-20261024.json). This validates route availability only, not signed-in research, publication, strategy execution, account state, or trading behavior.
