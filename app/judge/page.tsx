@@ -126,12 +126,12 @@ export default function JudgePage() {
     <section className="judge-section judge-mcp" id="codex-mcp-evidence" aria-labelledby="codex-mcp-title">
       <div className="judge-section-heading">
         <div><span className="judge-kicker">CODEX · MCP CONNECTION</span><h2 id="codex-mcp-title">Tidelight MCP in Codex</h2></div>
-        <p>The connected Tidelight Research tools have read-only <code>market:read</code> access. One search returned 100 supported instruments; a fresh NVDA lookup returned RNVDAUSDT at $211.39 from Bitget Reality spot. The endpoint advertises <code>research:run</code>, but the connected Codex tool list exposes no company research operation, so no MCP research job is claimed.</p>
+        <p>An earlier Codex connection completed two read-only market checks under <code>market:read</code>. That plugin was removed for a fresh reconnect. Current Codex discovery does not list Tidelight, and a direct call to the previous tool returns “Unknown tool.” No fresh OAuth grant or company research run is recorded.</p>
       </div>
       <div className="judge-mcp-steps" aria-label="Codex MCP setup status">
-        <article><span>01</span><div><b>Plugin</b><small>Tidelight Research · Streamable HTTP</small></div><i className="is-complete">Registered</i></article>
-        <article><span>02</span><div><b>Authorization</b><small>OAuth · <code>market:read</code> read-only market data</small></div><i className="is-complete">Active</i></article>
-        <article><span>03</span><div><b>Tool call</b><small>Two read-only calls · request IDs in the evidence record</small></div><i className="is-complete">Passed</i></article>
+        <article><span>01</span><div><b>Plugin</b><small>Tidelight Research · Streamable HTTP</small></div><i>Removed after prior capture</i></article>
+        <article><span>02</span><div><b>Authorization</b><small>Previous capture · <code>market:read</code> read-only market data</small></div><i>Historical</i></article>
+        <article><span>03</span><div><b>Tool call</b><small>Prior market calls · details in the evidence record</small></div><i>Past evidence</i></article>
       </div>
       <div className="judge-inline-actions">
         <a href="https://dev.tidelight.app/#connect-with-the-mcp-server">MCP connection guide <span aria-hidden="true">↗</span></a>
