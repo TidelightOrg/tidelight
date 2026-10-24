@@ -64,6 +64,53 @@ function withinResearchWindow(item: FlowEvidence, now: number, maxAgeMs = MAX_EV
   return Number.isFinite(published) && published <= now + 5 * 60_000 && now - published <= maxAgeMs;
 }
 
+const primaryIssuerHosts: Record<string, string[]> = {
+  NVDA: ["nvidianews.nvidia.com", "investor.nvidia.com"], TSLA: ["ir.tesla.com"], AAPL: ["investor.apple.com"],
+  AMD: ["ir.amd.com"], MSFT: ["microsoft.com", "news.microsoft.com"], META: ["investor.fb.com", "about.fb.com"],
+  AMZN: ["ir.aboutamazon.com", "aboutamazon.com"], GOOGL: ["abc.xyz", "blog.google"], INTC: ["newsroom.intel.com", "intel.com"],
+  ASML: ["asml.com"], QCOM: ["investor.qualcomm.com", "qualcomm.com"], MU: ["investors.micron.com", "micron.com"],
+};
+const newsRedirectHosts = new Set(["news.google.com", "www.bing.com"]);
+
+function isHostOrSubdomain(host: string, domain: string) {
+  return host === domain || host.endsWith(`.${domain}`);
+}
+
+function readableArticleText(html: string) {
+  const main = /<(?:main|article)\b[^>]*>([\s\S]*?)<\/(?:main|article)>/i.exec(html)?.[1] ?? html;
+  const blocks = [...main.matchAll(/<(?:p|h[1-6]|li|tr)\b[^>]*>([\s\S]*?)<\/(?:p|h[1-6]|li|tr)>/gi)]
+    .map(match => decode(match[1]).replace(/\s+/g, " ").trim())
+    .filter(text => text.length > 35);
+  if (blocks.length) return [...new Set(blocks)].join(" ").slice(0, 3_500);
+  const description = /<meta[^>]+(?:name|property)=["'](?:description|og:description)["'][^>]+content=["']([^"']+)["']/i.exec(html)?.[1] ?? "";
+  return decode(description).slice(0, 3_500);
+}
+
+async function readPrimaryIssuerArticle(ticker: string, item: FlowEvidence): Promise<FlowEvidence> {
+  const allowedHosts = primaryIssuerHosts[ticker] ?? [];
+  let current: URL;
+  try { current = new URL(item.url); } catch { return item; }
+  if (current.protocol !== "https:" || (!newsRedirectHosts.has(current.hostname) && !allowedHosts.some(host => isHostOrSubdomain(current.hostname, host)))) return item;
+  try {
+    for (let hop = 0; hop < 4; hop++) {
+      const response = await fetch(current, { headers: { Accept: "text/html,application/xhtml+xml", "User-Agent": "Tidelight Research/1.0" }, signal: AbortSignal.timeout(8_000), cache: "no-store", redirect: "manual" });
+      if (response.status >= 300 && response.status < 400) {
+        const location = response.headers.get("location");
+        if (!location) return item;
+        const next = new URL(location, current);
+        if (next.protocol !== "https:" || (!newsRedirectHosts.has(next.hostname) && !allowedHosts.some(host => isHostOrSubdomain(next.hostname, host)))) return item;
+        current = next;
+        continue;
+      }
+      if (!response.ok || !allowedHosts.some(host => isHostOrSubdomain(current.hostname, host))) return item;
+      const html = await response.text();
+      const snippet = readableArticleText(html);
+      return snippet.length >= 120 ? { ...item, url: current.toString(), snippet, via: "Issuer primary source" } : item;
+    }
+  } catch { /* Keep the dated headline when an issuer site is unavailable. */ }
+  return item;
+}
+
 /** Bounded multi-query public headline discovery. Search results are pointers, not verified article contents. */
 export function buildIssuerNewsQueries(ticker: string, issuer: string, question = ""): string[] {
   const name = issuerNames[ticker] ?? issuer;
@@ -109,7 +156,7 @@ export async function gatherIssuerEvidence(ticker: string, issuer: string, quest
     }
   }
   if (!stories.size && results.some(result => result.status === "fulfilled")) console.warn("agent-flow-source-empty", ticker, results.map(result => result.status === "fulfilled" ? result.value.length : "failed"));
-  return [...stories.values()]
+  const ranked = [...stories.values()]
     .sort((a, b) => {
       if (context.historical && context.year) {
         const aMatches = matchesRequestedPeriod(a, context), bMatches = matchesRequestedPeriod(b, context);
@@ -118,6 +165,10 @@ export async function gatherIssuerEvidence(ticker: string, issuer: string, quest
       return Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? "");
     })
     .slice(0, MAX_DISCOVERY_ITEMS);
+  const primaryCandidates = ranked.filter(item => primaryIssuerHosts[ticker]?.some(host => item.publisher.toLowerCase().includes(host.split(".")[0])) || item.publisher.toLowerCase().includes(name.toLowerCase())).slice(0, 6);
+  const enriched = await Promise.all(primaryCandidates.map(item => readPrimaryIssuerArticle(ticker, item)));
+  const enrichedByUrl = new Map(primaryCandidates.map((item, index) => [item.url, enriched[index]]));
+  return ranked.map(item => enrichedByUrl.get(item.url) ?? item);
 }
 
 export function issuerEvidenceLookbackDays(question: string) {

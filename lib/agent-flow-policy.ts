@@ -1,4 +1,4 @@
-export type FlowSource = { title: string; url: string; publisher: string; publishedAt: string | null; via?: "Public feeds" | "AgentKey" };
+export type FlowSource = { title: string; url: string; publisher: string; publishedAt: string | null; via?: "Public feeds" | "AgentKey" | "Issuer primary source" };
 export type FlowStance = "bullish" | "bearish" | "mixed" | "unclear";
 export type FlowEvidencePoint = { text: string; citedUrls: string[] };
 export type FlowAssessment = { summary: string; stance: FlowStance; confidence: number; confidenceCapped?: boolean; citedUrls: string[]; supportingEvidence: FlowEvidencePoint[]; counterEvidence: FlowEvidencePoint[]; risks: string[]; nextCheck: string };

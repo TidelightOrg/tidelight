@@ -75,3 +75,32 @@ test("explicit historical issuer questions can retrieve dated event coverage out
     assert.equal(current[0].url, "https://recent.example/product-news");
   } finally { globalThis.fetch = previousFetch; }
 });
+
+test("historical issuer research follows public-feed redirects only to the issuer domain and reads a bounded release excerpt", async () => {
+  const now = Date.now();
+  const previousFetch = globalThis.fetch;
+  const historicalDate = new Date(now - 120 * 86_400_000).toUTCString();
+  const officialUrl = "https://nvidianews.nvidia.com/news/fy26-q4";
+  const html = `<main><h1>NVIDIA FY2026 fourth-quarter results</h1><p>Reported quarterly revenue was $68.1 billion, up 20% from the previous quarter and 73% year over year.</p><p>Management expects next-quarter revenue of $78.0 billion, plus or minus 2%.</p></main>`;
+  globalThis.fetch = async input => {
+    const url = new URL(input);
+    const query = url.searchParams.get("q");
+    if (query) {
+      const item = query.includes("2026")
+        ? `<item><title>NVIDIA FY2026 fourth-quarter results</title><link>https://news.google.com/rss/articles/fy26-q4</link><source>NVIDIA Newsroom</source><pubDate>${historicalDate}</pubDate><description></description></item>`
+        : "";
+      return new Response(`<rss><channel>${item}</channel></rss>`, { status: 200, headers: { "content-type": "application/rss+xml" } });
+    }
+    if (url.hostname === "news.google.com") return new Response(null, { status: 302, headers: { location: officialUrl } });
+    if (url.hostname === "nvidianews.nvidia.com") return new Response(html, { status: 200, headers: { "content-type": "text/html" } });
+    throw new Error("Unexpected external host");
+  };
+  try {
+    const items = await gatherIssuerEvidence("NVDA", "NVIDIA", "Summarize NVIDIA's FY2026 fourth-quarter results.");
+    assert.equal(items.length, 1);
+    assert.equal(items[0].url, officialUrl);
+    assert.equal(items[0].via, "Issuer primary source");
+    assert.match(items[0].snippet, /\$68\.1 billion/);
+    assert.match(items[0].snippet, /\$78\.0 billion/);
+  } finally { globalThis.fetch = previousFetch; }
+});
