@@ -135,11 +135,20 @@ Open the [delivery metadata](https://tidelight.app/evidence/nightwatch-email-del
 ## Research data and trading artifacts
 
 <details>
+<summary><strong>Open public Strategy Lab replay · Apple · 4H</strong></summary>
+
+The [published strategy replay](https://tidelight.app/strategy-replay/58348395-ff65-4a4c-be5a-019234379587) includes 525 archived candles, the rule, date window, costs, holdout trades, and a SHA-256 fingerprint. The 32-day out-of-sample return was **−0.76% after estimated costs**, versus **+2.12% buy and hold**; maximum drawdown was **−4.04%** across three trades. The [replay JSON](https://tidelight.app/api/strategy-replays/58348395-ff65-4a4c-be5a-019234379587) is the machine-readable archive.
+
+This is a historical simulation, not a forecast or audited performance. Costs are estimates, Reality token prices may differ from issuer shares, and no live orders were placed. The share expires 23 November 2026 and can be revoked by its owner.
+
+</details>
+
+<details>
 <summary><strong>Open the public JSON index and data boundaries</strong></summary>
 
 - [Public evidence manifest JSON](https://tidelight.app/evidence/manifest.json) — route inventory, reproducibility requirements, and evidence limitations.
 - Each replay row links to its downloadable, sanitized JSON record. The export is the same selected public payload shown on the replay page, not the private full account run.
-- Strategy Lab can export an authenticated owner's individual strategy run as JSON. No positive alpha result or public trade ledger is attached here.
+- The [public Apple 4H strategy replay](https://tidelight.app/strategy-replay/58348395-ff65-4a4c-be5a-019234379587) and [archived JSON](https://tidelight.app/api/strategy-replays/58348395-ff65-4a4c-be5a-019234379587) document a negative holdout result; no positive alpha result or public account ledger is claimed.
 - Nightwatch fills remain private until the owner publishes an individual sanitized replay. [Open the public Nightwatch replay directory](https://tidelight.app/nightwatch/replays); each trade replay omits identity, balances, and unrelated ledger rows.
 - The [Nightwatch position summary JSON](https://tidelight.app/evidence/nightwatch-position-captures.json) describes the historical captures only; the full account export is not public.
 - The public research runs contain no live orders, exchange fills, or audited trading returns. Do not interpret a source-count or quote snapshot as strategy performance.
