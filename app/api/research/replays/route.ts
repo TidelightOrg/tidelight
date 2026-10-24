@@ -20,7 +20,27 @@ export async function POST(request: Request) {
   const { data: run, error: runError } = await db.from("research_runs").select("question,summary,completed_at,status").eq("id", runId).eq("user_id", user.id).eq("status", "complete").maybeSingle();
   if (runError || !run) return NextResponse.json({ error: "That completed research run is unavailable." }, { status: 404 });
   const summary = object(run.summary);
-  const rows = Array.isArray(summary?.assets) ? summary.assets : [];
+  const evidenceBrief = summary && Array.isArray(summary.claims) && Array.isArray(summary.sources) && typeof summary.summary === "string";
+  const rows = Array.isArray(summary?.assets) ? summary.assets : evidenceBrief ? (() => {
+    const exposureRows = Array.isArray(summary.exposure) ? summary.exposure : [];
+    const tickerMatch = String(run.question).toUpperCase().match(/\b(NVDA|TSLA|MSFT|AMZN|AAPL|AMD|META|GOOGL|GOOG|AVGO|MU|COIN|PLTR|TSM|NFLX|JPM|WMT|LLY|ORCL|INTC|MSTR)\b/);
+    const exposure = object(exposureRows[0]);
+    const ticker = typeof exposure?.ticker === "string" ? exposure.ticker : tickerMatch?.[1] ?? "RESEARCH";
+    const issuer = typeof exposure?.issuer === "string" ? exposure.issuer : ticker;
+    const sources = (summary.sources as unknown[]).flatMap(raw => {
+      const source = object(raw);
+      return source && typeof source.url === "string" ? [{ url: source.url }] : [];
+    });
+    const claims = (summary.claims as unknown[]).flatMap(raw => {
+      const claim = object(raw);
+      if (!claim || typeof claim.claim !== "string" || typeof claim.quote !== "string") return [];
+      const url = typeof claim.sourceUrl === "string" ? claim.sourceUrl : "";
+      return [{ text: claim.claim.slice(0, 260), citedUrls: url ? [url] : [] }];
+    });
+    const validUrls = new Set(sources.map(source => source.url));
+    const points = claims.flatMap(point => point.citedUrls.every(url => validUrls.has(url)) ? [point] : []);
+    return [{ ticker, issuer, summary: String(summary.summary).slice(0, 700), stance: "unclear", confidence: 0, confidenceCapped: true, gateReasons: ["Evidence brief; no trading handoff was assessed."], sources: sources.map(source => source.url), evidenceBalance: { supporting: points.slice(0, 3), counter: [] }, market: { perpSymbol: null, spotSymbol: null, lastPrice: null, providerTimestamp: null }, risks: [], nextCheck: null }];
+  })() : [];
   if (!summary || rows.length < 1 || rows.length > 3) return NextResponse.json({ error: "This research run does not contain a shareable result." }, { status: 422 });
 
   const { data: sourceRows, error: sourcesError } = await db.from("research_sources").select("url,title,publisher,published_at,retrieved_at").eq("research_run_id", runId).limit(90);
@@ -72,7 +92,7 @@ export async function POST(request: Request) {
     const stage = object(rawStage);
     if (!stage || typeof stage.title !== "string" || typeof stage.agent !== "string") return [];
     return [{ agent: stage.agent.slice(0, 80), status: ["complete", "blocked", "running"].includes(String(stage.status)) ? stage.status : "blocked", title: stage.title.slice(0, 160), at: typeof stage.at === "string" ? stage.at : null, asset: typeof stage.asset === "string" ? stage.asset.slice(0, 12) : null }];
-  }).slice(0, 40) : [];
+  }).slice(0, 40) : evidenceBrief ? [{ agent: "Evidence brief", status: "complete", title: "Source-bounded research saved", at: typeof run.completed_at === "string" ? run.completed_at : null, asset: null }] : [];
   const citedUrlSet = new Set(assets.flatMap(asset => asset.sources));
   const publicSources = sources.filter(source => citedUrlSet.has(source.url));
   const payload = { schemaVersion: 1, question: String(run.question).slice(0, 500), capturedAt: typeof run.completed_at === "string" ? run.completed_at : new Date().toISOString(), assets, sources: publicSources, trace, notice: "Public research replay. Market values are snapshots, AI summaries are interpretations, and this is not investment advice or audited performance." };
