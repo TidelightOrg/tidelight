@@ -54,6 +54,24 @@ test("dynamic stock suggestions localize ticker templates while preserving Engli
   assert.equal(localizeResearchSuggestion("A user-written research question", "zh-CN"), "A user-written research question");
 });
 
+test("Simplified Chinese covers the Judge evaluation path and public evidence disclosures", () => {
+  for (const key of [
+    "AI TRADING DESK · PUBLIC EVALUATION", "Inspect the decision.",
+    "Trace an after-hours market question through its sources, tokenized instrument context, scenarios, and risk gates.",
+    "Risk gate", "Research is reviewable. Actions remain paper-only and user-controlled.",
+    "Start with a question, not a prediction.", "Check the evidence", "Inspect sources, timestamps, claims, and counterpoints.",
+    "Map the market", "Review instrument, quote freshness, and session context.", "Review the gate", "See why a paper action is allowed or blocked.",
+    "PUBLIC RESEARCH", "Five snapshots used source-only fallback when AI synthesis was unavailable. None produced a directional assessment or trade handoff.",
+    "Quotes describe capture-time freshness. These records do not measure token depth, spread, or premium/discount. Published links can be revoked or expire.",
+    "Test the rule on unseen data.", "Review holdout periods, costs, candle fingerprints, drawdown, and trade logs. The report links to the assumptions needed to reproduce a run.",
+    "Recorded positions", "NIGHTWATCH · HISTORICAL PAPER CAPTURES", "Simulated marks captured 12–22 October 2026. This exhibit is not a live account query or audited performance.",
+    "NIGHTWATCH · EMAIL DELIVERY", "Notification received for RNVDUSDT.",
+    "Gmail received the Nightwatch analysis on 24 October 2026 at 09:00 WAT. SPF, DKIM, and DMARC passed. The message records a rejected HOLD because an existing long position was active.",
+    "This verifies email delivery and rendering. It does not independently verify ledger state, an exchange order, or trading performance.",
+    "Historical simulations are not audited results. Research is not investment advice; live execution is not enabled.",
+  ]) assert.equal(typeof translations[key], "string", `Missing Simplified Chinese entry for ${key}`);
+});
+
 test("developer pages expose a language toggle and share the language preference across Tidelight subdomains", async () => {
   const [nav, docs, provider] = await Promise.all([
     readFile(new URL("app/developers/platform-nav.tsx", root), "utf8"),
