@@ -231,24 +231,44 @@ export default function JudgePage() {
     </section>
     <section className="judge-section judge-evidence-score" id="package-install-evidence" aria-labelledby="package-test-title">
       <div className="judge-section-heading">
-        <div><span className="judge-kicker">DEVELOPER ECOSYSTEM · CLEAN INSTALLS</span><h2 id="package-test-title">Packages tested from a consumer install.</h2></div>
-        <p>A fresh clean consumer environment installed the current npm and PyPI releases, then exercised their documented entry points.</p>
+        <div><span className="judge-kicker">DEVELOPER ECOSYSTEM · FRESH BROWSER RECORDING</span><h2 id="package-test-title">npm and Python installs, live.</h2></div>
+        <p>A fresh consumer walkthrough records each registry command, package import, CLI check, and outcome in Chromium.</p>
       </div>
-      <div className="judge-score-grid judge-package-grid">
-        <article><span>REPOSITORY</span><strong>266 passed</strong><small>Root unit tests; typecheck, build, and lint completed.</small></article>
-        <article><span>PUBLIC MIRRORS</span><strong>5 validated</strong><small>SDK, MCP, React, CLI, and Python package paths checked.</small></article>
-        <article><span>FRESH CONSUMER INSTALLS</span><strong>5 packages</strong><small>SDK, MCP, React, CLI, and Python 0.1.2 installs passed; module imports and CLI help were exercised.</small></article>
+      <div className="judge-package-proof-grid">
+        <figure className="judge-package-proof-video">
+          <video controls playsInline preload="metadata" aria-label="Live Chromium recording of Tidelight npm and Python package installs">
+            <source src="/judge-evidence/npm-python-install-walkthrough-fresh-20261024.mp4" type="video/mp4" />
+            Your browser does not support the video element.
+          </video>
+          <figcaption><span>Chromium 156 · 3:58 · H.264 · 960 × 540</span><a href="/judge-evidence/npm-python-install-walkthrough-fresh-20261024.mp4" target="_blank" rel="noreferrer">Open video ↗</a></figcaption>
+        </figure>
+        <aside className="judge-package-proof-results" aria-label="Recorded package results">
+          <div className="judge-package-proof-summary">
+            <span>FRESH CONSUMER RUN · 24 OCT 2026</span>
+            <strong>12 / 12 commands passed</strong>
+            <small>Four npm packages and the Python client installed from their public registries.</small>
+          </div>
+          <ul className="judge-package-proof-list">
+            <li><div><strong>@tidelight/sdk@0.1.2</strong><small>npm install · ESM exports imported</small></div><b className="judge-package-pass">PASS</b></li>
+            <li><div><strong>@tidelight/mcp@0.1.2</strong><small>npm install · MCP module imported</small></div><b className="judge-package-pass">PASS</b></li>
+            <li><div><strong>@tidelight/react@0.1.2</strong><small>npm install · React exports imported</small></div><b className="judge-package-pass">PASS</b></li>
+            <li><div><strong>@tidelight/cli@0.1.2</strong><small>npm install · CLI help · package dry-run</small></div><b className="judge-package-pass">PASS</b></li>
+            <li><div><strong>tidelight==0.1.2</strong><small>Python 3.12 · pip install · Client import</small></div><b className="judge-package-pass">PASS</b></li>
+          </ul>
+          <p className="judge-package-proof-note">The Python release requires Python 3.10 or newer. A separate Python 3.9 probe was rejected by that declared minimum; the recorded Python 3.12.14 install and import passed.</p>
+          <p className="judge-package-proof-note">The fresh npm consumer audit reported zero vulnerabilities. This recording verifies package installs and entry points; it does not make an authenticated API or MCP research request.</p>
+        </aside>
       </div>
-      <p className="judge-section-note">The fresh package-only npm install reported zero vulnerabilities. The separate monorepo install reported four advisories (2 moderate, 1 high, 1 critical). The live terminal session was recorded separately and covers the npm consumer install, package imports, CLI help, PyPI install, and Python Client import.</p>
-      <figure className="judge-test-video-frame judge-install-recording">
-        <iframe src="/judge-evidence/tidelight-npm-python-install-usage-20261024.html" title="Recorded npm and Python package installation and usage checks" loading="lazy" style={{ width: "100%", height: "min(70vh, 720px)", border: 0, borderRadius: "18px", background: "#0d1513" }} />
-        <figcaption><span>Separate recorded package install and usage session · 1280 × 720</span><a href="/judge-evidence/tidelight-npm-python-install-usage-20261024.html" target="_blank" rel="noreferrer">Open recording ↗</a></figcaption>
-      </figure>
       <div className="judge-inline-actions">
-        <a href="/evidence/package-install-verification-20261024.json">Install verification record ↗</a>
-        <a href="https://github.com/TidelightOrg/tidelight/tree/main/packages">Package source in GitHub ↗</a>
-        <a href="https://github.com/TidelightOrg/tidelight/actions">GitHub Actions ↗</a>
+        <a href="/evidence/npm-python-install-walkthrough-fresh-20261024.json">12-step install record ↗</a>
+        <a href="https://raw.githubusercontent.com/TidelightOrg/tidelight/main/public/judge-evidence/npm-python-install-walkthrough-fresh-20261024.mp4">GitHub MP4 ↗</a>
+        <a href="https://github.com/TidelightOrg/tidelight/blob/main/public/evidence/npm-python-install-walkthrough-fresh-20261024.json">GitHub test record ↗</a>
+        <a href="https://github.com/TidelightOrg/tidelight/tree/main/sdk">SDK source ↗</a>
       </div>
+      <details className="judge-package-proof-prior">
+        <summary>Additional repository verification</summary>
+        <p>A separate repository run recorded 266 passing tests, a successful typecheck and production build, and four root dependency advisories (2 moderate, 1 high, 1 critical). See the <a href="/evidence/package-install-verification-20261024.json">repository verification record</a> for its full scope.</p>
+      </details>
     </section>
     <footer className="judge-footer">
       <p>Historical simulations are not audited results. Research is not investment advice; live execution is not enabled.</p>
