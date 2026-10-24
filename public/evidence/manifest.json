@@ -54,6 +54,10 @@
       {
         "path": "/evidence",
         "purpose": "Public index of evidence, reproducibility requirements, and boundaries."
+      },
+      {
+        "path": "/judge#codex-mcp-evidence",
+        "purpose": "Codex Tidelight MCP setup state, requested scope, and test boundary"
       }
     ],
     "source_repository": "https://github.com/TidelightOrg/tidelight",
@@ -211,6 +215,14 @@
       "summary_uri": "https://tidelight.app/evidence/nightwatch-email-delivery.json",
       "screenshot_uri": "https://tidelight.app/judge-evidence/nightwatch-rnvdusdt-email.jpeg",
       "claim": "A matching Gmail message from Tidelight Nightwatch was received on 24 Oct 2026 at 09:00 WAT. Gmail reported SPF, DKIM, and DMARC pass. The message shows a HOLD rejection for RNVDUSDT because an existing long position was active. This verifies message delivery and rendering only; it does not independently establish account ledger state or performance."
+    },
+    {
+      "id": "codex-tidelight-mcp-setup",
+      "kind": "mcp_interoperability",
+      "status": "registered_auth_pending",
+      "uri": "https://tidelight.app/judge#codex-mcp-evidence",
+      "summary_uri": "https://tidelight.app/evidence/tidelight-codex-mcp.json",
+      "claim": "Codex plugin registration and the public OAuth resource metadata were observed. OAuth requested market:read; consent was not approved and no authenticated MCP tool call was made."
     }
   ],
   "owner_published_research": {
