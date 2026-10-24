@@ -76,7 +76,7 @@ test("explicit historical issuer questions can retrieve dated event coverage out
   } finally { globalThis.fetch = previousFetch; }
 });
 
-test("historical issuer research follows public-feed redirects only to the issuer domain and reads a bounded release excerpt", async () => {
+test("historical issuer research resolves public-feed canonical links only to the issuer domain and reads a bounded release excerpt", async () => {
   const now = Date.now();
   const previousFetch = globalThis.fetch;
   const historicalDate = new Date(now - 120 * 86_400_000).toUTCString();
@@ -91,7 +91,7 @@ test("historical issuer research follows public-feed redirects only to the issue
         : "";
       return new Response(`<rss><channel>${item}</channel></rss>`, { status: 200, headers: { "content-type": "application/rss+xml" } });
     }
-    if (url.hostname === "news.google.com") return new Response(null, { status: 302, headers: { location: officialUrl } });
+    if (url.hostname === "news.google.com") return new Response(`<html><head><link rel="canonical" href="${officialUrl}"></head></html>`, { status: 200, headers: { "content-type": "text/html" } });
     if (url.hostname === "nvidianews.nvidia.com") return new Response(html, { status: 200, headers: { "content-type": "text/html" } });
     throw new Error("Unexpected external host");
   };

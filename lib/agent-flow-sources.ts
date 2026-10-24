@@ -13,10 +13,31 @@ function field(xml: string, tag: string) {
   return decode(new RegExp(`<${tag}(?:\\s[^>]*)?>([\\s\\S]*?)</${tag}>`, "i").exec(xml)?.[1] ?? "");
 }
 
+async function readTextBounded(response: Response, maxBytes: number) {
+  const reader = response.body?.getReader();
+  if (!reader) return "";
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      total += value.byteLength;
+      if (total > maxBytes) { await reader.cancel(); return null; }
+      chunks.push(value);
+    }
+  } finally { reader.releaseLock(); }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) { bytes.set(chunk, offset); offset += chunk.byteLength; }
+  return new TextDecoder().decode(bytes);
+}
+
 async function rss(url: URL): Promise<FlowEvidence[]> {
   const response = await fetch(url, { headers: { Accept: "application/rss+xml, application/xml, text/xml", "User-Agent": "Tidelight Research/1.0" }, signal: AbortSignal.timeout(12_000), cache: "no-store" });
   if (!response.ok) throw new Error(`http-${response.status}`);
-  const xml = await response.text();
+  const xml = await readTextBounded(response, 750_000);
+  if (!xml) throw new Error("feed-too-large");
   return [...xml.matchAll(/<item>([\s\S]*?)<\/item>/gi)].slice(0, 30).flatMap(match => {
     const item = match[1], title = field(item, "title"), link = field(item, "link");
     if (!title || !link.startsWith("https://")) return [];
@@ -86,6 +107,18 @@ function readableArticleText(html: string) {
   return decode(description).slice(0, 3_500);
 }
 
+function officialUrlFromRedirectPage(html: string, allowedHosts: string[]) {
+  const normalized = html.replace(/\\\//g, "/").replace(/\\u0026/gi, "&").replace(/&amp;/gi, "&");
+  const urls = normalized.match(/https:\/\/[^\s"'<>\\]+/gi) ?? [];
+  for (const raw of urls) {
+    try {
+      const candidate = new URL(raw.replace(/[),.;]+$/, ""));
+      if (allowedHosts.some(host => isHostOrSubdomain(candidate.hostname, host))) return candidate;
+    } catch { /* Ignore malformed URLs embedded in a search redirect page. */ }
+  }
+  return null;
+}
+
 async function readPrimaryIssuerArticle(ticker: string, item: FlowEvidence): Promise<FlowEvidence> {
   const allowedHosts = primaryIssuerHosts[ticker] ?? [];
   let current: URL;
@@ -102,8 +135,16 @@ async function readPrimaryIssuerArticle(ticker: string, item: FlowEvidence): Pro
         current = next;
         continue;
       }
-      if (!response.ok || !allowedHosts.some(host => isHostOrSubdomain(current.hostname, host))) return item;
-      const html = await response.text();
+      const html = await readTextBounded(response, 2_000_000);
+      if (!html) return item;
+      if (!response.ok) return item;
+      if (!allowedHosts.some(host => isHostOrSubdomain(current.hostname, host))) {
+        if (!newsRedirectHosts.has(current.hostname)) return item;
+        const official = officialUrlFromRedirectPage(html, allowedHosts);
+        if (!official) return item;
+        current = official;
+        continue;
+      }
       const snippet = readableArticleText(html);
       return snippet.length >= 120 ? { ...item, url: current.toString(), snippet, via: "Issuer primary source" } : item;
     }
