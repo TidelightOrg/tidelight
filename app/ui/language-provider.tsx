@@ -11,13 +11,17 @@ const messages = zhCN as Record<string, string>;
 const watchedAttributes = ["aria-label", "aria-description", "placeholder", "title", "alt", "data-tooltip", "value"];
 
 function readLanguage(): Language {
+  const cookieLanguage = document.cookie.split(";").some((part) => part.trim() === `${STORAGE_KEY}=zh-CN`)
+    ? "zh-CN"
+    : document.cookie.split(";").some((part) => part.trim() === `${STORAGE_KEY}=en`) ? "en" : null;
+  if (cookieLanguage) return cookieLanguage;
   try {
     const stored = window.localStorage.getItem(STORAGE_KEY);
     if (stored === "zh-CN" || stored === "en") return stored;
   } catch {
-    // The cookie remains a fallback when storage is disabled by the browser.
+    // Use the server-provided initial language when browser storage is unavailable.
   }
-  return document.cookie.split(";").some((part) => part.trim() === `${STORAGE_KEY}=zh-CN`) ? "zh-CN" : "en";
+  return "en";
 }
 
 function subscribe(callback: () => void) {
@@ -54,7 +58,9 @@ export function LanguageProvider({ children, initialLanguage }: { children: Reac
 
   const setLanguage = useCallback((next: Language) => {
     try { window.localStorage.setItem(STORAGE_KEY, next); } catch { /* Cookie still persists the selection for this browser. */ }
-    document.cookie = `${STORAGE_KEY}=${next}; path=/; max-age=31536000; samesite=lax`;
+    const hostname = window.location.hostname.toLowerCase();
+    const sharedDomain = hostname === "tidelight.app" || hostname.endsWith(".tidelight.app") ? "; domain=.tidelight.app" : "";
+    document.cookie = `${STORAGE_KEY}=${next}; path=/; max-age=31536000; samesite=lax${sharedDomain}`;
     window.dispatchEvent(new Event("tidelight:language-change"));
   }, []);
 

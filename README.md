@@ -121,6 +121,17 @@ See the [sanitized position summary JSON](https://tidelight.app/evidence/nightwa
 
 </details>
 
+<details>
+<summary><strong>Nightwatch email delivery evidence · 24 Oct 2026</strong></summary>
+
+The matching Gmail message arrived at 09:00 WAT from Tidelight Nightwatch. Gmail reported SPF, DKIM, and DMARC passing. It records a rejected HOLD for RNVDUSDT because an existing long position was active. This verifies notification delivery and rendering; it does not independently prove ledger state, an exchange order, or trading performance. The public record excludes the recipient address and Gmail message ID.
+
+<a href="https://tidelight.app/judge#nightwatch-email-delivery"><img src="https://tidelight.app/judge-evidence/nightwatch-rnvdusdt-email.jpeg" width="240" alt="Gmail screenshot of a Tidelight Nightwatch analysis email for RNVDUSDT" /></a>
+
+Open the [delivery metadata](https://tidelight.app/evidence/nightwatch-email-delivery.json), [full Gmail screenshot](https://tidelight.app/judge-evidence/nightwatch-rnvdusdt-email.jpeg), or [Judge Mode evidence card](https://tidelight.app/judge#nightwatch-email-delivery).
+
+</details>
+
 ## Research data and trading artifacts
 
 <details>

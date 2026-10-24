@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ThemeQuickSwitch } from "@/app/ui/theme-provider";
+import { LanguageToggle } from "@/app/ui/language-provider";
 import { EcosystemSwitcher } from "./ecosystem-switcher";
 
 type PlatformNavProps = {
@@ -97,6 +98,7 @@ export function PlatformNav({ active = "platform", ecosystem, packageHome = fals
       <ThemeQuickSwitch />
       <Link href={consoleHref} className="tic-button tic-nav-cta">{currentSystem === "packages" ? "Open dashboard" : "Open console"} <span aria-hidden="true">↗</span></Link>
     </div>
+    <LanguageToggle className="tic-language-toggle" />
     {active !== "support" ? <Link
       href={consoleHref}
       className="tic-mobile-quick-cta"
@@ -153,8 +155,8 @@ export function PlatformNav({ active = "platform", ecosystem, packageHome = fals
           </Link>)}
         </div>
         <div className="tic-mobile-menu-preferences">
-          <span>Appearance</span>
-          <ThemeQuickSwitch />
+          <div><span>Appearance</span><ThemeQuickSwitch /></div>
+          <div><span>Language</span><LanguageToggle className="tic-language-toggle" /></div>
         </div>
         <Link href={consoleHref} className="tic-button tic-primary tic-mobile-menu-cta" onClick={() => setMenuOpen(false)}>{currentSystem === "packages" ? "Open package dashboard" : "Open console"} <span aria-hidden="true">→</span></Link>
         <p className="tic-mobile-menu-foot">Source-aware market and research infrastructure.</p>

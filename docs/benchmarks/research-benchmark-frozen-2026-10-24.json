@@ -1,0 +1,306 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "name": "Tidelight frozen real-event research set",
+    "setVersion": "2026-10-24-v1",
+    "promptVersion": "baseline-current-production-unrecorded",
+    "frozenAt": "2026-10-24T07:35:03Z",
+    "capturedAt": "2026-10-24T07:35:03Z",
+    "cutoffDate": "2026-10-24",
+    "reviewProtocol": "docs/RESEARCH_EVALUATION_PROTOCOL.md",
+    "status": "SOURCE_SET_FROZEN_OUTPUTS_AND_HUMAN_REVIEW_PENDING",
+    "notes": "Event IDs, event dates, neutral evaluation questions, sources and human-authored reference notes are frozen before any research prompt change. Tidelight runs have not been captured. No claims, reviewer labels, adjudications, task times or scores are supplied. Source capture timestamps are the browser research capture time; publicationAt is null where the publisher exposed only a date. Independent reporting was included where located. The captured snippets are short factual excerpts, not complete articles. The report must retain source distinctions and limitations."
+  },
+  "events": [
+    {
+      "id": "nvda-fy26-q4-2026-02-25",
+      "category": "issuer_earnings_semiconductors",
+      "eventDate": "2026-02-25",
+      "question": "Summarize NVIDIA's FY2026 fourth-quarter results using the captured sources. Separate reported results from management interpretation and explain what remains uncertain; do not infer a trading direction.",
+      "askedAt": null,
+      "taskTimeSeconds": null,
+      "referenceNote": "NVIDIA reported FY2026 Q4 revenue of $68.1 billion, up 73% year over year, and Data Center revenue of $62.3 billion. These are company-reported results; the release does not establish future demand or investment returns.",
+      "sources": [
+        {
+          "url": "https://nvidianews.nvidia.com/news/nvidia-announces-financial-results-for-fourth-quarter-and-fiscal-2026",
+          "sourceClass": "primary",
+          "publicationAt": null,
+          "publishedDate": "2026-02-25",
+          "capturedAt": "2026-10-24T07:35:03Z",
+          "accessible": true,
+          "capturedText": "NVIDIA today reported record revenue for the fourth quarter ended January 25, 2026, of $68.1 billion, up 20% from the previous quarter and up 73% from a year ago."
+        },
+        {
+          "url": "https://www.reuters.com/business/us-stock-futures-inch-up-ahead-nvidia-earnings-ai-jitters-ease-2026-02-25/",
+          "sourceClass": "independent_reporting",
+          "publicationAt": null,
+          "publishedDate": "2026-02-25",
+          "capturedAt": "2026-10-24T07:35:03Z",
+          "accessible": true,
+          "capturedText": "Nvidia reported fourth-quarter revenue of $68.13 billion, beating analyst estimates. Its shares were up about 3% in extended trading."
+        }
+      ]
+    },
+    {
+      "id": "aapl-fy26-q1-2026-01-29",
+      "category": "issuer_earnings_consumer_technology",
+      "eventDate": "2026-01-29",
+      "question": "Summarize Apple's fiscal 2026 first-quarter results from these sources. Distinguish company-reported figures from reported context and avoid treating one quarter as a forecast.",
+      "askedAt": null,
+      "taskTimeSeconds": null,
+      "referenceNote": "Apple reported fiscal Q1 revenue of $143.8 billion, up 16% year over year, and diluted EPS of $2.84, up 19%. The comparison is year over year; the reported figures alone do not predict subsequent results.",
+      "sources": [
+        {
+          "url": "https://www.apple.com/newsroom/2026/01/apple-reports-first-quarter-results/",
+          "sourceClass": "primary",
+          "publicationAt": null,
+          "publishedDate": "2026-01-29",
+          "capturedAt": "2026-10-24T07:35:03Z",
+          "accessible": true,
+          "capturedText": "The Company posted quarterly revenue of $143.8 billion, up 16 percent year over year. Diluted earnings per share was $2.84, up 19 percent year over year."
+        },
+        {
+          "url": "https://www.macrumors.com/2026/01/29/APPLE-1Q-2026-EARNINGS/",
+          "sourceClass": "known_publisher",
+          "publicationAt": null,
+          "publishedDate": "2026-01-29",
+          "capturedAt": "2026-10-24T07:35:03Z",
+          "accessible": true,
+          "capturedText": "For the quarter, Apple posted revenue of $143.8 billion and net quarterly profit of $42.1 billion, or $2.84 per diluted share."
+        }
+      ]
+    },
+    {
+      "id": "msft-fy26-q2-2026-01-28",
+      "category": "issuer_earnings_cloud_software",
+      "eventDate": "2026-01-28",
+      "question": "Summarize Microsoft's FY2026 second-quarter results using the captured sources. Separate reported financial results, cloud growth and market interpretation; identify limits and do not infer a trading direction.",
+      "askedAt": null,
+      "taskTimeSeconds": null,
+      "referenceNote": "Microsoft reported $81.3 billion revenue, up 17% year over year; Microsoft Cloud revenue was $51.5 billion, up 26%, and Azure plus other cloud services revenue rose 39%. The growth rates describe the quarter, not future performance.",
+      "sources": [
+        {
+          "url": "https://www.microsoft.com/en-us/investor/earnings/fy-2026-q2/press-release-webcast",
+          "sourceClass": "primary",
+          "publicationAt": null,
+          "publishedDate": "2026-01-28",
+          "capturedAt": "2026-10-24T07:35:03Z",
+          "accessible": true,
+          "capturedText": "Revenue was $81.3 billion and increased 17% (up 15% in constant currency)."
+        },
+        {
+          "url": "https://www.reuters.com/business/retail-consumer/microsoft-edges-past-cloud-growth-expectations-2026-01-28/",
+          "sourceClass": "independent_reporting",
+          "publicationAt": null,
+          "publishedDate": "2026-01-28",
+          "capturedAt": "2026-10-24T07:35:03Z",
+          "accessible": true,
+          "capturedText": "Total revenue rose 17% to $81.3 billion in the second quarter, while analysts expected $80.27 billion, based on estimates compiled by LSEG."
+        }
+      ]
+    },
+    {
+      "id": "amzn-fy25-q4-2026-02-05",
+      "category": "issuer_earnings_cloud_retail",
+      "eventDate": "2026-02-05",
+      "question": "Summarize Amazon's fourth-quarter results and 2026 capital-spending plan using the captured sources. Distinguish reported performance from forward-looking management expectations and market reaction.",
+      "askedAt": null,
+      "taskTimeSeconds": null,
+      "referenceNote": "Amazon reported Q4 net sales of $213.4 billion, up 14%, AWS sales of $35.6 billion, up 24%, and projected about $200 billion of 2026 capex. Reuters reported an 11.5% after-hours share decline. The capex figure is forward-looking company guidance.",
+      "sources": [
+        {
+          "url": "https://ir.aboutamazon.com/news-release/news-release-details/2026/Amazon-com-Announces-Fourth-Quarter-Results/",
+          "sourceClass": "primary",
+          "publicationAt": null,
+          "publishedDate": "2026-02-05",
+          "capturedAt": "2026-10-24T07:35:03Z",
+          "accessible": true,
+          "capturedText": "AWS segment sales increased 24% year-over-year to $35.6 billion."
+        },
+        {
+          "url": "https://www.reuters.com/business/retail-consumer/amazon-projects-200-billion-capital-spending-this-year-2026-02-05/",
+          "sourceClass": "independent_reporting",
+          "publicationAt": "2026-02-05T21:05:00Z",
+          "publishedDate": "2026-02-05",
+          "capturedAt": "2026-10-24T07:35:03Z",
+          "accessible": true,
+          "capturedText": "Amazon projected a surge of more than 50% in capital expenditures this year, joining its peers in a spending spree to build out artificial-intelligence infrastructure, and sending its shares down 11.5% in after-hours trading."
+        }
+      ]
+    },
+    {
+      "id": "tsla-fy25-q4-2026-01-28",
+      "category": "issuer_earnings_automotive_energy",
+      "eventDate": "2026-01-28",
+      "question": "Summarize Tesla's FY2025 and fourth-quarter results using the SEC exhibit and independent report. Keep company metrics, analyst comparisons and management plans distinct; do not infer future vehicle demand.",
+      "askedAt": null,
+      "taskTimeSeconds": null,
+      "referenceNote": "Tesla's SEC exhibit reports 2025 revenue of $94.827 billion, down 3%, and Q4 revenue of $24.901 billion, down 3% year over year. The exhibit also shows Q4 deliveries down 16%. Reuters reported adjusted Q4 EPS of $0.50 and GAAP net income down 61% to $840 million. These metrics use different accounting bases.",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1318605/000162828026003837/exhibit991.htm",
+          "sourceClass": "primary",
+          "publicationAt": null,
+          "publishedDate": "2026-01-28",
+          "capturedAt": "2026-10-24T07:35:03Z",
+          "accessible": true,
+          "capturedText": "Total revenues 25,707 19,335 22,496 28,095 24,901 -3%"
+        },
+        {
+          "url": "https://www.reuters.com/business/autos-transportation/tesla-revenue-beats-estimates-despite-weaker-vehicle-deliveries-2026-01-28/",
+          "sourceClass": "independent_reporting",
+          "publicationAt": null,
+          "publishedDate": "2026-01-28",
+          "capturedAt": "2026-10-24T07:35:03Z",
+          "accessible": true,
+          "capturedText": "Adjusted earnings per share of 50 cents in the fourth quarter topped Wall Street targets of 45 cents, according to LSEG data. Net income fell 61% to $840 million in the quarter."
+        }
+      ]
+    },
+    {
+      "id": "googl-fy25-q4-2026-02-04",
+      "category": "issuer_earnings_cloud_advertising",
+      "eventDate": "2026-02-04",
+      "question": "Summarize Alphabet's Q4 2025 results and 2026 capital-spending outlook using the captured sources. Separate reported outcomes from guidance and investor interpretation; do not infer future returns.",
+      "askedAt": null,
+      "taskTimeSeconds": null,
+      "referenceNote": "Alphabet reported Q4 revenue of $113.8 billion, up 18%, while its outlook anticipated $175–185 billion of 2026 capex. Reuters noted cloud growth and a mixed share-price reaction. The spending range is guidance, not realized spend.",
+      "sources": [
+        {
+          "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000012/googexhibit991q42025.htm",
+          "sourceClass": "primary",
+          "publicationAt": null,
+          "publishedDate": "2026-02-04",
+          "capturedAt": "2026-10-24T07:35:03Z",
+          "accessible": true,
+          "capturedText": "Consolidated Alphabet revenues increased 18%, or 17% in constant currency, to $113.8 billion."
+        },
+        {
+          "url": "https://www.reuters.com/business/google-parent-alphabet-forecasts-sharp-surge-2026-capital-spending-2026-02-04/",
+          "sourceClass": "independent_reporting",
+          "publicationAt": "2026-02-04T21:06:15Z",
+          "publishedDate": "2026-02-04",
+          "capturedAt": "2026-10-24T07:35:03Z",
+          "accessible": true,
+          "capturedText": "Alphabet executives said that investments in AI computing power capacity were central to the company's plans to target capital expenditure of $175 billion to $185 billion this year."
+        }
+      ]
+    },
+    {
+      "id": "fed-fomc-2026-09-16",
+      "category": "macro_monetary_policy",
+      "eventDate": "2026-09-16",
+      "question": "Explain the September 16, 2026 FOMC decision and the evidence relevant to its stated rationale. Distinguish the official decision from reporting and market interpretation; do not predict the next policy move.",
+      "askedAt": null,
+      "taskTimeSeconds": null,
+      "referenceNote": "The FOMC unanimously raised the federal funds target range by 25 basis points to 3.75%–4.00%, citing elevated inflation and a timelier return to its 2% goal. Reuters described projections for additional tightening; projections are not a commitment to a specific path.",
+      "sources": [
+        {
+          "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260916a.htm",
+          "sourceClass": "primary",
+          "publicationAt": "2026-09-16T18:00:00Z",
+          "publishedDate": "2026-09-16",
+          "capturedAt": "2026-10-24T07:35:03Z",
+          "accessible": true,
+          "capturedText": "The Committee decided to raise the target range for the federal funds rate by 1/4 percentage point to 3-3/4 to 4 percent."
+        },
+        {
+          "url": "https://www.reuters.com/business/warshs-words-may-matter-more-than-anticipated-fed-rate-hike-2026-09-16/",
+          "sourceClass": "independent_reporting",
+          "publicationAt": "2026-09-16T10:01:00Z",
+          "publishedDate": "2026-09-16",
+          "capturedAt": "2026-10-24T07:35:03Z",
+          "accessible": true,
+          "capturedText": "The Federal Reserve raised interest rates on Wednesday and flagged more hikes in the coming months."
+        }
+      ]
+    },
+    {
+      "id": "us-cpi-2026-08-release-2026-09-11",
+      "category": "macro_inflation",
+      "eventDate": "2026-09-11",
+      "question": "Summarize the August 2026 U.S. CPI release and contemporary market interpretation using the captured sources. Keep the measured data separate from policy expectations and market reaction.",
+      "askedAt": null,
+      "taskTimeSeconds": null,
+      "referenceNote": "BLS reported August CPI up 0.4% seasonally adjusted monthly and 3.4% over 12 months; core CPI rose 0.3% monthly and 2.4% annually. Reuters noted the headline broadly matched forecasts while core monthly inflation exceeded expectations; market reaction followed the release.",
+      "sources": [
+        {
+          "url": "https://www.bls.gov/news.release/archives/cpi_09112026.htm",
+          "sourceClass": "primary",
+          "publicationAt": "2026-09-11T12:30:00Z",
+          "publishedDate": "2026-09-11",
+          "capturedAt": "2026-10-24T07:35:03Z",
+          "accessible": true,
+          "capturedText": "The Consumer Price Index for All Urban Consumers (CPI-U) increased 0.4 percent on a seasonally adjusted basis in August after rising 0.1 percent in July."
+        },
+        {
+          "url": "https://ca.marketscreener.com/news/august-core-inflation-reading-boosts-rate-hike-expectations-ce785bdfdc8af027",
+          "sourceClass": "independent_reporting",
+          "publicationAt": "2026-09-11T12:58:00Z",
+          "publishedDate": "2026-09-11",
+          "capturedAt": "2026-10-24T07:35:03Z",
+          "accessible": true,
+          "capturedText": "Excluding the volatile food and energy components, the CPI rose 0.3% last month, compared with an expected 0.2% increase."
+        }
+      ]
+    },
+    {
+      "id": "us-employment-2026-09-release-2026-10-02",
+      "category": "macro_labor_market",
+      "eventDate": "2026-10-02",
+      "question": "Summarize the September 2026 U.S. employment release and the reported market interpretation. Distinguish the official estimates, prior-month revisions and economic commentary; do not infer a Fed decision.",
+      "askedAt": null,
+      "taskTimeSeconds": null,
+      "referenceNote": "BLS reported payroll employment +29,000 and unemployment at 4.2%, with little change, and revised July and August down by 60,000 combined. Reuters reported payroll growth below consensus and noted seasonal adjustment as a possible factor. The data are preliminary and subject to revisions.",
+      "sources": [
+        {
+          "url": "https://www.bls.gov/news.release/empsit.htm",
+          "sourceClass": "primary",
+          "publicationAt": "2026-10-02T12:30:00Z",
+          "publishedDate": "2026-10-02",
+          "capturedAt": "2026-10-24T07:35:03Z",
+          "accessible": true,
+          "capturedText": "Both nonfarm payroll employment (+29,000) and the unemployment rate (4.2 percent) changed little in September."
+        },
+        {
+          "url": "https://www.reuters.com/business/view-soft-september-jobs-report-sends-markets-higher-2026-10-02/",
+          "sourceClass": "independent_reporting",
+          "publicationAt": "2026-10-02T12:45:44Z",
+          "publishedDate": "2026-10-02",
+          "capturedAt": "2026-10-24T07:35:03Z",
+          "accessible": true,
+          "capturedText": "Economists polled by Reuters had forecast payrolls advancing 90,000 after a previously reported 162,000 surge in August."
+        }
+      ]
+    },
+    {
+      "id": "us-cpi-2026-09-release-2026-10-14",
+      "category": "macro_inflation",
+      "eventDate": "2026-10-14",
+      "question": "Summarize the September 2026 U.S. CPI release and its reported market context. Separate official CPI measures, independent reporting and analyst interpretation; do not forecast the next Fed decision.",
+      "askedAt": null,
+      "taskTimeSeconds": null,
+      "referenceNote": "BLS reported CPI up 0.6% seasonally adjusted monthly and 3.7% annually, with core CPI up 0.3% monthly and 2.6% annually; gasoline rose 9.1% and accounted for over half the monthly increase. Reuters reported the reading in line with monthly headline expectations and a closer perceived Fed decision. Market expectations are not policy outcomes.",
+      "sources": [
+        {
+          "url": "https://www.bls.gov/news.release/archives/cpi_10142026.htm",
+          "sourceClass": "primary",
+          "publicationAt": "2026-10-14T12:30:00Z",
+          "publishedDate": "2026-10-14",
+          "capturedAt": "2026-10-24T07:35:03Z",
+          "accessible": true,
+          "capturedText": "The Consumer Price Index for All Urban Consumers (CPI-U) increased 0.6 percent on a seasonally adjusted basis in September after rising 0.4 percent in August."
+        },
+        {
+          "url": "https://www.reuters.com/world/us/us-consumer-prices-accelerate-september-costlier-gasoline-core-cpi-firmer-2026-10-14/",
+          "sourceClass": "independent_reporting",
+          "publicationAt": "2026-10-14T12:40:00Z",
+          "publishedDate": "2026-10-14",
+          "capturedAt": "2026-10-24T07:35:03Z",
+          "accessible": true,
+          "capturedText": "The CPI rose 0.6% last month after climbing 0.4% in August, the Labor Department's Bureau of Labor Statistics said, in line with economists' expectations."
+        }
+      ]
+    }
+  ]
+}

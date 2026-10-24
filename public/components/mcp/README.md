@@ -3,6 +3,7 @@
   <h1>Tidelight Intelligence Cloud MCP</h1>
   <p><strong>Scoped research and market tools over the Model Context Protocol.</strong></p>
   <p><a href="https://tidelight.app">Product</a> · <a href="https://dev.tidelight.app#mcp">Connection guide</a> · <a href="https://github.com/TidelightOrg/tidelight">Mother repository</a></p>
+  <p><a href="README.zh-CN.md">简体中文版本 / Chinese README</a></p>
 </div>
 
 ---

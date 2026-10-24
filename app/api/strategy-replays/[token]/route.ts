@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getServerAuthState } from "@/lib/supabase/auth-user";
 
 export const dynamic = "force-dynamic";
 type Context = { params: Promise<{ token: string }> };
@@ -19,8 +20,9 @@ export async function GET(request: Request, { params }: Context) {
 export async function DELETE(_request: Request, { params }: Context) {
   const { token } = await params;
   if (!uuid.test(token)) return NextResponse.json({ error: "Replay not found." }, { status: 404 });
-  const db = await createClient();
-  const { data: { user } } = await db.auth.getUser();
+  const auth = await getServerAuthState();
+  if (auth.errorCode) return NextResponse.json({ error: "Tidelight could not verify your sign-in just now. Please retry shortly." }, { status: 503 });
+  const { user } = auth;
   if (!user) return NextResponse.json({ error: "Sign in to revoke this strategy replay." }, { status: 401 });
   const admin = createAdminClient();
   const { data, error } = await admin.from("public_strategy_replays").update({ revoked_at: new Date().toISOString() }).eq("public_id", token).eq("user_id", user.id).is("revoked_at", null).select("public_id").maybeSingle();

@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { createEvidenceBrief } from "@/app/actions";
 import { useExperience } from "@/app/ui/theme-provider";
-import { getSourceStarters } from "@/lib/source-starters";
+import { getResearchSourceStarters } from "@/lib/source-starters";
 import TidelightAnimatedMark from "@/app/ui/tidelight-animated-mark";
 
 type ResearchBrief = {
@@ -41,7 +41,7 @@ export default function ResearchWorkspace({ qwenAvailable, initialQuestion = "" 
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const closeButtonRef = useRef<HTMLButtonElement>(null);
-  const sourceStarters = getSourceStarters(company);
+  const sourceStarters = getResearchSourceStarters(briefQuestion || question, company);
 
   useEffect(() => {
     if (!briefQuestion) return;
@@ -85,15 +85,16 @@ export default function ResearchWorkspace({ qwenAvailable, initialQuestion = "" 
       <section className={`hero-card${mode === "mini" ? " mini-research-hero" : ""}`} id="research" aria-labelledby="research-title">
         <div className="hero-glow" /><div className="hero-grid" />
         <div className="hero-content">
-          <div className="hero-kicker"><span className="sparkle"><TidelightAnimatedMark /></span> {mode === "mini" ? "A SIMPLE, SOURCE-BASED ANSWER" : "YOUR AFTER-HOURS RESEARCH DESK"} <span className="demo-pill">{mode === "mini" ? "MINI" : "CONCEPT DEMO"}</span></div>
+          <div className="hero-kicker"><span className="sparkle"><TidelightAnimatedMark /></span> {mode === "mini" ? "A SIMPLE, SOURCE-BASED ANSWER" : "YOUR AFTER-HOURS RESEARCH DESK"} <span className="demo-pill">{mode === "mini" ? "MINI" : "SOURCE-BOUNDED"}</span></div>
           <h2 id="research-title">{mode === "mini" ? <>Understand the story<br /><em>around one company.</em></> : <>Follow the story<br /><em>before the bell.</em></>}</h2>
-          <p className="hero-description">{mode === "mini" ? "Choose a company, ask a question, and add a public source link. We’ll read it and show what supports the answer." : "Ask about an event, a company, or a shift in the market. Get a clear read with sources, scenarios, and what to watch next."}</p>
+          <p className="hero-description">{mode === "mini" ? "Choose a company, ask a question, and add a public source link. We’ll read it and show what supports the answer." : "Ask about a market event, then add source passages to build a quote-checked brief with counter-evidence and next checks."}</p>
           {mode === "mini" ? <label className="mini-company-select">COMPANY<select aria-label="Choose a company" value={company} onChange={(event) => setCompany(event.target.value)}><option value="NVDA">NVIDIA · NVDA</option><option value="TSLA">Tesla · TSLA</option><option value="MSFT">Microsoft · MSFT</option><option value="AMZN">Amazon · AMZN</option><option value="AAPL">Apple · AAPL</option></select></label> : null}
           <form className="research-form" onSubmit={(event) => { event.preventDefault(); openBrief(); }}>
             <label className="sr-only" htmlFor="research-question">Ask a research question</label>
             <span className="prompt-mark">↳</span><input id="research-question" type="text" maxLength={500} value={question} onChange={(event) => { setQuestion(event.target.value); setError(""); }} placeholder={mode === "mini" ? "What does this news mean for the company?" : "What could this weekend’s chip restrictions mean for NVDA?"} autoComplete="off" />
             <button type="submit" id="analyze-button" disabled={isPending}><span>{isPending ? "Preparing" : "Analyze"}</span><b>↗</b></button>
           </form>
+          {mode !== "mini" ? <Link className="full-research-cta" href="/flow">Open full research with source discovery <span>↗</span></Link> : null}
           {error ? <p className="form-error" role="alert">{error}</p> : null}
           <div className="prompt-examples"><span>{mode === "mini" ? "EXAMPLE:" : "TRY:"}</span>{(mode === "mini" ? ["How could this announcement affect the company?"] : suggestions).map((suggestion, index) => <span className="suggestion-wrap" key={suggestion}><button type="button" onClick={() => { setQuestion(suggestion); openBrief(suggestion); }}>{mode === "mini" ? "Explain a company announcement" : ["Rate cut impact", "NVDA export rules", "Compare event exposure"][index]}</button>{mode !== "mini" && index < suggestions.length - 1 ? <i /> : null}</span>)}</div>
         </div>
@@ -109,7 +110,7 @@ export default function ResearchWorkspace({ qwenAvailable, initialQuestion = "" 
           <div className="brief-meta"><span>AFTER-HOURS EVENT RESEARCH</span><span>·</span><span>{brief ? "QWEN SYNTHESIS" : mode === "mini" ? "PUBLIC SOURCE LINK" : "USER-PROVIDED SOURCE"}</span>{brief?.research_run_id ? <span className="brief-run-id">· RUN {brief.research_run_id.slice(0, 8).toUpperCase()}</span> : null}</div>
           <div className="brief-rule" />
           <p className="brief-intro">{mode === "mini" ? "Add a link to a public company release, SEC filing, or supported publisher. We’ll read the page and check every displayed quote against its text." : "Add source passages to ground the analysis. Tidelight stores them, checks each displayed claim against a matching quote, and links back to the originals. Market prices are shown separately from this source-only brief."}</p>
-          {sourceStarters.length ? <div className="source-starters"><span>PRIMARY SOURCE STARTERS · {company}</span>{sourceStarters.map((starter) => <a key={starter.url} href={starter.url} target="_blank" rel="noreferrer"><small>{starter.kind}</small>{starter.label} ↗</a>)}</div> : null}
+          {sourceStarters.length ? <div className="source-starters"><span>OFFICIAL SOURCE STARTERS</span>{sourceStarters.map((starter) => <a key={starter.url} href={starter.url} target="_blank" rel="noreferrer"><small>{starter.kind}</small>{starter.label} ↗</a>)}</div> : null}
           <div className="source-fields">{sources.map((source, index) => <div className="source-entry" key={index}><div className="source-entry-head"><b>{mode === "mini" ? `Public source ${String(index + 1).padStart(2, "0")}` : `Source ${String(index + 1).padStart(2, "0")}`}</b>{sources.length > 1 ? <button type="button" onClick={() => setSources((current) => current.filter((_, item) => item !== index))}>Remove</button> : null}</div>{mode === "mini" ? <><label>Link to the original<input value={source.url} onChange={(event) => setSources((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, url: event.target.value } : item))} placeholder="https://…" type="url" inputMode="url" required /></label><small className="source-helper">Supported: the selected company’s website, SEC.gov, and selected public publishers. We don’t follow links to other sites.</small></> : <><label>Source title<input value={source.title} maxLength={200} onChange={(event) => setSources((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, title: event.target.value } : item))} placeholder="Official filing, release, or article title" /></label><label>Source link<input value={source.url} onChange={(event) => setSources((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, url: event.target.value } : item))} placeholder="https://…" type="url" inputMode="url" /></label><label>Passage to analyze<textarea value={source.excerpt} maxLength={6000} onChange={(event) => setSources((current) => current.map((item, itemIndex) => itemIndex === index ? { ...item, excerpt: event.target.value } : item))} placeholder="Paste an excerpt from the source (80–6,000 characters)." rows={5} /><span className="source-count">{source.excerpt.length.toLocaleString()} / 6,000</span></label></>}</div>)}{mode === "mini" ? <button type="button" className="add-source-button" onClick={() => setSources((current) => current.length < 3 ? [...current, { title: "", url: "", excerpt: "" }] : current)} disabled={sources.length >= 3}>＋ Add public source <span>{sources.length} / 3</span></button> : <button type="button" className="add-source-button" onClick={() => setSources((current) => current.length < 5 ? [...current, { title: "", url: "", excerpt: "" }] : current)} disabled={sources.length >= 5}>＋ Add another source <span>{sources.length} / 5</span></button>}</div>
           {brief ? <div className="generated-brief">
             {mode !== "mini" ? <div className="decision-spine" aria-label="Tidelight decision workflow"><span>EVENT</span><i>→</i><span>EVIDENCE</span><i>→</i><span>EXPOSURE</span><i>→</i><span>SCENARIO</span><i>→</i><span>DECISION</span></div> : null}

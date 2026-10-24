@@ -451,6 +451,18 @@ transform:translateY(-1px)
 .research-form button b {
   font-size:13px
 }
+.full-research-cta {
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  margin-top:10px;
+  color:var(--mint-2);
+  font-size:9px;
+  font-weight:650;
+  text-decoration:none
+}
+.full-research-cta:hover { color:var(--mint); text-decoration:underline }
+.full-research-cta span { font-size:12px }
 .prompt-examples {
   display:flex;
 align-items:center;

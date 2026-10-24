@@ -3,134 +3,131 @@ import Image from "next/image";
 import TidelightAnimatedMark from "@/app/ui/tidelight-animated-mark";
 import "./judge.css";
 
-const evidence = [
-  { label: "EVENT", title: "After-hours earnings shock", body: "A public company update lands while the US primary market is closed. Tidelight starts with the question, not a prediction." },
-  { label: "EVIDENCE", title: "Claims stay attached to sources", body: "Publisher, timestamp, excerpt, confidence, and counter-evidence remain visible beside the conclusion." },
-  { label: "EXPOSURE", title: "The Bitget Reality market is mapped", body: "The affected rToken, quote freshness, session state, and execution context are shown before a scenario is considered." },
-  { label: "DECISION", title: "Risk gates can say no", body: "The paper plan is only available when evidence, freshness, sizing, exposure, and pause controls agree." },
+const researchReplays = [
+  { id: "c5f5b22e-c995-4a5e-8193-5737c4d413b8", symbol: "rTSLA", focus: "Automotive", question: "Would you review the rTSLA market?", detail: "40 headlines · 30 publishers · quote stale" },
+  { id: "4e86bf9c-7295-4be1-ae52-487341e7f1ca", symbol: "rMSFT", focus: "AI and cloud", question: "How do AI investment and Azure demand change the risk picture?", detail: "40 headlines · 23 publishers · quote fresh at capture" },
+  { id: "5d27e66c-2a87-4450-95d3-5014e1309216", symbol: "rAAPL", focus: "Devices and services", question: "What should a long-term rAAPL review verify?", detail: "40 headlines · 22 publishers · quote stale" },
+  { id: "7ca56a20-c064-4f99-b351-806b2ddd685e", symbol: "rGOOGL", focus: "Regulation and AI search", question: "How should antitrust remedies and AI-search competition be reviewed?", detail: "40 headlines · 17 publishers · quote fresh at capture" },
+  { id: "c67d7b29-85eb-4c27-8a29-2cbe85bd4e91", symbol: "rAMZN", focus: "Cloud and retail", question: "How do AWS investment and retail economics shape the review?", detail: "40 headlines · 21 publishers · no trade handoff" },
+  { id: "c2ffbe89-74a5-4547-bf89-5952e37efeaa", symbol: "rNVDA", focus: "Tokenized market", question: "Is the rNVDA market worth reviewing?", detail: "Issuer coverage · instrument context · stated limits" },
+  { id: "91bb478a-7977-4b34-b32d-b1f558a8af75", symbol: "NVDA + TSLA", focus: "Company comparison", question: "Compare the latest evidence and risks.", detail: "Separate issuer assessments · decision gates" },
 ];
 
-const proof = [
-  ["Source lineage", "Captured source → claim → counterpoint → conclusion"],
-  ["Market context", "Reality instrument, provider timestamp, session and cost context"],
-  ["Decision trace", "Question → evidence → exposure → scenario → risk gate"],
-  ["Safe execution", "Paper-only review with deterministic rejection reasons"],
+const captures = [
+  { symbol: "rNVD", name: "NVIDIA token", date: "22 Oct 2026", dateTime: "2026-10-22", image: "/judge-evidence/nightwatch-rnvd-position.png", alt: "Historical Nightwatch simulated ledger position in rNVD, captured 22 October 2026." },
+  { symbol: "rAAPL", name: "Apple token", date: "14 Oct 2026", dateTime: "2026-10-14", image: "/judge-evidence/nightwatch-raapl-position.png", alt: "Historical Nightwatch simulated ledger position in rAAPL, captured 14 October 2026." },
+  { symbol: "rGOOGL", name: "Alphabet token", date: "12 Oct 2026", dateTime: "2026-10-12", image: "/judge-evidence/nightwatch-rgoogl-position.png", alt: "Historical Nightwatch simulated ledger position in rGOOGL, captured 12 October 2026." },
 ];
 
 export const metadata = {
   title: "Judge Mode · Tidelight",
-  description: "A five-minute, no-login evaluation of Tidelight's evidence-first after-hours research desk.",
+  description: "Evaluate Tidelight's evidence-first market research, strategy testing, and paper risk controls.",
 };
 
 export default function JudgePage() {
   return <main className="judge-page">
     <section className="judge-hero">
-      <div className="judge-hero-top">
-        <span className="judge-brand"><TidelightAnimatedMark /> TIDELIGHT</span>
-        <span className="judge-badge">PUBLIC EVALUATION</span>
-      </div>
+      <header className="judge-hero-top">
+        <Link className="judge-brand" href="/" aria-label="Tidelight home"><TidelightAnimatedMark /> TIDELIGHT</Link>
+        <span className="judge-badge">JUDGE MODE</span>
+      </header>
       <div className="judge-hero-grid">
         <div>
-          
-          <h1>From an overnight event to a decision you can inspect.</h1>
-          <p className="judge-lede">Review an after-hours research path across issuer news, instrument data, exposure, and risk gates. Historical and simulated results are identified where they appear.</p>
+          <span className="judge-kicker">AI TRADING DESK · PUBLIC EVALUATION</span>
+          <h1>Follow the evidence.<br /><em>Inspect the decision.</em></h1>
+          <p className="judge-lede">Trace an after-hours market question through its sources, tokenized instrument context, scenarios, and risk gates.</p>
           <div className="judge-actions">
-            <Link className="judge-primary" href="/flow?demo=1&question=Should%20I%20review%20the%20affected%20rToken%20after%20an%20after-hours%20earnings%20event%3F">Start research <span>↗</span></Link>
-            <Link className="judge-secondary" href="/evidence">Inspect evidence manifest <span>↗</span></Link>
+            <Link className="judge-primary" href="/flow?demo=1&question=Should%20I%20review%20the%20affected%20rToken%20after%20an%20after-hours%20earnings%20event%3F">Start the evaluation <span aria-hidden="true">↗</span></Link>
+            <Link className="judge-secondary" href="/evidence">Evidence and methods <span aria-hidden="true">↗</span></Link>
           </div>
         </div>
-        <aside className="judge-hero-card" aria-label="Judge mode summary">
+        <aside className="judge-hero-card" aria-label="Evaluation path">
           <div className="judge-card-mark"><TidelightAnimatedMark /></div>
-          
-          <strong>Event → Evidence → Exposure → Scenario → Decision</strong>
-          <small>One product trace. Human final say. Paper execution by default.</small>
+          <div className="judge-path"><span>Event</span><i>→</i><span>Evidence</span><i>→</i><span>Exposure</span><i>→</i><span>Risk gate</span></div>
+          <p>Research is reviewable. Actions remain paper-only and user-controlled.</p>
         </aside>
       </div>
+      <div className="judge-trace" aria-label="Evaluation stages">
+        <article><span>01</span><div><b>Frame the event</b><small>Start with a question, not a prediction.</small></div></article>
+        <article><span>02</span><div><b>Check the evidence</b><small>Inspect sources, timestamps, claims, and counterpoints.</small></div></article>
+        <article><span>03</span><div><b>Map the market</b><small>Review instrument, quote freshness, and session context.</small></div></article>
+        <article><span>04</span><div><b>Review the gate</b><small>See why a paper action is allowed or blocked.</small></div></article>
+      </div>
     </section>
 
-    <section className="judge-section">
+    <section className="judge-section" aria-labelledby="research-title">
       <div className="judge-section-heading">
-        
-        <h2>Follow a decision from event to risk gate.</h2>
+        <div><span className="judge-kicker">PUBLIC RESEARCH</span><h2 id="research-title">Published research replays</h2></div>
+        <p>Five snapshots used source-only fallback when AI synthesis was unavailable. None produced a directional assessment or trade handoff.</p>
       </div>
-      <div className="judge-evidence-grid">
-        {evidence.map((item, index) => <article className="judge-evidence-card" key={item.label}>
-          <span className="judge-index">0{index + 1}</span>
-          <span className="judge-kicker">{item.label}</span>
-          <h3>{item.title}</h3>
-          <p>{item.body}</p>
-        </article>)}
+      <div className="judge-replay-grid">
+        {researchReplays.map((replay) => <Link className="judge-replay-card" href={`/replay/${replay.id}`} key={replay.id}>
+          <div className="judge-replay-top"><span>{replay.symbol}</span><small>{replay.focus}</small></div>
+          <h3>{replay.question}</h3>
+          <p>{replay.detail}</p>
+          <b>Open replay <span aria-hidden="true">↗</span></b>
+        </Link>)}
       </div>
-    </section>
-
-    <section className="judge-split">
-      <div>
-        
-        <h2>Proof is part of the interface.</h2>
-        <p>Every important statement has a place in the trace. A missing source, stale quote, contradictory claim, or failed gate is visible rather than silently replaced with confidence.</p>
-        <Link className="judge-inline-link" href="/evidence">Open the public evidence manifest <span>↗</span></Link>
-      </div>
-      <div className="judge-proof-list">
-        {proof.map(([label, text], index) => <div key={label}><span>0{index + 1}</span><div><b>{label}</b><small>{text}</small></div></div>)}
+      <p className="judge-section-note">Quotes describe capture-time freshness. These records do not measure token depth, spread, or premium/discount. Published links can be revoked or expire.</p>
+      <div className="judge-inline-actions">
+        <Link href="/flow">Publish an eligible research run <span aria-hidden="true">↗</span></Link>
+        <Link href="/evidence">Open the evidence manifest <span aria-hidden="true">↗</span></Link>
       </div>
     </section>
 
-    <section className="judge-section judge-lanes">
-      <div className="judge-section-heading">
-        
-        <h2>One evidence standard across the product.</h2>
+    <section className="judge-section judge-strategy" aria-labelledby="strategy-title">
+      <div className="judge-strategy-copy">
+        <span className="judge-kicker">STRATEGY LAB</span>
+        <h2 id="strategy-title">Test the rule on unseen data.</h2>
+        <p>Review holdout periods, costs, candle fingerprints, drawdown, and trade logs. The report links to the assumptions needed to reproduce a run.</p>
+        <Link className="judge-primary" href="/strategies">Open Strategy Lab <span aria-hidden="true">↗</span></Link>
       </div>
-      <div className="judge-lane-grid">
-        <Link href="/strategies"><span>ALPHA FACTORY</span><strong>Challenge the rule.</strong><small>Completed candles, holdout windows, fees, slippage, drawdown and trade logs.</small><em>Open Strategy Lab ↗</em></Link>
-        <Link href="/nightwatch"><span>AGENTIC TRADING</span><strong>Guard the paper action.</strong><small>Freshness, sizing, exposure, pause, duplicate and daily-loss checks remain explicit.</small><em>Open Nightwatch ↗</em></Link>
-      </div>
+      <aside className="judge-strategy-proof">
+        <span>VALIDATION STATUS</span>
+        <strong>Run artifact required</strong>
+        <p>No public strategy replay is linked here. Publish one from a saved run after reviewing its contents.</p>
+      </aside>
     </section>
 
-    <section className="judge-section">
-      <div className="judge-section-heading"><h2>Inspect the artifacts, not just the pitch.</h2></div>
-      <div className="judge-lane-grid">
-        <Link href="/evidence"><span>PUBLIC EVIDENCE</span><strong>Open the evidence manifest.</strong><em>Routes, artifact status, limitations and reproduction requirements ↗</em></Link>
-        <Link href="/replay/4e86bf9c-7295-4be1-ae52-487341e7f1ca"><span>PUBLIC RESEARCH SNAPSHOT</span><strong>Inspect the rMSFT evidence.</strong><em>Sources, instrument context, and risk gates ↗</em></Link>
-        <Link href="/flow"><span>RESEARCH REPLAY</span><strong>Publish a research run.</strong><em>Create a source-linked replay that expires after 30 days ↗</em><small>Sign in and confirm before publishing.</small></Link>
-        <Link href="/strategies"><span>ALPHA FACTORY</span><strong>Export a reproducible strategy run.</strong><em>Authenticated runs include candle fingerprints, costs and holdout data ↗</em></Link>
-        <Link href="/nightwatch"><span>NIGHTWATCH</span><strong>Export private paper evidence.</strong><em>Account-scoped decisions and paper ledger; review privacy before sharing ↗</em></Link>
-        <Link href="/nightwatch/replays"><span>NIGHTWATCH · PUBLIC REPLAYS</span><strong>Inspect paper trade replays.</strong><em>Simulated fill, decision context, costs, and risk notes ↗</em></Link>
-      </div>
-    </section>
-
-    <section className="judge-section judge-published-research" aria-labelledby="published-research-title">
-      <div className="judge-section-heading"><h2 id="published-research-title">Published research replays</h2><p>Seven public snapshots show source coverage, quote freshness, instrument checks, and risk gates. Links expire 30 days after publication and can be revoked.</p></div>
-      <p className="judge-lede">Five of these runs collected 40 issuer headlines per company across 17–30 publishers. AI synthesis was unavailable, so they show a source-only fallback with no directional assessment or trade handoff. Quote freshness is recorded; token depth, spread, and premium/discount were not measured.</p>
-      <div className="judge-lane-grid">
-        <Link href="/replay/c5f5b22e-c995-4a5e-8193-5737c4d413b8"><span>RTSLA · EV / AUTOMOTIVE</span><strong>Would you review the rTSLA market?</strong><small>40 issuer headlines across 30 publishers. The token quote was stale; depth, spread, and premium/discount were not measured.</small><em>Inspect published replay ↗</em></Link>
-        <Link href="/replay/4e86bf9c-7295-4be1-ae52-487341e7f1ca"><span>RMSFT · AI / CLOUD</span><strong>How do AI investment and Azure demand change the risk picture?</strong><small>40 issuer headlines across 23 publishers. The token quote was fresh at capture; market depth, spread, and premium/discount were not measured.</small><em>Inspect published replay ↗</em></Link>
-        <Link href="/replay/5d27e66c-2a87-4450-95d3-5014e1309216"><span>RAAPL · DEVICES / SERVICES</span><strong>What should a long-term rAAPL review verify?</strong><small>40 issuer headlines across 22 publishers. The token quote was stale; the run did not assess rAAPL tradability.</small><em>Inspect published replay ↗</em></Link>
-        <Link href="/replay/7ca56a20-c064-4f99-b351-806b2ddd685e"><span>RGOOGL · REGULATION / AI SEARCH</span><strong>How should antitrust remedies and AI-search competition be reviewed?</strong><small>40 issuer headlines across 17 publishers. The token quote was fresh at capture; liquidity, spread, and premium/discount were not measured.</small><em>Inspect published replay ↗</em></Link>
-        <Link href="/replay/c67d7b29-85eb-4c27-8a29-2cbe85bd4e91"><span>RAMZN · CLOUD / RETAIL</span><strong>How do AWS investment and retail economics shape the review?</strong><small>40 issuer headlines across 21 publishers. The token quote was fresh at capture; no trading handoff was made.</small><em>Inspect published replay ↗</em></Link>
-        <Link href="/replay/c2ffbe89-74a5-4547-bf89-5952e37efeaa"><span>RNVDA · TOKENIZED MARKET</span><strong>Is the rNVDA market worth reviewing?</strong><small>Earlier published run with issuer coverage, instrument context, and stated limitations.</small><em>Inspect published replay ↗</em></Link>
-        <Link href="/replay/91bb478a-7977-4b34-b32d-b1f558a8af75"><span>NVDA + TSLA · COMPARISON</span><strong>Compare the latest evidence and risks.</strong><small>Separate issuer assessments and decision gates.</small><em>Inspect published replay ↗</em></Link>
-      </div>
-    </section>
-
-    <section className="judge-section judge-trade-captures" id="nightwatch-position-captures" aria-labelledby="nightwatch-captures-title">
+    <section className="judge-section judge-nightwatch" aria-labelledby="nightwatch-title">
       <div className="judge-capture-heading">
         <div className="judge-capture-title">
-          <span className="judge-kicker">NIGHTWATCH / LEDGER EXHIBITS</span>
-          <h2 id="nightwatch-captures-title">Historical paper positions</h2>
-          <p>Captured 12–22 October 2026. Values are simulated marks; they do not represent live holdings or audited performance.</p>
+          <span className="judge-kicker">NIGHTWATCH · HISTORICAL PAPER CAPTURES</span>
+          <h2 id="nightwatch-title">Recorded positions</h2>
+          <p>Simulated marks captured 12–22 October 2026. This exhibit is not a live account query or audited performance.</p>
         </div>
-        <Link className="judge-capture-data-link" href="/evidence/nightwatch-position-captures.json">Capture metadata <span aria-hidden="true">↗</span></Link>
+        <Link className="judge-capture-data-link" href="/evidence/nightwatch-position-captures.json">Capture data <span aria-hidden="true">↗</span></Link>
       </div>
       <div className="judge-capture-grid">
-        <figure><a href="/judge-evidence/nightwatch-rnvd-position.png" target="_blank" rel="noreferrer"><Image src="/judge-evidence/nightwatch-rnvd-position.png" width={1200} height={630} alt="Nightwatch simulated ledger position in rNVD, captured 22 October 2026."/></a><figcaption><div className="judge-capture-caption"><strong>rNVD</strong><span>NVIDIA token</span></div><time dateTime="2026-10-22"><small>CAPTURED</small>22 Oct 2026</time></figcaption></figure>
-        <figure><a href="/judge-evidence/nightwatch-raapl-position.png" target="_blank" rel="noreferrer"><Image src="/judge-evidence/nightwatch-raapl-position.png" width={1200} height={630} alt="Nightwatch simulated ledger position in rAAPL, captured 14 October 2026."/></a><figcaption><div className="judge-capture-caption"><strong>rAAPL</strong><span>Apple token</span></div><time dateTime="2026-10-14"><small>CAPTURED</small>14 Oct 2026</time></figcaption></figure>
-        <figure><a href="/judge-evidence/nightwatch-rgoogl-position.png" target="_blank" rel="noreferrer"><Image src="/judge-evidence/nightwatch-rgoogl-position.png" width={1200} height={630} alt="Nightwatch simulated ledger position in rGOOGL, captured 12 October 2026."/></a><figcaption><div className="judge-capture-caption"><strong>rGOOGL</strong><span>Alphabet token</span></div><time dateTime="2026-10-12"><small>CAPTURED</small>12 Oct 2026</time></figcaption></figure>
+        {captures.map((capture) => <figure key={capture.symbol}>
+          <a href={capture.image} target="_blank" rel="noreferrer"><Image src={capture.image} width={1200} height={630} alt={capture.alt} /></a>
+          <figcaption><div className="judge-capture-caption"><strong>{capture.symbol}</strong><span>{capture.name}</span></div><time dateTime={capture.dateTime}>{capture.date}</time></figcaption>
+        </figure>)}
+      </div>
+      <article className="judge-email-proof" id="nightwatch-email-delivery">
+        <div className="judge-email-copy">
+          <span className="judge-kicker">NIGHTWATCH · EMAIL DELIVERY</span>
+          <h3>Notification received for RNVDUSDT.</h3>
+          <p>Gmail received the Nightwatch analysis on 24 October 2026 at 09:00 WAT. SPF, DKIM, and DMARC passed. The message records a rejected HOLD because an existing long position was active.</p>
+          <p className="judge-email-limit">This verifies email delivery and rendering. It does not independently verify ledger state, an exchange order, or trading performance.</p>
+          <div className="judge-inline-actions">
+            <a href="/evidence/nightwatch-email-delivery.json">Delivery record <span aria-hidden="true">↗</span></a>
+            <a href="/judge-evidence/nightwatch-rnvdusdt-email.jpeg" target="_blank" rel="noreferrer">Open Gmail capture <span aria-hidden="true">↗</span></a>
+          </div>
+        </div>
+        <a className="judge-email-shot" href="/judge-evidence/nightwatch-rnvdusdt-email.jpeg" target="_blank" rel="noreferrer" aria-label="Open the full Gmail screenshot for the RNVDUSDT Nightwatch email">
+          <Image src="/judge-evidence/nightwatch-rnvdusdt-email.jpeg" width={598} height={1536} alt="Gmail screenshot of a Tidelight Nightwatch analysis email for RNVDUSDT, received at 9:00 AM. The message says HOLD was rejected because an existing long position was active." />
+        </a>
+      </article>
+      <div className="judge-inline-actions">
+        <Link href="/nightwatch/replays">Browse published paper replays <span aria-hidden="true">↗</span></Link>
+        <Link href="/nightwatch">Open Nightwatch <span aria-hidden="true">↗</span></Link>
       </div>
     </section>
 
-    <section className="judge-final">
-      <div><span className="judge-kicker">REVIEW BOUNDARY</span><h2>Useful evidence is not a promise of profit.</h2><p>This route is a reproducible product evaluation. It does not claim audited alpha, investment advice, live execution, or an invented paper fill. When the real gates do not qualify, Tidelight says so.</p></div>
-      <div className="judge-final-actions"><Link className="judge-primary" href="/flow?demo=1&question=Compare%20the%20latest%20evidence%20for%20NVDA%20and%20TSLA%20and%20show%20the%20risks">Start evaluation <span>↗</span></Link><Link href="/">Return to Tidelight <span>→</span></Link></div>
-    </section>
+    <footer className="judge-footer">
+      <p>Historical simulations are not audited results. Research is not investment advice; live execution is not enabled.</p>
+      <Link href="/evidence">Evidence manifest <span aria-hidden="true">↗</span></Link>
+    </footer>
   </main>;
 }
