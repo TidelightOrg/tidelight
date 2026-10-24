@@ -69,6 +69,12 @@ test("Simplified Chinese covers the Judge evaluation path and public evidence di
     "Gmail received the Nightwatch analysis on 24 October 2026 at 09:00 WAT. SPF, DKIM, and DMARC passed. The message records a rejected HOLD because an existing long position was active.",
     "This verifies email delivery and rendering. It does not independently verify ledger state, an exchange order, or trading performance.",
     "Historical simulations are not audited results. Research is not investment advice; live execution is not enabled.",
+    "JUDGE MODE", "Start the evaluation", "Evidence and methods", "Automotive", "AI and cloud", "Devices and services",
+    "Regulation and AI search", "Cloud and retail", "40 headlines", "30 publishers", "23 publishers", "22 publishers",
+    "17 publishers", "21 publishers", "quote stale", "quote fresh at capture", "no trade handoff", "Open the evidence manifest",
+    "Evidence manifest", "Capture data", "Delivery record", "Open Gmail capture",
+    "Open the full Gmail screenshot for the RNVDUSDT Nightwatch email", "Browse published paper replays", "Download JSON",
+    "PUBLIC REPLAY", "after costs", "Holdout return trailed buy and hold (+2.12%) over 32 days. Historical simulation; costs estimated, no live orders.",
   ]) assert.equal(typeof translations[key], "string", `Missing Simplified Chinese entry for ${key}`);
 });
 
