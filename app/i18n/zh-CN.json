@@ -4767,7 +4767,7 @@
   "In the console, select an active project credential and run the instrument request. The explorer applies that key’s scope and quota, records a real request, and shows the response, request ID, time, and copyable code. Its server retrieves only the stored key hash after verifying your signed in account; the secret is never sent back to the browser.": "在控制台中选择一个有效的项目凭证并运行交易工具请求。API 浏览器会应用该密钥的权限范围和配额，记录真实请求，并显示响应、请求 ID、时间和可复制代码。验证你的登录账户后，服务器只会读取已存储的密钥哈希；密钥本身不会返回浏览器。",
   "Keys need the": "密钥需要包含",
   "Meaning": "含义",
-  "Only": "仅支持",
+  "Only": "仅",
   "Optional US stock ticker filter, applied before pagination.": "可选的美国股票代码筛选条件，在分页前应用。",
   "Organizations &amp; roles": "组织与角色",
   "Organizations and roles": "组织和角色",
@@ -4793,8 +4793,8 @@
   "is supported.": "受支持。",
   "official package directory": "官方软件包目录",
   "scope. This job creates a company snapshot from the Tidelight market adapter and eight bounded news-feed searches across earnings, guidance, regulatory, industry, and supply-chain topics, covering dated headlines from the previous 30 days where available. Results report retrieval time, item count, publisher and domain counts, and provider provenance. Headlines and snippets are discovery references, not full-text research or complete internet coverage; the snapshot is not a valuation, forecast, recommendation, or order instruction.": "权限范围。此任务通过 Tidelight 行情适配器和八次有界新闻源搜索生成公司快照，搜索主题包括业绩、指引、监管、行业和供应链，并在可用时覆盖最近 30 天内发布的新闻标题。结果会报告检索时间、条目数、发布方与域名数量，以及数据提供方来源信息。新闻标题和摘要仅用于发现线索，并非全文研究或完整的互联网覆盖；快照不构成估值、预测、建议或下单指令。",
-  "scoped key with": "带有以下权限范围的密钥：",
-  "to list or create project endpoints. Use": "列出或创建项目端点。使用",
+  "scoped key with": "权限范围的密钥，通过",
+  "to list or create project endpoints. Use": "以列出或创建项目端点。请使用",
   "to read the latest 100 delivery records. The authenticated console offers the same controls.": "读取最近 100 条投递记录。已验证身份的控制台也提供相同管理功能。",
   "to request cancellation. Each project may start 10 jobs per rolling hour; the API enforces each key’s request quotas too. The console’s Research jobs page lists actual jobs across organizations you belong to.": "请求取消任务。每个项目在滚动一小时内最多可启动 10 个任务；API 也会执行每个密钥的请求配额。控制台的“研究任务”页面会列出你所属组织中的实际任务。",
   "to update, rotate, or disable an endpoint, and": "更新、轮换或停用端点；并通过",
@@ -4982,5 +4982,12 @@
   "OFFICIAL PACKAGE / REACT INTEGRATIONS": "官方软件包 / React 集成",
   ". A missing or revoked key returns 401; missing scope returns 403; invalid parameters return 400; quota exhaustion returns 429; unavailable upstream data or unconfirmed provider redistribution terms returns 503 (`provider_unavailable` or `provider_terms_unconfirmed`). Each key starts with 30 requests per rolling minute and 10,000 per calendar month. Requests that pass credential validation count toward usage even if the provider fails.": ". 密钥缺失或已撤销时返回 401；权限范围不足时返回 403；参数无效时返回 400；配额耗尽时返回 429；上游数据不可用或数据再分发条款尚未确认时返回 503（`provider_unavailable` 或 `provider_terms_unconfirmed`）。每个密钥每滚动分钟可请求 30 次，每个自然月可请求 10,000 次。通过凭证验证的请求会计入用量，即使数据提供方发生故障也一样。",
   ". Instrument rows include symbol, type, underlying ticker, issuer name, quote currency, last price, 24 hour change, provider timestamp, market session status, and source. When licensed and enabled, prices are Bitget tokenized equity spot prices; they are not direct US stock quotes. Until redistribution terms are confirmed, this endpoint is fail-closed and returns `provider_terms_unconfirmed`.": ". 品种数据包含交易代码、类型、标的股票代码、发行方名称、报价币种、最新价格、24 小时变化、数据提供方时间戳、市场时段状态和来源。在取得许可并启用后，价格代表 Bitget 代币化股票现货价格，并非美国股票直接报价。再分发条款确认前，此端点会安全关闭并返回 `provider_terms_unconfirmed`。",
-  ", never writes the credential into MCP tool results, and reports connection errors to stderr without including the key.": "，不会将凭证写入 MCP 工具结果；连接错误会报告到 stderr，且不包含密钥。"
+  ", never writes the credential into MCP tool results, and reports connection errors to stderr without including the key.": "，不会将凭证写入 MCP 工具结果；连接错误会报告到 stderr，且不包含密钥。",
+  "and a": "并返回一个",
+  ". Poll": "。请查询",
+  ", and ": "，以及 ",
+  "and request_id": "以及 request_id",
+  "Use an": "请使用具有",
+  " to update, rotate, or disable an endpoint, and ": " 更新、轮换或停用端点，并通过 ",
+  "and delivery history.": "以及投递历史。"
 }
