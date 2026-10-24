@@ -11,7 +11,8 @@ const researchReplays = [
   { id: "c67d7b29-85eb-4c27-8a29-2cbe85bd4e91", symbol: "rAMZN", focus: "Cloud and retail", question: "How do AWS investment and retail economics shape the review?", detail: "40 headlines · 21 publishers · no trade handoff" },
   { id: "c2ffbe89-74a5-4547-bf89-5952e37efeaa", symbol: "rNVDA", focus: "Tokenized market", question: "Is the rNVDA market worth reviewing?", detail: "Issuer coverage · instrument context · stated limits" },
   { id: "91bb478a-7977-4b34-b32d-b1f558a8af75", symbol: "NVDA + TSLA", focus: "Company comparison", question: "Compare the latest evidence and risks.", detail: "Separate issuer assessments · decision gates" },
-];
+  { id: "13bcee6c-3d69-4bd0-bb2c-e3591c73529b", symbol: "NVDA", focus: "AI infrastructure and competition", question: "What changed for NVDA based on current public sources?", detail: "40 headlines · 27 publishers · Gemini synthesis · mixed · 40% model-reported confidence · HOLD" },
+]; 
 
 const captures = [
   { symbol: "rNVD", name: "NVIDIA token", date: "22 Oct 2026", dateTime: "2026-10-22", image: "/judge-evidence/nightwatch-rnvd-position.png", alt: "Historical Nightwatch simulated ledger position in rNVD, captured 22 October 2026." },

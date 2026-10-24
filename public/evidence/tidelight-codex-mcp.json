@@ -47,7 +47,36 @@
         "source": "Bitget Reality spot tokenized equities"
       },
       "detail": "Read-only request completed from the connected Codex plugin."
+    },
+    {
+      "name": "Fresh authenticated market lookup",
+      "status": "passed",
+      "tool": "tidelight_search_tokenized_equities",
+      "request_id": "684719aa-5a23-4c08-9c1c-bb2a90db4e4e",
+      "input": {
+        "underlying_ticker": "NVDA",
+        "limit": 5
+      },
+      "result": {
+        "instrument": "RNVDAUSDT",
+        "instrument_type": "tokenized_equity_spot",
+        "underlying_ticker": "NVDA",
+        "issuer_name": "NVIDIA Corporation",
+        "last_price": 211.39,
+        "change_24h": -0.00255,
+        "quote_currency": "USDT",
+        "source": "Bitget Reality spot",
+        "market_session_status": "available",
+        "provider_timestamp": 1792866443633,
+        "generated_at": 1792866450485
+      },
+      "detail": "Fresh read-only request completed through the connected Tidelight Research Codex tool."
+    },
+    {
+      "name": "Company research tools in connected Codex registry",
+      "status": "not_exposed",
+      "detail": "The protected-resource metadata advertises research:run, and the MCP server source implements the company research job tools. The connected Codex tool registry exposes only market search and instrument lookup, so a company research job could not be invoked from this session."
     }
   ],
-  "evidence_boundary": "This records one successful authenticated read-only MCP call returning the first 100 supported instruments. It does not test research:run, other tools, order execution, or the completeness and quality of the full instrument universe."
+  "evidence_boundary": "This records one earlier authenticated market:read call (100 instruments), one fresh authenticated NVDA market lookup, and the connected tool-registry boundary. It does not claim a Codex MCP research:run invocation, order execution, or completeness and quality of the full instrument universe."
 }
