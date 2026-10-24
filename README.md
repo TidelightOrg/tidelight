@@ -28,10 +28,10 @@
 ## Live Judge evidence
 
 - [Research benchmark capture score](https://tidelight.app/judge#research-benchmark): all ten frozen production runs captured (10/10); AI synthesis returned in two (2/10). This is a capture score, not a claim-quality score. The protocol score awaits independent claim labels and adjudication.
-- [Package install verification](https://tidelight.app/judge#package-install-evidence) records root tests and clean consumer installs for the SDK, MCP, React, and CLI packages, along with disclosed dependency advisories.
+- [Package install verification](https://tidelight.app/judge#package-install-evidence) records the monorepo checks and a fresh registry install of SDK, MCP, React, CLI, and Python 0.1.2 packages; the install record includes real command outcomes. No screen-recorded install video was captured.
 
 - [Judge Mode](https://tidelight.app/judge) includes a signed-out browser route-test record for seven public routes returning HTTP 200; the linked MP4 failed the production integrity/playback check and is not counted as delivered video evidence. The [capture details](https://tidelight.app/evidence/tidelight-live-route-test-20261024.json) state the coverage boundary.
-- [Codex Tidelight MCP evidence](https://tidelight.app/judge#codex-mcp-evidence) records the authenticated read-only `market:read` tool test and its request ID.
+- [Codex Tidelight MCP evidence](https://tidelight.app/judge#codex-mcp-evidence) records two authenticated read-only `market:read` calls. The server source supports `research:run`, but the connected Codex tool registry does not expose a company research operation.
 
 ## Make sense of the story behind the price
 

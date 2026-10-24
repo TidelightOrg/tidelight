@@ -117,3 +117,14 @@
 .judge-score-grid article strong{display:block;margin:13px 0 7px;color:var(--text);font-size:clamp(1.35rem,3vw,2rem);letter-spacing:-.04em}
 .judge-score-grid article small{font-size:.83rem;line-height:1.5}
 @media(max-width:700px){.judge-score-grid{grid-template-columns:1fr;gap:10px}.judge-score-grid article{min-height:unset;padding:18px;border-radius:18px}}
+
+.judge-benchmark-run-table{margin:20px 0;border:1px solid var(--judge-line);border-radius:18px;background:color-mix(in srgb,var(--bg) 94%,var(--mint) 6%);overflow:hidden}
+.judge-benchmark-run-table>summary{padding:16px 20px;color:var(--text);font-weight:700;cursor:pointer}
+.judge-benchmark-table-scroll{overflow-x:auto;padding:0 14px 14px}
+.judge-benchmark-table-scroll table{width:100%;min-width:760px;border-collapse:collapse;color:var(--text);font-size:.84rem;line-height:1.5}
+.judge-benchmark-table-scroll caption{padding:0 4px 12px;color:var(--muted);text-align:left;font-size:.78rem}
+.judge-benchmark-table-scroll th,.judge-benchmark-table-scroll td{padding:11px 10px;border-top:1px solid var(--judge-line);text-align:left;vertical-align:top}
+.judge-benchmark-table-scroll th{font-weight:700}
+.judge-benchmark-table-scroll thead th{color:var(--mint);font-size:.68rem;letter-spacing:.08em;text-transform:uppercase}
+.judge-benchmark-table-scroll td:nth-child(2){white-space:nowrap;font-variant-numeric:tabular-nums}
+@media(max-width:700px){.judge-benchmark-run-table>summary{padding:14px}.judge-benchmark-table-scroll{padding:0 10px 10px}.judge-benchmark-table-scroll table{font-size:.78rem}}

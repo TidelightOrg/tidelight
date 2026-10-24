@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "kind": "package_install_verification",
   "captured_date": "2026-10-24",
-  "environment": "Isolated Vercel sandbox consumer environment; repo snapshot preceding the Judge evidence-only PRs",
+  "environment": "Fresh isolated Vercel universal sandbox consumer environment (Node v24.22.1; Python 3.12.14); installs used the public npm and PyPI registries, not the repository worktree.",
   "checks": [
     {
       "name": "root npm ci",
@@ -47,7 +47,54 @@
       "name": "npm audit --omit=dev",
       "status": "findings_reported",
       "detail": "Root npm install reported 4 advisories: 2 moderate, 1 high, 1 critical. Full dependency remediation was not part of this verification."
+    },
+    {
+      "name": "Fresh npm registry consumer install",
+      "status": "passed",
+      "packages": [
+        "@tidelight/sdk@0.1.2",
+        "@tidelight/mcp@0.1.2",
+        "@tidelight/react@0.1.2",
+        "@tidelight/cli@0.1.2"
+      ],
+      "command": "npm install @tidelight/sdk@0.1.2 @tidelight/mcp@0.1.2 @tidelight/react@0.1.2 @tidelight/cli@0.1.2",
+      "result": "Exit 0; 104 packages added; npm reported 0 vulnerabilities; npm ls --depth=0 resolved all four packages at 0.1.2.",
+      "functional_checks": [
+        "SDK exports imported",
+        "MCP exports imported",
+        "React exports imported",
+        "./node_modules/.bin/tidelight --help exited 0 and printed usage"
+      ],
+      "detail": "The CLI package is a binary package and was verified through its documented executable entry point, not by importing it as a JavaScript library."
+    },
+    {
+      "name": "Fresh PyPI consumer install",
+      "status": "passed",
+      "package": "tidelight==0.1.2",
+      "command": "python -m pip install --target /vercel/python-consumer tidelight==0.1.2",
+      "result": "Exit 0; tidelight-0.1.2 installed from PyPI.",
+      "functional_checks": [
+        "import tidelight succeeded",
+        "from tidelight import Client succeeded"
+      ]
+    },
+    {
+      "name": "Fresh monorepo verification for Judge fixes",
+      "status": "passed_with_warnings",
+      "source_commit": "7478177663a1277af2c5eea02f15688efa5ee33b",
+      "commands": {
+        "npm ci": "passed; 445 packages installed, 446 audited; 4 vulnerabilities reported (2 moderate, 1 high, 1 critical)",
+        "npm test": "passed; 266 passed, 0 failed",
+        "npm run typecheck": "passed; tsc --noEmit",
+        "npm run build": "passed; Next.js production build compiled and generated 75 static pages",
+        "npm run lint": "passed with 9 existing unused-variable warnings and no errors"
+      },
+      "detail": "The clean install also reported that unrs-resolver has an install script not yet covered by the npm allowScripts list; the recorded build and tests still completed successfully."
     }
   ],
-  "boundary": "These checks verify the recorded repo snapshot and consumer workflows. They do not prove every registry release is the latest published source, and no package publish was performed."
+  "boundary": "These checks verify the recorded repo snapshot and consumer workflows. They do not prove every registry release is the latest published source, and no package publish was performed.",
+  "screen_recording": {
+    "status": "not_captured",
+    "detail": "The available runner returned process command logs but did not provide a desktop display or a screen-recording interface. This record preserves the actual commands and outcomes; it is not a video."
+  }
 }
