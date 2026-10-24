@@ -223,6 +223,7 @@ export default function JudgePage() {
       <div className="judge-inline-actions">
         <a href="/evidence/research-benchmark-summary-20261024.json">Benchmark summary ↗</a>
         <a href="https://github.com/TidelightOrg/tidelight/blob/main/docs/benchmarks/research-benchmark-frozen-2026-10-24.json">Frozen event set ↗</a>
+        <a href="https://github.com/TidelightOrg/tidelight/blob/main/docs/benchmarks/research-benchmark-capture-log-2026-10-24.md">Run-by-run capture log ↗</a>
         <a href="https://github.com/TidelightOrg/tidelight/tree/main/docs/benchmarks">GitHub benchmark files ↗</a>
       </div>
     </section>
