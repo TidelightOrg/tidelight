@@ -5032,5 +5032,10 @@
   "No qualifying macro sources were returned.": "未返回符合条件的宏观来源。",
   "No AI provider is configured. Source links remain available.": "未配置 AI 服务。来源链接仍可查看。",
   "The macro brief is saved privately. It contains no stock signal, quote, or trade handoff.": "宏观简报已私密保存，不包含股票信号、报价或交易交接。",
-  "Market context, source checks, and counter-evidence from this completed run.": "本次已完成的研究包含市场背景、来源核查与反面证据。"
+  "Market context, source checks, and counter-evidence from this completed run.": "本次已完成的研究包含市场背景、来源核查与反面证据。",
+  "Research ↗": "研究 ↗",
+  "Shared replays": "共享回放",
+  "What changed for NVDA since the latest evidence?": "自最新证据以来，NVDA 有哪些变化？",
+  "What are the key risks around NVDA right now?": "目前 NVDA 面临哪些主要风险？",
+  "Review recent evidence and market context for NVDA": "查看 NVDA 的近期证据和市场背景"
 }
