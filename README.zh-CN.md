@@ -69,6 +69,18 @@ Tidelight 会把研究简报中的观点关联到所用的来源材料。打开�
 - **模拟交易仅用于模拟。** Nightwatch 和期货模拟交易台不会向交易所下单、持有资产或管理客户资金。
 - **决策由你掌握。** Tidelight 是信息研究产品，不构成财务建议或投资推荐。采取行动前，请核对原始来源并考虑自身情况。
 
+<details>
+<summary><strong>RAAPLUSDT Nightwatch 信号与模拟成交邮件 · 2026 年 10 月 24 日</strong></summary>
+
+这些 Gmail 截图展示了 RAAPLUSDT 的 Nightwatch 买入信号通知及后续模拟成交通知。它们可用于查看邮件送达和消息呈现；邮件本身不是交易所成交凭证，也不是经审计的业绩记录。
+
+<a href="https://tidelight.app/judge#nightwatch-notification-evidence"><img src="https://tidelight.app/judge-evidence/nightwatch-raaplusdt-buy-alert.jpg" width="220" alt="Gmail 中的 RAAPLUSDT Nightwatch 买入信号邮件截图" /></a>
+<a href="https://tidelight.app/judge#nightwatch-notification-evidence"><img src="https://tidelight.app/judge-evidence/nightwatch-raaplusdt-paper-fill.jpg" width="220" alt="Gmail 中的 RAAPLUSDT Nightwatch 模拟成交邮件截图" /></a>
+
+查看[通知证据记录](https://tidelight.app/evidence/nightwatch-email-notifications.json)或 [Judge Mode 图集](https://tidelight.app/judge#nightwatch-notification-evidence)。
+
+</details>
+
 ## 项目概览
 
 | | |

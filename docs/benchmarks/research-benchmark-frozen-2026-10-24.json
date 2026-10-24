@@ -8,8 +8,9 @@
     "capturedAt": "2026-10-24T07:35:03Z",
     "cutoffDate": "2026-10-24",
     "reviewProtocol": "docs/RESEARCH_EVALUATION_PROTOCOL.md",
-    "status": "SOURCE_SET_FROZEN_OUTPUTS_AND_HUMAN_REVIEW_PENDING",
-    "notes": "Event IDs, event dates, neutral evaluation questions, sources and human-authored reference notes are frozen before any research prompt change. Tidelight runs have not been captured. No claims, reviewer labels, adjudications, task times or scores are supplied. Source capture timestamps are the browser research capture time; publicationAt is null where the publisher exposed only a date. Independent reporting was included where located. The captured snippets are short factual excerpts, not complete articles. The report must retain source distinctions and limitations."
+    "status": "PARTIAL_BASELINE_8_OF_10_RUNS_HUMAN_REVIEW_PENDING",
+    "captureLog": "docs/benchmarks/research-benchmark-capture-log-2026-10-24.md",
+    "notes": "Event IDs, event dates, neutral evaluation questions, sources and human-authored reference notes are frozen before any research prompt change. Eight actual Tidelight runs were captured; the final two were blocked by the hourly research limit. The capture log records observed results and durations. No reviewer labels, adjudications or benchmark score are supplied. Source capture timestamps are the browser research capture time; publicationAt is null where the publisher exposed only a date. Independent reporting was included where located. The captured snippets are short factual excerpts, not complete articles. The report must retain source distinctions and limitations."
   },
   "events": [
     {

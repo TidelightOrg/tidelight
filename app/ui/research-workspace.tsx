@@ -7,6 +7,7 @@ import { createEvidenceBrief } from "@/app/actions";
 import { useExperience } from "@/app/ui/theme-provider";
 import { getResearchSourceStarters } from "@/lib/source-starters";
 import TidelightAnimatedMark from "@/app/ui/tidelight-animated-mark";
+import ResearchReplayShare from "@/app/ui/research-replay-share";
 
 type ResearchBrief = {
   research_run_id?: string;
@@ -128,6 +129,7 @@ export default function ResearchWorkspace({ qwenAvailable, initialQuestion = "" 
             {mode !== "mini" ? <div className="evidence-quality-strip"><div><b>{brief.sources.length}</b><small>captured source{brief.sources.length === 1 ? "" : "s"}</small></div><div><b>{new Set(brief.sources.map((source) => new URL(source.url).hostname)).size}</b><small>publisher domain{new Set(brief.sources.map((source) => new URL(source.url).hostname)).size === 1 ? "" : "s"} observed</small></div><div><b>{brief.citation_coverage ?? 0}%</b><small>shown claims quote-checked</small></div><div><b>{brief.counterpoint_count ?? 0}</b><small>opposing claim{brief.counterpoint_count === 1 ? "" : "s"} in supplied text</small></div></div> : null}
             {(brief.counterpoint_count ?? 0) === 0 ? <p className="counterpoint-note">No direct opposing claim was found in the passages you supplied. That does not mean no opposing evidence exists elsewhere.</p> : null}
             <div className="source-citation-list">{brief.sources.map((source) => <article className="source-provenance" key={source.url}><a className="source-citation" href={source.url} target="_blank" rel="noreferrer">↗ {source.title}</a><div><span>{source.publisher ?? new URL(source.url).hostname}</span>{source.retrieved_at ? <time dateTime={source.retrieved_at}>Captured {new Date(source.retrieved_at).toISOString().replace("T", " ").slice(0, 16)} UTC</time> : null}<small>{source.publication_date ? `Published ${source.publication_date}` : "Publication date not provided"} · {source.source_quality ?? "publisher not independently verified"}</small></div></article>)}</div>
+            {brief.research_run_id ? <ResearchReplayShare researchRunId={brief.research_run_id} /> : null}
           </div> : null}
           {!qwenAvailable ? <p className="provider-warning" role="status">Qwen is not configured on this deployment yet. The button stays disabled, and no research is presented as AI-generated.</p> : null}
           <div className="brief-bottom"><span>◉ {brief ? "Saved to your private research" : qwenAvailable ? "Evidence-based · Qwen synthesis" : "Generation unavailable · setup needed"}</span><button className="save-brief-button" onClick={analyzeSource} disabled={isAnalyzing || !qwenAvailable}>{isAnalyzing ? mode === "mini" ? "Reading source…" : "Checking evidence…" : brief ? "Regenerate brief" : qwenAvailable ? mode === "mini" ? "Read source & explain" : "Build cited brief" : "Qwen setup needed"}</button><button onClick={() => setBriefQuestion("")}>Back to workspace <span>↗</span></button></div>
