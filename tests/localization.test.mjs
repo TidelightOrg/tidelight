@@ -12,6 +12,10 @@ test("Simplified Chinese preserves the Tidelight product name and covers package
   assert.equal(translations.Exposure, "风险敞口");
   assert.equal(translations["Feed freshness"], "行情数据时效");
   assert.equal(translations["A current Bitget Reality price is required for this paper exit."], "模拟平仓需要最新的 Bitget Reality 行情。");
+  assert.equal(translations["and"], "以及");
+  assert.equal(translations["and a"], "响应和一个");
+  assert.equal(translations[". Poll"], "。请通过");
+  assert.equal(translations["Only"], "仅");
   for (const key of [
     "OFFICIAL DEVELOPER PACKAGES", "Available packages", "OFFICIAL PACKAGE / TYPESCRIPT · JAVASCRIPT",
     "Research job lifecycle", "Supported operations", "Bounded behavior, protected credentials.",
