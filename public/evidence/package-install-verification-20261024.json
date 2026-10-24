@@ -77,6 +77,19 @@
         "import tidelight succeeded",
         "from tidelight import Client succeeded"
       ]
+    },
+    {
+      "name": "Fresh monorepo verification for Judge fixes",
+      "status": "passed_with_warnings",
+      "source_commit": "7478177663a1277af2c5eea02f15688efa5ee33b",
+      "commands": {
+        "npm ci": "passed; 445 packages installed, 446 audited; 4 vulnerabilities reported (2 moderate, 1 high, 1 critical)",
+        "npm test": "passed; 266 passed, 0 failed",
+        "npm run typecheck": "passed; tsc --noEmit",
+        "npm run build": "passed; Next.js production build compiled and generated 75 static pages",
+        "npm run lint": "passed with 9 existing unused-variable warnings and no errors"
+      },
+      "detail": "The clean install also reported that unrs-resolver has an install script not yet covered by the npm allowScripts list; the recorded build and tests still completed successfully."
     }
   ],
   "boundary": "These checks verify the recorded repo snapshot and consumer workflows. They do not prove every registry release is the latest published source, and no package publish was performed.",
