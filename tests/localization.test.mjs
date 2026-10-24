@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import ts from "typescript";
 import { parseDocument } from "yaml";
+import { localizeResearchSuggestion } from "../lib/research-question-localization.ts";
 
 const root = new URL("../", import.meta.url);
 const translations = JSON.parse(await readFile(new URL("app/i18n/zh-CN.json", root), "utf8"));
@@ -37,6 +38,20 @@ test("macro research prompt and result terminology have Simplified Chinese cover
   for (const key of [prompt, placeholder, "FEDERAL RESERVE / BLS SOURCES", "Official source", "Independent reporting", "No instrument or trading decision is generated.", ...deskControls]) {
     assert.equal(typeof translations[key], "string", `Missing Simplified Chinese entry for ${key}`);
   }
+});
+
+test("dynamic stock suggestions localize ticker templates while preserving English research queries", () => {
+  const cases = [
+    ["What changed for TSLA since the latest evidence?", "自最新证据以来，TSLA 有哪些变化？"],
+    ["What are the key risks around AAPL right now?", "目前 AAPL 面临哪些主要风险？"],
+    ["Review recent evidence and market context for MSFT", "查看 MSFT 的近期证据和市场背景"],
+    ["Is the rNVDA market supported by current evidence?", "当前证据是否支持 rNVDA 市场？"],
+  ];
+  for (const [source, expected] of cases) {
+    assert.equal(localizeResearchSuggestion(source, "zh-CN"), expected);
+    assert.equal(localizeResearchSuggestion(source, "en"), source);
+  }
+  assert.equal(localizeResearchSuggestion("A user-written research question", "zh-CN"), "A user-written research question");
 });
 
 test("developer pages expose a language toggle and share the language preference across Tidelight subdomains", async () => {
