@@ -231,11 +231,11 @@
     {
       "id": "live-route-test-recording-20261024",
       "kind": "browser_route_smoke_test",
-      "status": "production_candidate_recorded",
+      "status": "routes_recorded_video_artifact_invalid",
       "uri": "https://tidelight.app/judge#live-route-test-recording",
       "video_uri": "https://tidelight.app/judge-evidence/tidelight-live-route-test-20261024.mp4",
       "summary_uri": "https://tidelight.app/evidence/tidelight-live-route-test-20261024.json",
-      "claim": "A 68-second signed-out 1280x720 Playwright browser recording navigates seven public Tidelight routes. All seven returned HTTP 200. It is a route smoke test only and does not verify authenticated actions or product data."
+      "claim": "The route-test JSON records seven public routes returning HTTP 200. The linked MP4 is 1,506 bytes and fails browser playback; the full video artifact has not been verified or delivered."
     },
     {
       "id": "research-benchmark-capture-score-20261024",
