@@ -22,6 +22,5 @@ a{color:#74dec2;text-decoration:none}a:hover{text-decoration:underline}.meta{dis
 <figure><video id="recording" controls playsinline preload="metadata" aria-label="Recorded Tidelight npm and Python package installation and usage checks"></video><figcaption><span>1280 × 720 · H.264 · 14 seconds · captured from the live terminal session</span><a href="/judge">Return to Judge Mode ↗</a></figcaption></figure>
 <div class="meta"><span>npm packages · 0.1.2</span><span>Python package · 0.1.2</span><span>Consumer install and usage</span></div>
 <div id="status" role="status">Loading recording…</div>
-<script>
-(async()=>{const status=document.getElementById("status"),video=document.getElementById("recording");try{const response=await fetch("./tidelight-npm-python-install-usage-20261024.mp4.b64");if(!response.ok)throw new Error("Recording data could not be loaded ("+response.status+").");const encoded=(await response.text()).trim();const binary=atob(encoded);const bytes=new Uint8Array(binary.length);for(let i=0;i<binary.length;i++)bytes[i]=binary.charCodeAt(i);video.src=URL.createObjectURL(new Blob([bytes],{type:"video/mp4"}));video.addEventListener("loadedmetadata",()=>{status.textContent="Recording ready. The footage is separate from the public route-check video.";},{once:true});}catch(error){status.textContent=error instanceof Error?error.message:"The recording could not be loaded.";}})();
-</script></main></body></html>
+<script src="./tidelight-install-video-player.js" defer></script>
+</main></body></html>
