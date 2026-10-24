@@ -72,12 +72,12 @@ export default function JudgePage() {
           <source src="/judge-evidence/tidelight-live-route-test-20261024.mp4" type="video/mp4" />
           Your browser does not support HTML video.
         </video>
-        <figcaption><span>68 sec · 7 routes · logged out</span><a href="/judge-evidence/tidelight-live-route-test-20261024.mp4" download>Download full video ↓</a></figcaption>
+        <figcaption><span>7 routes · logged out · video integrity issue recorded below</span><a href="/judge-evidence/tidelight-live-route-test-20261024.mp4" download>Download full video ↓</a></figcaption>
       </figure>
       <div className="judge-test-route-list" aria-label="Routes checked in the video">
         {["/", "/markets", "/research", "/flow", "/strategies", "/nightwatch", "/judge"].map(path => <span key={path}><i aria-hidden="true">200</i><code>{path}</code></span>)}
       </div>
-      <p className="judge-section-note">This smoke test confirms public route responses only. Signed-in research, publish actions, strategy execution, account data, and trading behavior are not represented.</p>
+      <p className="judge-section-note">The public route results remain recorded below and in the JSON report. The deployed MP4 is only 1,506 bytes and does not play; the video is not counted as delivered evidence. Signed-in research, publish actions, strategy execution, account data, and trading behavior are not represented.</p>
       <div className="judge-inline-actions">
         <Link href="/evidence/tidelight-live-route-test-20261024.json">Open capture record <span aria-hidden="true">↗</span></Link>
         <a href="https://github.com/TidelightOrg/tidelight/blob/main/public/judge-evidence/tidelight-live-route-test-20261024.mp4" target="_blank" rel="noreferrer">Video in GitHub <span aria-hidden="true">↗</span></a>

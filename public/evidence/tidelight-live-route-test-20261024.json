@@ -8,21 +8,48 @@
   },
   "authenticated": false,
   "video": {
-    "path": "/judge-evidence/tidelight-live-route-test-20261024.mp4",
-    "format": "MP4 (H.264)",
-    "bytes": 358874,
-    "sha256": "9a39f198b9e23c9ee81952feccf161ff038387b75c14dec18eb1f5dec95a0707",
-    "duration_seconds": 68.46,
-    "source_capture": "Playwright navigation capture, with 1.2 seconds of page settling after each route."
+    "status": "invalid_artifact",
+    "url": "/judge-evidence/tidelight-live-route-test-20261024.mp4",
+    "observedContentLengthBytes": 1506,
+    "browserPlayback": "failed",
+    "note": "The deployed file is not the claimed 68-second recording. Route HTTP results are retained separately; video evidence must be recaptured and uploaded."
   },
   "checks": [
-    { "path": "/", "http_status": 200, "title": "Tidelight — See the signal between sessions" },
-    { "path": "/markets", "http_status": 200, "title": "Tidelight — See the signal between sessions" },
-    { "path": "/research", "http_status": 200, "title": "Market research · Tidelight" },
-    { "path": "/flow", "http_status": 200, "title": "Market research · Tidelight" },
-    { "path": "/strategies", "http_status": 200, "title": "Tidelight — See the signal between sessions" },
-    { "path": "/nightwatch", "http_status": 200, "title": "Tidelight — See the signal between sessions" },
-    { "path": "/judge", "http_status": 200, "title": "Judge Mode · Tidelight" }
+    {
+      "path": "/",
+      "http_status": 200,
+      "title": "Tidelight — See the signal between sessions"
+    },
+    {
+      "path": "/markets",
+      "http_status": 200,
+      "title": "Tidelight — See the signal between sessions"
+    },
+    {
+      "path": "/research",
+      "http_status": 200,
+      "title": "Market research · Tidelight"
+    },
+    {
+      "path": "/flow",
+      "http_status": 200,
+      "title": "Market research · Tidelight"
+    },
+    {
+      "path": "/strategies",
+      "http_status": 200,
+      "title": "Tidelight — See the signal between sessions"
+    },
+    {
+      "path": "/nightwatch",
+      "http_status": 200,
+      "title": "Tidelight — See the signal between sessions"
+    },
+    {
+      "path": "/judge",
+      "http_status": 200,
+      "title": "Judge Mode · Tidelight"
+    }
   ],
   "boundary": "This is a real browser route smoke-test recording. It proves the listed public pages returned HTTP 200 while logged out; it does not verify signed-in workflows, publishing mutations, benchmark quality, API-backed account state, or trading behavior."
 }
