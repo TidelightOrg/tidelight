@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import ts from "typescript";
 import { parseDocument } from "yaml";
+import { localizeResearchSuggestion } from "../lib/research-question-localization.ts";
 
 const root = new URL("../", import.meta.url);
 const translations = JSON.parse(await readFile(new URL("app/i18n/zh-CN.json", root), "utf8"));
@@ -37,6 +38,55 @@ test("macro research prompt and result terminology have Simplified Chinese cover
   for (const key of [prompt, placeholder, "FEDERAL RESERVE / BLS SOURCES", "Official source", "Independent reporting", "No instrument or trading decision is generated.", ...deskControls]) {
     assert.equal(typeof translations[key], "string", `Missing Simplified Chinese entry for ${key}`);
   }
+});
+
+test("dynamic stock suggestions localize ticker templates while preserving English research queries", () => {
+  const cases = [
+    ["What changed for TSLA since the latest evidence?", "自最新证据以来，TSLA 有哪些变化？"],
+    ["What are the key risks around AAPL right now?", "目前 AAPL 面临哪些主要风险？"],
+    ["Review recent evidence and market context for MSFT", "查看 MSFT 的近期证据和市场背景"],
+    ["Is the rNVDA market supported by current evidence?", "当前证据是否支持 rNVDA 市场？"],
+  ];
+  for (const [source, expected] of cases) {
+    assert.equal(localizeResearchSuggestion(source, "zh-CN"), expected);
+    assert.equal(localizeResearchSuggestion(source, "en"), source);
+  }
+  assert.equal(localizeResearchSuggestion("A user-written research question", "zh-CN"), "A user-written research question");
+});
+
+test("Simplified Chinese covers the Judge evaluation path and public evidence disclosures", async () => {
+  const judge = await readFile(new URL("app/judge/page.tsx", root), "utf8");
+  assert.ok(judge.includes('replay.detail.split(" · ")'), "Judge replay metadata should expose translatable segments");
+  for (const key of [
+    "AI TRADING DESK · PUBLIC EVALUATION", "Inspect the decision.",
+    "Trace an after-hours market question through its sources, tokenized instrument context, scenarios, and risk gates.",
+    "Risk gate", "Research is reviewable. Actions remain paper-only and user-controlled.",
+    "Start with a question, not a prediction.", "Check the evidence", "Inspect sources, timestamps, claims, and counterpoints.",
+    "Map the market", "Review instrument, quote freshness, and session context.", "Review the gate", "See why a paper action is allowed or blocked.",
+    "PUBLIC RESEARCH", "Five snapshots used source-only fallback when AI synthesis was unavailable. None produced a directional assessment or trade handoff.",
+    "Quotes describe capture-time freshness. These records do not measure token depth, spread, or premium/discount. Published links can be revoked or expire.",
+    "Test the rule on unseen data.", "Review holdout periods, costs, candle fingerprints, drawdown, and trade logs. The report links to the assumptions needed to reproduce a run.",
+    "Recorded positions", "NIGHTWATCH · HISTORICAL PAPER CAPTURES", "Simulated marks captured 12–22 October 2026. This exhibit is not a live account query or audited performance.",
+    "NIGHTWATCH · EMAIL DELIVERY", "Notification received for RNVDUSDT.",
+    "Gmail received the Nightwatch analysis on 24 October 2026 at 09:00 WAT. SPF, DKIM, and DMARC passed. The message records a rejected HOLD because an existing long position was active.",
+    "This verifies email delivery and rendering. It does not independently verify ledger state, an exchange order, or trading performance.",
+    "Historical simulations are not audited results. Research is not investment advice; live execution is not enabled.",
+    "JUDGE MODE", "Start the evaluation", "Evidence and methods", "Automotive", "AI and cloud", "Devices and services",
+    "Regulation and AI search", "Cloud and retail", "40 headlines", "30 publishers", "23 publishers", "22 publishers",
+    "17 publishers", "21 publishers", "quote stale", "quote fresh at capture", "no trade handoff", "Open the evidence manifest",
+    "Evidence manifest", "Capture data", "Delivery record", "Open Gmail capture",
+    "Open the full Gmail screenshot for the RNVDUSDT Nightwatch email", "Browse published paper replays", "Download JSON",
+    "PUBLIC REPLAY", "after costs", "Holdout return trailed buy and hold (+2.12%) over 32 days. Historical simulation; costs estimated, no live orders.",
+    "Evaluation path", "Evaluation stages", "Would you review the rTSLA market?",
+    "How do AI investment and Azure demand change the risk picture?", "What should a long-term rAAPL review verify?",
+    "How should antitrust remedies and AI-search competition be reviewed?", "How do AWS investment and retail economics shape the review?",
+    "Compare the latest evidence and risks.", "Separate issuer assessments", "decision gates", "PUBLIC REPLAY · APPLE · 4H",
+    "−0.76% after costs", "Open Strategy Lab", "NVIDIA token", "Apple token", "Alphabet token", "22 Oct 2026", "14 Oct 2026", "12 Oct 2026",
+    "Historical Nightwatch simulated ledger position in rNVD, captured 22 October 2026.",
+    "Historical Nightwatch simulated ledger position in rAAPL, captured 14 October 2026.",
+    "Historical Nightwatch simulated ledger position in rGOOGL, captured 12 October 2026.",
+    "Publish an eligible research run", "Open Nightwatch",
+  ]) assert.equal(typeof translations[key], "string", `Missing Simplified Chinese entry for ${key}`);
 });
 
 test("developer pages expose a language toggle and share the language preference across Tidelight subdomains", async () => {
