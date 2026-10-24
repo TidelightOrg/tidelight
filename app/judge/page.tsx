@@ -68,17 +68,15 @@ export default function JudgePage() {
         <div><span className="judge-kicker">LIVE SITE · BROWSER CAPTURE</span><h2 id="test-video-title">A full route check, on screen.</h2></div>
         <p>Recorded while signed out at 1280 × 720. The browser opened all seven public routes below and received HTTP 200 from each.</p>
       </div>
-      <figure className="judge-test-video-frame">
-        <video controls preload="metadata" playsInline aria-label="Full browser recording of the signed-out Tidelight public route check">
-          <source src="/judge-evidence/tidelight-live-route-test-20261024.mp4" type="video/mp4" />
-          Your browser does not support HTML video.
-        </video>
-        <figcaption><span>7 routes · logged out · video integrity issue recorded below</span><a href="/judge-evidence/tidelight-live-route-test-20261024.mp4" download>Download full video ↓</a></figcaption>
-      </figure>
+      <div className="judge-route-capture-status" role="status">
+        <span className="judge-route-capture-icon" aria-hidden="true">✓</span>
+        <div><strong>Seven public routes returned HTTP 200.</strong><small>Signed-out browser check · 1280 × 720 · machine-readable results linked below</small></div>
+        <span className="judge-route-capture-badge">7 / 7 PASS</span>
+      </div>
       <div className="judge-test-route-list" aria-label="Routes checked in the video">
         {["/", "/markets", "/research", "/flow", "/strategies", "/nightwatch", "/judge"].map(path => <span key={path}><i aria-hidden="true">200</i><code>{path}</code></span>)}
       </div>
-      <p className="judge-section-note">The public route results remain recorded below and in the JSON report. The deployed MP4 is only 1,506 bytes and does not play; the video is not counted as delivered evidence. Signed-in research, publish actions, strategy execution, account data, and trading behavior are not represented.</p>
+      <p className="judge-section-note">The route check results are recorded below and in the JSON report. The captured MP4 is only 1,506 bytes and is invalid, so it is not presented as playable video evidence. Signed-in research, publishing, strategy execution, account data, and trading behavior are not represented.</p>
       <div className="judge-inline-actions">
         <Link href="/evidence/tidelight-live-route-test-20261024.json">Open capture record <span aria-hidden="true">↗</span></Link>
         <a href="https://github.com/TidelightOrg/tidelight/blob/main/public/judge-evidence/tidelight-live-route-test-20261024.mp4" target="_blank" rel="noreferrer">Video in GitHub <span aria-hidden="true">↗</span></a>
