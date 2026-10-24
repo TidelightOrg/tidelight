@@ -8,6 +8,7 @@ import { getBitgetAsset } from "@/lib/bitget-market";
 import { mapResearchExposure } from "@/lib/exposure-map";
 import { validateBrief } from "@/lib/evidence";
 import { fetchPublicResearchSource, validatePublicSourceUrl, type RetrievedPublicSource } from "@/lib/public-source";
+import { getServerAuthState } from "@/lib/supabase/auth-user";
 
 export async function signOut() {
   const supabase = await createClient();
@@ -91,9 +92,11 @@ export async function createEvidenceBrief(input: { question: string; sourceTitle
   const validSources: Array<{ title: string; url: string; excerpt: string }> = sources as Array<{ title: string; url: string; excerpt: string }>;
   if (new Set(validSources.map((source) => source.url)).size !== validSources.length) return { error: "Each source needs a different link so evidence can be traced clearly." };
 
+  const auth = await getServerAuthState();
+  if (auth.errorCode) return { error: "Tidelight could not verify your sign-in just now. Refresh the page and try again." };
+  const user = auth.user;
+  if (!user) return { error: "Sign in to create a private evidence brief." };
   const supabase = await createClient();
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
-  if (userError || !user) return { error: "Sign in to create a private evidence brief." };
   if (!configuredAiProviders().length) return { error: "AI research is not configured yet. Add a provider API key on the server to enable it." };
   const deadlineAt = Date.now() + 48000;
   const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();

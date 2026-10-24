@@ -24,6 +24,32 @@ test("server-render auth uses proxy-verified claims without trusting browser-sup
   assert.match(sessionRoute, /authenticated: Boolean\(user && !error\)/);
 });
 
+test("the Overview evidence action reuses proxy-verified identity and distinguishes auth-service errors", async () => {
+  const actions = await readFile(new URL("app/actions.ts", root), "utf8");
+  const evidenceAction = actions.slice(actions.indexOf("export async function createEvidenceBrief"));
+
+  assert.match(evidenceAction, /getServerAuthState\(\)/);
+  assert.match(evidenceAction, /if \(auth\.errorCode\) return \{ error: "Tidelight could not verify your sign-in just now\./);
+  assert.match(evidenceAction, /if \(!user\) return \{ error: "Sign in to create a private evidence brief\." \}/);
+  assert.doesNotMatch(evidenceAction, /supabase\.auth\.getUser\(\)/);
+});
+
+test("strategy persistence and replay access use proxy-verified identity", async () => {
+  const [backtest, hypothesis, publish, replay] = await Promise.all([
+    readFile(new URL("app/api/strategies/backtest/route.ts", root), "utf8"),
+    readFile(new URL("app/api/strategies/hypothesize/route.ts", root), "utf8"),
+    readFile(new URL("app/api/strategy-replays/route.ts", root), "utf8"),
+    readFile(new URL("app/api/strategy-replays/[token]/route.ts", root), "utf8"),
+  ]);
+
+  for (const handler of [backtest, hypothesis, publish, replay.slice(replay.indexOf("export async function DELETE"))]) {
+    assert.match(handler, /getServerAuthState\(\)/);
+    assert.match(handler, /if \(auth\.errorCode\)/);
+    assert.doesNotMatch(handler, /auth\.getUser\(\)/);
+  }
+  assert.doesNotMatch(replay.slice(0, replay.indexOf("export async function DELETE")), /getServerAuthState\(\)/);
+});
+
 test("only a verified JWT subject and required identity metadata cross from Proxy to server renders", () => {
   const encoded = encodeVerifiedAuthUser({
     sub: "user-123",

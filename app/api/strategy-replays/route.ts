@@ -1,14 +1,17 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { getServerAuthState } from "@/lib/supabase/auth-user";
 
 export const dynamic = "force-dynamic";
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
 export async function POST(request: Request) {
-  const db = await createClient();
-  const { data: { user } } = await db.auth.getUser();
+  const auth = await getServerAuthState();
+  if (auth.errorCode) return NextResponse.json({ error: "Tidelight could not verify your sign-in just now. Please retry shortly." }, { status: 503 });
+  const { user } = auth;
   if (!user) return NextResponse.json({ error: "Sign in to publish a strategy replay." }, { status: 401 });
+  const db = await createClient();
   let body: { runId?: unknown };
   try { body = await request.json() as typeof body; } catch { return NextResponse.json({ error: "Send a valid strategy run." }, { status: 400 }); }
   const runId = typeof body.runId === "string" && uuid.test(body.runId) ? body.runId : "";

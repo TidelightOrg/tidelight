@@ -3,6 +3,7 @@
   <h1>Tidelight TypeScript SDK</h1>
   <p><strong>Typed access to Tidelight Intelligence Cloud API v1.</strong></p>
   <p><a href="https://tidelight.app">Product</a> · <a href="https://dev.tidelight.app/api">API guide</a> · <a href="https://github.com/TidelightOrg/tidelight">canonical repository</a></p>
+  <p><a href="README.zh-CN.md">简体中文版本 / Chinese README</a></p>
 </div>
 
 ---

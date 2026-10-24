@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { getBitgetAsset, getBitgetCandles, getBitgetStockPerp, type AlphaMarketCategory, type CandleInterval } from "@/lib/bitget-market";
 import { ALPHA_STRATEGIES, prepareBacktestCandles, runBacktest, runCostSensitivity, runWalkForward, type StrategyKey, type WalkForwardResult } from "@/lib/backtest";
 import { createClient } from "@/lib/supabase/server";
+import { getServerAuthState } from "@/lib/supabase/auth-user";
 
 const intervals = new Set<CandleInterval>(["1H", "4H", "1D"]);
 const symbolPattern = /^[A-Z0-9]{2,32}$/;
@@ -33,9 +34,11 @@ export async function POST(request: Request) {
   if (researchRunId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(researchRunId)) return Response.json({ error: "The linked research run ID is invalid." }, { status: 400 });
   if (!symbolPattern.test(symbol) || !interval || !intervals.has(interval)) return Response.json({ error: "Choose a valid Bitget market and candle interval." }, { status: 400 });
 
+  const auth = await getServerAuthState();
+  if (auth.errorCode) return Response.json({ error: "Tidelight could not verify your sign-in just now. Please retry shortly." }, { status: 503 });
+  const { user } = auth;
+  if (!user) return Response.json({ error: "Sign in to save and compare backtest runs." }, { status: 401 });
   const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return Response.json({ error: "Sign in to save and compare backtest runs." }, { status: 401 });
   if (researchRunId) {
     const { data: linkedRun, error: linkedRunError } = await supabase.from("research_runs").select("id").eq("id", researchRunId).maybeSingle();
     if (linkedRunError || !linkedRun) return Response.json({ error: "The linked research note is unavailable in this account." }, { status: 403 });

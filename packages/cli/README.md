@@ -3,6 +3,7 @@
   <h1>Tidelight CLI</h1>
   <p><strong>Secure terminal workflows for the supported Tidelight API.</strong></p>
   <p><a href="https://tidelight.app">Product</a> · <a href="https://dev.tidelight.app/api">API guide</a> · <a href="https://github.com/TidelightOrg/tidelight">canonical repository</a></p>
+  <p><a href="README.zh-CN.md">简体中文版本 / Chinese README</a></p>
 </div>
 
 ---

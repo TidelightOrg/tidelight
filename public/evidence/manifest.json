@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "product": "Tidelight",
   "purpose": "Public index of reproducible evidence and verification paths for the Tidelight S2 evaluator.",
-  "generated_at": "2026-10-22",
+  "generated_at": "2026-10-24",
   "evidence_boundary": {
     "status": "index_only",
     "note": "Evidence is grouped by public availability, account scope, and reproducibility. Evaluate performance and execution claims against the corresponding source artifacts and test records.",
@@ -194,6 +194,15 @@
       "status": "published_30_day_link",
       "uri": "https://tidelight.app/replay/c67d7b29-85eb-4c27-8a29-2cbe85bd4e91",
       "claim": "Public rAMZN research snapshot. 40 issuer headlines across 21 publishers; AI synthesis unavailable; quote freshness fresh_at_capture; no trade handoff."
+    },
+    {
+      "id": "nightwatch-email-delivery-rnvdusdt",
+      "kind": "email_delivery_record",
+      "status": "gmail_message_verified_static_capture",
+      "uri": "https://tidelight.app/judge#nightwatch-email-delivery",
+      "summary_uri": "https://tidelight.app/evidence/nightwatch-email-delivery.json",
+      "screenshot_uri": "https://tidelight.app/judge-evidence/nightwatch-rnvdusdt-email.jpeg",
+      "claim": "A matching Gmail message from Tidelight Nightwatch was received on 24 Oct 2026 at 09:00 WAT. Gmail reported SPF, DKIM, and DMARC pass. The message shows a HOLD rejection for RNVDUSDT because an existing long position was active. This verifies message delivery and rendering only; it does not independently establish account ledger state or performance."
     }
   ],
   "owner_published_research": {

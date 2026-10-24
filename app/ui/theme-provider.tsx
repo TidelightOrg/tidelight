@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
+import { automaticTheme } from "@/lib/automatic-theme.mjs";
 
 export type Theme = "daylight" | "night" | "blue";
 export type ThemePreference = Theme | "auto";
@@ -14,10 +15,6 @@ const DEFAULT_THEME: Theme = "blue";
 const ThemeContext = createContext<{ theme: Theme; preference: ThemePreference; setTheme: (theme: ThemePreference) => void }>({ theme: DEFAULT_THEME, preference: "auto", setTheme: () => {} });
 const ExperienceContext = createContext<{ mode: ExperienceMode; setMode: (mode: ExperienceMode) => void }>({ mode: "pro", setMode: () => {} });
 const validTheme = (value: string | null): value is Theme => value === "night" || value === "daylight" || value === "blue";
-function automaticTheme(at = new Date()): Theme {
-  const hour = at.getHours();
-  return hour >= 7 && hour < 17 ? "daylight" : hour >= 17 && hour < 21 ? "blue" : "night";
-}
 const getPreference = (): ThemePreference => {
   const shared = document.cookie.split(";").map((part) => part.trim()).find((part) => part.startsWith("tidelight-theme="))?.slice("tidelight-theme=".length);
   const mode = document.cookie.split(";").map((part) => part.trim()).find((part) => part.startsWith("tidelight-theme-mode="))?.slice("tidelight-theme-mode=".length);
@@ -26,13 +23,17 @@ const getPreference = (): ThemePreference => {
   if (validTheme(shared ?? null) && shared !== DEFAULT_THEME) return shared as Theme;
   // Older builds persisted Blue Hour on first load even when the visitor had never chosen a palette.
   // Treat that legacy default as automatic; a deliberate choice is marked by theme-mode on this build.
-  const saved = window.localStorage.getItem("tidelight-theme");
-  if (saved === "night" || saved === "daylight") return saved;
+  try {
+    const saved = window.localStorage.getItem("tidelight-theme");
+    if (saved === "night" || saved === "daylight") return saved;
+  } catch {
+    return "auto";
+  }
   return "auto";
 };
 const saveTheme = (preference: ThemePreference) => {
-  window.localStorage.setItem("tidelight-theme", preference);
-  const sharedDomain = location.hostname === "tidelight.app" || location.hostname.endsWith(".tidelight.app") ? "; Domain=.tidelight.app; Secure" : "";
+  try { window.localStorage.setItem("tidelight-theme", preference); } catch { /* The cookie still persists the preference when storage is blocked. */ }
+  const sharedDomain = location.hostname === "tidelight.app" || location.hostname.endsWith(".tidelight.app") ? `; Domain=.tidelight.app${location.protocol === "https:" ? "; Secure" : ""}` : "";
   document.cookie = `tidelight-theme=${preference}; Path=/; Max-Age=31536000; SameSite=Lax${sharedDomain}`;
   document.cookie = `tidelight-theme-mode=${preference === "auto" ? "auto" : "manual"}; Path=/; Max-Age=31536000; SameSite=Lax${sharedDomain}`;
 };

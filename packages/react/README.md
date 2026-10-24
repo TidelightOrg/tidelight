@@ -3,6 +3,7 @@
   <h1>Tidelight React</h1>
   <p><strong>Typed, accessible React integrations for Tidelight market research.</strong></p>
   <p><a href="https://tidelight.app">Product</a> · <a href="https://dev.tidelight.app/api">API guide</a> · <a href="https://github.com/TidelightOrg/tidelight">Mother repository</a></p>
+  <p><a href="README.zh-CN.md">简体中文版本 / Chinese README</a></p>
 </div>
 
 ---

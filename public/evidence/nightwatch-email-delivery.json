@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0",
+  "id": "nightwatch-email-delivery-rnvdusdt",
+  "kind": "email_delivery_record",
+  "status": "gmail_message_verified_static_capture",
+  "captured_at": "2026-10-24T08:00:13Z",
+  "local_time": "2026-10-24T09:00:13+01:00",
+  "time_zone": "Africa/Lagos",
+  "sender": "Tidelight Nightwatch <alerts@tidelight.app>",
+  "subject": "Nightwatch analysis · Analysis complete · RNVDUSDT",
+  "instrument": "RNVDUSDT",
+  "decision": "HOLD · rejected",
+  "message_summary": "The email says trend conditions remain constructive, but no additional capital was added because an existing long position was active; it awaits further consolidation.",
+  "mail_authentication": {
+    "spf": "pass",
+    "dkim": "pass",
+    "dmarc": "pass"
+  },
+  "screenshot_uri": "/judge-evidence/nightwatch-rnvdusdt-email.jpeg",
+  "verification_note": "The matching message was read in the connected Gmail account and matched to the user-provided screenshot. Recipient address and Gmail message identifiers are omitted.",
+  "limitations": [
+    "Static historical email record, not a live account query.",
+    "The email content does not independently establish that a corresponding ledger position existed.",
+    "This is not an exchange order, fill, audited return, or performance claim."
+  ]
+}

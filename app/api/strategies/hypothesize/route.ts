@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { getServerAuthState } from "@/lib/supabase/auth-user";
 import { ALPHA_STRATEGIES, type StrategyKey } from "@/lib/backtest";
 import { getBitgetAsset } from "@/lib/bitget-market";
 import { draftAlphaHypothesis } from "@/lib/alpha-factory-agent";
@@ -10,9 +10,9 @@ export const maxDuration = 45;
 const validIntervals = new Set(["1H", "4H", "1D"]);
 
 export async function POST(request: Request) {
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return NextResponse.json({ error: "Sign in to draft and save an Alpha hypothesis." }, { status: 401 });
+  const auth = await getServerAuthState();
+  if (auth.errorCode) return NextResponse.json({ error: "Tidelight could not verify your sign-in just now. Please retry shortly." }, { status: 503 });
+  if (!auth.user) return NextResponse.json({ error: "Sign in to draft and save an Alpha hypothesis." }, { status: 401 });
 
   let body: { objective?: unknown; symbol?: unknown; interval?: unknown };
   try { body = await request.json() as typeof body; }
