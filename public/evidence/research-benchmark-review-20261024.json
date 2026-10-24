@@ -1,0 +1,41 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "single_reviewer_research_benchmark_assessment",
+  "captured_date": "2026-10-24",
+  "benchmark": "Tidelight frozen real-event research set 2026-10-24-v1",
+  "assessment": {
+    "reviewer": "Codex single-reviewer internal product review",
+    "score": 2.5,
+    "scale": "0-10",
+    "status": "provisional_descriptive_not_protocol_score",
+    "basis": "All 10 production captures were considered. The capture log reports two AI synthesis outputs and eight source-only or no-synthesis outcomes. NVIDIA was headline/context level with no source-linked counter-evidence; Microsoft contained a stale quote and claims without counter-evidence. Remaining runs lacked usable synthesis, and some results had no attributable sources or poor relevance. This score reflects observed usefulness and evidence quality, not a verified claim-accuracy rate.",
+    "rubric": {
+      "synthesis_coverage": "2/10 runs returned AI synthesis.",
+      "evidence_quality": "Both synthesis cases show material evidence concerns; no claim-level labels or source adjudications were supplied.",
+      "source_and_relevance": "Not adjudicated for all ten events; September CPI visibly included off-topic sources.",
+      "usability": "Eight of ten runs fell back to source-only output or no usable results."
+    }
+  },
+  "protocol_quality_score": {
+    "status": "pending",
+    "score": null,
+    "reason": "The published protocol requires two independent reviewer labels plus adjudication for every displayed factual claim. These were not created. The reproducible scorer correctly rejects incomplete inputs."
+  },
+  "task_time": {
+    "status": "not_measured",
+    "protocol_values": null,
+    "ui_elapsed_observations_seconds": {
+      "nvidia": 29,
+      "apple": 42,
+      "microsoft": 30,
+      "amazon": 3,
+      "tesla": 32,
+      "alphabet": 12,
+      "fed": 34,
+      "august_cpi": 40,
+      "september_employment": 42,
+      "september_cpi": 41
+    }
+  },
+  "limitation": "This single-reviewer assessment does not replace source-by-source factual verification, independent reviews, adjudication, or protocol task-time measurement."
+}
