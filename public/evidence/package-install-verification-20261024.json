@@ -94,7 +94,20 @@
   ],
   "boundary": "These checks verify the recorded repo snapshot and consumer workflows. They do not prove every registry release is the latest published source, and no package publish was performed.",
   "screen_recording": {
-    "status": "not_captured",
-    "detail": "The available runner returned process command logs but did not provide a desktop display or a screen-recording interface. This record preserves the actual commands and outcomes; it is not a video."
+    "status": "captured",
+    "file": "/judge-evidence/tidelight-npm-python-install-usage-20261024.html",
+    "media": "H.264 MP4, 1280x720, 14.2 seconds, 116241 bytes; stored in the repository as base64 text and decoded by the Judge player.",
+    "environment": "Fresh Vercel universal sandbox; Node v24.22.1; Python 3.14.4; Chromium, Xvfb, xterm, and FFmpeg installed from Ubuntu repositories.",
+    "captured_steps": [
+      "npm init -y in a fresh consumer directory",
+      "npm install @tidelight/sdk@0.1.2 @tidelight/mcp@0.1.2 @tidelight/react@0.1.2 @tidelight/cli@0.1.2",
+      "npm ls --depth=0 confirmed all four versions",
+      "Imported SDK, MCP, and React package entry points",
+      "Ran the Tidelight CLI help command",
+      "Installed tidelight==0.1.2 from PyPI to a separate target directory",
+      "Imported Client from tidelight"
+    ],
+    "validation": "The recording command exited 0. A follow-up non-GUI verification command exited 0 and printed all four npm package versions, JavaScript import success, CLI usage, and Python Client import success.",
+    "separate_from": "The pre-existing public route-check recording; this is a new install-and-usage capture."
   }
 }
