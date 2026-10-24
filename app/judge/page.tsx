@@ -12,6 +12,7 @@ const researchReplays = [
   { id: "c2ffbe89-74a5-4547-bf89-5952e37efeaa", symbol: "rNVDA", focus: "Tokenized market", question: "Is the rNVDA market worth reviewing?", detail: "Issuer coverage · instrument context · stated limits" },
   { id: "91bb478a-7977-4b34-b32d-b1f558a8af75", symbol: "NVDA + TSLA", focus: "Company comparison", question: "Compare the latest evidence and risks.", detail: "Separate issuer assessments · decision gates" },
   { id: "13bcee6c-3d69-4bd0-bb2c-e3591c73529b", symbol: "NVDA", focus: "AI infrastructure and competition", question: "What changed for NVDA based on current public sources?", detail: "40 headlines · 27 publishers · Gemini synthesis · mixed · 40% model-reported confidence · HOLD" },
+  { id: "ed08a907-14b0-41dd-b731-78870fe3255b", symbol: "NVDA", focus: "Current public catalysts", question: "What are the latest public catalysts and key uncertainties for NVDA?", detail: "Fresh live research · 20 sources · 8 steps · handoff held" },
 ]; 
 
 const captures = [
@@ -124,14 +125,15 @@ export default function JudgePage() {
     <section className="judge-section judge-mcp" id="codex-mcp-evidence" aria-labelledby="codex-mcp-title">
       <div className="judge-section-heading">
         <div><span className="judge-kicker">CODEX · MCP CONNECTION</span><h2 id="codex-mcp-title">Tidelight MCP in Codex</h2></div>
-        <p>A fresh attempt in the tidelight Org Codex Cloud environment could not install or authorize the connector: the Cloud session exposed neither Tidelight MCP tools nor Codex Cloud connection controls. No new OAuth grant, live tool registry, or research run is claimed. The earlier <code>market:read</code> calls are historical. The current attempt and its boundaries are recorded below.</p>
+        <p>The current Codex connection completed read-only tokenized-market lookup and search calls for NVDA. The connected registry exposes <code>market:read</code>; it does not expose the company research job tools that require <code>research:run</code>. The separate web research replay is linked above and was not an MCP research call.</p>
       </div>
       <div className="judge-mcp-steps" aria-label="Codex MCP setup status">
-        <article><span>01</span><div><b>Plugin</b><small>Tidelight Research · Streamable HTTP</small></div><i>Removed after prior capture</i></article>
-        <article><span>02</span><div><b>Authorization</b><small>Previous capture · <code>market:read</code> read-only market data</small></div><i>Historical</i></article>
-        <article><span>03</span><div><b>Fresh attempt</b><small>Requested <code>market:read</code> + <code>research:run</code>; connector tools unavailable in Codex Cloud</small></div><i>Not installed</i></article>
+        <article><span>01</span><div><b>Connection</b><small>Codex · Tidelight MCP · OAuth 2.1 / Streamable HTTP</small></div><i>Connected</i></article>
+        <article><span>02</span><div><b>Market tools</b><small><code>market:read</code> · NVDA instrument lookup and search succeeded</small></div><i>Verified</i></article>
+        <article><span>03</span><div><b>Research tools</b><small><code>research:run</code> not granted to the active Codex connection</small></div><i>Unavailable</i></article>
       </div>
       <div className="judge-inline-actions">
+        <Link href="/replay/ed08a907-14b0-41dd-b731-78870fe3255b">Open fresh NVDA replay <span aria-hidden="true">↗</span></Link>
         <a href="https://dev.tidelight.app/#connect-with-the-mcp-server">MCP connection guide <span aria-hidden="true">↗</span></a>
         <a href="https://mcp.tidelight.app/.well-known/oauth-protected-resource/mcp">OAuth resource metadata <span aria-hidden="true">↗</span></a>
         <Link href="/evidence/tidelight-codex-mcp.json">Historical connection record <span aria-hidden="true">↗</span></Link>
