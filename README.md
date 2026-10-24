@@ -132,6 +132,18 @@ Open the [delivery metadata](https://tidelight.app/evidence/nightwatch-email-del
 
 </details>
 
+<details>
+<summary><strong>RAAPLUSDT Nightwatch signal and paper fill emails · 24 Oct 2026</strong></summary>
+
+These Gmail captures show the Nightwatch BUY signal notification and the subsequent paper-fill notification for RAAPLUSDT. They demonstrate email delivery and message rendering; the messages are not exchange receipts or audited performance records.
+
+<a href="https://tidelight.app/judge#nightwatch-notification-evidence"><img src="https://tidelight.app/judge-evidence/nightwatch-raaplusdt-buy-alert.jpg" width="220" alt="Gmail screenshot of the RAAPLUSDT Nightwatch BUY signal email" /></a>
+<a href="https://tidelight.app/judge#nightwatch-notification-evidence"><img src="https://tidelight.app/judge-evidence/nightwatch-raaplusdt-paper-fill.jpg" width="220" alt="Gmail screenshot of the RAAPLUSDT Nightwatch paper fill email" /></a>
+
+Open the [notification evidence record](https://tidelight.app/evidence/nightwatch-email-notifications.json) or [Judge Mode gallery](https://tidelight.app/judge#nightwatch-notification-evidence).
+
+</details>
+
 ## Research data and trading artifacts
 
 <details>
