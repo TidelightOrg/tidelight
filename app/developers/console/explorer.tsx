@@ -1,16 +1,21 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useLanguage } from "@/app/ui/language-provider";
 
 type Project = { id: string; name: string };
 type Key = { id: string; project_id: string; name: string; environment: string; scopes: string[]; revoked_at: string | null; expires_at: string | null };
 type Language = "curl" | "typescript" | "python";
 type Endpoint = "market" | "research";
 type ExplorerHistoryEntry = { id: string; endpoint: Endpoint; ticker: string; createdAt: string; status: number | null; duration: number; requestId: string; result: unknown };
+type PersistedRequest = { id: string; project_id: string; endpoint: string; status_code: number | null; duration_ms: number | null; created_at: string };
 
 const languages: Language[] = ["curl", "typescript", "python"];
 
-export default function ApiExplorer({ projects, keys, currentTime, onViewResearch }: { projects: Project[]; keys: Key[]; currentTime: number; onViewResearch: () => void }) {
+export default function ApiExplorer({ projects, keys, requests, currentTime, onViewResearch, onViewUsage, onRefresh }: { projects: Project[]; keys: Key[]; requests: PersistedRequest[]; currentTime: number; onViewResearch: () => void; onViewUsage: () => void; onRefresh: () => void }) {
+  const { translate } = useLanguage();
+  const projectIds = new Set(projects.map(project => project.id));
+  const recentRequests = requests.filter(request => projectIds.has(request.project_id) && (request.endpoint.includes("/v1/market/instruments") || request.endpoint.includes("/v1/research/jobs"))).slice(0, 10);
   const [projectId, setProjectId] = useState(projects[0]?.id ?? "");
   const [keyId, setKeyId] = useState("");
   const [endpoint, setEndpoint] = useState<Endpoint>("market");
@@ -146,6 +151,17 @@ export default function ApiExplorer({ projects, keys, currentTime, onViewResearc
         <div className="tic-response-meta"><span>Request ID <code>{requestId || "Unavailable"}</code></span><span>Response time <code>{duration ?? "—"} ms</code></span><span>Usage <code>{typeof result === "object" && result !== null && "usage" in result && result.usage && typeof result.usage === "object" && "requests" in result.usage && result.usage.requests === 1 ? "1 request" : "Unavailable"}</code></span></div>
         <pre tabIndex={0} aria-label="JSON response"><code>{JSON.stringify(result, null, 2)}</code></pre>
       </> : <div className="tic-response-empty"><span aria-hidden="true" /><div><strong>Your response will appear here</strong><p>Run the request to inspect live data, request metadata, and any API errors.</p></div></div>}
+    </section>
+
+    <section className="tic-panel tic-explorer-history" aria-labelledby="tic-saved-history-title">
+      <div className="tic-panel-head"><div><p className="tic-explorer-kicker">{translate("ACCOUNT HISTORY")}</p><h2 id="tic-saved-history-title">{translate("Recent authorized API calls")}</h2></div><button className="tic-history-clear" type="button" onClick={onRefresh}>{translate("Refresh history")}</button></div>
+      {recentRequests.length ? <ol className="tic-explorer-history-list">{recentRequests.map(request => {
+        const project = projects.find(item => item.id === request.project_id);
+        const label = request.endpoint.includes("/v1/research/jobs") ? translate("Company research job") : translate("Market instruments");
+        const outcome = request.status_code === null ? translate("Pending") : `HTTP ${request.status_code}`;
+        return <li key={request.id}><div><b>{label} · {project?.name ?? translate("Project")}</b><small>{new Date(request.created_at).toLocaleString()} · {outcome} · {request.duration_ms ?? "—"} ms</small></div><button type="button" onClick={onViewUsage}>{translate("Open usage logs")}</button></li>;
+      })}</ol> : <p className="tic-history-note">{translate("No authorized API calls are recorded yet. Run a request here and it will appear in account history.")}</p>}
+      <p className="tic-history-note">{translate("This list uses saved request metadata. Response content stays in the current tab session.")}</p>
     </section>
 
     {history.length > 0 && <section className="tic-panel tic-explorer-history" aria-labelledby="tic-history-title">
