@@ -1,0 +1,24 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "user_provided_nightwatch_email_captures",
+  "instrument": "RMUUSDT",
+  "message_time_local": "02:28 (timezone not shown in the screenshots)",
+  "captures": [
+    {
+      "id": "nightwatch-rmuusdt-analysis-complete",
+      "subject": "Nightwatch analysis · Analysis complete · RMUUSDT",
+      "event": "analysis_complete",
+      "decision": "HOLD · no_action",
+      "summary": "The screenshot shows SMA20 below SMA50 (879.71 versus 894.38), a negative seven-day return, and no valid setup to enter.",
+      "screenshot_uri": "/judge-evidence/nightwatch-rmuusdt-analysis-email.jpg"
+    },
+    {
+      "id": "nightwatch-rmuusdt-risk-review",
+      "subject": "Nightwatch risk review · Risk review · RMUUSDT",
+      "event": "risk_context",
+      "summary": "The screenshot lists bearish SMA alignment, no linked research, elevated four-hour realized volatility (1.53%), possible token tracking divergence, and an invalidation condition above SMA50.",
+      "screenshot_uri": "/judge-evidence/nightwatch-rmuusdt-risk-review-email.jpg"
+    }
+  ],
+  "evidence_boundary": "These user-provided Gmail screenshots show email content and rendered decision context. They do not verify message authentication or delivery independently, and do not show a paper fill, exchange order, executed trade, account balance, or performance result."
+}

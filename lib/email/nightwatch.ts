@@ -14,7 +14,7 @@ export async function enqueueNightwatchEmail(input: {
 }) {
   const { data: preferences, error: preferenceError } = await input.admin.from("email_notification_preferences").select("nightwatch_analysis,nightwatch_signals,nightwatch_fills,nightwatch_risks,nightwatch_research,nightwatch_daily_summary").eq("user_id", input.userId).maybeSingle();
   if (preferenceError) throw new Error("Could not read email notification preferences.");
-  const enabled = input.kind === "nightwatch_analysis" ? preferences?.nightwatch_analysis : input.kind === "nightwatch_signal" ? preferences?.nightwatch_signals : input.kind === "nightwatch_fill" ? preferences?.nightwatch_fills : input.kind === "nightwatch_risk" ? preferences?.nightwatch_risks : input.kind === "nightwatch_research" ? preferences?.nightwatch_research : preferences?.nightwatch_daily_summary;
+  const enabled = preferences ? input.kind === "nightwatch_analysis" ? preferences.nightwatch_analysis : input.kind === "nightwatch_signal" ? preferences.nightwatch_signals : input.kind === "nightwatch_fill" ? preferences.nightwatch_fills : input.kind === "nightwatch_risk" ? preferences.nightwatch_risks : input.kind === "nightwatch_research" ? preferences.nightwatch_research : preferences.nightwatch_daily_summary : true;
   if (!enabled) return "suppressed" as const;
   const { error } = await input.admin.from("email_delivery_queue").upsert({ user_id: input.userId, event_key: input.eventKey, category: input.kind, payload: { title: input.title.slice(0, 160), body: input.body.slice(0, 1000) } }, { onConflict: "event_key", ignoreDuplicates: true });
   if (error) throw new Error("Could not queue the email notification.");

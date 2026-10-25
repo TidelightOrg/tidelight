@@ -317,3 +317,11 @@
 .tic-package-receipt footer>span{font-size:7px}.tic-package-receipt footer code{color:var(--tic-accent);font:8px var(--mono)}
 @media(max-width:780px){.tic-package-proof{grid-template-columns:1fr;gap:28px;padding-block:63px}.tic-package-proof-copy h2{max-width:20ch}.tic-package-receipt{width:min(100%,600px);margin:auto}}
 @media(max-width:480px){.tic-package-receipt{padding-inline:15px;border-radius:13px}.tic-package-receipt header{gap:9px}.tic-package-receipt header small,.tic-package-receipt-status{font-size:7px}.tic-package-receipt-meta{font-size:7px}.tic-package-receipt-rule{margin-inline:-15px}.tic-package-receipt dl>div{gap:10px}.tic-package-receipt dt,.tic-package-receipt dd{font-size:8px}.tic-package-receipt footer{align-items:flex-start;flex-direction:column;margin-inline:-15px;padding-inline:15px}}
+
+/* Keep the package hero readable when mobile browsers request the desktop site. */
+@media(min-width:761px) and (max-width:1050px){
+  .tic-packages-hero{grid-template-columns:minmax(0,1fr);gap:32px;padding:68px 28px 64px}
+  .tic-packages-hero h1{max-width:13ch;font-size:clamp(48px,7vw,72px);line-height:1.05;overflow-wrap:anywhere}
+  .tic-package-constellation{width:min(100%,620px);min-height:340px;margin:0 auto}
+  .tic-package-detail-hero{grid-template-columns:minmax(0,1fr);gap:30px}
+}

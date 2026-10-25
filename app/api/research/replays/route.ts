@@ -22,7 +22,18 @@ function publicSourceUrl(value: unknown, allowedSources: Set<string>): string | 
 function replayLabel(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const label = value.trim();
-  return label.length <= 40 && /^[\p{L}\p{N}][\p{L}\p{N} ._/-]{0,39}$/u.test(label) ? label : null;
+  // Token-pulse inputs can be human-readable market names (for example, "S&P 500"
+  // or "BTC:USDT"), not only exchange ticker symbols. Keep the accepted characters
+  // bounded and inert while preserving those legitimate labels.
+  return label.length <= 40 && /^[\p{L}\p{N}][\p{L}\p{N} ._/&+():$^-]{0,39}$/u.test(label) ? label : null;
+}
+
+function replayText(row: Record<string, unknown>, ...keys: string[]): string | null {
+  for (const key of keys) {
+    const value = row[key];
+    if (typeof value === "string" && value.trim()) return value.trim();
+  }
+  return null;
 }
 
 export async function POST(request: Request) {
@@ -71,8 +82,14 @@ export async function POST(request: Request) {
   });
   const assets = rows.flatMap((raw) => {
     const row = object(raw);
-    const ticker = replayLabel(row?.ticker);
-    if (!row || !ticker || typeof row.issuer !== "string" || typeof row.summary !== "string") return [];
+    if (!row) return [];
+    // Older saved pulses used symbol/name/overview, while newer runs use
+    // ticker/issuer/summary. Normalize only these known string fields; the public
+    // object below remains an explicit allowlist and source URLs still need DB lineage.
+    const ticker = replayLabel(row.ticker ?? row.symbol ?? row.underlyingTicker ?? row.token);
+    const issuer = replayText(row, "issuer", "issuerName", "name") ?? ticker;
+    const summaryText = replayText(row, "summary", "overview", "analysis");
+    if (!ticker || !issuer || !summaryText) return [];
     const market = object(row.market) ?? {};
     const stance = ["bullish", "bearish", "mixed", "unclear"].includes(String(row.stance)) ? row.stance : "unclear";
     const confidence = typeof row.confidence === "number" && Number.isFinite(row.confidence) ? Math.max(0, Math.min(1, row.confidence)) : 0;
@@ -91,8 +108,8 @@ export async function POST(request: Request) {
     }).slice(0, 3) : [];
     return [{
       ticker,
-      issuer: row.issuer.slice(0, 160),
-      summary: row.summary.slice(0, 700),
+      issuer: issuer.slice(0, 160),
+      summary: summaryText.slice(0, 700),
       stance,
       confidence: Boolean(row.confidenceCapped) ? Math.min(confidence, 0.4) : confidence,
       confidenceCapped: Boolean(row.confidenceCapped),

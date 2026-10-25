@@ -49,7 +49,7 @@
     "requested": "research:run",
     "available_in_connected_codex_tool_registry": false,
     "research_run_performed": false,
-    "detail": "The connected Codex tool registry exposed tokenized-equity lookup and search only. These two authenticated calls verify read-only market access; neither is an issuer research job or a synthesized research result."
+    "detail": "The connected Codex registry returned tokenized-equity lookup and search, and these authenticated calls completed through that client. They are market lookups, not issuer research jobs or synthesized research results. Separate client configurations and completed research jobs are documented in authenticated-research-20261025."
   },
   "evidence_boundary": "A live connector call record. It reports the provider result at capture time and is not an investment recommendation, liquidity/depth measurement, or performance claim."
 }

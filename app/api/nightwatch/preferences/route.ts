@@ -15,7 +15,7 @@ export async function GET() {
   ]);
   if (settingsResult.error || emailResult.error) return NextResponse.json({ error: "Could not load Nightwatch preferences." }, { status: 503 });
   const schedulerAvailable = Boolean(process.env.CRON_SECRET && (process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY));
-  return NextResponse.json({ ...(settingsResult.data ?? defaults), ...(emailResult.data ?? { nightwatch_analysis: false, nightwatch_signals: false, nightwatch_fills: false, nightwatch_risks: false, nightwatch_research: false, nightwatch_daily_summary: false }), scheduler_available: schedulerAvailable, email_delivery_available: Boolean(process.env.RESEND_API_KEY && (process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY)) });
+  return NextResponse.json({ ...(settingsResult.data ?? defaults), ...(emailResult.data ?? { nightwatch_analysis: true, nightwatch_signals: true, nightwatch_fills: true, nightwatch_risks: true, nightwatch_research: true, nightwatch_daily_summary: true }), scheduler_available: schedulerAvailable, email_delivery_available: Boolean(process.env.RESEND_API_KEY && (process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY)) });
 }
 
 export async function PATCH(request: Request) {
@@ -48,8 +48,6 @@ export async function PATCH(request: Request) {
     nightwatch_daily_summary: body.nightwatch_daily_summary === true,
     updated_at: new Date().toISOString(),
   };
-  const emailRequested = emailValues.nightwatch_analysis || emailValues.nightwatch_signals || emailValues.nightwatch_fills || emailValues.nightwatch_risks || emailValues.nightwatch_research || emailValues.nightwatch_daily_summary;
-  if (emailRequested && (!process.env.RESEND_API_KEY || (!process.env.SUPABASE_SECRET_KEY && !process.env.SUPABASE_SERVICE_ROLE_KEY))) return NextResponse.json({ error: "Email notifications are being prepared but are not available yet." }, { status: 503 });
   const values = { user_id: user.id, ...normalizeNightwatchPreferences(body), updated_at: new Date().toISOString() };
   const { error } = await supabase.from("nightwatch_preferences").upsert(values, { onConflict: "user_id" });
   if (error) return NextResponse.json({ error: "Could not save Nightwatch preferences." }, { status: 503 });

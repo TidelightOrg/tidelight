@@ -10,7 +10,7 @@ test("ecosystem status groups real service checks and labels unmonitored workloa
   for (const service of ["Tidelight app", "Developer docs", "Package directory", "REST API", "Research job API", "MCP server metadata", "npm registry", "Python package registry", "Application database"]) assert.ok(status.includes(`"${service}"`));
   assert.match(status, /state: "monitoring"/);
   assert.match(page, /Not monitored/);
-  assert.match(page, /Historical uptime bars and incident timelines will appear after scheduled monitoring is in place/);
+  assert.match(page, /Background job execution and message delivery are not monitored here/);
   assert.doesNotMatch(page, /\b(?:99\.\d+%|90-day uptime)\b/);
 });
 
@@ -56,8 +56,8 @@ test("service categories use native keyboard accordions and preserve unknown his
   assert.match(page, /<details className="tic-status-group"[^>]*open=\{group\.name === "Websites"\}/);
   assert.match(page, /<summary>/);
   assert.doesNotMatch(page, /role="button"|onClick=/);
-  assert.match(page, /History not yet available/);
-  assert.match(page, /Scheduled measurements have not been collected/);
+  assert.match(page, /What these checks cover/);
+  assert.match(page, /Background job execution and message delivery are not monitored here/);
   assert.match(page, /group\.services\.some\(service => service\.state === "degraded"\)/);
   assert.match(css, /summary:focus-visible/);
   assert.match(css, /max-width: 810px/);

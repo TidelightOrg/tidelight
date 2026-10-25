@@ -124,22 +124,22 @@ export default function JudgePage() {
 
     <section className="judge-section judge-mcp" id="codex-mcp-evidence" aria-labelledby="codex-mcp-title">
       <div className="judge-section-heading">
-        <div><span className="judge-kicker">CODEX · MCP CONNECTION</span><h2 id="codex-mcp-title">Tidelight MCP in Codex</h2></div>
-        <p>The Tidelight MCP plugin is installed and connected in ChatGPT/Codex. Its current registry exposes two read-only market tools. A separate historical recording captures two authenticated NVDA market reads; no company research-job tool is available in the current grant. The Codex Cloud SDK attempt stopped before package installation or job submission because no preconfigured research key was available.</p>
+        <div><span className="judge-kicker">CONNECTED CLIENTS · VERIFIED PATHS</span><h2 id="codex-mcp-title">MCP tools and research runs</h2></div>
+        <p>These records cover separate client setups. The connected ChatGPT/Codex connector completed tokenized-market reads. The published npm stdio bridge exposed all five tools, including research start, status, and cancel. An authenticated Streamable HTTP session completed an MSFT research job. The traces below show which client performed each action.</p>
       </div>
       <div className="judge-mcp-steps" aria-label="Codex MCP setup status">
         <article><span>01</span><div><b>Plugin</b><small>Tidelight MCP Live Research · Streamable HTTP</small></div><i>Installed · connected</i></article>
-        <article><span>02</span><div><b>Available tools</b><small><code>tidelight_get_tokenized_equity</code> · <code>tidelight_search_tokenized_equities</code></small></div><i>Market read</i></article>
-        <article><span>03</span><div><b>Company research job</b><small>Requested capability: <code>research:run</code></small></div><i>Tool not exposed</i></article>
+        <article><span>02</span><div><b>Codex connector registry</b><small><code>tidelight_get_tokenized_equity</code> · <code>tidelight_search_tokenized_equities</code></small></div><i>Lookup · search</i></article>
+        <article><span>03</span><div><b>Separate research clients</b><small>npm stdio bridge · direct Streamable HTTP · installed npm and Python SDKs</small></div><i>Traced below</i></article>
       </div>
       <div className="judge-inline-actions">
         <Link href="/replay/ed08a907-14b0-41dd-b731-78870fe3255b">Open fresh NVDA replay <span aria-hidden="true">↗</span></Link>
         <a href="https://dev.tidelight.app/#connect-with-the-mcp-server">MCP connection guide <span aria-hidden="true">↗</span></a>
         <a href="https://mcp.tidelight.app/.well-known/oauth-protected-resource/mcp">OAuth resource metadata <span aria-hidden="true">↗</span></a>
         <Link href="/evidence/tidelight-codex-mcp.json">Current registry check <span aria-hidden="true">↗</span></Link>
-        <Link href="/evidence/tidelight-research-job-client-attempt-20261024.json">Authenticated job attempt record <span aria-hidden="true">↗</span></Link>
-        <Link href="/evidence/tidelight-codex-mcp-install-attempt-20261024.json">Earlier unavailable-session record <span aria-hidden="true">↗</span></Link>
         <Link href="/evidence/tidelight-codex-mcp-market-check-20261024.json">Live Codex market calls <span aria-hidden="true">↗</span></Link>
+        <a href="/evidence/authenticated-research-20261025/README.md">Compare client traces and completed jobs <span aria-hidden="true">↗</span></a>
+        <a href="/evidence/tidelight-research-job-client-attempt-20261024.json">Earlier Codex Cloud attempt · no jobs submitted <span aria-hidden="true">↗</span></a>
       </div>
     </section>
 
@@ -174,8 +174,16 @@ export default function JudgePage() {
         </a>
       </article>
       <section className="judge-notification-proof" id="nightwatch-notification-evidence" aria-labelledby="notification-evidence-title">
-        <div className="judge-notification-heading"><div><span className="judge-kicker">NIGHTWATCH · EMAIL EVIDENCE</span><h3 id="notification-evidence-title">Signal and simulated fill notifications</h3></div><a href="/evidence/nightwatch-email-notifications.json">Evidence record ↗</a></div>
+        <div className="judge-notification-heading"><div><span className="judge-kicker">NIGHTWATCH · EMAIL EVIDENCE</span><h3 id="notification-evidence-title">Analysis, risk, and paper alerts</h3></div><div className="judge-inline-actions"><a href="/evidence/nightwatch-rmuusdt-email-captures.json">RMUUSDT evidence ↗</a><a href="/evidence/nightwatch-email-notifications.json">RAAPLUSDT alert data ↗</a></div></div>
         <div className="judge-notification-proof-grid">
+          <article className="judge-notification-card">
+            <a className="judge-notification-image" href="/judge-evidence/nightwatch-rmuusdt-analysis-email.jpg" target="_blank" rel="noreferrer" aria-label="Open RMUUSDT Nightwatch analysis complete email screenshot"><Image src="/judge-evidence/nightwatch-rmuusdt-analysis-email.jpg" width={673} height={1536} alt="User-provided Gmail screenshot of a Nightwatch analysis complete email for RMUUSDT. It reports HOLD and no action because SMA20 is below SMA50 and says no valid setup is available." /></a>
+            <div><span className="judge-kicker">ANALYSIS · HOLD</span><h4>RMUUSDT analysis complete</h4><p>The email records a HOLD with no action: SMA20 remains below SMA50, the seven-day return is negative, and the playbook found no valid entry.</p><a href="/judge-evidence/nightwatch-rmuusdt-analysis-email.jpg" target="_blank" rel="noreferrer">Open screenshot ↗</a></div>
+          </article>
+          <article className="judge-notification-card">
+            <a className="judge-notification-image" href="/judge-evidence/nightwatch-rmuusdt-risk-review-email.jpg" target="_blank" rel="noreferrer" aria-label="Open RMUUSDT Nightwatch risk review email screenshot"><Image src="/judge-evidence/nightwatch-rmuusdt-risk-review-email.jpg" width={609} height={1536} alt="User-provided Gmail screenshot of a Nightwatch risk review email for RMUUSDT, listing bearish moving-average alignment, no linked research, elevated volatility, token tracking divergence, and an invalidation condition." /></a>
+            <div><span className="judge-kicker">RISK CONTEXT</span><h4>RMUUSDT risk review</h4><p>The email lists bearish SMA alignment, no linked research, 1.53% four-hour realized volatility, token tracking divergence, and the condition that would invalidate the bearish view.</p><a href="/judge-evidence/nightwatch-rmuusdt-risk-review-email.jpg" target="_blank" rel="noreferrer">Open screenshot ↗</a></div>
+          </article>
           <article className="judge-notification-card">
             <a className="judge-notification-image" href="/judge-evidence/nightwatch-raaplusdt-buy-alert.jpg" target="_blank" rel="noreferrer" aria-label="Open RAAPLUSDT Nightwatch buy alert screenshot"><Image src="/judge-evidence/nightwatch-raaplusdt-buy-alert.jpg" width={705} height={1639} alt="Gmail screenshot of a Tidelight Nightwatch BUY signal alert for RAAPLUSDT, received at 1:40 AM." /></a>
             <div><span className="judge-kicker">PAPER SIGNAL</span><h4>RAAPLUSDT buy alert</h4><p>Gmail capture of the Nightwatch BUY signal email and its rendered alert details.</p><a href="/judge-evidence/nightwatch-raaplusdt-buy-alert.jpg" target="_blank" rel="noreferrer">Open screenshot ↗</a></div>
@@ -185,7 +193,7 @@ export default function JudgePage() {
             <div><span className="judge-kicker">PAPER FILL</span><h4>RAAPLUSDT paper buy filled</h4><p>Gmail capture of the Nightwatch simulated fill email and its rendered details.</p><a href="/judge-evidence/nightwatch-raaplusdt-paper-fill.jpg" target="_blank" rel="noreferrer">Open screenshot ↗</a></div>
           </article>
         </div>
-        <p className="judge-section-note">These captures show Gmail delivery and message content. The messages are not exchange receipts or audited performance records.</p>
+        <p className="judge-section-note">The RMUUSDT screenshots show user-provided Gmail message content. They document analysis and risk context, not a fill, trade, or account result. The RAAPLUSDT captures show email notifications; they are not exchange receipts or audited performance records.</p>
       </section>
       <div className="judge-inline-actions">
         <Link href="/nightwatch/replays">Browse published paper replays <span aria-hidden="true">↗</span></Link>
@@ -276,8 +284,16 @@ export default function JudgePage() {
     <section className="judge-section" id="authenticated-research" aria-labelledby="authenticated-research-title">
       <div className="judge-section-heading">
         <div><span className="judge-kicker">AUTHENTICATED RESEARCH · 25 OCT 2026</span><h2 id="authenticated-research-title">Actual runs, inspectable traces.</h2></div>
-        <p>Safe request and job IDs are retained. Credentials and private report bodies are excluded. Cast files record actual sanitized stdout, not browser video.</p>
+        <p>Safe request and job IDs are retained. Credentials and private report bodies are excluded. The visual replay below is rendered from actual sanitized stdout; the original timed casts preserve the source events.</p>
       </div>
+      <figure className="judge-authenticated-video">
+        <video controls playsInline preload="metadata" aria-label="Visual replay of sanitized terminal recordings for Tidelight MCP and SDK research checks">
+          <source src="/judge-evidence/authenticated-research-terminal-replay-20261025.mp4" type="video/mp4" />
+          Your browser does not support the video element.
+        </video>
+        <figcaption><span>Visual replay assembled from original sanitized terminal recordings · playback 2×</span><a href="/judge-evidence/authenticated-research-terminal-replay-20261025.mp4" target="_blank" rel="noreferrer">Open video ↗</a></figcaption>
+        <p>This is a visual replay of recorded terminal output, not a fresh browser screen capture. Original timed casts, JSON traces, and run limits are linked below.</p>
+      </figure>
       <div className="judge-authenticated-grid">
         <article>
           <span className="judge-kicker">PUBLISHED NPM + PYPI · COMPLETE</span>
@@ -309,7 +325,7 @@ export default function JudgePage() {
             <a href="/evidence/authenticated-research-20261025/install.json">Package integrity ↗</a>
             <a href="/evidence/authenticated-research-20261025/installed-bridge.json">Separate Codex registry ↗</a>
           </div>
-          <p>The Codex connector exposes only market tools; stdio discovery does not establish Codex research availability.</p>
+          <p>This npm-installed stdio bridge is a separate client from the connected Codex connector. Its tool discovery proves those tools are advertised by the package; the completed MSFT job is recorded under the direct HTTP MCP session.</p>
         </article>
         <article>
           <span className="judge-kicker">SOURCE CHECKOUTS · QUOTA LIMIT RETAINED</span>
@@ -324,7 +340,7 @@ export default function JudgePage() {
           <p>TypeScript has an execution report, not a timed recording. The Python recording ends at the quota error; completion reads are separate.</p>
         </article>
       </div>
-      <div className="judge-inline-actions"><a href="/evidence/authenticated-research-20261025/README.md">Scope and recorder sources ↗</a><a href="/evidence/authenticated-research-20261025/sha256.json">Artifact checksums ↗</a><a href="/evidence/authenticated-research-20261025.zip" download>Download evidence ZIP ↗</a></div>
+      <div className="judge-inline-actions"><a href="/judge-evidence/authenticated-research-terminal-replay-20261025.json">Visual replay manifest ↗</a><a href="/evidence/authenticated-research-20261025/README.md">Scope and recorder sources ↗</a><a href="/evidence/authenticated-research-20261025/sha256.json">Original artifact checksums ↗</a><a href="/evidence/authenticated-research-20261025.zip" download>Download evidence ZIP ↗</a></div>
     </section>
     <footer className="judge-footer">
       <p>Historical simulations are not audited results. Research is not investment advice; live execution is not enabled.</p>

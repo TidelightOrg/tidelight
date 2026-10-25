@@ -4,7 +4,7 @@ import Script from "next/script";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { NavigationTrail } from "@/app/ui/navigation-icon";
-import TidelightAnimatedMark from "@/app/ui/tidelight-animated-mark";
+import LandingSystemStatus from "@/app/ui/landing-system-status";
 import { useLanguage } from "@/app/ui/language-provider";
 
 const DOCS_URL = "https://docs.tidelight.app";
@@ -200,20 +200,7 @@ export default function LandingDocsEmbed() {
         </div>
         {status ? <span id="landing-docs-status" className="landing-docs-status" role="status" aria-live="polite">{status}</span> : <span className="landing-docs-signal" aria-hidden="true"><i /><i /><i /></span>}
       </div>
-      <div className="landing-docs-window" aria-label="Tidelight handbook preview">
-        <div className="landing-docs-window-bar"><span className="landing-docs-window-brand"><i><TidelightAnimatedMark /></i> TIDELIGHT / HANDBOOK</span><span className="landing-docs-window-dots" aria-hidden="true"><i /><i /><i /></span></div>
-        <div className="landing-docs-window-body">
-          <aside className="landing-docs-rail" aria-hidden="true"><b>◫</b><span>⌕</span><span>▤</span><i /></aside>
-          <div className="landing-docs-page">
-            <span className="landing-docs-page-kicker">PUBLIC HANDBOOK · TIDELIGHT</span>
-            <h3>Evidence-first research for tokenized markets.</h3>
-            <p>Ask in everyday language. Bring the original source. See what could change the picture.</p>
-            <div className="landing-docs-chapters"><button type="button" onClick={() => openEmbed("/use-tidelight/start-here")}><i>01</i><b>Start here</b><small>Turn a question and source into a clear trail.</small></button><button type="button" onClick={() => openEmbed("/use-tidelight/research-desk")}><i>02</i><b>Research desk</b><small>Build source-based briefs you can inspect.</small></button><button type="button" onClick={() => openEmbed("/use-tidelight/markets-and-watchlists")}><i>03</i><b>Markets &amp; watchlists</b><small>Follow public quotes and freshness.</small></button></div>
-            <div className="landing-docs-search"><span aria-hidden="true">⌕</span><span>Ask the Tidelight handbook…</span><NavigationTrail className="landing-arrow" /></div>
-          </div>
-        </div>
-        <div className="landing-docs-window-foot"><span><i /> SOURCE-LED PRODUCT GUIDE</span><small>docs.tidelight.app</small></div>
-      </div>
+      <LandingSystemStatus />
     </section>
   </>;
 }
