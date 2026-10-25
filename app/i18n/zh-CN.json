@@ -5947,5 +5947,12 @@
   "Run-by-run production captures": "逐项生产环境采集记录",
   "Observed UI durations and outputs. These are not protocol task-time or claim-quality scores.": "记录界面耗时与输出结果，不代表协议任务耗时或主张质量评分。",
   "All frozen events have production observations.": "所有预先确定的事件均有生产环境观测记录。",
-  "Two runs returned model synthesis; eight were source-only or had no synthesis.": "两项任务返回了模型综合结果；八项仅提供来源或没有综合结果。"
+  "Two runs returned model synthesis; eight were source-only or had no synthesis.": "两项任务返回了模型综合结果；八项仅提供来源或没有综合结果。",
+  "CI tested: {versions}": "CI 已测试：{versions}",
+  "PINNED TO {version}": "版本固定为 {version}",
+  "Published · v{version}": "已发布 · v{version}",
+  "Last verified · v{version}": "最近验证的版本 · v{version}",
+  "Published · {registry}": "已发布 · {registry}",
+  "Last verified · {registry}": "最近验证 · {registry}",
+  "Checking {registry}…": "正在检查 {registry}…"
 }
