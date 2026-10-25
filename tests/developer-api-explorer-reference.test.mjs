@@ -22,8 +22,8 @@ test("API Explorer exposes endpoint-specific parameter and authorization referen
   assert.match(explorer, /idempotencyKey = randomUUID\(\); \/\/ create once per job and reuse for retries/);
   assert.match(explorer, /from uuid import uuid4/);
   assert.match(explorer, /idempotency_key = str\(uuid4\(\)\).*reuse for retries/);
-  assert.match(explorer, /setResearchIdempotencyKey\(""\)/);
-  assert.match(explorer, /useEffect\(\(\) => \{\s*if \(endpoint === "research" && !researchIdempotencyKey\) setResearchIdempotencyKey\(crypto\.randomUUID\(\)\)/);
+  assert.match(explorer, /nextEndpoint === "research"\) setResearchIdempotencyKey\(crypto\.randomUUID\(\)\)/);
+  assert.match(explorer, /nextTicker !== underlyingTicker\) setResearchIdempotencyKey\(crypto\.randomUUID\(\)\)/);
   assert.match(explorer, /Its required scope is <code>\{scope\}<\/code>/);
   assert.match(styles, /\.tic-explorer-reference/);
   assert.match(styles, /@media\(max-width:520px\).*\.tic-explorer-reference dl>div\{grid-template-columns:1fr/s);
