@@ -22,6 +22,14 @@ export default async function StatusPage() {
   const services = status.groups.flatMap(group => group.services);
   const checkedCount = services.filter(service => service.state !== "monitoring").length;
   const monitoringCount = services.length - checkedCount;
+  const today = new Date();
+  const days = Array.from({ length: 90 }, (_, index) => {
+    const day = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - (89 - index)));
+    const key = day.toISOString().slice(0, 10);
+    const samples = status.history.snapshots.filter(snapshot => snapshot.sampledAt.slice(0, 10) === key);
+    const state = samples.some(snapshot => snapshot.overall === "degraded") ? "degraded" : samples.length ? "operational" : "unknown";
+    return { key, state, count: samples.length };
+  });
   return <main className="tic-status-page">
     <header className="tic-status-header">
       <a className="tic-status-wordmark" href="https://tidelight.app" aria-label="Tidelight home">tide<span>light</span></a>
@@ -47,6 +55,14 @@ export default async function StatusPage() {
           <div className="tic-status-signal-caption"><span><i />LIVE CHECKS</span><strong>{checkedCount} <small>monitored</small></strong><em>{monitoringCount} background services are not monitored here</em></div>
         </div>
       </div>
+      <section className="tic-status-history" aria-labelledby="history-title">
+        <div className="tic-status-history-heading"><div><p className="tic-status-eyebrow">RECORDED CHECKS</p><h2 id="history-title">90-day status history</h2></div><Link href={incidentsPath}>Incident history ↗</Link></div>
+        <div className="tic-status-history-bars" role="img" aria-label={status.history.available ? "Daily status from scheduled checks over the last 90 days" : "90-day history is unavailable"}>
+          {days.map(day => <span key={day.key} className={day.state} title={day.key + ": " + (day.count ? day.count + " recorded checks, " + day.state : "no recorded checks")} />)}
+        </div>
+        <div className="tic-status-history-legend"><span><i className="operational" />Operational</span><span><i className="degraded" />Degraded</span><span><i className="unknown" />No data</span><span>90 days</span></div>
+        <p>{status.history.available ? status.history.snapshots.length ? "Each mark summarizes scheduled checks recorded for that UTC day. Missing marks mean no check was recorded." : "Scheduled history has not started recording yet. The timeline will fill as checks are saved every 15 minutes." : "The scheduled history store is currently unavailable. Live checks above are unaffected."}</p>
+      </section>
       <div className="tic-status-groups" aria-label="Tidelight services">
         {status.groups.map(group => {
           const groupState = group.services.some(service => service.state === "degraded") ? "degraded"

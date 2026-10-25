@@ -91,6 +91,36 @@
 .tic-status-empty-card { margin-top: 28px; padding: 19px 20px; border: 1px solid var(--status-line); border-radius: 6px; background: var(--status-card); }
 .tic-status-empty-card strong { font-size: 13px; }
 .tic-status-empty-card p { margin: 8px 0 0; font-size: 12px; }
+
+.tic-status-history{margin:0 0 25px;padding:19px 20px;border:1px solid var(--status-line);border-radius:10px;background:var(--status-card)}
+.tic-status-history-heading{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.tic-status-history-heading .tic-status-eyebrow{margin-bottom:6px}
+.tic-status-history-heading h2{margin:0;color:var(--status-ink);font-size:18px;letter-spacing:-.025em}
+.tic-status-history-heading>a{color:var(--status-accent);font-size:12px;text-decoration:none;white-space:nowrap}
+.tic-status-history-bars{display:grid;grid-template-columns:repeat(90,minmax(2px,1fr));gap:3px;align-items:stretch;height:38px;margin-top:19px}
+.tic-status-history-bars>span{border-radius:3px;background:#364144}
+.tic-status-history-bars>span.operational{background:var(--status-good)}
+.tic-status-history-bars>span.degraded{background:var(--status-warn)}
+.tic-status-history-bars>span.unknown{background:color-mix(in srgb,var(--status-muted) 26%,var(--status-card))}
+.tic-status-history-legend{display:flex;align-items:center;gap:14px;margin-top:12px;color:var(--status-muted);font-size:10px;flex-wrap:wrap}
+.tic-status-history-legend>span{display:inline-flex;align-items:center;gap:6px}
+.tic-status-history-legend>span:last-child{margin-left:auto}
+.tic-status-history-legend i{width:8px;height:8px;border-radius:2px;background:#364144}
+.tic-status-history-legend i.operational{background:var(--status-good)}
+.tic-status-history-legend i.degraded{background:var(--status-warn)}
+.tic-status-history-legend i.unknown{background:color-mix(in srgb,var(--status-muted) 26%,var(--status-card))}
+.tic-status-history>p{margin:12px 0 0;color:var(--status-muted);font-size:11px;line-height:1.65}
+.tic-status-incident-list{display:grid;gap:12px;margin:28px 0;padding:0;list-style:none}
+.tic-status-incident{padding:18px;border:1px solid var(--status-line);border-radius:8px;background:var(--status-card)}
+.tic-status-incident-top{display:flex;justify-content:space-between;gap:14px;align-items:center}
+.tic-status-incident-top strong{font-size:14px}
+.tic-status-incident-top span{font-size:11px;color:var(--status-warn)}
+.tic-status-incident-top span.resolved{color:var(--status-good)}
+.tic-status-incident p,.tic-status-incident time,.tic-status-incident small{display:block;color:var(--status-muted);font-size:12px;line-height:1.65}
+.tic-status-incident p{margin:10px 0}
+.tic-status-incident small{margin-top:4px}
+@media(max-width:700px){.tic-status-history{padding:16px 14px}.tic-status-history-bars{gap:2px;height:32px}.tic-status-history-legend{gap:9px;font-size:9px}.tic-status-history-heading h2{font-size:16px}.tic-status-history-heading>a{font-size:11px}}
+
 @media (max-width: 700px) {
   .tic-status-page { padding: 0 20px; }
   .tic-status-header { align-items: flex-start; flex-direction: column; justify-content: center; gap: 18px; padding: 22px 0; }

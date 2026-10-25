@@ -23,7 +23,7 @@ test("status navigation exposes current status, maintenance, and incident histor
   const maintenance = await readFile(new URL("../app/status/maintenance/page.tsx", import.meta.url), "utf8");
   assert.match(page, /href=\{maintenancePath\}/);
   assert.match(page, /href=\{incidentsPath\}/);
-  assert.match(incidents, /Incident archive not connected/);
+  assert.match(incidents, /history\.incidents\.map/);
   assert.match(maintenance, /no connected maintenance calendar/i);
 });
 
@@ -67,6 +67,9 @@ test("service categories use native keyboard accordions and preserve unknown his
   assert.match(css, /--status-bg: #101718/);
   assert.match(css, /@media \(max-width: 700px\)/);
   assert.doesNotMatch(page, /role="progressbar"|uptimePercent|uptimeBars/);
+  assert.match(page, /90-day status history/);
+  assert.match(page, /status\.history\.snapshots\.filter/);
+  assert.match(page, /no recorded checks/);
 });
 
 test("rendered status preserves degraded database and native disclosure semantics", async () => {
@@ -111,4 +114,25 @@ test("rendered status preserves degraded database and native disclosure semantic
   assert.match(html, /href="\/maintenance"/);
   assert.match(html, /href="\/incidents"/);
   assert.doesNotMatch(html, /All monitored services operational|role="progressbar"/);
+});
+
+
+test("scheduled 90-day history uses the research worker bearer and accepts Supabase POST", async () => {
+  const route = await readFile(new URL("../app/api/cron/status-history/route.ts", import.meta.url), "utf8");
+  const migration = await readFile(new URL("../supabase/migrations/20261025120000_status_history.sql", import.meta.url), "utf8");
+  assert.match(route, /TIC_RESEARCH_CRON_SECRET/);
+  assert.match(route, /timingSafeEqual/);
+  assert.match(route, /export const POST = GET/);
+  assert.match(migration, /interval '90 days'/);
+  assert.match(migration, /tic-status-history/);
+});
+
+test("status history is sourced from bounded server-side snapshots and incident records", async () => {
+  const status = await readFile(new URL("../lib/tic/system-status.ts", import.meta.url), "utf8");
+  assert.match(status, /tic_status_snapshots/);
+  assert.match(status, /tic_status_incidents/);
+  assert.match(status, /limit\(8640\)/);
+  assert.match(status, /limit\(200\)/);
+  assert.match(status, /includeHistory\?: boolean/);
+  assert.match(status, /available: false/);
 });
