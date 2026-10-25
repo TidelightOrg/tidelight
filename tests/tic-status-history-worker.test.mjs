@@ -12,19 +12,20 @@ const hook = registerHooks({ resolve(specifier, context, next) {
   if (modules[specifier]) return { url: `data:text/javascript,${encodeURIComponent(modules[specifier])}`, shortCircuit: true };
   return next(specifier, context);
 } });
-const { GET } = await import("../app/api/cron/status-history/route.ts");
+const { GET, POST } = await import("../app/api/cron/status-history/route.ts");
 hook.deregister();
 
 function setup(error = null) {
   const calls = [];
   globalThis.statusTest = {
-    status: { status: "degraded", components: { "Tidelight app": "operational", "REST API": "degraded", "Background worker": "monitoring" } },
+    status: { status: "degraded", components: { "Tidelight app": "operational", "REST API": "degraded", "Background worker": "monitoring" }, history: { snapshots: [], incidents: [], available: true } },
     admin: { rpc: async (name, args) => { calls.push({ name, args }); return { data: { sampleSlot: "2026-10-25T12:00:00Z", createdIncidents: 1, resolvedIncidents: 0 }, error }; } },
   };
-  process.env.CRON_SECRET = "status-secret";
+  process.env.TIC_RESEARCH_CRON_SECRET = "status-secret";
   return calls;
 }
 const request = token => new Request("https://tidelight.app/api/cron/status-history", { headers: token ? { authorization: `Bearer ${token}` } : {} });
+const postRequest = token => new Request("https://tidelight.app/api/cron/status-history", { method: "POST", headers: token ? { authorization: `Bearer ${token}` } : {} });
 
 test("status history worker rejects missing/incorrect authorization before probing or recording", async () => {
   setup();
@@ -62,4 +63,12 @@ test("database write failures are reported without exposing details", async () =
   const response = await GET(request("status-secret"));
   assert.equal(response.status, 503);
   assert.equal((await response.text()).includes("sensitive"), false);
+});
+
+
+test("Supabase POST records a scheduled status snapshot", async () => {
+  const calls = setup();
+  const response = await POST(postRequest("status-secret"));
+  assert.equal(response.status, 200);
+  assert.equal(calls.length, 1);
 });

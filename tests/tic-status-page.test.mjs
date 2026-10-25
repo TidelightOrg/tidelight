@@ -81,7 +81,7 @@ test("rendered status preserves degraded database and native disclosure semantic
   const source = await readFile(new URL("../app/status/page.tsx", import.meta.url), "utf8");
   const compiled = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, target: ts.ScriptTarget.ES2022 } }).outputText;
   const fixture = {
-    status: "degraded", checkedAt: "2026-10-25T00:00:00Z", components: {},
+    status: "degraded", checkedAt: "2026-10-25T00:00:00Z", components: {}, history: { snapshots: [], incidents: [], available: true },
     groups: [
       { name: "Websites", services: [{ name: "Tidelight app", state: "operational", detail: "HTTP 200" }] },
       { name: "Data", services: [{ name: "Application database", state: "degraded", detail: "Database query failed." }] },
