@@ -27,9 +27,15 @@ const getPreference = (): ThemePreference => {
 const saveTheme = (preference: ThemePreference) => {
   try { window.localStorage.removeItem("tidelight-theme"); } catch { /* Theme selection still works when storage is blocked. */ }
   const sharedDomain = location.hostname === "tidelight.app" || location.hostname.endsWith(".tidelight.app") ? `; Domain=.tidelight.app${location.protocol === "https:" ? "; Secure" : ""}` : "";
-  // Keep a manual choice only for this browser session. A later visit returns to the local-clock theme.
+  // Keep a manual choice only while this page is active. Leaving the site clears it,
+  // so a new visit starts with the dynamic local-clock theme.
   document.cookie = `tidelight-theme=${preference}; Path=/; SameSite=Lax${sharedDomain}`;
   document.cookie = `tidelight-theme-mode=${preference === "auto" ? "auto" : "manual"}; Path=/; SameSite=Lax${sharedDomain}`;
+};
+const clearThemePreference = () => {
+  const sharedDomain = location.hostname === "tidelight.app" || location.hostname.endsWith(".tidelight.app") ? `; Domain=.tidelight.app${location.protocol === "https:" ? "; Secure" : ""}` : "";
+  document.cookie = `tidelight-theme=; Path=/; Max-Age=0; SameSite=Lax${sharedDomain}`;
+  document.cookie = `tidelight-theme-mode=; Path=/; Max-Age=0; SameSite=Lax${sharedDomain}`;
 };
 const getTheme = (): Theme => { const preference = getPreference(); return preference === "auto" ? automaticTheme() : preference; };
 const getExperienceMode = (): ExperienceMode => window.localStorage.getItem("tidelight-experience") === "mini" ? "mini" : "pro";
@@ -51,6 +57,18 @@ export function ThemeProvider({ children, initialTheme = DEFAULT_THEME }: { chil
   useEffect(() => {
     const timer = window.setInterval(() => setClock(value => value + 1), 60_000);
     return () => window.clearInterval(timer);
+  }, []);
+  useEffect(() => {
+    const restoreDynamicTheme = () => {
+      clearThemePreference();
+      window.dispatchEvent(new Event("tidelight-theme-change"));
+    };
+    window.addEventListener("pagehide", clearThemePreference);
+    window.addEventListener("pageshow", restoreDynamicTheme);
+    return () => {
+      window.removeEventListener("pagehide", clearThemePreference);
+      window.removeEventListener("pageshow", restoreDynamicTheme);
+    };
   }, []);
   useEffect(() => {
     // Explicit choices follow the current browser session across Tidelight products; automatic mode resolves locally.

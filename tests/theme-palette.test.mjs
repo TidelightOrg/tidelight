@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-test("all five themes are selectable for the current browser session", async () => {
+test("all five themes are selectable and manual choices reset when leaving", async () => {
   const provider = await readFile(new URL("../app/ui/theme-provider.tsx", import.meta.url), "utf8");
   const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
   const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
@@ -11,6 +11,9 @@ test("all five themes are selectable for the current browser session", async () 
   assert.match(provider, /id: "dark", name: "Dark"/);
   assert.match(provider, /value === "white" \|\| value === "dark"/);
   assert.match(provider, /document\.cookie = `tidelight-theme=\$\{preference\}; Path=\/; SameSite=Lax/);
+  assert.match(provider, /window\.addEventListener\("pagehide", clearThemePreference\)/);
+  assert.match(provider, /window\.addEventListener\("pageshow", restoreDynamicTheme\)/);
+  assert.match(provider, /Max-Age=0; SameSite=Lax/);
   assert.match(provider, /localStorage\.removeItem\("tidelight-theme"\)/);
   assert.doesNotMatch(provider, /theme-quick-auto/);
   assert.doesNotMatch(provider, /theme-quick-swatch[^>]*>A/);
