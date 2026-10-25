@@ -143,3 +143,12 @@ The incident archive groups entries by month and shows title, resolved state, re
 ## Tidelight implementation comparison
 
 The live `status.tidelight.app` page now uses the same high-level status pattern: persistent status navigation, a one-line global state, grouped ecosystem services, and separate maintenance and incident routes. It lists Tidelight's website, REST and research APIs, MCP metadata, npm and PyPI registries, database, and background execution/delivery observability. It explicitly labels research processing, scheduling, and delivery as not monitored instead of drawing historical uptime bars without a history source. The page's live database probe reported a connection failure during this inspection; the Supabase project itself reported `ACTIVE_HEALTHY`, and a read-only `select 1` returned successfully through the connected database tool. That discrepancy is recorded as a probe/runtime issue to investigate, not as evidence that the database is down.
+## Public site and API surface comparison — 25 October 2026
+
+Fresh public-site review covered Context.dev homepage, /data, /search (redirects to /search-api), /monitors (redirects to /monitors-api), Search API, Data Extraction API, and monitoring use case. Tidelight's remaining gap is the direct path from each capability to its endpoint-specific runnable console example and inspectable response. Do not invent account activity when no data exists.
+
+On narrow mobile widths, keep endpoint identity and primary action first, put parameters in a disclosure, keep results and request history below controls, and contain wide code or tables within their own scroll area. These are implementation recommendations from public desktop inspection and the supplied mobile-desktop screenshots; authenticated Context.dev mobile behavior was not inspected.
+
+## Status history comparison — 25 October 2026
+
+Context.dev's monitor workflow surfaces recurring runs, last result, history/diffs, and webhook delivery. Tidelight now has scheduled status samples and detected incidents with explicit coverage boundaries. Its 90-day timeline must mark missing observations as no data and avoid inferring uptime.
