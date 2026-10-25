@@ -4,7 +4,7 @@ import { aiJsonWithFallback, configuredAiProviders } from "@/lib/ai-fallback";
 import { getBitgetAsset, getBitgetCandles, getBitgetStockPerp, getIssuerName, STOCK_PERP_UNIVERSE } from "@/lib/bitget-market";
 import { buildSignals, prepareBacktestCandles } from "@/lib/backtest";
 import { extractFlowTickers, gateFlowTrade, isTokenizedMarketQuestion, normalizeFlowAssessments, sourceOnlyAssessment, tokenizedMarketReview, type FlowAssessment, type FlowSource } from "@/lib/agent-flow-policy";
-import { gatherIssuerEvidence, issuerEvidenceLookbackDays, type FlowEvidence } from "@/lib/agent-flow-sources";
+import { buildIssuerNewsQueries, gatherIssuerEvidence, issuerEvidenceLookbackDays, type FlowEvidence } from "@/lib/agent-flow-sources";
 import { agentKeyIssuerEvidence } from "@/lib/agentkey-flow-sources";
 import { buildMacroNewsQueries, classifyMacroQuestion, gatherMacroEvidence, macroResearchLookbackDays, type MacroEvidence, type MacroTopic } from "@/lib/macro-research-sources";
 
@@ -154,7 +154,7 @@ export async function POST(request: Request) {
           return;
         }
         const tokenizedMarketQuestion = isTokenizedMarketQuestion(question, tickers);
-        stage("Coordinator", "complete", "Question framed", `${tokenizedMarketQuestion ? "Researching issuer evidence and the explicitly requested tokenized market." : "Researching issuer and stock-perpetual context only."} Eight bounded news searches per issuer, followed by corroboration and risk gates.${workspaceContext ? ` Opened from ${workspaceContext}.` : ""}`);
+        stage("Coordinator", "complete", "Question framed", `${tokenizedMarketQuestion ? "Researching issuer evidence and the explicitly requested tokenized market." : "Researching issuer and stock-perpetual context only."} A question-focused discovery pass and complementary bounded news searches per issuer, followed by corroboration and risk gates.${workspaceContext ? ` Opened from ${workspaceContext}.` : ""}`);
         stage("Market scout", "running", "Mapping current market and coverage", tokenizedMarketQuestion ? "Checking issuer evidence, the requested tokenized instrument, and market context. Headlines remain discovery references until reviewed." : "Checking issuer coverage and relevant stock-perpetual context. Headlines remain discovery references until reviewed.");
         const snapshots: MarketSnapshot[] = await Promise.all(tickers.map(async ticker => {
           const symbol = `${ticker}USDT`;
@@ -245,7 +245,7 @@ export async function POST(request: Request) {
             risks: assessment.risks, nextCheck: assessment.nextCheck };
         });
         stage("Coordinator", "complete", "Review ready", assets.some(asset => asset.tradeable) ? "One or more scenarios may proceed to a separate trade review. Nothing was sent to Bitget or the paper ledger." : "Keep watching the evidence and market. No scenario passed every trade review gate.");
-        const result = { researchRunId: run.id, question, synthesis: synthesisProvider ? { mode: "model" as const, provider: synthesisProvider } : { mode: "source_only" as const, provider: null }, researchCoverage: { mode: "deep", lookbackDays, queriesPerTicker: 8, collectedItems: snapshots.reduce((count, snap) => count + snap.sources.length, 0), publishers: [...new Set(snapshots.flatMap(snap => snap.sources.map(source => source.publisher)))].length, sourceDomains: [...new Set(snapshots.flatMap(snap => snap.sources.map(source => new URL(source.url).hostname)))].length, collectedAt: new Date().toISOString(), limitations: ["Primary issuer excerpts are bounded and partial; open the cited source for the complete release.", "Public-feed coverage is bounded and cannot represent the entire internet."] }, assets, tradeable: assets.some(asset => asset.tradeable), trace, contextRunId, ...(workspaceContext ? { workspaceContext } : {}) };
+        const result = { researchRunId: run.id, question, synthesis: synthesisProvider ? { mode: "model" as const, provider: synthesisProvider } : { mode: "source_only" as const, provider: null }, researchCoverage: { mode: "deep", lookbackDays, queriesPerTicker: buildIssuerNewsQueries(tickers[0], getIssuerName(tickers[0]), question).length * 2, collectedItems: snapshots.reduce((count, snap) => count + snap.sources.length, 0), publishers: [...new Set(snapshots.flatMap(snap => snap.sources.map(source => source.publisher)))].length, sourceDomains: [...new Set(snapshots.flatMap(snap => snap.sources.map(source => new URL(source.url).hostname)))].length, collectedAt: new Date().toISOString(), limitations: ["Primary issuer excerpts are bounded and partial; open the cited source for the complete release.", "Public-feed coverage is bounded and cannot represent the entire internet."] }, assets, tradeable: assets.some(asset => asset.tradeable), trace, contextRunId, ...(workspaceContext ? { workspaceContext } : {}) };
         const { error: saveError } = await supabase.from("research_runs").update({ status: "complete", completed_at: new Date().toISOString(), summary: result }).eq("id", run.id);
         if (saveError) {
           stage("Coordinator", "blocked", "Private trace could not be saved", "No trade handoff was offered because the research record was not committed.");

@@ -34,7 +34,7 @@ export default async function AccountPage() {
     ] },
     { id: "preference", title: "Preference", intro: "Tune how Tidelight presents research and sends product updates.", rows: [
       { label: "Currency display", detail: "US equity and paper-trading values are quoted in US dollars", icon: "$", state: "USD" },
-      { label: "Color theme", detail: "Choose Daylight, Night Tide, or Blue Hour", href: "/settings#account-appearance", icon: "◐", value: "Change" },
+      { label: "Color theme", detail: "Choose Daylight, Night Tide, Blue Hour, White, or Dark", href: "/settings#account-appearance", icon: "◐", value: "Change" },
       { label: "Language", detail: "Choose the display language for your workspace", href: "/settings#account-preferences", icon: "文", value: "Manage" },
       { label: "Research lens", detail: "Set your account’s default research risk profile", href: "/settings#account-profile", icon: "⌁", value: "Manage" },
       { label: "Withdrawal address & limits", detail: "Manage these only in your Bitget account; Tidelight cannot withdraw", href: "/trading", icon: "⌑", state: "Bitget only" },

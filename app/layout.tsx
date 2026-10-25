@@ -67,7 +67,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const cookieStore = await cookies();
   const savedTheme = cookieStore.get("tidelight-theme")?.value;
-  const theme = savedTheme === "daylight" || savedTheme === "night" || savedTheme === "blue" ? savedTheme : "blue";
+  const theme = savedTheme === "daylight" || savedTheme === "night" || savedTheme === "blue" || savedTheme === "white" || savedTheme === "dark" ? savedTheme : "blue";
   const requestHeaders = await headers();
   const requestHost = (requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host") ?? "").split(",")[0].trim().toLowerCase().replace(/:\d+$/, "");
   const isPublicPackageHost = requestHost === "package.tidelight.app";

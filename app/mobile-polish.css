@@ -95,7 +95,7 @@
     inset 0 -1px 0 color-mix(in srgb,var(--brand-teal) 22%,transparent),
     0 0 30px color-mix(in srgb,var(--brand-teal) 21%,transparent);
 }
-:root[data-theme="daylight"] .tide-guide-launcher {
+:root:is([data-theme="daylight"], [data-theme="white"]) .tide-guide-launcher {
   background: color-mix(in srgb,#fffefa 52%,transparent) !important;
   border-color: color-mix(in srgb,#6f9a7a 32%,transparent) !important;
   box-shadow: 0 14px 38px #263d2924,
@@ -139,7 +139,7 @@
 }
 .main-area > .topbar > * { z-index: 1; }
 
-:root[data-theme="daylight"] .main-area > .topbar {
+:root:is([data-theme="daylight"], [data-theme="white"]) .main-area > .topbar {
   --masthead-glass: color-mix(in srgb, #fffefa 53%, transparent);
   border-color: color-mix(in srgb, #6f9a7a 29%, transparent) !important;
   box-shadow: 0 12px 34px #263d291a,
@@ -165,7 +165,7 @@
     inset 0 1px 0 color-mix(in srgb, white 24%, transparent),
     inset 0 -1px 0 color-mix(in srgb, var(--brand-teal) 14%, transparent);
 }
-:root[data-theme="daylight"] .landing-nav {
+:root:is([data-theme="daylight"], [data-theme="white"]) .landing-nav {
   background: color-mix(in srgb, #fbfaf5 56%, transparent);
   border-color: color-mix(in srgb, #6f9a7a 28%, transparent);
   box-shadow: 0 12px 34px #263d291a,

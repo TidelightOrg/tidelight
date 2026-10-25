@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "product": "Tidelight",
   "purpose": "Public index of reproducible evidence and verification paths for the Tidelight S2 evaluator.",
-  "generated_at": "2026-10-24",
+  "generated_at": "2026-10-25",
   "evidence_boundary": {
     "status": "index_only",
     "note": "Evidence is grouped by public availability, account scope, and reproducibility. Evaluate performance and execution claims against the corresponding source artifacts and test records.",
@@ -290,6 +290,14 @@
       "uri": "https://tidelight.app/judge#codex-mcp-evidence",
       "summary_uri": "https://tidelight.app/evidence/tidelight-codex-mcp.json",
       "claim": "The Tidelight MCP plugin is installed and connected. The current Codex registry exposes two read-only market tools but no company research-job tool; no current research run is claimed. The earlier unavailable-session record remains separately linked."
+    },
+    {
+      "id": "codex-mcp-authenticated-market-read-20261024",
+      "kind": "authenticated_mcp_market_read",
+      "status": "two_read_only_nvda_market_calls_recorded",
+      "uri": "https://tidelight.app/judge#codex-mcp-evidence",
+      "summary_uri": "https://tidelight.app/evidence/tidelight-codex-mcp-market-check-20261024.json",
+      "claim": "Two authenticated read-only NVDA market lookups are recorded with provider timestamps and request IDs. They verify market:read only; neither is a company research job or research synthesis."
     },
     {
       "id": "authenticated-research-job-client-attempt-20261024",

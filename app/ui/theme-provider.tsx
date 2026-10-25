@@ -3,18 +3,20 @@
 import { createContext, useContext, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
 import { automaticTheme } from "@/lib/automatic-theme.mjs";
 
-export type Theme = "daylight" | "night" | "blue";
+export type Theme = "daylight" | "night" | "blue" | "white" | "dark";
 export type ThemePreference = Theme | "auto";
 export type ExperienceMode = "mini" | "pro";
 export const themes: { id: Theme; name: string; detail: string; swatches: string[] }[] = [
   { id: "daylight", name: "Daylight", detail: "Warm paper, clear ink", swatches: ["#f5f3eb", "#18382f", "#76ae88"] },
   { id: "night", name: "Night Tide", detail: "The original deep sea", swatches: ["#080f11", "#a8ebc8", "#142522"] },
   { id: "blue", name: "Blue Hour", detail: "A cooler evening desk", swatches: ["#0b1020", "#b6c5ff", "#222b4c"] },
+  { id: "white", name: "White", detail: "Bright white, crisp contrast", swatches: ["#ffffff", "#153b31", "#e8f0eb"] },
+  { id: "dark", name: "Dark", detail: "Graphite, low-glare surfaces", swatches: ["#090a0c", "#d8e1dc", "#202328"] },
 ];
 const DEFAULT_THEME: Theme = "blue";
 const ThemeContext = createContext<{ theme: Theme; preference: ThemePreference; setTheme: (theme: ThemePreference) => void }>({ theme: DEFAULT_THEME, preference: "auto", setTheme: () => {} });
 const ExperienceContext = createContext<{ mode: ExperienceMode; setMode: (mode: ExperienceMode) => void }>({ mode: "pro", setMode: () => {} });
-const validTheme = (value: string | null): value is Theme => value === "night" || value === "daylight" || value === "blue";
+const validTheme = (value: string | null): value is Theme => value === "night" || value === "daylight" || value === "blue" || value === "white" || value === "dark";
 const getPreference = (): ThemePreference => {
   const shared = document.cookie.split(";").map((part) => part.trim()).find((part) => part.startsWith("tidelight-theme="))?.slice("tidelight-theme=".length);
   const mode = document.cookie.split(";").map((part) => part.trim()).find((part) => part.startsWith("tidelight-theme-mode="))?.slice("tidelight-theme-mode=".length);
@@ -25,7 +27,7 @@ const getPreference = (): ThemePreference => {
   // Treat that legacy default as automatic; a deliberate choice is marked by theme-mode on this build.
   try {
     const saved = window.localStorage.getItem("tidelight-theme");
-    if (saved === "night" || saved === "daylight") return saved;
+    if (saved === "night" || saved === "daylight" || saved === "white" || saved === "dark") return saved;
   } catch {
     return "auto";
   }
@@ -64,7 +66,7 @@ export function ThemeProvider({ children, initialTheme = DEFAULT_THEME }: { chil
     document.documentElement.dataset.theme = theme;
     document.documentElement.dataset.themeMode = preference;
     document.documentElement.dataset.experience = mode;
-    document.documentElement.style.colorScheme = theme === "daylight" ? "light" : "dark";
+    document.documentElement.style.colorScheme = theme === "daylight" || theme === "white" ? "light" : "dark";
     void clock;
   }, [clock, mode, preference, theme]);
   const setTheme = (next: ThemePreference) => {

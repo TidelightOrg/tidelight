@@ -3,14 +3,16 @@
 import { useMemo, useState } from "react";
 
 type Project = { id: string; name: string };
-type Key = { id: string; project_id: string; name: string; environment: string; revoked_at: string | null; expires_at: string | null };
+type Key = { id: string; project_id: string; name: string; environment: string; scopes: string[]; revoked_at: string | null; expires_at: string | null };
 type Language = "curl" | "typescript" | "python";
+type Endpoint = "market" | "research";
 
 const languages: Language[] = ["curl", "typescript", "python"];
 
-export default function ApiExplorer({ projects, keys, currentTime }: { projects: Project[]; keys: Key[]; currentTime: number }) {
+export default function ApiExplorer({ projects, keys, currentTime, onViewResearch }: { projects: Project[]; keys: Key[]; currentTime: number; onViewResearch: () => void }) {
   const [projectId, setProjectId] = useState(projects[0]?.id ?? "");
   const [keyId, setKeyId] = useState("");
+  const [endpoint, setEndpoint] = useState<Endpoint>("market");
   const [limit, setLimit] = useState(20);
   const [cursor, setCursor] = useState("");
   const [underlyingTicker, setUnderlyingTicker] = useState("");
@@ -21,16 +23,22 @@ export default function ApiExplorer({ projects, keys, currentTime }: { projects:
   const [requestId, setRequestId] = useState("");
   const [duration, setDuration] = useState<number | null>(null);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
-  const availableKeys = keys.filter(key => key.project_id === projectId && !key.revoked_at && (!key.expires_at || Date.parse(key.expires_at) > currentTime));
+  const scope = endpoint === "market" ? "market:read" : "research:run";
+  const availableKeys = keys.filter(key => key.project_id === projectId && key.scopes?.includes(scope) && !key.revoked_at && (!key.expires_at || Date.parse(key.expires_at) > currentTime));
   const selectedKeyId = availableKeys.some(key => key.id === keyId) ? keyId : availableKeys[0]?.id ?? "";
   const snippet = useMemo(() => {
+    if (endpoint === "research") {
+      if (language === "typescript") return `import { randomUUID } from "node:crypto";\nimport { TidelightClient } from "@tidelight/sdk";\n\nconst client = new TidelightClient({ apiKey: process.env.TIDELIGHT_API_KEY! });\nconst job = await client.startCompanyResearch("${underlyingTicker.toUpperCase() || "NVDA"}", randomUUID());\nconsole.log(job.job_id, job.status);`;
+      if (language === "python") return `import os\nfrom uuid import uuid4\nfrom tidelight import Client\n\nclient = Client(os.environ["TIDELIGHT_API_KEY"])\njob = client.start_company_research("${underlyingTicker.toUpperCase() || "NVDA"}", str(uuid4()))\nprint(job["job_id"], job["status"])`;
+      return `curl 'https://api.tidelight.app/v1/research/jobs' \\\n  -X POST \\\n  -H 'Authorization: Bearer YOUR_TIDELIGHT_KEY' \\\n  -H 'Idempotency-Key: your-unique-request-id' \\\n  -H 'Content-Type: application/json' \\\n  -d '{"ticker":"${underlyingTicker.toUpperCase() || "NVDA"}"}'`;
+    }
     const safeCursor = /^[A-Z0-9]{2,32}$/.test(cursor) ? cursor : "";
     const safeTicker = /^[A-Z][A-Z0-9.]{0,9}$/i.test(underlyingTicker) ? underlyingTicker.toUpperCase() : "";
     const query = `kind=rtoken&limit=${limit}${safeTicker ? `&underlying_ticker=${encodeURIComponent(safeTicker)}` : ""}${safeCursor ? `&cursor=${encodeURIComponent(safeCursor)}` : ""}`;
     if (language === "typescript") return `import { TidelightClient } from "@tidelight/sdk";\n\nconst client = new TidelightClient({ apiKey: process.env.TIDELIGHT_API_KEY! });\nconst page = await client.listTokenizedEquities({ limit: ${limit}${safeTicker ? `, underlyingTicker: "${safeTicker}"` : ""}${safeCursor ? `, cursor: "${safeCursor}"` : ""} });\nconsole.log(page.data);`;
     if (language === "python") return `import os\nfrom tidelight import Client\n\nclient = Client(os.environ["TIDELIGHT_API_KEY"])\npage = client.list_tokenized_equities(limit=${limit}${safeTicker ? `, underlying_ticker="${safeTicker}"` : ""}${safeCursor ? `, cursor="${safeCursor}"` : ""})\nprint(page.data)`;
     return `curl 'https://api.tidelight.app/v1/market/instruments?${query}' \\\n  -H 'Authorization: Bearer YOUR_TIDELIGHT_KEY'`;
-  }, [cursor, language, limit, underlyingTicker]);
+  }, [cursor, endpoint, language, limit, underlyingTicker]);
 
   async function execute(event: React.FormEvent) {
     event.preventDefault();
@@ -41,7 +49,7 @@ export default function ApiExplorer({ projects, keys, currentTime }: { projects:
     setDuration(null);
     const began = performance.now();
     try {
-      const response = await fetch("/api/developers/explore", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ keyId: selectedKeyId, kind: "rtoken", limit, cursor: cursor || null, underlyingTicker: underlyingTicker || null }) });
+      const response = await fetch(endpoint === "market" ? "/api/developers/explore" : "/api/developers/explore-research", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(endpoint === "market" ? { keyId: selectedKeyId, kind: "rtoken", limit, cursor: cursor || null, underlyingTicker: underlyingTicker || null } : { keyId: selectedKeyId, ticker: underlyingTicker || "NVDA", idempotencyKey: crypto.randomUUID() }) });
       const body = await response.json();
       setStatus(response.status);
       setResult(body);
@@ -71,16 +79,20 @@ export default function ApiExplorer({ projects, keys, currentTime }: { projects:
     <h1>Explore the API</h1>
     <p className="tic-lead">Make an authorized request using an active project key. The secret stays hidden; this console checks your account and applies the same key quota.</p>
     <form className="tic-explorer-form" onSubmit={execute}>
-      <div className="tic-explorer-route"><span>REQUEST</span><code><b>GET</b> /v1/market/instruments</code><small>Tokenized equity instruments</small></div>
+      <label>Endpoint<select value={endpoint} onChange={event => { setEndpoint(event.target.value as Endpoint); setKeyId(""); setResult(null); setStatus(null); }}><option value="market">Market instruments · market:read</option><option value="research">Company research job · research:run</option></select></label>
+      <div className="tic-explorer-route"><span>REQUEST</span><code><b>{endpoint === "market" ? "GET" : "POST"}</b> {endpoint === "market" ? "/v1/market/instruments" : "/v1/research/jobs"}</code><small>{endpoint === "market" ? "Tokenized equity instruments" : "Queue a read-only issuer research snapshot"}</small></div>
       <label>Project<select value={projectId} onChange={event => { setProjectId(event.target.value); setKeyId(""); }}>{projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label>
-      <label>Credential<select value={selectedKeyId} onChange={event => setKeyId(event.target.value)} required>{availableKeys.length ? availableKeys.map(key => <option key={key.id} value={key.id}>{key.name} · {key.environment}</option>) : <option value="">No active key</option>}</select></label>
-      <label>Limit<input type="number" min="1" max="100" value={limit} onChange={event => setLimit(Number(event.target.value))} required /></label>
-      <label>Underlying ticker <span>(optional)</span><input value={underlyingTicker} onChange={event => setUnderlyingTicker(event.target.value.toUpperCase())} pattern="[A-Z][A-Z0-9.]{0,9}" placeholder="e.g. AAPL" /></label>
-      <label>Cursor <span>(optional)</span><input value={cursor} onChange={event => setCursor(event.target.value.toUpperCase())} pattern="[A-Z0-9]{2,32}" placeholder="Next cursor from a response" /></label>
+      <label>Credential<select value={selectedKeyId} onChange={event => setKeyId(event.target.value)} required>{availableKeys.length ? availableKeys.map(key => <option key={key.id} value={key.id}>{key.name} · {key.environment}</option>) : <option value="">No active {scope} key</option>}</select></label>
+      {endpoint === "market" ? <>
+        <label>Limit<input type="number" min="1" max="100" value={limit} onChange={event => setLimit(Number(event.target.value))} required /></label>
+        <label>Underlying ticker <span>(optional)</span><input value={underlyingTicker} onChange={event => setUnderlyingTicker(event.target.value.toUpperCase())} pattern="[A-Z][A-Z0-9.]{0,9}" placeholder="e.g. AAPL" /></label>
+        <label>Cursor <span>(optional)</span><input value={cursor} onChange={event => setCursor(event.target.value.toUpperCase())} pattern="[A-Z0-9]{2,32}" placeholder="Next cursor from a response" /></label>
+      </> : <label>Company ticker<input value={underlyingTicker} onChange={event => setUnderlyingTicker(event.target.value.toUpperCase())} pattern="[A-Z][A-Z0-9.]{0,9}" placeholder="NVDA" maxLength={10} /></label>}
       <button type="submit" className="tic-button tic-primary" disabled={busy || !selectedKeyId} aria-busy={busy}>{busy ? <><span className="tic-explorer-spinner" aria-hidden="true" />Executing request…</> : "Execute request"}</button>
     </form>
     {!projects.length && <p className="tic-explorer-hint">Create a project and an API key to start.</p>}
-    {projects.length > 0 && !availableKeys.length && <p className="tic-explorer-hint">Issue an active market read key for this project to start.</p>}
+    {projects.length > 0 && !availableKeys.length && <p className="tic-explorer-hint">Issue an active key with <code>{scope}</code> access for this project to start.</p>}
+    {endpoint === "research" && status !== null && status < 400 && typeof result === "object" && result !== null && "job_id" in result && <div className="tic-explorer-hint" role="status">Research job queued. <button type="button" onClick={onViewResearch}>Open research jobs</button> to follow its status and result.</div>}
 
     <section className="tic-panel tic-explorer-output" aria-labelledby="tic-response-title">
       <div className="tic-panel-head"><div><p className="tic-explorer-kicker">LIVE REQUEST OUTPUT</p><h2 id="tic-response-title">Response</h2></div>{status !== null && <span className={status < 400 ? "tic-response-ok" : "tic-response-error"}>HTTP {status}</span>}</div>
