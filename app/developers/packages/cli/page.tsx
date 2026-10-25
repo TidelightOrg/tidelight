@@ -6,6 +6,7 @@ import { CliPackageDetail } from "../cli-detail";
 import "../../tidelight-developers.css";
 import "../../platform-polish.css";
 import "../packages.css";
+import "../package-clarity.css";
 import "../registry-live.css";
 
 export const metadata: Metadata = {
