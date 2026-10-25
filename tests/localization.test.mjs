@@ -170,6 +170,53 @@ test("Simplified Chinese covers visible developer docs and package UI copy", asy
   ]) assert.equal(typeof translations[key], "string", `Missing translation for ${key}`);
 });
 
+test("Simplified Chinese covers account, settings, landing, and developer console UI", async () => {
+  const paths = [
+    "app/account/page.tsx",
+    "app/settings/page.tsx",
+    "app/ui/account-tabs.tsx",
+    "app/ui/account-copy-button.tsx",
+    "app/ui/landing-page.tsx",
+    "app/developers/page.tsx",
+    "app/developers/console/ui.tsx",
+    "app/developers/console/explorer.tsx",
+    "app/developers/console/webhooks.tsx",
+    "app/developers/console/state.tsx",
+    "app/developers/support/support-center.tsx",
+    "app/developers/oauth/consent/page.tsx",
+    "app/developers/intelligence-ui-preview.tsx",
+  ];
+  const missing = new Set();
+  const normalized = (value) => value.replace(/\s+/g, " ").trim();
+  const decodeEntities = (value) => value.replaceAll("&amp;", "&").replaceAll("&apos;", "'").replaceAll("&quot;", '"');
+  const isIdentifier = (value) => value.length < 2
+    || /^(?:https?:\/\/|\/|[A-Z][A-Z0-9_:-]*\/)/.test(value)
+    || (/^[A-Za-z_$][A-Za-z0-9_$:./?+=<>|{}"'-]*$/.test(value) && !/\s/.test(value));
+  for (const path of paths) {
+    const source = await readFile(new URL(path, root), "utf8");
+    const file = ts.createSourceFile(path, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+    const visit = (node) => {
+      if (ts.isJsxText(node)) {
+        const key = normalized(decodeEntities(node.getText(file)));
+        if (key.length >= 16 && /[A-Za-z]/.test(key) && !isIdentifier(key) && !translations[key]) missing.add(`${path}: ${key}`);
+      }
+      if (ts.isJsxAttribute(node) && ["aria-label", "alt", "title", "placeholder"].includes(node.name.getText(file)) && node.initializer && ts.isStringLiteral(node.initializer)) {
+        const key = normalized(decodeEntities(node.initializer.text));
+        if (/[A-Za-z]/.test(key) && !isIdentifier(key) && !translations[key]) missing.add(`${path} [${node.name.getText(file)}]: ${key}`);
+      }
+      ts.forEachChild(node, visit);
+    };
+    visit(file);
+  }
+  assert.deepEqual([...missing].sort(), [], `Missing Simplified Chinese entries:\n${[...missing].sort().join("\n")}`);
+  for (const key of [
+    "My info", "Security", "Preference", "General", "Manage", "Bitget only",
+    "RESEARCH SYNTHESIS", "AgentKey data connection.", "DYOR", "Do your own research.",
+    "Market feed unavailable", "JSON response", "No API keys yet", "Request failed",
+  ]) assert.equal(typeof translations[key], "string", `Missing Chinese account/settings/console translation: ${key}`);
+  assert.equal(translations.DYOR, "自行研究", "DYOR should not be rendered as an unrelated brand name");
+});
+
 test("Simplified Chinese JSON has no duplicate keys and preserves Tidelight identifiers", async () => {
   const source = await readFile(new URL("app/i18n/zh-CN.json", root), "utf8");
   const document = parseDocument(source, { uniqueKeys: true });
