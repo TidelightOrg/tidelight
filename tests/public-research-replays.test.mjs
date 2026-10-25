@@ -92,5 +92,20 @@ test("publishing requires the owning session and serializes only cited public ev
     assert.equal("handoff" in payload.assets[0], false);
     assert.equal("account" in payload, false);
     assert.equal(JSON.stringify(payload).includes("/account/secret"), false);
+
+    context.run.summary = { assets: [{ ticker: "rNVDA", issuer: "NVIDIA", summary: "A public token pulse with linked sources.", sources: [{ url: "https://news.example/story" }], stance: "unclear", confidence: 0.3 }] };
+    const tokenPulseResponse = await route.POST(new Request("https://tidelight.app/api/research/replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ researchRunId: token }) }));
+    assert.equal(tokenPulseResponse.status, 200);
+    const tokenPulsePayload = calls.filter(call => call.table === "public_research_replays").at(-1).values.payload;
+    assert.equal(tokenPulsePayload.assets[0].ticker, "rNVDA");
+    assert.deepEqual(tokenPulsePayload.assets[0].sources, ["https://news.example/story"]);
+
+    context.run.summary = { summary: "An evidence-first public brief.", sources: [{ url: "https://news.example/story" }], claims: [{ claim: "A source-backed claim.", quote: "A short quotation.", sourceUrl: "https://news.example/story" }] };
+    const evidenceBriefResponse = await route.POST(new Request("https://tidelight.app/api/research/replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ researchRunId: token }) }));
+    assert.equal(evidenceBriefResponse.status, 200);
+    const evidenceBriefPayload = calls.filter(call => call.table === "public_research_replays").at(-1).values.payload;
+    assert.equal(evidenceBriefPayload.assets[0].ticker, "NVDA");
+    assert.deepEqual(evidenceBriefPayload.assets[0].sources, ["https://news.example/story"]);
+    assert.deepEqual(evidenceBriefPayload.assets[0].evidenceBalance.supporting[0].citedUrls, ["https://news.example/story"]);
   } finally { delete globalThis.replayTest; }
 });
