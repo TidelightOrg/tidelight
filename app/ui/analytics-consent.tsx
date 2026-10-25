@@ -39,8 +39,10 @@ export default function AnalyticsConsent() {
   const [saving, setSaving] = useState(false);
   const [interacted, setInteracted] = useState(false);
   const [error, setError] = useState("");
+  const [isPackageHost, setIsPackageHost] = useState(false);
 
   useEffect(() => {
+    setIsPackageHost(window.location.hostname === "package.tidelight.app" || window.location.pathname.startsWith("/developers/packages"));
     let active = true;
     const local = window.localStorage.getItem(CONSENT_KEY);
     const apply = (choice: Choice) => {
@@ -112,7 +114,7 @@ export default function AnalyticsConsent() {
   if (pathname === "/judge" || pathname === "/evidence" || pathname === "/replay") return null;
 
   return <>
-    {resolved && !open && !hasChoice && <button className={`analytics-privacy-trigger${pathname === "/futures" || pathname === "/trading" || pathname === "/flow" || pathname === "/markets" ? " is-dense-workspace" : ""}`} type="button" onClick={() => { setInteracted(false); setOpen(true); }}>Privacy choices</button>}
+    {resolved && !open && !hasChoice && <button className={`analytics-privacy-trigger${pathname === "/futures" || pathname === "/trading" || pathname === "/flow" || pathname === "/markets" ? " is-dense-workspace" : ""}${isPackageHost ? " is-package-host" : ""}`} type="button" onClick={() => { setInteracted(false); setOpen(true); }}>Privacy choices</button>}
     {open && <section className="analytics-consent" aria-label="Analytics privacy choices" aria-live="polite">
       <div className="analytics-consent-accent" aria-hidden="true"><span /></div>
       <div className="analytics-consent-heading">
@@ -138,7 +140,7 @@ export default function AnalyticsConsent() {
       .analytics-consent-actions{display:grid;grid-template-columns:1fr 1fr 1.35fr;gap:7px;margin-top:17px}.analytics-consent-actions button,.analytics-privacy-trigger{box-sizing:border-box;border:1px solid var(--line);border-radius:999px;padding:10px 11px;background:color-mix(in srgb,var(--panel,#f8fbf8) 82%,transparent);color:var(--text);font-family:inherit;font-size:11px;font-weight:600;line-height:1.2;cursor:pointer;white-space:nowrap;transition:background .18s ease,border-color .18s ease,transform .18s ease}.analytics-consent-actions button:hover{transform:translateY(-1px);border-color:color-mix(in srgb,var(--accent,#75e4c2) 50%,var(--line))}.analytics-consent-actions .analytics-consent-accept{border-color:var(--accent,#75e4c2);background:var(--accent,#75e4c2);color:#08251e}.analytics-consent-actions button:disabled{opacity:.6;cursor:wait;transform:none}
       .analytics-consent-timer{margin:11px 0 0;color:var(--muted);font-size:10px;line-height:1.4;text-align:center}
       .analytics-consent-actions button:focus-visible,.analytics-privacy-trigger:focus-visible{outline:3px solid var(--accent,#6b8cff);outline-offset:3px}
-      .analytics-privacy-trigger{position:fixed;z-index:9998;right:150px;bottom:14px;background:var(--panel);box-shadow:0 3px 14px #0002;font-size:10px}.analytics-privacy-trigger.is-dense-workspace{display:none}
+      .analytics-privacy-trigger{position:fixed;z-index:9998;right:150px;bottom:14px;background:var(--panel);box-shadow:0 3px 14px #0002;font-size:10px}.analytics-privacy-trigger.is-package-host{right:18px}.analytics-privacy-trigger.is-dense-workspace{display:none}
       @media(max-width:440px){.analytics-consent{bottom:16px;padding:17px 16px 13px;border-radius:18px}.analytics-consent-actions{grid-template-columns:1fr 1fr}.analytics-consent-actions .analytics-consent-accept{grid-column:1/-1;grid-row:2}.analytics-consent-actions .analytics-consent-neutral{grid-column:1;grid-row:1}.analytics-consent-actions .analytics-consent-reject{grid-column:2;grid-row:1}}
       @media(prefers-reduced-motion:reduce){.analytics-consent-accent span{animation:none;transform:scaleX(.25)}.analytics-consent-actions button{transition:none}}
     `}</style>
