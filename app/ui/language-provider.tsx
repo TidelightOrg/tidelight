@@ -135,8 +135,9 @@ export function LanguageProvider({ children, initialLanguage }: { children: Reac
       return map;
     };
     const translateAttributes = (element: Element) => {
-      if (element instanceof HTMLInputElement && !["button", "submit", "reset"].includes(element.type)) return;
+      const textInput = element instanceof HTMLInputElement && !["button", "submit", "reset"].includes(element.type);
       for (const name of watchedAttributes) {
+        if (textInput && !["aria-label", "aria-description", "title"].includes(name)) continue;
         if (!element.hasAttribute(name)) continue;
         const current = element.getAttribute(name) ?? "";
         const sources = getAttrMap(attributeSources.current, element);
