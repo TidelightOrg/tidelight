@@ -28,7 +28,7 @@
 .tic-usage-visual:after{content:"ILLUSTRATIVE · NOT LIVE ACTIVITY";position:absolute;top:9px;left:12px;color:var(--muted);font:6px var(--mono);letter-spacing:.08em}
 .tic-premium-hero h1{font-size:clamp(54px,5.5vw,80px)}
 .tic-premium-hero{grid-template-columns:minmax(0,1.12fr) minmax(0,.88fr)}
-@media(max-width:920px){.tic-premium-hero{grid-template-columns:minmax(0,1fr);gap:35px;padding-top:75px}.tic-hero-copy{max-width:760px}.tic-motion-hero{width:min(100%,720px);margin:0 auto}.tic-premium-hero h1{font-size:clamp(54px,8vw,72px)}}
+@media(max-width:1150px){.tic-premium-hero{grid-template-columns:minmax(0,1fr);gap:35px;padding-top:75px}.tic-hero-copy{max-width:760px;min-width:0}.tic-motion-hero{width:min(100%,720px);margin:0 auto}.tic-premium-hero h1{max-width:12ch;font-size:clamp(54px,8vw,72px);text-wrap:balance}}
 @media(max-width:520px){.tic-premium-hero h1{font-size:clamp(43px,11.2vw,57px)}}
 @media(max-width:760px){.tic-motion-hero{width:min(100%,620px);margin:auto}.tic-doc-architecture{margin-inline:-8px}}
 @media(max-width:520px){.tic-motion-hero{border-radius:12px}.tic-motion-hero figcaption{font-size:6px;padding:8px}.tic-doc-architecture{margin-inline:-8px}.tic-doc-architecture figcaption{font-size:9px}}
@@ -164,7 +164,7 @@
 
 /* A phone in desktop-site mode can report a 980px CSS width. Switch navigation
    before the full desktop links and the brand label start colliding. */
-@media(min-width:761px) and (max-width:1050px){
+@media(min-width:761px) and (max-width:1200px){
   .tic-platform-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-inline:20px}
   .tic-platform-nav .tic-brand{flex:1;min-width:0;overflow:hidden;white-space:nowrap}
   .tic-platform-nav .tic-brand-divider,.tic-platform-nav .tic-brand>span:last-child{display:none!important}
