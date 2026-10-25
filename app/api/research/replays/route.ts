@@ -8,6 +8,23 @@ function object(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
 }
 
+function publicSourceUrl(value: unknown, allowedSources: Set<string>): string | null {
+  const candidate = typeof value === "string" ? value : object(value)?.url;
+  if (typeof candidate !== "string") return null;
+  try {
+    const url = new URL(candidate);
+    if (url.protocol !== "https:" || url.username || url.password) return null;
+    const canonical = url.toString();
+    return allowedSources.has(canonical) ? canonical : null;
+  } catch { return null; }
+}
+
+function replayLabel(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const label = value.trim();
+  return label.length <= 40 && /^[\p{L}\p{N}][\p{L}\p{N} ._/-]{0,39}$/u.test(label) ? label : null;
+}
+
 export async function POST(request: Request) {
   const db = await createClient();
   const { data: { user } } = await db.auth.getUser();
@@ -54,15 +71,15 @@ export async function POST(request: Request) {
   });
   const assets = rows.flatMap((raw) => {
     const row = object(raw);
-    if (!row || typeof row.ticker !== "string" || !/^[A-Z]{1,8}$/.test(row.ticker) || typeof row.issuer !== "string" || typeof row.summary !== "string") return [];
+    const ticker = replayLabel(row?.ticker);
+    if (!row || !ticker || typeof row.issuer !== "string" || typeof row.summary !== "string") return [];
     const market = object(row.market) ?? {};
     const stance = ["bullish", "bearish", "mixed", "unclear"].includes(String(row.stance)) ? row.stance : "unclear";
     const confidence = typeof row.confidence === "number" && Number.isFinite(row.confidence) ? Math.max(0, Math.min(1, row.confidence)) : 0;
     const allowedSources = new Set(sources.map(source => source.url));
     const usedSources = Array.isArray(row.sources) ? row.sources.flatMap((rawSource) => {
-      const source = object(rawSource);
-      if (!source || typeof source.url !== "string" || !allowedSources.has(source.url)) return [];
-      return [source.url];
+      const url = publicSourceUrl(rawSource, allowedSources);
+      return url ? [url] : [];
     }) : [];
     const usedSourceSet = new Set(usedSources);
     const balance = object(row.evidenceBalance) ?? {};
@@ -73,7 +90,7 @@ export async function POST(request: Request) {
       return citedUrls.length ? [{ text: point.text.slice(0, 260), citedUrls }] : [];
     }).slice(0, 3) : [];
     return [{
-      ticker: row.ticker,
+      ticker,
       issuer: row.issuer.slice(0, 160),
       summary: row.summary.slice(0, 700),
       stance,
