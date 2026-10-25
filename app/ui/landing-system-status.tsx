@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { useLanguage } from "@/app/ui/language-provider";
 
 type ServiceState = "operational" | "degraded" | "monitoring";
 type ServiceStatus = { state: ServiceState };
@@ -17,11 +18,14 @@ function groupState(group: StatusGroup): ServiceState {
   return "operational";
 }
 
-function stateLabel(state: ServiceState) {
+function stateLabel(state: ServiceState, language: "en" | "zh-CN") {
+  if (language === "zh-CN") return state === "operational" ? "运行正常" : state === "degraded" ? "服务降级" : "未监控";
   return state === "operational" ? "Operational" : state === "degraded" ? "Degraded" : "Not monitored";
 }
 
 export default function LandingSystemStatus() {
+  const { language } = useLanguage();
+  const locale = language === "zh-CN" ? "zh-CN" : "en-US";
   const [status, setStatus] = useState<SystemStatus | null>(null);
   const [unavailable, setUnavailable] = useState(false);
 
@@ -39,13 +43,26 @@ export default function LandingSystemStatus() {
   }, []);
 
   const monitored = status?.groups.flatMap(group => group.services).filter(service => service.state !== "monitoring").length ?? 0;
-  const label = status ? (status.status === "operational" ? "All monitored services operational" : "A service needs attention")
-    : unavailable ? "Live status is temporarily unavailable" : "Checking live service status";
+  const label = status
+    ? language === "zh-CN"
+      ? status.status === "operational" ? "所有受监控服务运行正常" : "有服务需要关注"
+      : status.status === "operational" ? "All monitored services operational" : "A service needs attention"
+    : unavailable
+      ? language === "zh-CN" ? "实时状态暂时不可用" : "Live status is temporarily unavailable"
+      : language === "zh-CN" ? "正在检查实时服务状态" : "Checking live service status";
+  const groupNames: Record<string, string> = {
+    Websites: "网站",
+    APIs: "API",
+    Data: "数据服务",
+    Packages: "软件包仓库",
+    "Package registries": "软件包仓库",
+  };
+  const time = status ? new Date(status.checkedAt).toLocaleTimeString(locale, { hour: "2-digit", minute: "2-digit" }) : "";
 
   return <section className={`landing-status-card${status ? ` is-${status.status}` : unavailable ? " is-unavailable" : " is-loading"}`} aria-labelledby="landing-status-title">
     <div className="landing-status-card-head">
-      <span className="landing-status-kicker"><i aria-hidden="true" /> TIDELIGHT STATUS</span>
-      <a href="https://status.tidelight.app" aria-label="Open Tidelight service status">Full status <span aria-hidden="true">↗</span></a>
+      <span className="landing-status-kicker"><i aria-hidden="true" /> {language === "zh-CN" ? "TIDELIGHT 服务状态" : "TIDELIGHT STATUS"}</span>
+      <a href="https://status.tidelight.app" aria-label={language === "zh-CN" ? "打开 Tidelight 服务状态" : "Open Tidelight service status"}>{language === "zh-CN" ? "完整状态" : "Full status"} <span aria-hidden="true">↗</span></a>
     </div>
     <div className="landing-status-visual" aria-hidden="true">
       <svg viewBox="0 0 560 180" preserveAspectRatio="none">
@@ -56,19 +73,20 @@ export default function LandingSystemStatus() {
       </svg>
       <span className="landing-status-orbit landing-status-orbit-one" />
       <span className="landing-status-orbit landing-status-orbit-two" />
-      <span className="landing-status-center"><i /><b>{status?.status === "degraded" ? "Review" : status?.status === "operational" ? "Live" : "Status"}</b><small>Service checks</small></span>
-      <span className="landing-status-visual-label">LIVE SNAPSHOT</span>
+      <span className="landing-status-center"><i /><b>{language === "zh-CN" ? status?.status === "degraded" ? "关注" : status?.status === "operational" ? "正常" : "状态" : status?.status === "degraded" ? "Review" : status?.status === "operational" ? "Live" : "Status"}</b><small>{language === "zh-CN" ? "服务检查" : "Service checks"}</small></span>
+      <span className="landing-status-visual-label">{language === "zh-CN" ? "实时状态快照" : "LIVE SNAPSHOT"}</span>
     </div>
     <div className="landing-status-summary" role="status" aria-live="polite">
       <span className="landing-status-light" aria-hidden="true" />
-      <div><strong id="landing-status-title">{label}</strong><small>{status ? `${monitored} monitored checks · checked ${new Date(status.checkedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}` : "Availability across Tidelight services"}</small></div>
+      <div><strong id="landing-status-title">{label}</strong><small>{status ? language === "zh-CN" ? `${monitored} 项受监控检查 · 检查时间 ${time}` : `${monitored} monitored checks · checked ${time}` : language === "zh-CN" ? "Tidelight 各项服务的可用状态" : "Availability across Tidelight services"}</small></div>
     </div>
-    <div className="landing-status-groups" aria-label="Status group summaries">
+    <div className="landing-status-groups" aria-label={language === "zh-CN" ? "状态分组摘要" : "Status group summaries"}>
       {(status?.groups ?? [{ name: "Websites", services: [] }, { name: "APIs", services: [] }, { name: "Data", services: [] }, { name: "Packages", services: [] }]).slice(0, 4).map(group => {
         const state = status ? groupState(group) : "monitoring";
-        return <div className={`landing-status-group is-${state}`} key={group.name}><span>{group.name}</span><b>{status ? stateLabel(state) : unavailable ? "Check status" : "Loading"}</b></div>;
+        const groupName = language === "zh-CN" ? groupNames[group.name] ?? group.name : group.name;
+        return <div className={`landing-status-group is-${state}`} key={group.name}><span>{groupName}</span><b>{status ? stateLabel(state, language) : unavailable ? language === "zh-CN" ? "查看状态" : "Check status" : language === "zh-CN" ? "加载中" : "Loading"}</b></div>;
       })}
     </div>
-    <div className="landing-status-card-foot"><span>Live checks cover sites, APIs, data, and registries</span><a href="https://status.tidelight.app">View status page <span aria-hidden="true">→</span></a></div>
+    <div className="landing-status-card-foot"><span>{language === "zh-CN" ? "实时检查涵盖网站、API、数据服务和软件包仓库" : "Live checks cover sites, APIs, data, and registries"}</span><a href="https://status.tidelight.app">{language === "zh-CN" ? "查看状态页面" : "View status page"} <span aria-hidden="true">→</span></a></div>
   </section>;
 }

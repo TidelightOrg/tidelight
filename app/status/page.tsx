@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { headers } from "next/headers";
+import { cookies, headers } from "next/headers";
 import Link from "next/link";
 import { getSystemStatus } from "@/lib/tic/system-status";
 import { resolveStatusPagePath } from "@/lib/tic/status-links";
@@ -12,12 +12,13 @@ export const metadata: Metadata = {
 };
 
 export default async function StatusPage() {
-  const [status, requestHeaders] = await Promise.all([getSystemStatus(), headers()]);
+  const [status, requestHeaders, cookieStore] = await Promise.all([getSystemStatus(), headers(), cookies()]);
   const statusPath = resolveStatusPagePath(requestHeaders.get("host"), "/status");
   const maintenancePath = resolveStatusPagePath(requestHeaders.get("host"), "/status/maintenance");
   const incidentsPath = resolveStatusPagePath(requestHeaders.get("host"), "/status/incidents");
   const label = status.status === "operational" ? "All monitored services operational" : "A service is experiencing issues";
-  const checked = new Date(status.checkedAt).toLocaleString("en", { timeZone: "UTC", timeZoneName: "short" });
+  const locale = cookieStore.get("tidelight-language")?.value === "zh-CN" ? "zh-CN" : "en-US";
+  const checked = new Date(status.checkedAt).toLocaleString(locale, { timeZone: "UTC", timeZoneName: "short" });
   const services = status.groups.flatMap(group => group.services);
   const checkedCount = services.filter(service => service.state !== "monitoring").length;
   const monitoringCount = services.length - checkedCount;

@@ -9,6 +9,9 @@ test("ecosystem status groups real service checks and labels unmonitored workloa
   for (const group of ["Websites", "APIs", "Package registries", "Data", "Background services"]) assert.ok(status.includes(`name: "${group}"`));
   for (const service of ["Tidelight app", "Developer docs", "Package directory", "REST API", "Research job API", "MCP server metadata", "npm registry", "Python package registry", "Application database"]) assert.ok(status.includes(`"${service}"`));
   assert.match(status, /state: "monitoring"/);
+  assert.match(status, /Database monitoring is not configured for this deployment\./);
+  assert.match(status, /if \(!process\.env\.NEXT_PUBLIC_SUPABASE_URL \|\| !\(process\.env\.SUPABASE_SECRET_KEY \|\| process\.env\.SUPABASE_SERVICE_ROLE_KEY\)\)/);
+  assert.match(status, /state: error \? "degraded" : "operational"/);
   assert.match(page, /Not monitored/);
   assert.match(page, /Background job execution and message delivery are not monitored here/);
   assert.doesNotMatch(page, /\b(?:99\.\d+%|90-day uptime)\b/);
@@ -84,7 +87,10 @@ test("rendered status preserves degraded database and native disclosure semantic
   };
   const renderedModule = { exports: {} };
   const load = name => {
-    if (name === "next/headers") return { headers: async () => new Headers({ host: "status.tidelight.app" }) };
+    if (name === "next/headers") return {
+      headers: async () => new Headers({ host: "status.tidelight.app" }),
+      cookies: async () => ({ get: name => name === "tidelight-language" ? { value: "zh-CN" } : undefined }),
+    };
     if (name === "next/link") return { default: props => React.createElement("a", props) };
     if (name === "@/lib/tic/system-status") return { getSystemStatus: async () => fixture };
     if (name === "@/lib/tic/status-links") return { resolveStatusPagePath };
@@ -93,7 +99,9 @@ test("rendered status preserves degraded database and native disclosure semantic
   };
   new Function("require", "module", "exports", compiled)(load, renderedModule, renderedModule.exports);
   const html = renderToStaticMarkup(await renderedModule.exports.default());
+  const expectedChecked = new Date(fixture.checkedAt).toLocaleString("zh-CN", { timeZone: "UTC", timeZoneName: "short" });
   assert.match(html, /A service is experiencing issues/);
+  assert.ok(html.includes(expectedChecked));
   assert.match(html, /Database query failed\./);
   assert.match(html, /tic-status-state degraded/);
   assert.match(html, /tic-status-state monitoring/);

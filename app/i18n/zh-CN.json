@@ -5727,5 +5727,8 @@
   "Last 7 days": "过去 7 天",
   "Last 30 days": "过去 30 天",
   "The latest 100 records, including latency and response status. Daily totals above cover the full selected period.": "最近 100 条记录，包括延迟和响应状态。上方每日合计涵盖整个所选时间范围。",
-  "REQUESTS · {days} DAYS": "请求 · {days} 天"
+  "REQUESTS · {days} DAYS": "请求 · {days} 天",
+  "Database monitoring is not configured for this deployment.": "此部署尚未配置数据库监控。",
+  "Database query failed.": "数据库查询失败。",
+  "Database connection failed.": "数据库连接失败。"
 }
