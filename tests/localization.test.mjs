@@ -217,6 +217,20 @@ test("Simplified Chinese covers account, settings, landing, and developer consol
   assert.equal(translations.DYOR, "自行研究", "DYOR should not be rendered as an unrelated brand name");
 });
 
+test("Simplified Chinese market radar localizes dynamic labels and feed states", async () => {
+  const radar = await readFile(new URL("app/ui/market-radar.tsx", root), "utf8");
+  for (const key of [
+    "Semiconductors", "Mobility", "Cloud & AI", "Commerce", "4H REFERENCE", "Four-hour perpetual reference closes, separate from the Reality spot quote",
+    "Stock perpetual", "Issuer reference", "Market feed unavailable", "Bitget public market feed · updating every 15 seconds",
+    "Showing the last verified quotes · waiting for a fresh Bitget update", "Bitget feed reconnecting · last verified quotes are retained",
+    "Bitget market feed unavailable · no sample prices shown",
+  ]) assert.equal(typeof translations[key], "string", `Missing Simplified Chinese market radar translation: ${key}`);
+  assert.match(radar, /const \{ language, translate \} = useLanguage\(\)/);
+  assert.match(radar, /translate\(company\.field\)/);
+  assert.match(radar, /new Intl\.RelativeTimeFormat\(language/);
+  assert.match(radar, /translate\(feedState === "live"/);
+});
+
 test("Simplified Chinese JSON has no duplicate keys and preserves Tidelight identifiers", async () => {
   const source = await readFile(new URL("app/i18n/zh-CN.json", root), "utf8");
   const document = parseDocument(source, { uniqueKeys: true });
