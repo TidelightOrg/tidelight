@@ -84,7 +84,10 @@ test("rendered status preserves degraded database and native disclosure semantic
   };
   const renderedModule = { exports: {} };
   const load = name => {
-    if (name === "next/headers") return { headers: async () => new Headers({ host: "status.tidelight.app" }) };
+    if (name === "next/headers") return {
+      headers: async () => new Headers({ host: "status.tidelight.app" }),
+      cookies: async () => ({ get: name => name === "tidelight-language" ? { value: "zh-CN" } : undefined }),
+    };
     if (name === "next/link") return { default: props => React.createElement("a", props) };
     if (name === "@/lib/tic/system-status") return { getSystemStatus: async () => fixture };
     if (name === "@/lib/tic/status-links") return { resolveStatusPagePath };
@@ -93,7 +96,9 @@ test("rendered status preserves degraded database and native disclosure semantic
   };
   new Function("require", "module", "exports", compiled)(load, renderedModule, renderedModule.exports);
   const html = renderToStaticMarkup(await renderedModule.exports.default());
+  const expectedChecked = new Date(fixture.checkedAt).toLocaleString("zh-CN", { timeZone: "UTC", timeZoneName: "short" });
   assert.match(html, /A service is experiencing issues/);
+  assert.ok(html.includes(expectedChecked));
   assert.match(html, /Database query failed\./);
   assert.match(html, /tic-status-state degraded/);
   assert.match(html, /tic-status-state monitoring/);
