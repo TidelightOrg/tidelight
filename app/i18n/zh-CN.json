@@ -5868,5 +5868,6 @@
   "The selected credential's existing scopes, expiry, quotas, and revocation rules continue to apply. Revoking the selected API key also revokes this connection.": "所选凭据现有的权限范围、有效期、配额和撤销规则继续适用。撤销所选 API 密钥也会撤销此连接。",
   "4H REFERENCE": "4 小时参考",
   "Four-hour perpetual reference closes, separate from the Reality spot quote": "4 小时永续合约参考收盘价，与 Reality 现货报价分开显示",
-  "Stock perpetual": "美股永续合约"
+  "Stock perpetual": "美股永续合约",
+  "On this ten-run sample, only two outputs included model synthesis; both raised material evidence concerns. Eight were source-only or had no usable synthesis. The 2.5/10 figure is a provisional single-reviewer product assessment, not a factual-accuracy rate. Formal claim-quality scoring is pending independent labels and adjudication; task time was not measured. The September CPI run included off-topic sources.": "在这 10 次运行中，仅 2 次包含模型综合结果，且两次都存在实质性的证据问题。另有 8 次仅返回来源或没有可用的综合结果。2.5/10 是单人审阅得出的暂定产品评价，并非事实准确率。正式的主张质量评分仍待独立标注和裁定；任务用时未测量。9 月 CPI 运行还包含偏离主题的来源。"
 }
