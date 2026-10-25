@@ -4,6 +4,7 @@ import LandingDocsEmbed from "@/app/ui/landing-docs-embed";
 import { NavigationTrail } from "@/app/ui/navigation-icon";
 import { ThemeQuickSwitch } from "@/app/ui/theme-provider";
 import { LanguageToggle } from "@/app/ui/language-provider";
+import LandingUseCases from "@/app/ui/landing-use-cases";
 
 const capabilities = [
   ["Research", "Turn a plain-language question into a source-led market brief."],
@@ -16,10 +17,11 @@ export default function LandingPage() {
     <nav className="landing-nav" aria-label="Tidelight landing navigation">
       <Link className="landing-brand" href="/"><Image className="landing-mark" src="/tidelight-mark.svg" alt="" width={30} height={30} priority /><span>tide<span>light</span></span></Link>
       <div className="landing-nav-actions">
-        <div className="landing-nav-links"><a href="#method">The method</a><a href="#handbook">Docs <NavigationTrail className="landing-arrow" /></a><Link href="/developers">Developers</Link><Link href="/judge">Judge Mode</Link><Link href="/status">Status</Link></div>
+        <div className="landing-nav-links"><a href="#use-cases">Use cases</a><a href="#method">The method</a><a href="#handbook">Docs <NavigationTrail className="landing-arrow" /></a><Link href="/developers">Developers</Link><Link href="/judge">Judge Mode</Link><Link href="/status">Status</Link></div>
         <details className="landing-mobile-menu">
           <summary aria-label="Open site navigation"><span className="landing-menu-glyph" aria-hidden="true"><i /><i /><i /></span><span>Menu</span></summary>
           <div className="landing-mobile-menu-panel" aria-label="Site navigation">
+            <a href="#use-cases">Use cases <NavigationTrail className="landing-arrow" /></a>
             <a href="#method">The method <NavigationTrail className="landing-arrow" /></a>
             <a href="#handbook">Handbook <NavigationTrail className="landing-arrow" /></a>
             <Link href="/developers">Developers <NavigationTrail className="landing-arrow" /></Link>
@@ -47,6 +49,7 @@ export default function LandingPage() {
         <div className="landing-stage-readout"><span><i /> SIGNAL DESK</span><b>Following the ripple</b><small>Event → Evidence → Exposure → Scenario</small></div>
       </div>
     </section>
+    <LandingUseCases />
     <section className="landing-proof" id="method"><div className="landing-section-heading"><span className="landing-kicker">ONE CONNECTED ECOSYSTEM</span><h2>Everything you need<br /><em>before you make a move.</em></h2><p className="landing-section-lede">Research, markets, paper trading, and decision history—connected in one clear market research workflow.</p></div><div className="landing-capabilities">{capabilities.map(([title, body], index) => <article key={title}><span>0{index + 1}</span><h3>{title}</h3><p>{body}</p></article>)}</div></section>
     <LandingDocsEmbed />
     <section className="landing-method"><div><span className="landing-kicker">THE TIDELIGHT METHOD</span><h2>One question in.<br /><em>One clearer next step out.</em></h2><p>Tide helps you ask naturally. Market research brings together current evidence and exposure. A clear activity trace shows each check. You stay in control of the decision.</p></div><Link href="/flow">Explore market research <NavigationTrail className="landing-arrow" /></Link></section>
