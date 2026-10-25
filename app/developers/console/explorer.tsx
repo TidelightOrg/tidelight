@@ -6,6 +6,7 @@ type Project = { id: string; name: string };
 type Key = { id: string; project_id: string; name: string; environment: string; scopes: string[]; revoked_at: string | null; expires_at: string | null };
 type Language = "curl" | "typescript" | "python";
 type Endpoint = "market" | "research";
+type ExplorerHistoryEntry = { id: string; endpoint: Endpoint; ticker: string; createdAt: string; status: number | null; duration: number; requestId: string; result: unknown };
 
 const languages: Language[] = ["curl", "typescript", "python"];
 
@@ -24,6 +25,8 @@ export default function ApiExplorer({ projects, keys, currentTime, onViewResearc
   const [requestId, setRequestId] = useState("");
   const [duration, setDuration] = useState<number | null>(null);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
+  const [history, setHistory] = useState<ExplorerHistoryEntry[]>([]);
+  const [activeHistoryId, setActiveHistoryId] = useState("");
   const scope = endpoint === "market" ? "market:read" : "research:run";
   const availableKeys = keys.filter(key => key.project_id === projectId && key.scopes?.includes(scope) && !key.revoked_at && (!key.expires_at || Date.parse(key.expires_at) > currentTime));
   const selectedKeyId = availableKeys.some(key => key.id === keyId) ? keyId : availableKeys[0]?.id ?? "";
@@ -55,14 +58,25 @@ export default function ApiExplorer({ projects, keys, currentTime, onViewResearc
       if (endpoint === "research" && !researchIdempotencyKey) setResearchIdempotencyKey(idempotencyKey);
       const response = await fetch(endpoint === "market" ? "/api/developers/explore" : "/api/developers/explore-research", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(endpoint === "market" ? { keyId: selectedKeyId, kind: "rtoken", limit, cursor: cursor || null, underlyingTicker: underlyingTicker || null } : { keyId: selectedKeyId, ticker: underlyingTicker || "NVDA", idempotencyKey }) });
       const body = await response.json();
+      const nextRequestId = body.request_id ?? body.error?.request_id ?? response.headers.get("x-request-id") ?? "";
+      const elapsed = typeof body.duration_ms === "number" ? body.duration_ms : Math.round(performance.now() - began);
+      const entry: ExplorerHistoryEntry = { id: crypto.randomUUID(), endpoint, ticker: underlyingTicker.trim() || (endpoint === "research" ? "NVDA" : "All instruments"), createdAt: new Date().toISOString(), status: response.status, duration: elapsed, requestId: nextRequestId, result: body };
       setStatus(response.status);
       setResult(body);
-      setRequestId(body.request_id ?? body.error?.request_id ?? response.headers.get("x-request-id") ?? "");
-      setDuration(typeof body.duration_ms === "number" ? body.duration_ms : Math.round(performance.now() - began));
+      setRequestId(nextRequestId);
+      setDuration(elapsed);
+      setHistory(current => [entry, ...current].slice(0, 6));
+      setActiveHistoryId(entry.id);
     } catch {
+      const errorResult = { error: { code: "network_error", message: "The API explorer could not reach Tidelight. Check your connection and try again." } };
+      const elapsed = Math.round(performance.now() - began);
+      const entry: ExplorerHistoryEntry = { id: crypto.randomUUID(), endpoint, ticker: underlyingTicker.trim() || (endpoint === "research" ? "NVDA" : "All instruments"), createdAt: new Date().toISOString(), status: null, duration: elapsed, requestId: "", result: errorResult };
       setStatus(null);
-      setResult({ error: { code: "network_error", message: "The API explorer could not reach Tidelight. Check your connection and try again." } });
-      setDuration(Math.round(performance.now() - began));
+      setResult(errorResult);
+      setRequestId("");
+      setDuration(elapsed);
+      setHistory(current => [entry, ...current].slice(0, 6));
+      setActiveHistoryId(entry.id);
     } finally {
       setBusy(false);
     }
@@ -76,6 +90,14 @@ export default function ApiExplorer({ projects, keys, currentTime, onViewResearc
       setCopyState("failed");
     }
     window.setTimeout(() => setCopyState("idle"), 2200);
+  }
+
+  function showHistoryEntry(entry: ExplorerHistoryEntry) {
+    setActiveHistoryId(entry.id);
+    setStatus(entry.status);
+    setResult(entry.result);
+    setRequestId(entry.requestId);
+    setDuration(entry.duration);
   }
 
   return <>
@@ -125,6 +147,12 @@ export default function ApiExplorer({ projects, keys, currentTime, onViewResearc
         <pre tabIndex={0} aria-label="JSON response"><code>{JSON.stringify(result, null, 2)}</code></pre>
       </> : <div className="tic-response-empty"><span aria-hidden="true" /><div><strong>Your response will appear here</strong><p>Run the request to inspect live data, request metadata, and any API errors.</p></div></div>}
     </section>
+
+    {history.length > 0 && <section className="tic-panel tic-explorer-history" aria-labelledby="tic-history-title">
+      <div className="tic-panel-head"><div><p className="tic-explorer-kicker">THIS TAB</p><h2 id="tic-history-title">Recent requests</h2></div><button className="tic-history-clear" type="button" onClick={() => { setHistory([]); setActiveHistoryId(""); }}>Clear</button></div>
+      <ol className="tic-explorer-history-list">{history.map(entry => <li key={entry.id} className={entry.id === activeHistoryId ? "is-active" : ""}><div><b>{entry.endpoint === "market" ? "Market instruments" : "Company research job"} · {entry.ticker}</b><small>{new Date(entry.createdAt).toLocaleString()} · {entry.status === null ? "Network error" : `HTTP ${entry.status}`} · {entry.duration} ms</small></div><button type="button" aria-pressed={entry.id === activeHistoryId} onClick={() => showHistoryEntry(entry)}>View response</button></li>)}</ol>
+      <p className="tic-history-note">History stays in memory for this page session and clears when you leave.</p>
+    </section>}
 
     <section className="tic-panel tic-code-example" aria-labelledby="tic-code-title">
       <div className="tic-panel-head"><div><p className="tic-explorer-kicker">READY-TO-USE EXAMPLE</p><h2 id="tic-code-title">Use it in your application</h2></div><button type="button" onClick={() => void copySnippet()} aria-live="polite">{copyState === "copied" ? "Copied" : copyState === "failed" ? "Copy failed" : "Copy code"}</button></div>
