@@ -62,7 +62,9 @@ export async function POST(request: Request) {
     const claims = (summary.claims as unknown[]).flatMap(raw => {
       const claim = object(raw);
       if (!claim || typeof claim.claim !== "string" || typeof claim.quote !== "string") return [];
-      const url = typeof claim.sourceUrl === "string" ? claim.sourceUrl : "";
+      // Evidence briefs use `sourceUrl`; older imported records used `source_url`.
+      // Persist only links that are present in this run's source table.
+      const url = typeof claim.sourceUrl === "string" ? claim.sourceUrl : typeof claim.source_url === "string" ? claim.source_url : "";
       return [{ text: claim.claim.slice(0, 260), citedUrls: url ? [url] : [] }];
     });
     const validUrls = new Set(sources.map(source => source.url));
@@ -91,6 +93,9 @@ export async function POST(request: Request) {
     const summaryText = replayText(row, "summary", "overview", "analysis");
     if (!ticker || !issuer || !summaryText) return [];
     const market = object(row.market) ?? {};
+    const marketSymbol = market.perpSymbol ?? market.spotSymbol ?? market.symbol;
+    const marketPrice = market.lastPrice ?? market.price;
+    const marketTimestamp = market.providerTimestamp ?? market.timestamp;
     const stance = ["bullish", "bearish", "mixed", "unclear"].includes(String(row.stance)) ? row.stance : "unclear";
     const confidence = typeof row.confidence === "number" && Number.isFinite(row.confidence) ? Math.max(0, Math.min(1, row.confidence)) : 0;
     const allowedSources = new Set(sources.map(source => source.url));
@@ -116,7 +121,7 @@ export async function POST(request: Request) {
       gateReasons: Array.isArray(row.gateReasons) ? row.gateReasons.filter((item): item is string => typeof item === "string").slice(0, 8).map(item => item.slice(0, 220)) : [],
       sources: [...usedSourceSet],
       evidenceBalance: { supporting: evidencePoints(balance.supporting), counter: evidencePoints(balance.counter) },
-      market: { symbol: typeof market.perpSymbol === "string" ? market.perpSymbol : null, price: typeof market.lastPrice === "number" && Number.isFinite(market.lastPrice) ? market.lastPrice : null, providerTimestamp: typeof market.providerTimestamp === "number" ? market.providerTimestamp : null },
+      market: { symbol: typeof marketSymbol === "string" ? marketSymbol.slice(0, 80) : null, price: typeof marketPrice === "number" && Number.isFinite(marketPrice) ? marketPrice : null, providerTimestamp: typeof marketTimestamp === "number" && Number.isFinite(marketTimestamp) ? marketTimestamp : typeof marketTimestamp === "string" && Number.isFinite(Date.parse(marketTimestamp)) ? Date.parse(marketTimestamp) : null },
       risks: Array.isArray(row.risks) ? row.risks.filter((item): item is string => typeof item === "string").slice(0, 5).map(item => item.slice(0, 220)) : [],
       nextCheck: typeof row.nextCheck === "string" ? row.nextCheck.slice(0, 220) : null,
     }];
