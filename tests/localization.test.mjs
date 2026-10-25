@@ -78,6 +78,7 @@ test("Simplified Chinese covers the Judge evaluation path and public evidence di
     "Open the full Gmail screenshot for the RNVDUSDT Nightwatch email", "Browse published paper replays", "Download JSON",
     "PUBLIC REPLAY", "after costs", "Holdout return trailed buy and hold (+2.12%) over 32 days. Historical simulation; costs estimated, no live orders.",
     "Evaluation path", "Evaluation stages", "Would you review the rTSLA market?",
+    "On this ten-run sample, only two outputs included model synthesis; both raised material evidence concerns. Eight were source-only or had no usable synthesis. The 2.5/10 figure is a provisional single-reviewer product assessment, not a factual-accuracy rate. Formal claim-quality scoring is pending independent labels and adjudication; task time was not measured. The September CPI run included off-topic sources.",
     "How do AI investment and Azure demand change the risk picture?", "What should a long-term rAAPL review verify?",
     "How should antitrust remedies and AI-search competition be reviewed?", "How do AWS investment and retail economics shape the review?",
     "Compare the latest evidence and risks.", "Separate issuer assessments", "decision gates", "PUBLIC REPLAY · APPLE · 4H",
@@ -99,6 +100,7 @@ test("developer pages expose a language toggle and share the language preference
   assert.match(docs, /LanguageToggle className="tic-language-toggle"/);
   assert.match(provider, /hostname\.endsWith\("\.tidelight\.app"\)/);
   assert.match(provider, /domain=\.tidelight\.app/);
+  assert.match(provider, /if \(textInput && !\["aria-label", "aria-description", "title"\]\.includes\(name\)\) continue/);
   assert.ok(provider.indexOf("const cookieLanguage") < provider.indexOf("window.localStorage.getItem(STORAGE_KEY)"));
 });
 
@@ -167,7 +169,102 @@ test("Simplified Chinese covers visible developer docs and package UI copy", asy
     "Install the published package with the command shown above. You can also build the canonical source or link it locally.",
     "Copy unavailable",
     "Anyone with the link can view the symbol, rule, date window, reported metrics, candle archive, and assumptions. Public for 30 days; account and portfolio details are excluded.",
+    "Your package", "dashboard.", "Find the right integration, inspect the published release, and start with a verified install command.",
+    "Five official integrations", "Back to Packages home", "YOUR INTEGRATION CATALOG / 05", "Choose your entry point",
+    "Each package page includes its registry source, compatibility notes, and an implementation guide.",
+    "NEED THE FULL PLATFORM?", "Build with Tidelight Intelligence Cloud.",
+    "Use one account for your projects, API keys, usage, and research jobs.", "Visit Intelligence Cloud",
+    "03 / COMMANDS", "03 / HOOKS", "04 / EXAMPLES", "05 / EXAMPLES", "05 / SECURITY & TRUST",
+    "4H REFERENCE", "Four-hour perpetual reference closes, separate from the Reality spot quote", "Stock perpetual",
   ]) assert.equal(typeof translations[key], "string", `Missing translation for ${key}`);
+});
+
+test("Simplified Chinese covers account, settings, landing, and developer console UI", async () => {
+  const paths = [
+    "app/account/page.tsx",
+    "app/settings/page.tsx",
+    "app/ui/account-tabs.tsx",
+    "app/ui/account-copy-button.tsx",
+    "app/ui/landing-page.tsx",
+    "app/developers/page.tsx",
+    "app/developers/console/ui.tsx",
+    "app/developers/console/explorer.tsx",
+    "app/developers/console/webhooks.tsx",
+    "app/developers/console/state.tsx",
+    "app/developers/support/support-center.tsx",
+    "app/developers/oauth/consent/page.tsx",
+    "app/developers/intelligence-ui-preview.tsx",
+  ];
+  const missing = new Set();
+  const normalized = (value) => value.replace(/\s+/g, " ").trim();
+  const decodeEntities = (value) => value.replaceAll("&amp;", "&").replaceAll("&apos;", "'").replaceAll("&quot;", '"');
+  const isIdentifier = (value) => value.length < 2
+    || /^(?:https?:\/\/|\/|[A-Z][A-Z0-9_:-]*\/)/.test(value)
+    || (/^[A-Za-z_$][A-Za-z0-9_$:./?+=<>|{}"'-]*$/.test(value) && !/\s/.test(value));
+  for (const path of paths) {
+    const source = await readFile(new URL(path, root), "utf8");
+    const file = ts.createSourceFile(path, source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+    const visit = (node) => {
+      if (ts.isJsxText(node)) {
+        const key = normalized(decodeEntities(node.getText(file)));
+        if (key.length >= 16 && /[A-Za-z]/.test(key) && !isIdentifier(key) && !translations[key]) missing.add(`${path}: ${key}`);
+      }
+      if (ts.isJsxAttribute(node) && ["aria-label", "alt", "title", "placeholder"].includes(node.name.getText(file)) && node.initializer && ts.isStringLiteral(node.initializer)) {
+        const key = normalized(decodeEntities(node.initializer.text));
+        if (/[A-Za-z]/.test(key) && !isIdentifier(key) && !translations[key]) missing.add(`${path} [${node.name.getText(file)}]: ${key}`);
+      }
+      ts.forEachChild(node, visit);
+    };
+    visit(file);
+  }
+  assert.deepEqual([...missing].sort(), [], `Missing Simplified Chinese entries:\n${[...missing].sort().join("\n")}`);
+  for (const key of [
+    "My info", "Security", "Preference", "General", "Manage", "Bitget only",
+    "RESEARCH SYNTHESIS", "AgentKey data connection.", "DYOR", "Do your own research.",
+    "Market feed unavailable", "JSON response", "No API keys yet", "Request failed",
+  ]) assert.equal(typeof translations[key], "string", `Missing Chinese account/settings/console translation: ${key}`);
+  assert.equal(translations.DYOR, "自行研究", "DYOR should not be rendered as an unrelated brand name");
+});
+
+test("Simplified Chinese market radar localizes dynamic labels and feed states", async () => {
+  const radar = await readFile(new URL("app/ui/market-radar.tsx", root), "utf8");
+  for (const key of [
+    "Semiconductors", "Mobility", "Cloud & AI", "Commerce", "4H REFERENCE", "Four-hour perpetual reference closes, separate from the Reality spot quote",
+    "Stock perpetual", "Issuer reference", "Market feed unavailable", "Bitget public market feed · updating every 15 seconds",
+    "Showing the last verified quotes · waiting for a fresh Bitget update", "Bitget feed reconnecting · last verified quotes are retained",
+    "Bitget market feed unavailable · no sample prices shown",
+  ]) assert.equal(typeof translations[key], "string", `Missing Simplified Chinese market radar translation: ${key}`);
+  assert.match(radar, /const \{ language, translate \} = useLanguage\(\)/);
+  assert.match(radar, /translate\(company\.field\)/);
+  assert.match(radar, /new Intl\.RelativeTimeFormat\(language/);
+  assert.match(radar, /translate\(feedState === "live"/);
+});
+
+test("Simplified Chinese covers fixed public research replay copy and preserves evidence verbatim", async () => {
+  const source = await readFile(new URL("app/replay/[token]/page.tsx", root), "utf8");
+  const file = ts.createSourceFile("app/replay/[token]/page.tsx", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
+  const missing = new Set();
+  const normalized = (value) => value.replace(/\s+/g, " ").trim();
+  const visit = (node) => {
+    if (ts.isJsxText(node)) {
+      const key = normalized(node.getText(file));
+      if (key.length >= 2 && /[A-Za-z]/.test(key) && !translations[key]) missing.add(key);
+    }
+    ts.forEachChild(node, visit);
+  };
+  visit(file);
+  assert.deepEqual([...missing].sort(), [], `Missing public replay translations:\n${[...missing].sort().join("\n")}`);
+  for (const key of [
+    "One research run, ready to inspect.", "Separate evidence. Separate gates.",
+    "Model-reported score, not a calibrated probability.", "Sources attached to this assessment",
+    "No cited source links were stored for this assessment.", "Claim checks", "Supports this reading",
+    "Challenges this reading", "Why the handoff was held", "Risks and next check",
+    "RESEARCH ONLY", "REVIEW QUALIFIED", "Verification rule", "Counterpoint", "Unavailable",
+    "Public research replay. Market values are snapshots, AI summaries are interpretations, and this is not investment advice or audited performance.",
+  ]) assert.equal(typeof translations[key], "string", `Missing public replay translation: ${key}`);
+  for (const dynamicEvidence of ["{replay.question}", "{asset.summary}", "{point.text}", "{source.title || source.url}", "{reason}"]) {
+    assert.ok(source.includes(dynamicEvidence), `Keep published evidence content intact: ${dynamicEvidence}`);
+  }
 });
 
 test("Simplified Chinese JSON has no duplicate keys and preserves Tidelight identifiers", async () => {
