@@ -133,5 +133,16 @@ test("publishing requires the owning session and serializes only cited public ev
     assert.equal(evidenceBriefPayload.assets[0].ticker, "NVDA");
     assert.deepEqual(evidenceBriefPayload.assets[0].sources, ["https://news.example/story"]);
     assert.deepEqual(evidenceBriefPayload.assets[0].evidenceBalance.supporting[0].citedUrls, ["https://news.example/story"]);
+    context.run.summary = { ...context.run.summary, claims: [{ claim: "A legacy source-linked claim.", quote: "A matching archived quotation.", source_url: "https://news.example/story" }] };
+    const legacyEvidenceBriefResponse = await route.POST(new Request("https://tidelight.app/api/research/replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ researchRunId: token }) }));
+    assert.equal(legacyEvidenceBriefResponse.status, 200);
+    const legacyEvidencePayload = calls.filter(call => call.table === "public_research_replays").at(-1).values.payload;
+    assert.deepEqual(legacyEvidencePayload.assets[0].evidenceBalance.supporting[0].citedUrls, ["https://news.example/story"]);
+
+    context.run.summary = { assets: [{ ticker: "NVDA", issuer: "NVIDIA", summary: "A normalized market record.", sources: ["https://news.example/story"], market: { symbol: "NVDAUSDT", price: 140, timestamp: "2026-10-24T14:00:00Z" } }] };
+    const normalizedMarketResponse = await route.POST(new Request("https://tidelight.app/api/research/replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ researchRunId: token }) }));
+    assert.equal(normalizedMarketResponse.status, 200);
+    const normalizedMarketPayload = calls.filter(call => call.table === "public_research_replays").at(-1).values.payload;
+    assert.deepEqual(normalizedMarketPayload.assets[0].market, { symbol: "NVDAUSDT", price: 140, providerTimestamp: Date.parse("2026-10-24T14:00:00Z") });
   } finally { delete globalThis.replayTest; }
 });
