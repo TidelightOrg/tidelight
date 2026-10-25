@@ -16,5 +16,5 @@
 }
 @media(max-width:700px){.tic-intelligence-ui-brand small,.tic-intelligence-ui-summary>div>span,.tic-intelligence-ui-flow small,.tic-intelligence-ui-sources small,.tic-intelligence-ui-foot>span:last-child{font-size:10px;letter-spacing:.045em}.tic-intelligence-ui-flow>div span,.tic-intelligence-ui-heading small,.tic .tic-intelligence-ui-code{font-size:10px}}
 
-:root[data-theme="daylight"] .tic-premium-landing .tic-intelligence-ui{--tic-accent:#176b5c}
-:root[data-theme="daylight"] .tic-premium-landing .tic-intelligence-showcase-copy>a{color:#176b5c}
+:root:is([data-theme="daylight"], [data-theme="white"]) .tic-premium-landing .tic-intelligence-ui{--tic-accent:#176b5c}
+:root:is([data-theme="daylight"], [data-theme="white"]) .tic-premium-landing .tic-intelligence-showcase-copy>a{color:#176b5c}

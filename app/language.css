@@ -3,7 +3,7 @@
 .language-choice button:hover,.landing-language-toggle:hover{border-color:var(--mint-2);color:var(--text)}
 .language-choice button.selected{border-color:var(--mint-2);background:color-mix(in srgb,var(--mint-2) 13%,var(--panel));color:var(--text)}
 .landing-language-toggle{min-height:32px;padding:0 10px;border-color:color-mix(in srgb,var(--mint) 34%,var(--line));background:transparent;color:var(--mint);font-size:10px}
-:root[data-theme="daylight"] .landing-language-toggle{border-color:#a7c9ae;color:#286a4d}
+:root:is([data-theme="daylight"], [data-theme="white"]) .landing-language-toggle{border-color:#a7c9ae;color:#286a4d}
 :root[data-theme="blue"] .landing-language-toggle{border-color:#6476ad;color:#c1d0ff}
 [data-language="zh-CN"] .landing-nav-actions{gap:12px}
 [data-language="zh-CN"] .landing-nav-links{font-size:11px}

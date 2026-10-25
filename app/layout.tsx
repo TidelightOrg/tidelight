@@ -67,15 +67,17 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const cookieStore = await cookies();
   const savedTheme = cookieStore.get("tidelight-theme")?.value;
-  const theme = savedTheme === "daylight" || savedTheme === "night" || savedTheme === "blue" ? savedTheme : "blue";
+  const theme = savedTheme === "daylight" || savedTheme === "night" || savedTheme === "blue" || savedTheme === "white" || savedTheme === "dark" ? savedTheme : "blue";
   const requestHeaders = await headers();
   const requestHost = (requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host") ?? "").split(",")[0].trim().toLowerCase().replace(/:\d+$/, "");
   const isPublicPackageHost = requestHost === "package.tidelight.app";
   const isPublicBlogHost = requestHost === "blogs.tidelight.app";
+  const isStandaloneStatusHost = requestHost === "status.tidelight.app";
   const isStandaloneDeveloperHost = isPublicPackageHost || isPublicBlogHost;
+  const isStandalonePublicHost = isStandaloneDeveloperHost || isStandaloneStatusHost;
   const language = cookieStore.get("tidelight-language")?.value === "zh-CN" ? "zh-CN" : "en";
-  const supabase = isStandaloneDeveloperHost ? null : await createClient();
-  const user = isStandaloneDeveloperHost ? null : await getServerUser();
+  const supabase = isStandalonePublicHost ? null : await createClient();
+  const user = isStandalonePublicHost ? null : await getServerUser();
   const { data: profile } = user && supabase
     ? await supabase.from("community_profiles").select("display_name,avatar_url").eq("id", user.id).maybeSingle()
     : { data: null };
@@ -88,6 +90,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     || user?.email?.split("@")[0]
     || null;
 
-  return <html lang={language} data-language={language} data-theme={theme} suppressHydrationWarning><body><ThemeProvider initialTheme={theme}><LanguageProvider initialLanguage={language}><IntelligenceProvider>{isStandaloneDeveloperHost ? <>{children}<AnalyticsConsent /></> : <WorkspaceShell email={user?.email ?? null} avatarUrl={profile?.avatar_url ?? metadataAvatar} displayName={displayName} isOperator={isTidelightOperator(user)}>{children}</WorkspaceShell>}{isStandaloneDeveloperHost ? null : <><SupportCompanion /><ProductQuickActions /></>}</IntelligenceProvider></LanguageProvider></ThemeProvider></body></html>;
+  return <html lang={language} data-language={language} data-theme={theme} suppressHydrationWarning><body><ThemeProvider initialTheme={theme}><LanguageProvider initialLanguage={language}><IntelligenceProvider>{isStandalonePublicHost ? <>{children}{isStandaloneDeveloperHost ? <AnalyticsConsent /> : null}</> : <WorkspaceShell email={user?.email ?? null} avatarUrl={profile?.avatar_url ?? metadataAvatar} displayName={displayName} isOperator={isTidelightOperator(user)}>{children}</WorkspaceShell>}{isStandalonePublicHost ? null : <><SupportCompanion /><ProductQuickActions /></>}</IntelligenceProvider></LanguageProvider></ThemeProvider></body></html>;
 }
 

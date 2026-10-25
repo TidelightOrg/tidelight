@@ -49,6 +49,7 @@ export function resolveServiceHostRoute(hostname: string, pathname: string): Ser
     if (sharedPageResources.has(pathname)) return null;
     if (pathname === "/") return { kind: "rewrite", pathname: "/status" };
     if (pathname === "/health") return { kind: "rewrite", pathname: "/api/health" };
+    if (pathname === "/incidents" || pathname === "/maintenance") return { kind: "rewrite", pathname: `/status${pathname}` };
     if (pathname === "/status" || pathname === "/api/health") return { kind: "rewrite", pathname };
     return { kind: "not-found" };
   }

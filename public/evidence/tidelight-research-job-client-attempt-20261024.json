@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "authenticated_research_job_client_attempt",
+  "captured_at": "2026-10-24T23:35:59Z",
+  "client_environment": {
+    "product": "Codex Cloud",
+    "environment": "tidelight Org",
+    "repository": "TidelightOrg/tidelight"
+  },
+  "requested_clients": [
+    "npm TypeScript SDK @tidelight/sdk@0.1.2",
+    "Python SDK tidelight==0.1.2",
+    "Tidelight MCP"
+  ],
+  "steps": [
+    {
+      "step": 1,
+      "action": "Read repository agent guidance and TypeScript/Python SDK usage documentation.",
+      "status": "completed"
+    },
+    {
+      "step": 2,
+      "action": "Check whether a preconfigured API bearer credential exists using presence only; never display or copy a value.",
+      "status": "blocked",
+      "result": "TIDELIGHT_API_KEY and the checked bearer-token alternatives were absent. A research:run scope could not be verified."
+    },
+    {
+      "step": 3,
+      "action": "Install npm and Python packages from their public registries and submit one NVDA research job through each SDK.",
+      "status": "not_run",
+      "result": "Stopped before package installation and API submission because no authorized research key was configured."
+    },
+    {
+      "step": 4,
+      "action": "Inspect the current Tidelight MCP tools exposed in Codex.",
+      "status": "completed",
+      "tools": [
+        "tidelight_get_tokenized_equity",
+        "tidelight_search_tokenized_equities"
+      ],
+      "result": "Only read-only market tools are exposed. No company research-job tool is available under the current connection."
+    }
+  ],
+  "outcome": {
+    "npm_jobs_submitted": 0,
+    "python_jobs_submitted": 0,
+    "mcp_jobs_submitted": 0,
+    "request_ids": [],
+    "job_ids": [],
+    "credentials_changed": false,
+    "oauth_grants_changed": false,
+    "trades_or_downstream_actions": false
+  },
+  "evidence_boundary": "This is a blocked attempt, not an authenticated research result or package installation recording. No jobs were created, no API credentials were exposed, and no OAuth grants were changed. A new authorized project key and a Codex MCP research tool are required to record successful research runs."
+}

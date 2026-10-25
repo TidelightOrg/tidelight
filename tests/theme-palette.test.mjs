@@ -1,0 +1,32 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+
+test("White and Dark themes are selectable and persist through the shared theme provider", async () => {
+  const provider = await readFile(new URL("../app/ui/theme-provider.tsx", import.meta.url), "utf8");
+  const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
+  const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
+  assert.match(provider, /"daylight" \| "night" \| "blue" \| "white" \| "dark"/);
+  assert.match(provider, /id: "white", name: "White"/);
+  assert.match(provider, /id: "dark", name: "Dark"/);
+  assert.match(provider, /value === "white" \|\| value === "dark"/);
+  assert.match(provider, /saved === "white" \|\| saved === "dark"/);
+  assert.match(layout, /savedTheme === "white" \|\| savedTheme === "dark"/);
+  assert.match(css, /:root\[data-theme="white"\]\{color-scheme:light/);
+  assert.match(css, /:root\[data-theme="dark"\]\{color-scheme:dark/);
+});
+
+test("position share cards define a canvas palette for every selectable theme", async () => {
+  const card = await readFile(new URL("../app/ui/pnl-share-card.tsx", import.meta.url), "utf8");
+  assert.match(card, /currentTheme === "white" \|\| currentTheme === "dark"/);
+  for (const theme of ["daylight", "night", "blue", "white", "dark"]) {
+    assert.match(card, new RegExp(`id: "${theme}"`));
+    assert.match(card, new RegExp(`^  ${theme}: \\{`, "m"));
+  }
+});
+
+test("public research replays render in the White and Dark palettes", async () => {
+  const replay = await readFile(new URL("../app/replay/[token]/shared-replay.css", import.meta.url), "utf8");
+  assert.match(replay, /:root\[data-theme="white"\] \.shared-replay-page\{background:#fff/);
+  assert.match(replay, /:root\[data-theme="dark"\] \.shared-replay-page\{background:#090a0c/);
+});

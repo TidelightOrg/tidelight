@@ -35,13 +35,13 @@
 
 
 /* WCAG AA text contrast for the warm daylight palette. Brand teal remains in decorative surfaces. */
-:root[data-theme="daylight"] .tic-premium-landing :is(.tic-eyebrow,.tic-route-number,.tic-route-card code,.tic-showcase-copy>a,.tic-code-key,.tic-feature-grid span,.tic-core-pills span,.tic-hero-assurances i){color:#176b5c}
-:root[data-theme="daylight"] .tic-premium-landing .tic-code-value{color:#315b76}
-:root[data-theme="daylight"] .tic-premium-landing .tic-code-fade{color:var(--muted);opacity:1}
-:root[data-theme="daylight"] .tic-doc-layout .tic-eyebrow,:root[data-theme="daylight"] .tic-doc-layout article code{color:#176b5c}
-:root[data-theme="daylight"] .tic-console .tic-eyebrow{color:#176b5c}
+:root:is([data-theme="daylight"], [data-theme="white"]) .tic-premium-landing :is(.tic-eyebrow,.tic-route-number,.tic-route-card code,.tic-showcase-copy>a,.tic-code-key,.tic-feature-grid span,.tic-core-pills span,.tic-hero-assurances i){color:#176b5c}
+:root:is([data-theme="daylight"], [data-theme="white"]) .tic-premium-landing .tic-code-value{color:#315b76}
+:root:is([data-theme="daylight"], [data-theme="white"]) .tic-premium-landing .tic-code-fade{color:var(--muted);opacity:1}
+:root:is([data-theme="daylight"], [data-theme="white"]) .tic-doc-layout .tic-eyebrow,:root:is([data-theme="daylight"], [data-theme="white"]) .tic-doc-layout article code{color:#176b5c}
+:root:is([data-theme="daylight"], [data-theme="white"]) .tic-console .tic-eyebrow{color:#176b5c}
 .tic-doc-layout pre:focus-visible,.tic-doc-layout table:focus-visible{outline:2px solid var(--brand-teal);outline-offset:3px}
-:root[data-theme="daylight"] .tic-premium-landing .tic-access-visual>span{color:#176b5c}
+:root:is([data-theme="daylight"], [data-theme="white"]) .tic-premium-landing .tic-access-visual>span{color:#176b5c}
 
 @media(max-width:620px){.tic-premium-footer .tic-brand span{display:inline}}
 

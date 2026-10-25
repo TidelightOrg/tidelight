@@ -4,25 +4,40 @@
   "captured_date": "2026-10-24",
   "client": {
     "name": "Codex",
-    "plugin": "Tidelight Research",
-    "registration": "removed_after_capture",
+    "plugin": "Tidelight MCP Live Research",
+    "registration": "installed_and_connected",
     "endpoint": "https://mcp.tidelight.app/mcp",
     "transport": "Streamable HTTP",
     "authentication": "OAuth 2.1",
     "host_context": "Codex workspace"
   },
   "authorization": {
-    "status": "historical_grant_removed_from_current_codex_session",
+    "status": "connected_state_visible; current scope list not shown",
     "requested_scopes": [
       "market:read"
     ],
-    "scope_description": "The earlier authorization permitted read-only market data. This plugin connection has since been removed; no fresh grant is active in this session."
+    "scope_description": "The plugin settings show a connected OAuth account. The current UI does not expose a scope list; the live tool registry below shows the capabilities exposed to this client."
   },
   "checks": [
     {
-      "name": "Codex plugin registration",
-      "status": "historical_capture",
-      "detail": "The Tidelight Research plugin was registered during the earlier capture. It was subsequently uninstalled for a fresh reconnect."
+      "name": "Current plugin registration",
+      "status": "passed",
+      "detail": "The Tidelight MCP Live Research plugin is installed and connected in ChatGPT/Codex settings."
+    },
+    {
+      "name": "Current tool registry",
+      "status": "passed",
+      "tools": [
+        "tidelight_get_tokenized_equity",
+        "tidelight_search_tokenized_equities"
+      ],
+      "detail": "The current registry exposes two read-only tokenized-equity market tools."
+    },
+    {
+      "name": "Company research job tool",
+      "status": "not_exposed",
+      "requested_capability": "research:run",
+      "detail": "No company research-job tool is present in the current Codex registry; no job was submitted in this session."
     },
     {
       "name": "Protected resource metadata",
@@ -33,7 +48,7 @@
     {
       "name": "OAuth consent",
       "status": "passed",
-      "detail": "The user approved market:read during the earlier capture. This historical grant is not a current active connection."
+      "detail": "The historical capture approved market:read. The current plugin's scope list was not visible in settings."
     },
     {
       "name": "Authenticated MCP tool call",
@@ -78,10 +93,10 @@
       "detail": "The protected-resource metadata advertises research:run, and the MCP server source implements the company research job tools. The connected Codex tool registry exposes only market search and instrument lookup, so a company research job could not be invoked from this session."
     },
     {
-      "name": "Fresh reconnect attempt",
-      "status": "blocked_by_connector_availability",
-      "detail": "After removal, plugin discovery returned no Tidelight entry. The current Tidelight Research tool call returns Unknown tool, and the available plugin-management actions do not expose install/connect. No new authorization or research run is claimed."
+      "name": "Earlier Codex Cloud attempt",
+      "status": "historical_unavailable_session",
+      "detail": "The earlier Cloud run could not see the plugin. A later browser check found it installed and connected; the current registry remains market-only. See the separate install-attempt record for that earlier session."
     }
   ],
-  "evidence_boundary": "This file preserves earlier market:read call evidence and labels it historical. The Tidelight Research plugin has since been removed; current Codex discovery does not provide a fresh connector with research:run, so no current MCP research run is recorded."
+  "evidence_boundary": "Earlier authenticated market calls are historical. The current connected plugin exposes two read-only market tools but no company research-job operation. No npm, Python, or MCP research-job request was made in this session."
 }

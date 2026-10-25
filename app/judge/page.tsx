@@ -12,6 +12,7 @@ const researchReplays = [
   { id: "c2ffbe89-74a5-4547-bf89-5952e37efeaa", symbol: "rNVDA", focus: "Tokenized market", question: "Is the rNVDA market worth reviewing?", detail: "Issuer coverage · instrument context · stated limits" },
   { id: "91bb478a-7977-4b34-b32d-b1f558a8af75", symbol: "NVDA + TSLA", focus: "Company comparison", question: "Compare the latest evidence and risks.", detail: "Separate issuer assessments · decision gates" },
   { id: "13bcee6c-3d69-4bd0-bb2c-e3591c73529b", symbol: "NVDA", focus: "AI infrastructure and competition", question: "What changed for NVDA based on current public sources?", detail: "40 headlines · 27 publishers · Gemini synthesis · mixed · 40% model-reported confidence · HOLD" },
+  { id: "ed08a907-14b0-41dd-b731-78870fe3255b", symbol: "NVDA", focus: "Current public catalysts", question: "What are the latest public catalysts and key uncertainties for NVDA?", detail: "Fresh live research · 20 sources · 8 steps · handoff held" },
 ]; 
 
 const captures = [
@@ -124,18 +125,21 @@ export default function JudgePage() {
     <section className="judge-section judge-mcp" id="codex-mcp-evidence" aria-labelledby="codex-mcp-title">
       <div className="judge-section-heading">
         <div><span className="judge-kicker">CODEX · MCP CONNECTION</span><h2 id="codex-mcp-title">Tidelight MCP in Codex</h2></div>
-        <p>A fresh attempt in the tidelight Org Codex Cloud environment could not install or authorize the connector: the Cloud session exposed neither Tidelight MCP tools nor Codex Cloud connection controls. No new OAuth grant, live tool registry, or research run is claimed. The earlier <code>market:read</code> calls are historical. The current attempt and its boundaries are recorded below.</p>
+        <p>The Tidelight MCP plugin is installed and connected in ChatGPT/Codex. Its current registry exposes two read-only market tools. A separate historical recording captures two authenticated NVDA market reads; no company research-job tool is available in the current grant. The Codex Cloud SDK attempt stopped before package installation or job submission because no preconfigured research key was available.</p>
       </div>
       <div className="judge-mcp-steps" aria-label="Codex MCP setup status">
-        <article><span>01</span><div><b>Plugin</b><small>Tidelight Research · Streamable HTTP</small></div><i>Removed after prior capture</i></article>
-        <article><span>02</span><div><b>Authorization</b><small>Previous capture · <code>market:read</code> read-only market data</small></div><i>Historical</i></article>
-        <article><span>03</span><div><b>Fresh attempt</b><small>Requested <code>market:read</code> + <code>research:run</code>; connector tools unavailable in Codex Cloud</small></div><i>Not installed</i></article>
+        <article><span>01</span><div><b>Plugin</b><small>Tidelight MCP Live Research · Streamable HTTP</small></div><i>Installed · connected</i></article>
+        <article><span>02</span><div><b>Available tools</b><small><code>tidelight_get_tokenized_equity</code> · <code>tidelight_search_tokenized_equities</code></small></div><i>Market read</i></article>
+        <article><span>03</span><div><b>Company research job</b><small>Requested capability: <code>research:run</code></small></div><i>Tool not exposed</i></article>
       </div>
       <div className="judge-inline-actions">
+        <Link href="/replay/ed08a907-14b0-41dd-b731-78870fe3255b">Open fresh NVDA replay <span aria-hidden="true">↗</span></Link>
         <a href="https://dev.tidelight.app/#connect-with-the-mcp-server">MCP connection guide <span aria-hidden="true">↗</span></a>
         <a href="https://mcp.tidelight.app/.well-known/oauth-protected-resource/mcp">OAuth resource metadata <span aria-hidden="true">↗</span></a>
-        <Link href="/evidence/tidelight-codex-mcp.json">Historical connection record <span aria-hidden="true">↗</span></Link>
-        <Link href="/evidence/tidelight-codex-mcp-install-attempt-20261024.json">Fresh install attempt <span aria-hidden="true">↗</span></Link>
+        <Link href="/evidence/tidelight-codex-mcp.json">Current registry check <span aria-hidden="true">↗</span></Link>
+        <Link href="/evidence/tidelight-research-job-client-attempt-20261024.json">Authenticated job attempt record <span aria-hidden="true">↗</span></Link>
+        <Link href="/evidence/tidelight-codex-mcp-install-attempt-20261024.json">Earlier unavailable-session record <span aria-hidden="true">↗</span></Link>
+        <Link href="/evidence/tidelight-codex-mcp-market-check-20261024.json">Live Codex market calls <span aria-hidden="true">↗</span></Link>
       </div>
     </section>
 
@@ -271,6 +275,7 @@ export default function JudgePage() {
     <footer className="judge-footer">
       <p>Historical simulations are not audited results. Research is not investment advice; live execution is not enabled.</p>
       <Link href="/evidence">Evidence manifest <span aria-hidden="true">↗</span></Link>
+      <a href="https://status.tidelight.app">Tidelight ecosystem status <span aria-hidden="true">↗</span></a>
     </footer>
   </main>;
 }

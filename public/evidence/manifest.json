@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "product": "Tidelight",
   "purpose": "Public index of reproducible evidence and verification paths for the Tidelight S2 evaluator.",
-  "generated_at": "2026-10-24",
+  "generated_at": "2026-10-25",
   "evidence_boundary": {
     "status": "index_only",
     "note": "Evidence is grouped by public availability, account scope, and reproducibility. Evaluate performance and execution claims against the corresponding source artifacts and test records.",
@@ -58,6 +58,22 @@
       {
         "path": "/judge#codex-mcp-evidence",
         "purpose": "Codex Tidelight MCP connection and captured read-only tool test"
+      },
+      {
+        "path": "https://status.tidelight.app",
+        "purpose": "Live grouped availability checks across Tidelight websites, APIs, registries, and database; background execution and uptime history are not independently monitored"
+      },
+      {
+        "path": "https://status.tidelight.app/health",
+        "purpose": "Current JSON health snapshot for monitored Tidelight services"
+      },
+      {
+        "path": "https://status.tidelight.app/incidents",
+        "purpose": "Incident archive landing page; durable incident records are not connected yet"
+      },
+      {
+        "path": "https://status.tidelight.app/maintenance",
+        "purpose": "Scheduled maintenance landing page; a maintenance calendar is not connected yet"
       },
       {
         "path": "/judge#live-route-test-recording",
@@ -268,12 +284,36 @@
       "claim": "Root npm ci, 266 repository tests, typecheck, production build, lint, five public mirror mappings, and four staged npm consumer install workflows completed successfully. Root install reported four dependency advisories (2 moderate, 1 high, 1 critical)."
     },
     {
-      "id": "codex-mcp-fresh-reconnect-attempt-20261024",
+      "id": "codex-mcp-current-registry-check-20261024",
       "kind": "mcp_interoperability",
-      "status": "fresh_connection_not_available",
+      "status": "connected_market_tools_research_job_not_exposed",
+      "uri": "https://tidelight.app/judge#codex-mcp-evidence",
+      "summary_uri": "https://tidelight.app/evidence/tidelight-codex-mcp.json",
+      "claim": "The Tidelight MCP plugin is installed and connected. The current Codex registry exposes two read-only market tools but no company research-job tool; no current research run is claimed. The earlier unavailable-session record remains separately linked."
+    },
+    {
+      "id": "codex-mcp-authenticated-market-read-20261024",
+      "kind": "authenticated_mcp_market_read",
+      "status": "two_read_only_nvda_market_calls_recorded",
+      "uri": "https://tidelight.app/judge#codex-mcp-evidence",
+      "summary_uri": "https://tidelight.app/evidence/tidelight-codex-mcp-market-check-20261024.json",
+      "claim": "Two authenticated read-only NVDA market lookups are recorded with provider timestamps and request IDs. They verify market:read only; neither is a company research job or research synthesis."
+    },
+    {
+      "id": "authenticated-research-job-client-attempt-20261024",
+      "kind": "authenticated_research_job_attempt",
+      "status": "blocked_missing_preconfigured_research_key",
+      "uri": "https://tidelight.app/judge#codex-mcp-evidence",
+      "summary_uri": "https://tidelight.app/evidence/tidelight-research-job-client-attempt-20261024.json",
+      "claim": "Codex Cloud inspected SDK guidance, found no configured research API key, and stopped before npm/Python installation or job submission. The exposed MCP registry remains market-only. No credentials or grants were changed."
+    },
+    {
+      "id": "codex-mcp-earlier-unavailable-session-20261024",
+      "kind": "mcp_interoperability_attempt",
+      "status": "historical_connection_not_available_in_that_session",
       "uri": "https://tidelight.app/judge#codex-mcp-evidence",
       "summary_uri": "https://tidelight.app/evidence/tidelight-codex-mcp-install-attempt-20261024.json",
-      "claim": "A fresh Codex Cloud attempt could not install the Tidelight connector because Codex Cloud controls and Tidelight tools were not exposed to the session. No current OAuth grant, live research tool list, or research run is claimed."
+      "claim": "The earlier Codex Cloud session could not see the connector. This historical attempt predates the current installed and connected plugin state."
     },
     {
       "id": "research-benchmark-single-reviewer-20261024",

@@ -1,0 +1,55 @@
+{
+  "schema_version": "1.0.0",
+  "kind": "codex_mcp_authenticated_market_read",
+  "captured_at": "2026-10-24T22:50:29Z",
+  "client": {
+    "name": "Codex",
+    "connector": "Tidelight MCP Live Research",
+    "endpoint": "https://mcp.tidelight.app/mcp",
+    "authentication": "Connected OAuth MCP connector",
+    "capability_observed": "market:read"
+  },
+  "calls": [
+    {
+      "tool": "tidelight_get_tokenized_equity",
+      "input": { "ticker": "NVDA" },
+      "request_id": "04d8e0ab-1a51-42d6-a66e-5044324c133b",
+      "result": {
+        "symbol": "RNVDAUSDT",
+        "instrument_type": "tokenized_equity_spot",
+        "underlying_ticker": "NVDA",
+        "issuer_name": "NVIDIA Corporation",
+        "quote_currency": "USDT",
+        "last_price": 211.92,
+        "change_24h": 0.00314,
+        "provider_timestamp": "2026-10-24T22:47:50.690Z",
+        "market_session_status": "available",
+        "source": "Bitget Reality spot"
+      }
+    },
+    {
+      "tool": "tidelight_search_tokenized_equities",
+      "input": { "underlying_ticker": "NVDA", "limit": 5 },
+      "request_id": "cbd8bc78-7737-416a-bdb1-0e5a674cb279",
+      "result": {
+        "symbol": "RNVDAUSDT",
+        "instrument_type": "tokenized_equity_spot",
+        "underlying_ticker": "NVDA",
+        "issuer_name": "NVIDIA Corporation",
+        "quote_currency": "USDT",
+        "last_price": 211.92,
+        "change_24h": 0.00314,
+        "provider_timestamp": "2026-10-24T22:50:28.628Z",
+        "market_session_status": "available",
+        "source": "Bitget Reality spot"
+      }
+    }
+  ],
+  "research_capability": {
+    "requested": "research:run",
+    "available_in_connected_codex_tool_registry": false,
+    "research_run_performed": false,
+    "detail": "The connected Codex tool registry exposed tokenized-equity lookup and search only. These two authenticated calls verify read-only market access; neither is an issuer research job or a synthesized research result."
+  },
+  "evidence_boundary": "A live connector call record. It reports the provider result at capture time and is not an investment recommendation, liquidity/depth measurement, or performance claim."
+}

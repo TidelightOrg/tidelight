@@ -32,7 +32,9 @@
 - [Fresh browser install walkthrough](https://tidelight.app/judge#package-install-evidence) shows a 3:58 Chromium capture of all 12 npm and Python package checks; the [playable MP4](https://raw.githubusercontent.com/TidelightOrg/tidelight/main/public/judge-evidence/npm-python-install-walkthrough-fresh-20261024.mp4) and [machine-readable results](https://tidelight.app/evidence/npm-python-install-walkthrough-fresh-20261024.json) are published here. Python 3.12.14 passed; Python 3.9 is below the package's declared minimum.
 
 - [Judge Mode](https://tidelight.app/judge) includes a signed-out browser route-test record for seven public routes returning HTTP 200; the linked MP4 failed the production integrity/playback check and is not counted as delivered video evidence. The [capture details](https://tidelight.app/evidence/tidelight-live-route-test-20261024.json) state the coverage boundary.
-- [Codex Tidelight MCP evidence](https://tidelight.app/judge#codex-mcp-evidence) records two authenticated read-only `market:read` calls. The server source supports `research:run`, but the connected Codex tool registry does not expose a company research operation.
+- [Codex Tidelight MCP evidence](https://tidelight.app/judge#codex-mcp-evidence) links the current connected plugin registry and a separate [authenticated NVDA market-read record](https://tidelight.app/evidence/tidelight-codex-mcp-market-check-20261024.json) with two read-only calls, timestamps, and request IDs. These are market lookups, not company research jobs. The current grant does not expose a research-job tool.
+- [Authenticated npm/Python/MCP job attempt](https://tidelight.app/evidence/tidelight-research-job-client-attempt-20261024.json) records the Codex Cloud credential check and live tool list. No SDK install or research job ran because the environment had no preconfigured `research:run` key; the current MCP registry is market-only.
+- [Ecosystem status](https://status.tidelight.app) checks the public product, developer docs, package directory, REST API, protected research-job endpoint, MCP metadata, npm/PyPI registries, and database. Background job execution, delivery history, incidents, and scheduled uptime are not independently monitored yet.
 
 ## Make sense of the story behind the price
 
@@ -220,6 +222,7 @@ Use this directory to move directly between the public product, its judge walkth
 | [Package dashboard](https://package.tidelight.app/dashboard) | View package and integration workspace options. |
 | [REST API base](https://api.tidelight.app/v1) | Public API base URL; use the developer docs for endpoint details and authentication. |
 | [Remote MCP endpoint](https://mcp.tidelight.app/mcp) | Streamable HTTP endpoint for MCP clients; see the developer docs for connection instructions. |
+| [Ecosystem status](https://status.tidelight.app) | Live availability checks across Tidelight product, developer, API, MCP, and package services. |
 
 ### SDKs, registries, and container
 
