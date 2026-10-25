@@ -326,3 +326,7 @@
   .tic-package-constellation{width:min(100%,620px);min-height:340px;margin:0 auto}
   .tic-package-detail-hero{grid-template-columns:minmax(0,1fr);gap:30px}
 }
+
+
+html[data-language="zh-CN"] .tic-packages-hero h1 { letter-spacing: -.02em; line-height: 1.14; overflow-wrap: break-word; }
+@media (min-width: 761px) and (max-width: 1160px) { .tic-packages-page .tic-platform-nav { padding-inline: 18px !important; } }
