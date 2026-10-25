@@ -216,7 +216,7 @@ export default function DeveloperConsole({ userId }: { userId: string }) {
     (usageStatusFilter === "all" || (usageStatusFilter === "success" ? call.status_code !== null && call.status_code < 400 : usageStatusFilter === "pending" ? call.status_code === null : usageStatusFilter === "client-error" ? call.status_code !== null && call.status_code >= 400 && call.status_code < 500 : call.status_code !== null && call.status_code >= 500)) &&
     (usageEndpointFilter === "all" || call.endpoint === usageEndpointFilter) &&
     (usageKeyFilter === "all" || call.key_id === usageKeyFilter) &&
-    (usageTimeFilter === "all" || Date.parse(call.created_at) >= Date.now() - ({ "24h": 1, "7d": 7, "30d": 30 }[usageTimeFilter] * 24 * 60 * 60 * 1000))
+    (usageTimeFilter === "all" || Date.parse(call.created_at) >= currentTime - ({ "24h": 1, "7d": 7, "30d": 30 }[usageTimeFilter] * 24 * 60 * 60 * 1000))
   );
   const usageEndpoints = [...new Set(calls.map(call => call.endpoint))].sort();
   const usageKeys = keys.filter(key => calls.some(call => call.key_id === key.id));
