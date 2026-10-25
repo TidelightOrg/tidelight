@@ -66,21 +66,20 @@ export default function JudgePage() {
 
     <section className="judge-section judge-test-video" id="live-route-test-recording" aria-labelledby="test-video-title">
       <div className="judge-section-heading">
-        <div><span className="judge-kicker">LIVE SITE · BROWSER CAPTURE</span><h2 id="test-video-title">A full route check, on screen.</h2></div>
-        <p>Recorded while signed out at 1280 × 720. The browser opened all seven public routes below and received HTTP 200 from each.</p>
+        <div><span className="judge-kicker">LIVE SITE · ROUTE CHECK</span><h2 id="test-video-title">Seven public routes responded.</h2></div>
+        <p>Checked while signed out at 1280 × 720. The browser opened all seven public routes below and received HTTP 200 from each.</p>
       </div>
       <div className="judge-route-capture-status" role="status">
         <span className="judge-route-capture-icon" aria-hidden="true">✓</span>
         <div><strong>Seven public routes returned HTTP 200.</strong><small>Signed-out browser check · 1280 × 720 · machine-readable results linked below</small></div>
         <span className="judge-route-capture-badge">7 / 7 PASS</span>
       </div>
-      <div className="judge-test-route-list" aria-label="Routes checked in the video">
+      <div className="judge-test-route-list" aria-label="Routes checked">
         {["/", "/markets", "/research", "/flow", "/strategies", "/nightwatch", "/judge"].map(path => <span key={path}><i aria-hidden="true">200</i><code>{path}</code></span>)}
       </div>
-      <p className="judge-section-note">The route check results are recorded below and in the JSON report. The captured MP4 is only 1,506 bytes and is invalid, so it is not presented as playable video evidence. Signed-in research, publishing, strategy execution, account data, and trading behavior are not represented.</p>
+      <p className="judge-section-note">The route check results are listed below and in the JSON report. The linked MP4 artifact is invalid and has been excluded; no playable browser video is available for this check. Signed-in research, publishing, strategy execution, account data, and trading behavior are not represented.</p>
       <div className="judge-inline-actions">
         <Link href="/evidence/tidelight-live-route-test-20261024.json">Open capture record <span aria-hidden="true">↗</span></Link>
-        <a href="https://github.com/TidelightOrg/tidelight/blob/main/public/judge-evidence/tidelight-live-route-test-20261024.mp4" target="_blank" rel="noreferrer">Video in GitHub <span aria-hidden="true">↗</span></a>
       </div>
     </section>
 
