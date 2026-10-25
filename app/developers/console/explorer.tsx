@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 type Project = { id: string; name: string };
 type Key = { id: string; project_id: string; name: string; environment: string; scopes: string[]; revoked_at: string | null; expires_at: string | null };
@@ -24,14 +24,17 @@ export default function ApiExplorer({ projects, keys, currentTime, onViewResearc
   const [requestId, setRequestId] = useState("");
   const [duration, setDuration] = useState<number | null>(null);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
+  useEffect(() => {
+    if (endpoint === "research" && !researchIdempotencyKey) setResearchIdempotencyKey(crypto.randomUUID());
+  }, [endpoint, researchIdempotencyKey]);
   const scope = endpoint === "market" ? "market:read" : "research:run";
   const availableKeys = keys.filter(key => key.project_id === projectId && key.scopes?.includes(scope) && !key.revoked_at && (!key.expires_at || Date.parse(key.expires_at) > currentTime));
   const selectedKeyId = availableKeys.some(key => key.id === keyId) ? keyId : availableKeys[0]?.id ?? "";
   const snippet = useMemo(() => {
     const safeIdempotencyKey = /^[A-Za-z0-9._:-]{8,128}$/.test(researchIdempotencyKey) ? researchIdempotencyKey : "your-unique-request-id";
     if (endpoint === "research") {
-      if (language === "typescript") return `import { TidelightClient } from "@tidelight/sdk";\n\nconst client = new TidelightClient({ apiKey: process.env.TIDELIGHT_API_KEY! });\nconst idempotencyKey = "${safeIdempotencyKey}"; // reuse this key when retrying\nconst job = await client.startCompanyResearch("${underlyingTicker.toUpperCase() || "NVDA"}", idempotencyKey);\nconsole.log(job.job_id, job.status);`;
-      if (language === "python") return `import os\nfrom tidelight import Client\n\nclient = Client(os.environ["TIDELIGHT_API_KEY"])\nidempotency_key = "${safeIdempotencyKey}"  # reuse this key when retrying\njob = client.start_company_research("${underlyingTicker.toUpperCase() || "NVDA"}", idempotency_key)\nprint(job["job_id"], job["status"])`;
+      if (language === "typescript") return `import { randomUUID } from "node:crypto";\nimport { TidelightClient } from "@tidelight/sdk";\n\nconst client = new TidelightClient({ apiKey: process.env.TIDELIGHT_API_KEY! });\nconst idempotencyKey = randomUUID(); // create once per job and reuse for retries\nconst job = await client.startCompanyResearch("${underlyingTicker.toUpperCase() || "NVDA"}", idempotencyKey);\nconsole.log(job.job_id, job.status);`;
+      if (language === "python") return `import os\nfrom uuid import uuid4\nfrom tidelight import Client\n\nclient = Client(os.environ["TIDELIGHT_API_KEY"])\nidempotency_key = str(uuid4())  # create once per job and reuse for retries\njob = client.start_company_research("${underlyingTicker.toUpperCase() || "NVDA"}", idempotency_key)\nprint(job["job_id"], job["status"])`;
       return `curl 'https://api.tidelight.app/v1/research/jobs' \\\n  -X POST \\\n  -H 'Authorization: Bearer YOUR_TIDELIGHT_KEY' \\\n  -H 'Idempotency-Key: ${safeIdempotencyKey}' \\\n  -H 'Content-Type: application/json' \\\n  -d '{"ticker":"${underlyingTicker.toUpperCase() || "NVDA"}"}'`;
     }
     const safeCursor = /^[A-Z0-9]{2,32}$/.test(cursor) ? cursor : "";
@@ -89,7 +92,7 @@ export default function ApiExplorer({ projects, keys, currentTime, onViewResearc
       <label>Credential<select value={selectedKeyId} onChange={event => setKeyId(event.target.value)} required>{availableKeys.length ? availableKeys.map(key => <option key={key.id} value={key.id}>{key.name} · {key.environment}</option>) : <option value="">No active {scope} key</option>}</select></label>
       {endpoint === "market" ? <>
         <label>Limit<input type="number" min="1" max="100" value={limit} onChange={event => setLimit(Number(event.target.value))} required /></label>
-        <label>Underlying ticker <span>(optional)</span><input value={underlyingTicker} onChange={event => setUnderlyingTicker(event.target.value.toUpperCase())} pattern="[A-Z][A-Z0-9.]{0,9}" placeholder="e.g. AAPL" /></label>
+        <label>Underlying ticker <span>(optional)</span><input value={underlyingTicker} onChange={event => { setUnderlyingTicker(event.target.value.toUpperCase()); setResearchIdempotencyKey(""); }} pattern="[A-Z][A-Z0-9.]{0,9}" placeholder="e.g. AAPL" /></label>
         <label>Cursor <span>(optional)</span><input value={cursor} onChange={event => setCursor(event.target.value.toUpperCase())} pattern="[A-Z0-9]{2,32}" placeholder="Next cursor from a response" /></label>
       </> : <>
         <label>Company ticker<input value={underlyingTicker} onChange={event => { setUnderlyingTicker(event.target.value.toUpperCase()); setResearchIdempotencyKey(""); }} pattern="[A-Z][A-Z0-9.]{0,9}" placeholder="NVDA" maxLength={10} /></label>
