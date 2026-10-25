@@ -39,7 +39,7 @@ export default function AnalyticsConsent() {
   const [saving, setSaving] = useState(false);
   const [interacted, setInteracted] = useState(false);
   const [error, setError] = useState("");
-  const isPackageHost = pathname.startsWith("/developers/packages") || pathname === "/dashboard" || (typeof window !== "undefined" && (window.location.hostname === "package.tidelight.app" || window.location.hostname.endsWith(".vercel.app")));
+  const isPackageHost = pathname.startsWith("/developers/packages") || (pathname === "/dashboard" && typeof window !== "undefined" && window.location.hostname === "package.tidelight.app");
 
   useEffect(() => {
     let active = true;
