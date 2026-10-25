@@ -65,10 +65,11 @@ export function PackageRegistryCard({ packageId, name, summary, href, ecosystem,
 }) {
   const { entry, checking } = useRegistryPackage(packageId);
   const { translate } = useLanguage();
+  const registryName = entry.registry === "npm" ? "npm" : "PyPI";
   return <article className={`tic-package-card ${entry.status === "published" && entry.version ? "is-published" : "is-unavailable"}`}>
     <div className="tic-package-card-top"><PackageLanguageMark packageId={packageId} /><span className="tic-package-number">0{index + 1} / {ecosystem}</span></div>
     <h3>{name}</h3><p>{summary}</p>
-    <div className="tic-package-card-status"><span className="tic-package-status-mark" aria-hidden="true">{entry.status === "published" && entry.version ? "✓" : "·"}</span><span className="tic-package-source-label">{translate(entry.status === "published" && entry.version ? `Published · ${entry.registry}` : checking ? `Checking ${entry.registry}…` : entry.version ? `Last verified · ${entry.registry}` : "Registry unavailable")}</span><code>{entry.version ? `v${entry.version}` : checking ? translate("Checking…") : translate("Version unavailable")}</code></div>
+    <div className="tic-package-card-status"><span className="tic-package-status-mark" aria-hidden="true">{entry.status === "published" && entry.version ? "✓" : "·"}</span><span className="tic-package-source-label">{translate(entry.status === "published" && entry.version ? `Published · ${registryName}` : checking ? `Checking ${registryName}…` : entry.version ? `Last verified · ${registryName}` : "Registry unavailable")}</span><code>{entry.version ? `v${entry.version}` : checking ? translate("Checking…") : translate("Version unavailable")}</code></div>
     <code className="tic-package-card-install">{entry.install}</code>
     {packageId === "mcp" && <a className="tic-package-ghcr-link" href="https://github.com/orgs/TidelightOrg/packages/container/package/tidelight-mcp">Container · ghcr.io/tidelightorg/tidelight-mcp:0.1.2 ↗</a>}
     <a className="tic-package-card-link" href={href.startsWith("http") ? href : `https://package.tidelight.app${href}`}>{translate("Package details")} <span aria-hidden="true">→</span></a>
