@@ -1,0 +1,16 @@
+{
+  "source": "Active Codex ALL_TOOLS registry, checked during this session",
+  "tools": [
+    "tidelight_get_tokenized_equity",
+    "tidelight_search_tokenized_equities"
+  ],
+  "research_tool_exposed": false,
+  "market_call": {
+    "tool": "tidelight_get_tokenized_equity",
+    "ticker": "NVDA",
+    "is_error": false,
+    "request_id": "a7915662-9605-4811-b8a4-2c5a779b2311"
+  },
+  "boundary": "Direct MCP discovery and invocation do not establish installed bridge research availability.",
+  "captured_date": "2026-10-25"
+}

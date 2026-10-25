@@ -39,16 +39,29 @@ export default async function StatusPage() {
         <p>Availability checks for Tidelight products, research services, and developer packages.</p>
       </div>
       <div className="tic-status-groups" aria-label="Tidelight services">
-        {status.groups.map(group => <section className="tic-status-group" key={group.name} aria-labelledby={`status-group-${group.name.replaceAll(" ", "-").toLowerCase()}`}>
-          <h2 id={`status-group-${group.name.replaceAll(" ", "-").toLowerCase()}`}>{group.name}</h2>
-          {group.services.map(service => <div className="tic-status-service" key={service.name}>
-            <div className="tic-status-service-name">
-              {service.href ? <a href={service.href}>{service.name}<span aria-hidden="true"> ↗</span></a> : <span>{service.name}</span>}
-              <small>{service.detail}</small>
+        {status.groups.map(group => {
+          const groupState = group.services.some(service => service.state === "degraded") ? "degraded"
+            : group.services.every(service => service.state === "monitoring") ? "monitoring" : "operational";
+          const stateLabel = groupState === "monitoring" ? "Not monitored" : groupState === "degraded" ? "Degraded" : "Operational";
+          return <details className="tic-status-group" key={group.name} open={group.name === "Websites"}>
+            <summary>
+              <span className="tic-status-group-title"><span className="tic-status-chevron" aria-hidden="true">›</span>{group.name}</span>
+              <span className={`tic-status-state ${groupState}`}><i aria-hidden="true" />{stateLabel}</span>
+            </summary>
+            <div className="tic-status-group-services">
+              {group.services.map(service => <div className="tic-status-service" key={service.name}>
+                <div className="tic-status-service-current">
+                  <div className="tic-status-service-name">
+                    {service.href ? <a href={service.href}>{service.name}<span aria-hidden="true"> ↗</span></a> : <span>{service.name}</span>}
+                    <small>{service.detail}</small>
+                  </div>
+                  <span className={`tic-status-state ${service.state}`}><i aria-hidden="true" />{service.state === "monitoring" ? "Not monitored" : service.state === "operational" ? "Operational" : "Degraded"}</span>
+                </div>
+                <p className="tic-status-service-history">History not yet available<span>Scheduled measurements have not been collected.</span></p>
+              </div>)}
             </div>
-            <span className={`tic-status-state ${service.state}`}><i aria-hidden="true" />{service.state === "monitoring" ? "Not monitored" : service.state === "operational" ? "Operational" : "Degraded"}</span>
-          </div>)}
-        </section>)}
+          </details>;
+        })}
       </div>
       <p className="tic-status-updated">Checked {checked}. <a href="/health">Health data ↗</a></p>
       <aside className="tic-status-history-note">

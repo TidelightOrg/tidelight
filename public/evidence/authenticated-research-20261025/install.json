@@ -1,0 +1,16 @@
+{
+  "package": "@tidelight/mcp",
+  "version": "0.1.2",
+  "resolved": "https://registry.npmjs.org/@tidelight/mcp/-/mcp-0.1.2.tgz",
+  "integrity": "sha512-byyF/5XUyOtoSf8jNnZFxZIG00ovmSqLL6t1o6EieTDJn+6zvS+b7sKGxeBSRUp1r2uqsr/+IqGlXeHjGkRaOA==",
+  "command": "npm install --prefix work/authenticated-research --cache work/authenticated-research/npm-cache --ignore-scripts --no-audit --no-fund --save-exact @tidelight/mcp@0.1.2",
+  "exit_code": 0,
+  "stdout": "added 96 packages in 21s",
+  "initial_blocker": {
+    "code": "ENOENT",
+    "syscall": "mkdir",
+    "path": "/home/agent/.npm/_cacache",
+    "resolution": "Used an isolated writable npm cache under work/authenticated-research. No network policy was changed."
+  },
+  "lifecycle_scripts_executed": false
+}

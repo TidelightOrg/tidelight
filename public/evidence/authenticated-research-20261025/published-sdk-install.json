@@ -1,0 +1,34 @@
+{
+  "npm": {
+    "name": "@tidelight/sdk",
+    "version": "0.1.2",
+    "resolved": "https://registry.npmjs.org/@tidelight/sdk/-/sdk-0.1.2.tgz",
+    "integrity": "sha512-joRsd8YhIaXD7vSCOVYQNB8pNoeo/Vk0lIkk+c/hTLQa+1Z1qzAtEdwFw0sK78bBWdZo1QT65ulqZo48ub+PgA==",
+    "installation_exit_code": 0,
+    "command": "npm install --prefix work/authenticated-research --cache work/authenticated-research/npm-cache --ignore-scripts --no-audit --no-fund --save-exact @tidelight/sdk@0.1.2",
+    "installed_metadata_version": "0.1.2"
+  },
+  "pypi": {
+    "name": "tidelight",
+    "version": "0.1.2",
+    "filename": "tidelight-0.1.2-py3-none-any.whl",
+    "url": "https://files.pythonhosted.org/packages/d6/06/7e71293ae45314a4a9d030f5bca21fd40d9e14313edcec17730889777d00/tidelight-0.1.2-py3-none-any.whl",
+    "sha256": "24c19ed9ecfd7222f607c397ca388c34705fdd1c13d965d7b4ebe7ed3045ff39",
+    "pypi_digest_verified": true,
+    "installation_exit_code": 0,
+    "commands": [
+      "python -m pip download --no-deps --dest work/authenticated-research/pypi --cache-dir work/authenticated-research/pip-cache tidelight==0.1.2",
+      "python -m pip install --no-deps --no-index --find-links work/authenticated-research/pypi --target work/authenticated-research/python-published tidelight==0.1.2"
+    ],
+    "installed_metadata_version": "0.1.2",
+    "isolated_import_path": "work/authenticated-research/python-published/tidelight"
+  },
+  "cross_client_job": {
+    "start_origin": "published npm @tidelight/sdk@0.1.2",
+    "poll_origin": "published PyPI tidelight==0.1.2",
+    "job_id": "7169baf9-53f5-4cd0-ab9e-9ac71106bdb0",
+    "observed_terminal_state": "complete",
+    "extra_jobs_started": 1
+  },
+  "source_checkout_boundary": "Earlier Python/TypeScript jobs were started through source checkouts; their labels remain unchanged."
+}

@@ -69,3 +69,37 @@ Browser-visible forms establish the exposed concepts and workflows: scoped proje
 
 Inspected: workspace shell; overview/onboarding; all 13 listed API playground routes; monitors list/create; batches list/create; Logo Link route; API Keys; Usage and logs; Team members/pending/invite role; public docs root and `llms.txt` index.
 Not claimed: private backend architecture, unexposed API behavior, every individual handbook article, or responsive states that were not captured.
+
+## Additional browser observations — 25 October 2026
+
+The following expands the original study with live authenticated Context.dev workspace observations captured in this continuation (browser tab 15, 1365 × 937), plus live public status.context.dev pages. The status-page layout comparison used 1348 × 937. This is browser-visible black-box behavior: private source code and backend internals were not inspected or reverse-engineered. Displayed metrics and defaults describe the captured workspace/form, not universal account limits or backend guarantees.
+
+### Usage: Charts and Logs
+
+**Charts** showed **4 calls**, **2 credits**, **100% successful**, and **0 errors** in the captured view. Its filters were **Source**, **API key**, **Tag**, and **Date range**. These are the observed account values, not Tidelight metrics or an aggregate claim about Context.dev reliability.
+
+**Logs** exposed **API**, **API key**, **Tag**, and **Status** filters. Its request columns were **When / API / Input / Status / Credits / Duration**, with expandable rows, pagination and refresh. The split lets a user move from aggregate consumption to individual request inspection without treating a chart as request-level evidence. Tidelight should retain the same distinction while using its own measured request metadata and permission boundaries; do not import the captured credit figures as Tidelight billing.
+
+### API keys: permission dialog and masked table
+
+The create-key dialog defaults to **Full access**, with **Restricted** as the alternative. Full access describes access to all APIs, account logs, and monitors/batches. The persistent key table masks the value and offers **reveal** and **copy**. This establishes visible credential handling, not a particular at-rest hashing/encryption scheme, reveal authorization mechanism or revocation design. Tidelight should preserve its existing one-time full-secret display, scope enforcement and prefix-only persistent table rather than weakening its security model to copy a reveal affordance.
+
+### Detailed batch controls
+
+The batch form accepts a **URL list**, **sitemap**, or **start URL**, advertising **up to 100,000 URLs**. The visible formats were **HTML / Markdown / Screenshot / Images / Bytes / Parse / JSON / Highlights / Product**. The captured defaults had **Markdown on**, **links on**, and **images off**; **advanced** controls were collapsed. The concurrency display showed **0/1**. That display is an observation of the current UI state, not proof of internal worker concurrency, account-wide throughput or an execution guarantee.
+
+### Detailed monitor controls
+
+The monitor form offers **Page / Sitemap / Whole site** and **Exact / Semantic**, with **Exact** selected by default. It exposes **name**, **tags**, **URL**, **content**, and **advanced** controls, a **schedule** (the observed form showed **6 hours**), **estimated cost**, and an optional **webhook**. The dashboard includes a natural-language fill affordance. Code examples cover **cURL, JavaScript, TypeScript, Ruby, Python, Go and PHP**. These controls establish the exposed configuration choices; no monitor was inferred to have executed, and estimated cost does not establish actual charges, retry policy, scheduler implementation or delivery guarantees.
+
+### Public status: grouped endpoints and archives
+
+[status.context.dev](https://status.context.dev) groups its public components under **Websites**, **APIs**, and **CDN**. Groups expand into individual endpoints, with per-endpoint **90-day uptime** history. Incident and maintenance archives are separate destinations so current availability, past incidents and planned work can be reviewed independently. Endpoint expansion and historic uptime are richer evidence than a single current all-clear badge; they do not expose the private monitoring backend or prove the underlying measurement method.
+
+### Tidelight comparison and database-probe discrepancy
+
+At the time of the live comparison, Tidelight rendered a light page with every group inline; it did not match the reference. Context.dev uses a dark background and a centered approximately 810 px panel, slim top navigation, a strong overall-state banner, a dark bordered service card, expandable category rows (Websites open; APIs and CDN collapsed), component states and 90-day uptime bars, and a compact provider footer. This change adopts the dark, centered structure in Tidelight branding with native keyboard-accessible accordions; Tidelight shows history-not-yet-available notices until scheduled measurements exist.
+
+Tidelight's [status site](https://status.tidelight.app), [incident archive](https://status.tidelight.app/incidents), and [maintenance archive](https://status.tidelight.app/maintenance) use its own standalone branded shell and service grouping. Its current probes cover application/developer surfaces, packages, API/MCP and database access. These current observations are not equivalent to Context.dev's measured per-endpoint 90-day uptime. Do not manufacture historic uptime from a point-in-time check or populate incident/maintenance archives with invented events.
+
+The observed database signals disagree: Supabase reports the Tidelight project **ACTIVE_HEALTHY**, and a read-only **SELECT 1** succeeds, while the live status page reports that its **DB probe failed**. The management-plane health and read-only SQL check were independently reconfirmed in this continuation. This does not prove that the deployed application's database path works. In the inspected Tidelight source, the status probe uses the application's admin client to select an ID from `developer_api_keys`; it does not execute the same SELECT 1. The two probes exercise different credentials, network paths and permissions. Record the live page as degraded while investigating that application probe; do not call the database globally down or silently turn the page green based on the management query. No root cause or repair is established by these observations.

@@ -1,0 +1,17 @@
+[
+  {
+    "at": "2026-10-25T00:35:35.317Z",
+    "command": "NODE_USE_ENV_PROXY=1 node work/authenticated-research/published-cross.mjs",
+    "package": "@tidelight/sdk",
+    "version": "0.1.2",
+    "origin": "installed npm registry package"
+  },
+  {
+    "at": "2026-10-25T00:35:36.160Z",
+    "operation": "startCompanyResearch",
+    "job_id": "7169baf9-53f5-4cd0-ab9e-9ac71106bdb0",
+    "request_id": "36c7d4e6-52b9-48a4-8cb7-0400218ea463",
+    "status": "queued",
+    "duplicate": false
+  }
+]

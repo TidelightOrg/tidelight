@@ -1,0 +1,5 @@
+{"version":2,"width":120,"height":30,"timestamp":1792888445,"title":"Published @tidelight/mcp@0.1.2 actual stdio initialize and tools/list"}
+[0.001,"o","{\"at\":\"2026-10-25T00:34:05.805Z\",\"command\":\"NODE_USE_ENV_PROXY=1 node work/authenticated-research/stdio-check.mjs\",\"installed_package\":\"@tidelight/mcp\",\"installed_version\":\"0.1.2\",\"server_command\":\"node work/authenticated-research/node_modules/@tidelight/mcp/bin/tidelight-mcp.mjs\",\"credential_source\":\"inherited TIDELIGHT_API_KEY process environment; value omitted\"}\r\n"]
+[2.389,"o","{\"at\":\"2026-10-25T00:34:08.193Z\",\"operation\":\"initialize\",\"status\":\"success\",\"server_info\":{\"name\":\"tidelight-mcp\",\"version\":\"0.1.0\"}}\r\n"]
+[3.194,"o","{\"at\":\"2026-10-25T00:34:08.999Z\",\"operation\":\"tools/list\",\"status\":\"success\",\"tools\":[\"tidelight_search_tokenized_equities\",\"tidelight_get_tokenized_equity\",\"tidelight_start_company_research\",\"tidelight_get_research_job\",\"tidelight_cancel_research_job\"],\"research_tool_exposed\":true,\"extra_research_job_started\":false}\r\n"]
+[5.377,"o","{\"at\":\"2026-10-25T00:34:11.181Z\",\"process_state\":\"finished\"}\r\n"]
