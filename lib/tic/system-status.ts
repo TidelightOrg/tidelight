@@ -37,6 +37,9 @@ async function probe(name: string, url: string, options: { expected?: number[]; 
 }
 
 async function checkDatabase(): Promise<StatusService> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !(process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY)) {
+    return { name: "Application database", state: "monitoring", detail: "Database monitoring is not configured for this deployment.", href: "https://supabase.com" };
+  }
   try {
     const admin = createAdminClient();
     const { error } = await admin.from("developer_api_keys").select("id").limit(1);
