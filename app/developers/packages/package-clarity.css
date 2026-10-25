@@ -272,6 +272,12 @@
   color: #071510;
 }
 
+:root:is([data-theme="daylight"], [data-theme="white"]) .tic-packages-page a.tic-button:not(.tic-primary) {
+  border-color: #dfe5e2 !important;
+  background-color: #fff !important;
+  color: #17221e !important;
+}
+
 @media (max-width: 980px) {
   .tic-package-workspace { grid-template-columns: 190px minmax(0, 1fr); }
   .tic-package-workspace-main { padding-inline: 25px; }
