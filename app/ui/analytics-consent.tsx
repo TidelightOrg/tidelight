@@ -39,10 +39,9 @@ export default function AnalyticsConsent() {
   const [saving, setSaving] = useState(false);
   const [interacted, setInteracted] = useState(false);
   const [error, setError] = useState("");
-  const [isPackageHost, setIsPackageHost] = useState(false);
+  const isPackageHost = pathname.startsWith("/developers/packages") || (typeof window !== "undefined" && window.location.hostname === "package.tidelight.app");
 
   useEffect(() => {
-    setIsPackageHost(window.location.hostname === "package.tidelight.app" || window.location.pathname.startsWith("/developers/packages"));
     let active = true;
     const local = window.localStorage.getItem(CONSENT_KEY);
     const apply = (choice: Choice) => {
