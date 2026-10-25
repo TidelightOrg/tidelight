@@ -8,6 +8,19 @@ const STORAGE_KEY = "tidelight-language";
 type LanguageContextValue = { language: Language; setLanguage: (language: Language) => void };
 const LanguageContext = createContext<LanguageContextValue>({ language: "en", setLanguage: () => {} });
 const messages = zhCN as Record<string, string>;
+const messageTemplates = Object.entries(messages)
+  .filter(([source]) => /\{[^}]+\}/.test(source))
+  .sort(([a], [b]) => b.length - a.length)
+  .map(([source, translated]) => {
+    const parts = source.split(/(\{[^}]+\})/g);
+    const pattern = parts.map((part) => {
+      if (/^\{[^}]+\}$/.test(part)) {
+        return "(.*?)";
+      }
+      return part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    }).join("");
+    return { regex: new RegExp(`^${pattern}$`), translated };
+  });
 const watchedAttributes = ["aria-label", "aria-description", "placeholder", "title", "alt", "data-tooltip", "value"];
 
 function readLanguage(): Language {
@@ -39,7 +52,16 @@ function normalized(value: string) {
 
 function translateWithSpacing(source: string) {
   const key = normalized(source);
-  const translated = messages[key];
+  let translated = messages[key];
+  if (!translated) {
+    for (const template of messageTemplates) {
+      const match = key.match(template.regex);
+      if (!match) continue;
+      let capture = 0;
+      translated = template.translated.replace(/\{[^}]+\}/g, () => match[++capture] ?? "");
+      break;
+    }
+  }
   if (!translated || translated === key) return null;
   // Text nodes can include separate inline elements (for example "The <em>method</em>").
   // Translate only when the entire node is a glossary entry; never replace a brand
