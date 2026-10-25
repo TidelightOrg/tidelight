@@ -5968,5 +5968,11 @@
   "{percent}% recorded uptime": "已记录检查的正常运行率 {percent}%",
   "Daily service status over the past 90 days": "过去 90 天的每日服务状态",
   "Recorded-check uptime": "已记录检查的正常运行率",
-  "Percentages use recorded checks only; missing checks remain marked as no data.": "百分比仅根据已记录的检查计算；缺失的检查仍标记为暂无数据。"
+  "Percentages use recorded checks only; missing checks remain marked as no data.": "百分比仅根据已记录的检查计算；缺失的检查仍标记为暂无数据。",
+  "ACCOUNT HISTORY": "账户历史记录",
+  "Recent authorized API calls": "最近的已授权 API 调用",
+  "Refresh history": "刷新历史记录",
+  "Open usage logs": "打开用量日志",
+  "No authorized API calls are recorded yet. Run a request here and it will appear in account history.": "尚无已记录的授权 API 调用。在此运行请求后，它会显示在账户历史记录中。",
+  "This list uses saved request metadata. Response content stays in the current tab session.": "此列表使用已保存的请求元数据。响应内容仅保留在当前标签页会话中。"
 }
