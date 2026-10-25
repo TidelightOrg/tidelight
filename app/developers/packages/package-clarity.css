@@ -1,0 +1,305 @@
+/* Legibility and workspace refinements shared by the public package ecosystem. */
+.tic-packages-page {
+  --tic-reading: 15px;
+  --tic-secondary: 13px;
+  --tic-meta: 11px;
+  --tic-control: 13px;
+}
+
+.tic-packages-page :is(p:not(.tic-eyebrow), li) {
+  line-height: 1.75;
+}
+
+.tic-packages-page .tic-button,
+.tic-packages-page button,
+.tic-packages-page select {
+  font-size: var(--tic-control);
+}
+
+.tic-packages-page .tic-button {
+  min-height: 44px;
+  padding-inline: 17px;
+  border-radius: 9px;
+  font-weight: 650;
+  box-shadow: 0 1px 0 color-mix(in srgb, white 8%, transparent) inset;
+  transition: transform .16s ease, border-color .16s ease, background-color .16s ease, box-shadow .16s ease;
+}
+
+.tic-packages-page .tic-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  box-shadow: 0 7px 20px color-mix(in srgb, var(--tic-accent) 13%, transparent);
+}
+
+.tic-packages-page .tic-button:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.tic-packages-page .tic-primary {
+  color: var(--brand-ink, #062018);
+}
+
+.tic-packages-page .tic-package-hero-meta,
+.tic-packages-page .tic-package-card > p,
+.tic-packages-page .tic-package-card-status,
+.tic-packages-page .tic-package-policy > p,
+.tic-packages-page .tic-package-detail-content p:not(.tic-eyebrow),
+.tic-packages-page .tic-package-api-list span,
+.tic-packages-page .tic-package-security-list,
+.tic-packages-page .tic-package-dashboard-heading > div:first-child > p:last-child,
+.tic-packages-page .tic-package-dashboard-help p:not(.tic-eyebrow),
+.tic-packages-page .tic-package-intro-heading > p:not(.tic-eyebrow),
+.tic-packages-page .tic-package-intro-steps p {
+  font-size: var(--tic-reading);
+  line-height: 1.75;
+}
+
+.tic-packages-page .tic-package-card > p,
+.tic-packages-page .tic-package-detail-content p:not(.tic-eyebrow),
+.tic-packages-page .tic-package-intro-heading > p:not(.tic-eyebrow),
+.tic-packages-page .tic-package-intro-steps p {
+  font-size: var(--tic-secondary);
+}
+
+.tic-packages-page :is(.tic-package-hero-meta code, .tic-package-detail-badges > span,
+  .tic-package-publication-note, .tic-package-flow-label, .tic-flow-response > span,
+  .tic-flow-node small, .tic-package-detail-nav, .tic-package-snippet-head button,
+  .tic-package-api-list code, .tic-package-facts span, .tic-package-facts strong,
+  .tic-package-release-row strong, .tic-package-release-row small,
+  .tic-package-release-row > span:last-child, .tic-package-live-label,
+  .tic-package-card-status code, .tic-package-number, .tic-package-policy > a,
+  .tic-package-dashboard-summary > p, .tic-package-dashboard-summary > a,
+  .tic-package-intro-steps article > span, .tic-package-receipt-meta,
+  .tic-package-receipt dt, .tic-package-receipt dd, .tic-package-receipt footer code) {
+  font-size: max(11px, .75rem);
+}
+
+.tic-packages-page .tic-package-detail-nav {
+  gap: 10px;
+  font-size: 13px;
+}
+
+.tic-packages-page .tic-package-detail-nav > span,
+.tic-packages-page .tic-package-detail-badges > span,
+.tic-packages-page .tic-package-receipt-meta,
+.tic-packages-page .tic-package-receipt footer > span {
+  letter-spacing: .04em;
+}
+
+.tic-packages-page .tic-package-snippet pre,
+.tic-packages-page .tic-package-workbench-preview pre,
+.tic-packages-page .tic-package-lifecycle-all pre {
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.tic-packages-page .tic-package-detail-nav a,
+.tic-packages-page .tic-package-snippet-head button,
+.tic-packages-page .tic-package-workbench button,
+.tic-packages-page .tic-package-workbench-tabs button {
+  min-height: 42px;
+}
+
+.tic-packages-page .theme-quick-switch {
+  min-height: 38px;
+  gap: 5px;
+  padding: 4px 7px;
+  border-radius: 999px;
+}
+
+.tic-packages-page .theme-quick-option {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+}
+
+.tic-packages-page .theme-quick-swatch {
+  width: 11px;
+  height: 11px;
+}
+
+.tic-packages-page .theme-quick-label {
+  font-size: 11px;
+}
+
+.tic-package-workspace {
+  display: grid;
+  grid-template-columns: 226px minmax(0, 1fr);
+  min-height: calc(100vh - 72px);
+  max-width: 1680px;
+  margin-inline: auto;
+}
+
+.tic-package-side-nav {
+  position: sticky;
+  top: 73px;
+  display: flex;
+  height: calc(100vh - 73px);
+  min-height: 560px;
+  flex-direction: column;
+  gap: 5px;
+  padding: 28px 14px 18px;
+  border-right: 1px solid var(--tic-line);
+  background: color-mix(in srgb, var(--tic-panel) 46%, var(--tic-bg));
+}
+
+.tic-package-side-nav .tic-eyebrow {
+  margin: 12px 10px 8px;
+  font-size: 11px;
+}
+
+.tic-package-side-nav > a {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 42px;
+  padding: 0 11px;
+  border-radius: 8px;
+  color: var(--tic-muted);
+  font-size: 14px;
+  text-decoration: none;
+  transition: background-color .15s ease, color .15s ease;
+}
+
+.tic-package-side-nav > a:hover,
+.tic-package-side-nav > a:focus-visible,
+.tic-package-side-nav > a.is-current {
+  background: color-mix(in srgb, var(--tic-accent) 10%, var(--tic-panel));
+  color: var(--tic-text);
+}
+
+.tic-package-side-nav > a.is-current {
+  box-shadow: inset 2px 0 var(--tic-accent);
+}
+
+.tic-package-side-nav > a span {
+  width: 18px;
+  color: var(--tic-accent);
+  text-align: center;
+}
+
+.tic-package-side-nav-foot {
+  display: grid;
+  gap: 8px;
+  margin-top: auto;
+  padding: 16px 10px 5px;
+  border-top: 1px solid var(--tic-line);
+  font-size: 12px;
+}
+
+.tic-package-side-nav-foot span,
+.tic-package-side-nav-foot a {
+  color: var(--tic-muted);
+}
+
+.tic-package-side-nav-foot strong {
+  color: var(--tic-text);
+  font-size: 12px;
+}
+
+.tic-package-workspace-main {
+  min-width: 0;
+  padding: 0 clamp(20px, 3vw, 46px) 32px;
+}
+
+.tic-package-workspace-main .tic-package-dashboard-heading,
+.tic-package-workspace-main .tic-package-workbench,
+.tic-package-workspace-main .tic-package-dashboard-directory,
+.tic-package-workspace-main .tic-package-dashboard-help {
+  max-width: 1260px;
+}
+
+.tic-package-workspace-main .tic-package-dashboard-heading {
+  padding-inline: 0;
+  padding-top: 48px;
+}
+
+.tic-package-workspace-main .tic-package-workbench {
+  margin-bottom: 24px;
+}
+
+.tic-package-workspace-main .tic-package-dashboard-directory {
+  padding-inline: 0;
+}
+
+.tic-package-workspace-main .tic-package-dashboard-help {
+  margin-inline: 0;
+}
+
+.tic-package-dashboard-summary {
+  padding: 21px;
+  border-radius: 12px;
+}
+
+.tic-package-dashboard-summary > strong {
+  font-size: 18px;
+}
+
+.tic-package-dashboard-summary > p,
+.tic-package-dashboard-summary > a {
+  font-size: 13px;
+}
+
+.tic-package-dashboard .tic-package-grid {
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr));
+}
+
+.tic-package-dashboard .tic-package-card {
+  min-height: 250px;
+  padding: 24px;
+}
+
+.tic-package-dashboard .tic-package-card h3 {
+  font-size: 19px;
+}
+
+.tic-package-dashboard .tic-package-card-link {
+  font-size: 13px;
+}
+
+.tic-packages-page :is(a, button, select, input):focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--tic-accent) 80%, white);
+  outline-offset: 3px;
+}
+
+:root[data-theme="white"] .tic-packages-page .tic-primary,
+:root[data-theme="daylight"] .tic-packages-page .tic-primary {
+  color: #10271e;
+}
+
+:root[data-theme="dark"] .tic-packages-page .tic-primary,
+:root[data-theme="night"] .tic-packages-page .tic-primary,
+:root[data-theme="blue"] .tic-packages-page .tic-primary {
+  color: #071510;
+}
+
+@media (max-width: 980px) {
+  .tic-package-workspace { grid-template-columns: 190px minmax(0, 1fr); }
+  .tic-package-workspace-main { padding-inline: 25px; }
+}
+
+@media (max-width: 760px) {
+  .tic-package-workspace { display: block; min-height: 0; }
+  .tic-package-side-nav { display: none; }
+  .tic-package-workspace-main { padding: 0 17px 30px; }
+  .tic-package-workspace-main .tic-package-dashboard-heading { padding-top: 43px; }
+  .tic-package-workspace-main .tic-package-dashboard-directory { padding-inline: 0; }
+  .tic-package-workspace-main .tic-package-dashboard-help { margin-inline: 0; }
+  .tic-package-dashboard .tic-package-grid { grid-template-columns: 1fr; }
+  .tic-packages-page .tic-package-detail-copy > p:not(.tic-eyebrow):not(.tic-package-publication-note) { font-size: 16px; }
+}
+
+@media (max-width: 520px) {
+  .tic-packages-page .tic-package-detail-content p:not(.tic-eyebrow) { font-size: 15px; }
+  .tic-packages-page .tic-package-snippet pre,
+  .tic-packages-page .tic-package-workbench-preview pre,
+  .tic-packages-page .tic-package-lifecycle-all pre { font-size: 12px; }
+  .tic-packages-page .tic-package-workbench-tabs button { min-height: 42px; font-size: 12px; }
+  .tic-packages-page .tic-package-detail-nav a { padding-inline: 13px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tic-packages-page *, .tic-packages-page *::before, .tic-packages-page *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+  }
+}

@@ -103,3 +103,43 @@ At the time of the live comparison, Tidelight rendered a light page with every g
 Tidelight's [status site](https://status.tidelight.app), [incident archive](https://status.tidelight.app/incidents), and [maintenance archive](https://status.tidelight.app/maintenance) use its own standalone branded shell and service grouping. Its current probes cover application/developer surfaces, packages, API/MCP and database access. These current observations are not equivalent to Context.dev's measured per-endpoint 90-day uptime. Do not manufacture historic uptime from a point-in-time check or populate incident/maintenance archives with invented events.
 
 The observed database signals disagree: Supabase reports the Tidelight project **ACTIVE_HEALTHY**, and a read-only **SELECT 1** succeeds, while the live status page reports that its **DB probe failed**. The management-plane health and read-only SQL check were independently reconfirmed in this continuation. This does not prove that the deployed application's database path works. In the inspected Tidelight source, the status probe uses the application's admin client to select an ID from `developer_api_keys`; it does not execute the same SELECT 1. The two probes exercise different credentials, network paths and permissions. Record the live page as degraded while investigating that application probe; do not call the database globally down or silently turn the page green based on the management query. No root cause or repair is established by these observations.
+## Additional interaction details captured 2026-10-25
+
+The workspace was revisited at a 1365 × 937 desktop viewport to inspect the usage log, key creation, and saved-workflow forms more closely. These notes describe visible behavior, not implementation internals.
+
+### Shell and visual hierarchy
+
+- A narrow, persistent left rail holds the workspace switcher/search at the top; product routes and workspace administration are separated by small section labels. Plan/help/documentation/account actions sit at the bottom of the rail.
+- The remaining-credit control sits at the upper right. The page content is centered in the available space with a restrained width; usage charts and logs use a single bordered white panel with subtle dividers.
+- Heading, one-line explanation, and page controls form a compact top region. Labels and icon buttons are small and low contrast; selected navigation and primary actions carry the strongest color. A dismissible product announcement is anchored at the lower right.
+- The same global shell remains visible while the main region changes. Usage switches between Charts and Logs without leaving its route family; the selected view is represented in the URL (`?view=logs`).
+
+### Usage charts and request log
+
+Charts view begins with four summary values (API calls, credits, daily average, successful-call rate/errors), then shows calls per day with an API calls/credits toggle, API breakdown, response-status breakdown, authentication-status breakdown, and key breakdown. Filters cover source, API key, tag, and date range. The inspected workspace showed 4 calls and 2 credits for the last 30 days, all returning HTTP 200 with valid authentication.
+
+Logs view is a compact request table with a search field and filters for API, API key, tag, and status. Columns are When, API, Input, Status, Credits, and Duration; rows can expand for request detail. Pagination and a last-refreshed timestamp keep the log usable without turning the page into a dense raw event dump. Input values are user content and are intentionally not copied into this report.
+
+### API key creation
+
+The key page presents a searchable table with Name, masked Key, Permissions, Status, Usage, and Actions. A create dialog asks for a name and an access mode. The observed default is **Full access**, described in the UI as permission to call every API, read account logs, and manage monitors and batches. **Restricted** is the alternative. The page also explains plan-based key limits and offers a separate plan action. Key material remains masked in the persistent table, with explicit reveal and copy controls; creation is a distinct primary action in the dialog.
+
+### Saved collection workflows
+
+The batch creation dialog provides Dashboard and Code modes, then target choices for a list of URLs, a sitemap, or a crawl starting from a URL. URL lists accept one URL per line (up to 100,000). Output controls include HTML, Markdown, screenshot, images, bytes, parse, JSON, highlights, and product data; Markdown is initially selected, links are on, and images are off. Advanced options begin collapsed. The page surfaces concurrency and explains that credits are reserved per page before submission.
+
+Monitor creation similarly separates Dashboard and Code modes. The dashboard supports an optional natural-language description that fills a reviewable configuration form. Target choices are page, sitemap, or whole site. The form exposes name, tags, URL, Exact/Semantic detection (Exact initially selected), page content, advanced options, a schedule, estimated cost per run, and an optional webhook destination. Code mode offers cURL plus JavaScript, TypeScript, Ruby, Python, Go, and PHP examples, with Axios/SDK variants where available. The API key is masked in the example UI and can be copied through an explicit action.
+
+### Reverse-engineering boundary
+
+The request table, key dialog, and job setup forms expose the customer-facing contract and interaction sequence. They do not reveal database schemas, queue providers, private service topology, source implementation, authorization middleware, or execution algorithms. Any Tidelight backend comparison should be based on Tidelight's own implementation and public API behavior, not asserted as a copy of Context.dev internals.
+
+### Public service status
+
+The separate `status.context.dev` experience is a concise service dashboard with a top navigation for Status, Maintenance, Previous incidents, and contact. Its headline summarizes the overall state (“All services are online” in the inspected session). The status page groups services into Websites, APIs, and CDN; each group can expand to show named components, an operational state, and a 90-day uptime strip. API components are listed by endpoint rather than collapsed into a single generic API check. Component rows with incident impact link to the relevant incident record.
+
+The incident archive groups entries by month and shows title, resolved state, resolution time, a short update, and a count of prior updates. The maintenance archive uses a parallel month grouping with an explicit “No maintenance scheduled” state. Both archive routes keep the same sparse header and footer, so operational history is reachable without competing with the main status summary. The inspected status shell identifies Better Stack as its provider. These are observed presentation and navigation details; the dashboard's private monitoring configuration and probe implementation are not visible.
+
+## Tidelight implementation comparison
+
+The live `status.tidelight.app` page now uses the same high-level status pattern: persistent status navigation, a one-line global state, grouped ecosystem services, and separate maintenance and incident routes. It lists Tidelight's website, REST and research APIs, MCP metadata, npm and PyPI registries, database, and background execution/delivery observability. It explicitly labels research processing, scheduling, and delivery as not monitored instead of drawing historical uptime bars without a history source. The page's live database probe reported a connection failure during this inspection; the Supabase project itself reported `ACTIVE_HEALTHY`, and a read-only `select 1` returned successfully through the connected database tool. That discrepancy is recorded as a probe/runtime issue to investigate, not as evidence that the database is down.
