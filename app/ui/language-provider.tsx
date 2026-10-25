@@ -5,8 +5,8 @@ import zhCN from "@/app/i18n/zh-CN.json";
 
 export type Language = "en" | "zh-CN";
 const STORAGE_KEY = "tidelight-language";
-type LanguageContextValue = { language: Language; setLanguage: (language: Language) => void };
-const LanguageContext = createContext<LanguageContextValue>({ language: "en", setLanguage: () => {} });
+type LanguageContextValue = { language: Language; setLanguage: (language: Language) => void; translate: (source: string) => string };
+const LanguageContext = createContext<LanguageContextValue>({ language: "en", setLanguage: () => {}, translate: (source) => source });
 const messages = zhCN as Record<string, string>;
 const messageTemplates = Object.entries(messages)
   .filter(([source]) => /\{[^}]+\}/.test(source))
@@ -197,7 +197,8 @@ export function LanguageProvider({ children, initialLanguage }: { children: Reac
     };
   }, [language]);
 
-  const value = useMemo<LanguageContextValue>(() => ({ language, setLanguage }), [language, setLanguage]);
+  const translate = useCallback((source: string) => language === "zh-CN" ? translateWithSpacing(source) ?? source : source, [language]);
+  const value = useMemo<LanguageContextValue>(() => ({ language, setLanguage, translate }), [language, setLanguage, translate]);
   return <LanguageContext.Provider value={value}>{children}</LanguageContext.Provider>;
 }
 
