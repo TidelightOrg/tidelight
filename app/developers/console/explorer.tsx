@@ -16,6 +16,7 @@ export default function ApiExplorer({ projects, keys, currentTime, onViewResearc
   const [limit, setLimit] = useState(20);
   const [cursor, setCursor] = useState("");
   const [underlyingTicker, setUnderlyingTicker] = useState("");
+  const [researchIdempotencyKey, setResearchIdempotencyKey] = useState("");
   const [language, setLanguage] = useState<Language>("curl");
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<number | null>(null);
@@ -27,10 +28,11 @@ export default function ApiExplorer({ projects, keys, currentTime, onViewResearc
   const availableKeys = keys.filter(key => key.project_id === projectId && key.scopes?.includes(scope) && !key.revoked_at && (!key.expires_at || Date.parse(key.expires_at) > currentTime));
   const selectedKeyId = availableKeys.some(key => key.id === keyId) ? keyId : availableKeys[0]?.id ?? "";
   const snippet = useMemo(() => {
+    const safeIdempotencyKey = /^[A-Za-z0-9._:-]{8,128}$/.test(researchIdempotencyKey) ? researchIdempotencyKey : "your-unique-request-id";
     if (endpoint === "research") {
-      if (language === "typescript") return `import { randomUUID } from "node:crypto";\nimport { TidelightClient } from "@tidelight/sdk";\n\nconst client = new TidelightClient({ apiKey: process.env.TIDELIGHT_API_KEY! });\nconst job = await client.startCompanyResearch("${underlyingTicker.toUpperCase() || "NVDA"}", randomUUID());\nconsole.log(job.job_id, job.status);`;
-      if (language === "python") return `import os\nfrom uuid import uuid4\nfrom tidelight import Client\n\nclient = Client(os.environ["TIDELIGHT_API_KEY"])\njob = client.start_company_research("${underlyingTicker.toUpperCase() || "NVDA"}", str(uuid4()))\nprint(job["job_id"], job["status"])`;
-      return `curl 'https://api.tidelight.app/v1/research/jobs' \\\n  -X POST \\\n  -H 'Authorization: Bearer YOUR_TIDELIGHT_KEY' \\\n  -H 'Idempotency-Key: your-unique-request-id' \\\n  -H 'Content-Type: application/json' \\\n  -d '{"ticker":"${underlyingTicker.toUpperCase() || "NVDA"}"}'`;
+      if (language === "typescript") return `import { TidelightClient } from "@tidelight/sdk";\n\nconst client = new TidelightClient({ apiKey: process.env.TIDELIGHT_API_KEY! });\nconst idempotencyKey = "${safeIdempotencyKey}"; // reuse this key when retrying\nconst job = await client.startCompanyResearch("${underlyingTicker.toUpperCase() || "NVDA"}", idempotencyKey);\nconsole.log(job.job_id, job.status);`;
+      if (language === "python") return `import os\nfrom tidelight import Client\n\nclient = Client(os.environ["TIDELIGHT_API_KEY"])\nidempotency_key = "${safeIdempotencyKey}"  # reuse this key when retrying\njob = client.start_company_research("${underlyingTicker.toUpperCase() || "NVDA"}", idempotency_key)\nprint(job["job_id"], job["status"])`;
+      return `curl 'https://api.tidelight.app/v1/research/jobs' \\\n  -X POST \\\n  -H 'Authorization: Bearer YOUR_TIDELIGHT_KEY' \\\n  -H 'Idempotency-Key: ${safeIdempotencyKey}' \\\n  -H 'Content-Type: application/json' \\\n  -d '{"ticker":"${underlyingTicker.toUpperCase() || "NVDA"}"}'`;
     }
     const safeCursor = /^[A-Z0-9]{2,32}$/.test(cursor) ? cursor : "";
     const safeTicker = /^[A-Z][A-Z0-9.]{0,9}$/i.test(underlyingTicker) ? underlyingTicker.toUpperCase() : "";
@@ -38,7 +40,7 @@ export default function ApiExplorer({ projects, keys, currentTime, onViewResearc
     if (language === "typescript") return `import { TidelightClient } from "@tidelight/sdk";\n\nconst client = new TidelightClient({ apiKey: process.env.TIDELIGHT_API_KEY! });\nconst page = await client.listTokenizedEquities({ limit: ${limit}${safeTicker ? `, underlyingTicker: "${safeTicker}"` : ""}${safeCursor ? `, cursor: "${safeCursor}"` : ""} });\nconsole.log(page.data);`;
     if (language === "python") return `import os\nfrom tidelight import Client\n\nclient = Client(os.environ["TIDELIGHT_API_KEY"])\npage = client.list_tokenized_equities(limit=${limit}${safeTicker ? `, underlying_ticker="${safeTicker}"` : ""}${safeCursor ? `, cursor="${safeCursor}"` : ""})\nprint(page.data)`;
     return `curl 'https://api.tidelight.app/v1/market/instruments?${query}' \\\n  -H 'Authorization: Bearer YOUR_TIDELIGHT_KEY'`;
-  }, [cursor, endpoint, language, limit, underlyingTicker]);
+  }, [cursor, endpoint, language, limit, researchIdempotencyKey, underlyingTicker]);
 
   async function execute(event: React.FormEvent) {
     event.preventDefault();
@@ -49,7 +51,9 @@ export default function ApiExplorer({ projects, keys, currentTime, onViewResearc
     setDuration(null);
     const began = performance.now();
     try {
-      const response = await fetch(endpoint === "market" ? "/api/developers/explore" : "/api/developers/explore-research", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(endpoint === "market" ? { keyId: selectedKeyId, kind: "rtoken", limit, cursor: cursor || null, underlyingTicker: underlyingTicker || null } : { keyId: selectedKeyId, ticker: underlyingTicker || "NVDA", idempotencyKey: crypto.randomUUID() }) });
+      const idempotencyKey = researchIdempotencyKey || crypto.randomUUID();
+      if (endpoint === "research" && !researchIdempotencyKey) setResearchIdempotencyKey(idempotencyKey);
+      const response = await fetch(endpoint === "market" ? "/api/developers/explore" : "/api/developers/explore-research", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(endpoint === "market" ? { keyId: selectedKeyId, kind: "rtoken", limit, cursor: cursor || null, underlyingTicker: underlyingTicker || null } : { keyId: selectedKeyId, ticker: underlyingTicker || "NVDA", idempotencyKey }) });
       const body = await response.json();
       setStatus(response.status);
       setResult(body);
@@ -87,7 +91,11 @@ export default function ApiExplorer({ projects, keys, currentTime, onViewResearc
         <label>Limit<input type="number" min="1" max="100" value={limit} onChange={event => setLimit(Number(event.target.value))} required /></label>
         <label>Underlying ticker <span>(optional)</span><input value={underlyingTicker} onChange={event => setUnderlyingTicker(event.target.value.toUpperCase())} pattern="[A-Z][A-Z0-9.]{0,9}" placeholder="e.g. AAPL" /></label>
         <label>Cursor <span>(optional)</span><input value={cursor} onChange={event => setCursor(event.target.value.toUpperCase())} pattern="[A-Z0-9]{2,32}" placeholder="Next cursor from a response" /></label>
-      </> : <label>Company ticker<input value={underlyingTicker} onChange={event => setUnderlyingTicker(event.target.value.toUpperCase())} pattern="[A-Z][A-Z0-9.]{0,9}" placeholder="NVDA" maxLength={10} /></label>}
+      </> : <>
+        <label>Company ticker<input value={underlyingTicker} onChange={event => { setUnderlyingTicker(event.target.value.toUpperCase()); setResearchIdempotencyKey(""); }} pattern="[A-Z][A-Z0-9.]{0,9}" placeholder="NVDA" maxLength={10} /></label>
+        <label>Idempotency key <span>(reuse for retries)</span><input value={researchIdempotencyKey} onChange={event => { setResearchIdempotencyKey(event.target.value); setCopyState("idle"); }} pattern="[A-Za-z0-9._:-]{8,128}" minLength={8} maxLength={128} placeholder="Generated on first request" /></label>
+        <button type="button" className="tic-button tic-secondary tic-explorer-new-key" onClick={() => { setResearchIdempotencyKey(crypto.randomUUID()); setCopyState("idle"); }}>Generate new key</button>
+      </>}
       <button type="submit" className="tic-button tic-primary" disabled={busy || !selectedKeyId} aria-busy={busy}>{busy ? <><span className="tic-explorer-spinner" aria-hidden="true" />Executing request…</> : "Execute request"}</button>
     </form>
     {!projects.length && <p className="tic-explorer-hint">Create a project and an API key to start.</p>}
@@ -104,7 +112,7 @@ export default function ApiExplorer({ projects, keys, currentTime, onViewResearc
           <div><dt><code>cursor</code></dt><dd>Optional · Use the next cursor returned by a previous response.</dd></div>
         </> : <>
           <div><dt><code>ticker</code></dt><dd>Required · Company ticker to research. The explorer uses NVDA when left blank.</dd></div>
-          <div><dt><code>Idempotency-Key</code></dt><dd>Required by the API · Reuse the same key when retrying the same ticker to avoid a duplicate job. The explorer generates a fresh key for each submission.</dd></div>
+          <div><dt><code>Idempotency-Key</code></dt><dd>Required by the API · The explorer keeps this key for retries. Editing the ticker clears it; generate a new key to start a separate job.</dd></div>
         </>}
         <div><dt>Authorization</dt><dd>Uses the selected project credential. Its required scope is <code>{scope}</code>; the secret is never shown in this page.</dd></div>
       </dl>
