@@ -332,6 +332,14 @@
       "video_uri": "https://tidelight.app/judge-evidence/npm-python-install-walkthrough-fresh-20261024.mp4",
       "summary_uri": "https://tidelight.app/evidence/npm-python-install-walkthrough-fresh-20261024.json",
       "claim": "A 3:58 Chromium capture records four npm 0.1.2 packages installed from a clean consumer and the tidelight 0.1.2 Python package installed/imported under Python 3.12.14. All 12 commands exited 0; npm audit --omit=dev reported zero vulnerabilities. A Python 3.9 probe was below the package's declared Requires-Python >=3.10 minimum. No authenticated API or MCP research request was made."
+    },
+    {
+      "id": "authenticated-research-20261025",
+      "kind": "sanitized_actual_command_event_traces",
+      "status": "direct_mcp_complete_npm_stdio_research_exposed_sdk_jobs_complete",
+      "uri": "https://tidelight.app/evidence/authenticated-research-20261025/README.md",
+      "summary_uri": "https://tidelight.app/evidence/authenticated-research-20261025/mcp.json",
+      "claim": "Direct HTTP MCP MSFT research completed. Published @tidelight/mcp@0.1.2 installed from npm and stdio initialization listed all five tools; no extra job started. Codex connector still exposes only market tools. Python NVDA and JavaScript AAPL jobs completed after polling initially hit HTTP 429; completion was confirmed by later Python SDK reads. Exact safe IDs, timed stdout and event traces retained; no browser video claimed."
     }
   ],
   "owner_published_research": {

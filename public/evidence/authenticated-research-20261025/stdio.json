@@ -1,0 +1,37 @@
+[
+  {
+    "at": "2026-10-25T00:34:05.805Z",
+    "command": "NODE_USE_ENV_PROXY=1 node work/authenticated-research/stdio-check.mjs",
+    "installed_package": "@tidelight/mcp",
+    "installed_version": "0.1.2",
+    "server_command": "node work/authenticated-research/node_modules/@tidelight/mcp/bin/tidelight-mcp.mjs",
+    "credential_source": "inherited TIDELIGHT_API_KEY process environment; value omitted"
+  },
+  {
+    "at": "2026-10-25T00:34:08.193Z",
+    "operation": "initialize",
+    "status": "success",
+    "server_info": {
+      "name": "tidelight-mcp",
+      "version": "0.1.0"
+    }
+  },
+  {
+    "at": "2026-10-25T00:34:08.999Z",
+    "operation": "tools/list",
+    "status": "success",
+    "tools": [
+      "tidelight_search_tokenized_equities",
+      "tidelight_get_tokenized_equity",
+      "tidelight_start_company_research",
+      "tidelight_get_research_job",
+      "tidelight_cancel_research_job"
+    ],
+    "research_tool_exposed": true,
+    "extra_research_job_started": false
+  },
+  {
+    "at": "2026-10-25T00:34:11.181Z",
+    "process_state": "finished"
+  }
+]

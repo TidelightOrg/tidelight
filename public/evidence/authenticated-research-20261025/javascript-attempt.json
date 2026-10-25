@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0.0",
+  "captured_at": "2026-10-25T00:31:42.602Z",
+  "kind": "authenticated_research_attempt",
+  "client": "TypeScript SDK source checkout",
+  "ticker": "AAPL",
+  "credential_configured": true,
+  "events": [
+    {
+      "step": "startCompanyResearch",
+      "status": "queued",
+      "accepted": true,
+      "job_id": "7b6601b2-7cd3-4cc0-93d2-dceb60ff18c8",
+      "request_id": "4ea7e743-a185-446d-a07e-ef84b3d9c155"
+    },
+    {
+      "step": "research_request",
+      "status": "failed",
+      "http_status": 429,
+      "code": "quota_exceeded",
+      "request_id": "f8836e6e-7289-4546-a73a-151f908cc2b7"
+    }
+  ],
+  "elapsed_seconds": 36.78,
+  "boundary": "Actual SDK execution report; not a timed recording. Safe request/job IDs retained; credentials, account identifiers and response bodies excluded."
+}
