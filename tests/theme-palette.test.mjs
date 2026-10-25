@@ -30,3 +30,11 @@ test("public research replays render in the White and Dark palettes", async () =
   assert.match(replay, /:root\[data-theme="white"\] \.shared-replay-page\{background:#fff/);
   assert.match(replay, /:root\[data-theme="dark"\] \.shared-replay-page\{background:#090a0c/);
 });
+
+test("package secondary actions retain readable contrast in light themes", async () => {
+  const css = await readFile(new URL("../app/developers/packages/package-clarity.css", import.meta.url), "utf8");
+  assert.match(css, /:root:is\(\[data-theme="daylight"\], \[data-theme="white"\]\) \.tic-packages-page a\.tic-button:not\(\.tic-primary\)/);
+  assert.match(css, /background-color: #fff !important;/);
+  assert.match(css, /color: #17221e !important;/);
+  assert.match(css, /border-color: #dfe5e2 !important;/);
+});
