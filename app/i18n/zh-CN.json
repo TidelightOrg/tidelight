@@ -5897,5 +5897,16 @@
   "Public replay · private account details excluded · not investment advice.": "公开回放 · 不包含私人账户信息 · 不构成投资建议。",
   "Evaluate Tidelight →": "评估 Tidelight →",
   "Public research replay. Market values are snapshots, AI summaries are interpretations, and this is not investment advice or audited performance.": "公开研究回放。市场数值为快照，AI 摘要仅供解读；本内容不构成投资建议，也不是经审计的业绩记录。",
-  "On this ten-run sample, only two outputs included model synthesis; both raised material evidence concerns. Eight were source-only or had no usable synthesis. The 2.5/10 figure is a provisional single-reviewer product assessment, not a factual-accuracy rate. Formal claim-quality scoring is pending independent labels and adjudication; task time was not measured. The September CPI run included off-topic sources.": "在这 10 次运行中，仅 2 次包含模型综合结果，且两次都存在实质性的证据问题。另有 8 次仅返回来源或没有可用的综合结果。2.5/10 是单人审阅得出的暂定产品评价，并非事实准确率。正式的主张质量评分仍待独立标注和裁定；任务用时未测量。9 月 CPI 运行还包含偏离主题的来源。"
+  "On this ten-run sample, only two outputs included model synthesis; both raised material evidence concerns. Eight were source-only or had no usable synthesis. The 2.5/10 figure is a provisional single-reviewer product assessment, not a factual-accuracy rate. Formal claim-quality scoring is pending independent labels and adjudication; task time was not measured. The September CPI run included off-topic sources.": "在这 10 次运行中，仅 2 次包含模型综合结果，且两次都存在实质性的证据问题。另有 8 次仅返回来源或没有可用的综合结果。2.5/10 是单人审阅得出的暂定产品评价，并非事实准确率。正式的主张质量评分仍待独立标注和裁定；任务用时未测量。9 月 CPI 运行还包含偏离主题的来源。",
+  "Generated on first request": "首次请求时生成",
+  "(reuse for retries)": "（重试时重复使用）",
+  "; the secret is never shown in this page.": "；密钥不会显示在此页面中。",
+  "Generate new key": "生成新密钥",
+  "Optional · 1–100 results per page. Defaults to 20.": "可选 · 每页 1–100 条结果，默认为 20。",
+  "Optional · Filter by an underlying equity ticker, such as AAPL.": "可选 · 按标的股票代码筛选，例如 AAPL。",
+  "Optional · Use the next cursor returned by a previous response.": "可选 · 使用上一次响应返回的下一页游标。",
+  "REQUEST REFERENCE": "请求参数说明",
+  "Required by the API · The explorer keeps this key for retries. Editing the ticker clears it; generate a new key to start a separate job.": "API 必填 · 浏览器会保留此密钥以便重试。修改代码后，密钥会重置；生成新密钥即可开始独立任务。",
+  "Required · Company ticker to research. The explorer uses NVDA when left blank.": "必填 · 要研究的公司代码。留空时将使用 NVDA。",
+  "Uses the selected project credential. Its required scope is": "使用所选项目凭据。所需权限范围为"
 }
