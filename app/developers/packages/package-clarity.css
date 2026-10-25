@@ -57,7 +57,7 @@
 .tic-packages-page .tic-package-detail-content p:not(.tic-eyebrow),
 .tic-packages-page .tic-package-intro-heading > p:not(.tic-eyebrow),
 .tic-packages-page .tic-package-intro-steps p {
-  font-size: var(--tic-reading);
+  font-size: var(--tic-secondary);
 }
 
 .tic-packages-page :is(.tic-package-hero-meta code, .tic-package-detail-badges > span,
