@@ -5542,7 +5542,7 @@
   "Usage date range": "用量日期范围",
   "7 days": "7 天",
   "30 days": "30 天",
-  "Exact authorized request totals across the projects you can access for the selected period. Monetary cost is not available yet.": "显示您可访问项目在所选期间内的准确授权请求总数。当前不提供费用金额。",
+  "Exact authorized request totals across the projects you can access for the selected period. Monetary cost is not available yet.": "所选时间范围内，您可访问项目的准确授权请求总数。当前暂不提供费用金额。",
   "attempts per hour. Futures live mode has a separate access request, key permission check and operator approval; access review does not guarantee approval. Nightwatch automation remains paper-only.": "次操作。期货实盘模式需要单独申请访问、检查密钥权限并获得运营方批准；审核不保证一定通过。Nightwatch 自动化仍仅支持模拟交易。",
   "Source trail": "来源链",
   "API response": "API 响应",
@@ -5717,5 +5717,15 @@
   "This link expires {expiry} and can be revoked at any time.": "此链接将于 {expiry} 过期，也可随时撤销。",
   "Public replay link": "公开回放链接",
   "Copy link": "复制链接",
-  "Revoke link": "撤销链接"
+  "Revoke link": "撤销链接",
+  "API key": "API 密钥",
+  "All API keys": "所有 API 密钥",
+  "Filter requests by API key": "按 API 密钥筛选请求",
+  "Filter requests by time": "按时间筛选请求",
+  "All recent": "所有近期记录",
+  "Last 24 hours": "过去 24 小时",
+  "Last 7 days": "过去 7 天",
+  "Last 30 days": "过去 30 天",
+  "The latest 100 records, including latency and response status. Daily totals above cover the full selected period.": "最近 100 条记录，包括延迟和响应状态。上方每日合计涵盖整个所选时间范围。",
+  "REQUESTS · {days} DAYS": "请求 · {days} 天"
 }
