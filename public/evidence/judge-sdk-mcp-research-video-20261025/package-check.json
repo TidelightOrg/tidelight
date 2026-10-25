@@ -22,6 +22,12 @@
       "integrity": "sha512-Dxni+MDd918GDuPuNxMdltUObPvLPhLdkmuvdoDPtV9Tq1nXuHTQrIQF5x/iSP/UfIosgU9+mq4cGNWuaNmVmQ=="
     }
   ],
+  "python": {
+    "name": "tidelight",
+    "version": "0.1.2",
+    "wheel": "tidelight-0.1.2-py3-none-any.whl",
+    "sha256": "24c19ed9ecfd7222f607c397ca388c34705fdd1c13d965d7b4ebe7ed3045ff39"
+  },
   "checks": {
     "sdk_exports": [
       "TidelightApiError",

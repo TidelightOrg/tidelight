@@ -153,7 +153,6 @@ export default function JudgePage() {
         <span className="judge-route-capture-badge">VERIFIED</span>
       </div>
       <div className="judge-inline-actions">
-        <a href="/evidence/judge-sdk-mcp-research-video-20261025/terminal-session-replay.mp4">Play terminal-session replay <span aria-hidden="true">↗</span></a>
         <a href="/evidence/judge-sdk-mcp-research-video-20261025/terminal-session.cast">Source cast <span aria-hidden="true">↓</span></a>
         <a href="/evidence/judge-sdk-mcp-research-video-20261025/README.md">Read verified results <span aria-hidden="true">↗</span></a>
         <a href="/evidence/judge-sdk-mcp-research-video-20261025/package-check.json">Versions and integrities <span aria-hidden="true">↗</span></a>
