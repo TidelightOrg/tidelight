@@ -78,6 +78,7 @@ test("Simplified Chinese covers the Judge evaluation path and public evidence di
     "Open the full Gmail screenshot for the RNVDUSDT Nightwatch email", "Browse published paper replays", "Download JSON",
     "PUBLIC REPLAY", "after costs", "Holdout return trailed buy and hold (+2.12%) over 32 days. Historical simulation; costs estimated, no live orders.",
     "Evaluation path", "Evaluation stages", "Would you review the rTSLA market?",
+    "On this ten-run sample, only two outputs included model synthesis; both raised material evidence concerns. Eight were source-only or had no usable synthesis. The 2.5/10 figure is a provisional single-reviewer product assessment, not a factual-accuracy rate. Formal claim-quality scoring is pending independent labels and adjudication; task time was not measured. The September CPI run included off-topic sources.",
     "How do AI investment and Azure demand change the risk picture?", "What should a long-term rAAPL review verify?",
     "How should antitrust remedies and AI-search competition be reviewed?", "How do AWS investment and retail economics shape the review?",
     "Compare the latest evidence and risks.", "Separate issuer assessments", "decision gates", "PUBLIC REPLAY · APPLE · 4H",
@@ -99,6 +100,7 @@ test("developer pages expose a language toggle and share the language preference
   assert.match(docs, /LanguageToggle className="tic-language-toggle"/);
   assert.match(provider, /hostname\.endsWith\("\.tidelight\.app"\)/);
   assert.match(provider, /domain=\.tidelight\.app/);
+  assert.match(provider, /if \(textInput && !\["aria-label", "aria-description", "title"\]\.includes\(name\)\) continue/);
   assert.ok(provider.indexOf("const cookieLanguage") < provider.indexOf("window.localStorage.getItem(STORAGE_KEY)"));
 });
 
