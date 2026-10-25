@@ -1,0 +1,37 @@
+Script started on 2026-10-25 19:02:17+00:00 [COMMAND="bash -lc 'set -u; echo CAPTURE_START=$(date -u +%Y-%m-%dT%H:%M:%SZ); rm -rf work/fresh-consumer; mkdir -p work/fresh-consumer/npm-cache work/fresh-consumer/pip-cache work/fresh-consumer/pypi work/fresh-consumer/python-published; echo NPM_INSTALL_START=$(date -u +%Y-%m-%dT%H:%M:%SZ); npm install --prefix work/fresh-consumer --cache work/fresh-consumer/npm-cache --ignore-scripts --no-audit --no-fund --save-exact @tidelight/sdk @tidelight/mcp @tidelight/react @tidelight/cli; echo PYPI_DOWNLOAD_START=$(date -u +%Y-%m-%dT%H:%M:%SZ); python3 -m pip download --no-deps --dest work/fresh-consumer/pypi --cache-dir work/fresh-consumer/pip-cache tidelight; python3 -m pip install --no-deps --no-index --find-links work/fresh-consumer/pypi --target work/fresh-consumer/python-published tidelight; echo PACKAGE_VERSIONS; node -e "for (const n of [\"sdk\",\"mcp\",\"react\",\"cli\"]) {const p=require(\"./work/fresh-consumer/node_modules/@tidelight/\"+n+\"/package.json\"); console.log(n,p.version)}"; PYTHONPATH=work/fresh-consumer/python-published python3 -c "import tidelight; print(\"python_import=passed\")"; node work/fresh-consumer/node_modules/@tidelight/cli/dist/bin.js --help | head -4; echo CAPTURE_END=$(date -u +%Y-%m-%dT%H:%M:%SZ)'"]
+CAPTURE_START=2026-10-25T19:02:17Z
+NPM_INSTALL_START=2026-10-25T19:02:17Z
+
+added 104 packages in 12s
+npm notice
+npm notice New major version of npm available! 11.9.0 -> 12.2.1
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v12.2.1
+npm notice To update run: npm install -g npm@12.2.1
+npm notice
+PYPI_DOWNLOAD_START=2026-10-25T19:02:29Z
+Collecting tidelight
+  Downloading tidelight-0.1.2-py3-none-any.whl.metadata (4.0 kB)
+Downloading tidelight-0.1.2-py3-none-any.whl (11 kB)
+Saved ./work/fresh-consumer/pypi/tidelight-0.1.2-py3-none-any.whl
+Successfully downloaded tidelight
+
+[notice] A new release of pip is available: 26.2.1 -> 26.2.2
+[notice] To update, run: pip install --upgrade pip
+WARNING: The directory '/home/agent/.cache/pip' or its parent directory is not owned or is not writable by the current user. The cache has been disabled. Check the permissions and owner of that directory. If executing pip with sudo, you should use sudo's -H flag.
+Looking in links: work/fresh-consumer/pypi
+Processing ./work/fresh-consumer/pypi/tidelight-0.1.2-py3-none-any.whl
+Installing collected packages: tidelight
+Successfully installed tidelight-0.1.2
+PACKAGE_VERSIONS
+sdk 0.1.2
+mcp 0.1.2
+react 0.1.2
+cli 0.1.2
+python_import=passed
+Tidelight CLI — supported API workflows
+
+Usage:
+  tidelight auth login | status | logout
+CAPTURE_END=2026-10-25T19:02:31Z
+
+Script done on 2026-10-25 19:02:31+00:00 [COMMAND_EXIT_CODE="0"]
