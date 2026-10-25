@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 
 type Project = { id: string; name: string };
 type Key = { id: string; project_id: string; name: string; environment: string; scopes: string[]; revoked_at: string | null; expires_at: string | null };
@@ -24,9 +24,6 @@ export default function ApiExplorer({ projects, keys, currentTime, onViewResearc
   const [requestId, setRequestId] = useState("");
   const [duration, setDuration] = useState<number | null>(null);
   const [copyState, setCopyState] = useState<"idle" | "copied" | "failed">("idle");
-  useEffect(() => {
-    if (endpoint === "research" && !researchIdempotencyKey) setResearchIdempotencyKey(crypto.randomUUID());
-  }, [endpoint, researchIdempotencyKey]);
   const scope = endpoint === "market" ? "market:read" : "research:run";
   const availableKeys = keys.filter(key => key.project_id === projectId && key.scopes?.includes(scope) && !key.revoked_at && (!key.expires_at || Date.parse(key.expires_at) > currentTime));
   const selectedKeyId = availableKeys.some(key => key.id === keyId) ? keyId : availableKeys[0]?.id ?? "";
@@ -86,16 +83,16 @@ export default function ApiExplorer({ projects, keys, currentTime, onViewResearc
     <h1>Explore the API</h1>
     <p className="tic-lead">Make an authorized request using an active project key. The secret stays hidden; this console checks your account and applies the same key quota.</p>
     <form className="tic-explorer-form" onSubmit={execute}>
-      <label>Endpoint<select value={endpoint} onChange={event => { setEndpoint(event.target.value as Endpoint); setKeyId(""); setResult(null); setStatus(null); }}><option value="market">Market instruments · market:read</option><option value="research">Company research job · research:run</option></select></label>
+      <label>Endpoint<select value={endpoint} onChange={event => { const nextEndpoint = event.target.value as Endpoint; setEndpoint(nextEndpoint); if (nextEndpoint === "research") setResearchIdempotencyKey(crypto.randomUUID()); setKeyId(""); setResult(null); setStatus(null); }}><option value="market">Market instruments · market:read</option><option value="research">Company research job · research:run</option></select></label>
       <div className="tic-explorer-route"><span>REQUEST</span><code><b>{endpoint === "market" ? "GET" : "POST"}</b> {endpoint === "market" ? "/v1/market/instruments" : "/v1/research/jobs"}</code><small>{endpoint === "market" ? "Tokenized equity instruments" : "Queue a read-only issuer research snapshot"}</small></div>
       <label>Project<select value={projectId} onChange={event => { setProjectId(event.target.value); setKeyId(""); }}>{projects.map(project => <option key={project.id} value={project.id}>{project.name}</option>)}</select></label>
       <label>Credential<select value={selectedKeyId} onChange={event => setKeyId(event.target.value)} required>{availableKeys.length ? availableKeys.map(key => <option key={key.id} value={key.id}>{key.name} · {key.environment}</option>) : <option value="">No active {scope} key</option>}</select></label>
       {endpoint === "market" ? <>
         <label>Limit<input type="number" min="1" max="100" value={limit} onChange={event => setLimit(Number(event.target.value))} required /></label>
-        <label>Underlying ticker <span>(optional)</span><input value={underlyingTicker} onChange={event => { setUnderlyingTicker(event.target.value.toUpperCase()); setResearchIdempotencyKey(""); }} pattern="[A-Z][A-Z0-9.]{0,9}" placeholder="e.g. AAPL" /></label>
+        <label>Underlying ticker <span>(optional)</span><input value={underlyingTicker} onChange={event => { const nextTicker = event.target.value.toUpperCase(); if (nextTicker !== underlyingTicker) setResearchIdempotencyKey(crypto.randomUUID()); setUnderlyingTicker(nextTicker); }} pattern="[A-Z][A-Z0-9.]{0,9}" placeholder="e.g. AAPL" /></label>
         <label>Cursor <span>(optional)</span><input value={cursor} onChange={event => setCursor(event.target.value.toUpperCase())} pattern="[A-Z0-9]{2,32}" placeholder="Next cursor from a response" /></label>
       </> : <>
-        <label>Company ticker<input value={underlyingTicker} onChange={event => { setUnderlyingTicker(event.target.value.toUpperCase()); setResearchIdempotencyKey(""); }} pattern="[A-Z][A-Z0-9.]{0,9}" placeholder="NVDA" maxLength={10} /></label>
+        <label>Company ticker<input value={underlyingTicker} onChange={event => { const nextTicker = event.target.value.toUpperCase(); if (nextTicker !== underlyingTicker) setResearchIdempotencyKey(crypto.randomUUID()); setUnderlyingTicker(nextTicker); }} pattern="[A-Z][A-Z0-9.]{0,9}" placeholder="NVDA" maxLength={10} /></label>
         <label>Idempotency key <span>(reuse for retries)</span><input value={researchIdempotencyKey} onChange={event => { setResearchIdempotencyKey(event.target.value); setCopyState("idle"); }} pattern="[A-Za-z0-9._:-]{8,128}" minLength={8} maxLength={128} placeholder="Generated on first request" /></label>
         <button type="button" className="tic-button tic-secondary tic-explorer-new-key" onClick={() => { setResearchIdempotencyKey(crypto.randomUUID()); setCopyState("idle"); }}>Generate new key</button>
       </>}
