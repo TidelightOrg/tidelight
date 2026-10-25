@@ -22,22 +22,14 @@ const getPreference = (): ThemePreference => {
   const mode = document.cookie.split(";").map((part) => part.trim()).find((part) => part.startsWith("tidelight-theme-mode="))?.slice("tidelight-theme-mode=".length);
   if (mode === "manual" && validTheme(shared ?? null)) return shared as Theme;
   if (mode === "auto") return "auto";
-  if (validTheme(shared ?? null) && shared !== DEFAULT_THEME) return shared as Theme;
-  // Older builds persisted Blue Hour on first load even when the visitor had never chosen a palette.
-  // Treat that legacy default as automatic; a deliberate choice is marked by theme-mode on this build.
-  try {
-    const saved = window.localStorage.getItem("tidelight-theme");
-    if (saved === "night" || saved === "daylight" || saved === "white" || saved === "dark") return saved;
-  } catch {
-    return "auto";
-  }
   return "auto";
 };
 const saveTheme = (preference: ThemePreference) => {
-  try { window.localStorage.setItem("tidelight-theme", preference); } catch { /* The cookie still persists the preference when storage is blocked. */ }
+  try { window.localStorage.removeItem("tidelight-theme"); } catch { /* Theme selection still works when storage is blocked. */ }
   const sharedDomain = location.hostname === "tidelight.app" || location.hostname.endsWith(".tidelight.app") ? `; Domain=.tidelight.app${location.protocol === "https:" ? "; Secure" : ""}` : "";
-  document.cookie = `tidelight-theme=${preference}; Path=/; Max-Age=31536000; SameSite=Lax${sharedDomain}`;
-  document.cookie = `tidelight-theme-mode=${preference === "auto" ? "auto" : "manual"}; Path=/; Max-Age=31536000; SameSite=Lax${sharedDomain}`;
+  // Keep a manual choice only for this browser session. A later visit returns to the local-clock theme.
+  document.cookie = `tidelight-theme=${preference}; Path=/; SameSite=Lax${sharedDomain}`;
+  document.cookie = `tidelight-theme-mode=${preference === "auto" ? "auto" : "manual"}; Path=/; SameSite=Lax${sharedDomain}`;
 };
 const getTheme = (): Theme => { const preference = getPreference(); return preference === "auto" ? automaticTheme() : preference; };
 const getExperienceMode = (): ExperienceMode => window.localStorage.getItem("tidelight-experience") === "mini" ? "mini" : "pro";
@@ -61,7 +53,7 @@ export function ThemeProvider({ children, initialTheme = DEFAULT_THEME }: { chil
     return () => window.clearInterval(timer);
   }, []);
   useEffect(() => {
-    // Explicit choices persist across Tidelight products; automatic mode resolves on the visitor's local clock.
+    // Explicit choices follow the current browser session across Tidelight products; automatic mode resolves locally.
     saveTheme(preference);
     document.documentElement.dataset.theme = theme;
     document.documentElement.dataset.themeMode = preference;
@@ -78,11 +70,10 @@ export function ThemeProvider({ children, initialTheme = DEFAULT_THEME }: { chil
 }
 
 export function ThemePicker() {
-  const { theme, preference, setTheme } = useContext(ThemeContext);
+  const { theme, setTheme } = useContext(ThemeContext);
   return <fieldset className="theme-picker">
     <legend className="sr-only">Choose a color theme</legend>
-    <button type="button" className={`theme-option${preference === "auto" ? " selected" : ""}`} aria-pressed={preference === "auto"} onClick={() => setTheme("auto")}><span className="theme-swatches" aria-hidden="true"><i style={{ background: "linear-gradient(135deg,#f5f3eb 0 33%,#222b4c 33% 66%,#080f11 66%)" }}/></span><span className="theme-option-copy"><b>Automatic</b><small>Changes with your local time</small></span><span className="theme-check" aria-hidden="true">{preference === "auto" ? "✓" : ""}</span></button>
-    {themes.map((option) => <button type="button" key={option.id} className={`theme-option${preference === option.id ? " selected" : ""}`} aria-pressed={preference === option.id} onClick={() => setTheme(option.id)}>
+    {themes.map((option) => <button type="button" key={option.id} className={`theme-option${theme === option.id ? " selected" : ""}`} aria-pressed={theme === option.id} onClick={() => setTheme(option.id)}>
       <span className="theme-swatches" aria-hidden="true">{option.swatches.map((color) => <i key={color} style={{ backgroundColor: color }} />)}</span>
       <span className="theme-option-copy"><b>{option.name}</b><small>{option.detail}</small></span>
       <span className="theme-check" aria-hidden="true">{theme === option.id ? "✓" : ""}</span>
@@ -97,8 +88,7 @@ export function useExperience() {
 export function ThemeQuickSwitch() {
   const { theme, preference, setTheme } = useContext(ThemeContext);
   return <div className="theme-quick-switch" role="group" aria-label="Quick theme switcher">
-    <button type="button" className={`theme-quick-option theme-quick-auto${preference === "auto" ? " selected" : ""}`} aria-label="Use automatic theme" aria-pressed={preference === "auto"} onClick={() => setTheme("auto")}><span className="theme-quick-swatch" aria-hidden="true">A</span></button>
-    {themes.map((option) => <button type="button" key={option.id} className={`theme-quick-option${preference === option.id ? " selected" : ""}`} aria-label={`Use ${option.name} theme`} aria-pressed={preference === option.id} onClick={() => setTheme(option.id)}>
+    {themes.map((option) => <button type="button" key={option.id} className={`theme-quick-option${theme === option.id ? " selected" : ""}`} aria-label={`Use ${option.name} theme`} aria-pressed={theme === option.id} onClick={() => setTheme(option.id)}>
       <span className="theme-quick-swatch" style={{ backgroundColor: option.swatches[0], borderColor: option.swatches[1] }} aria-hidden="true" />
     </button>)}
     <span className="theme-quick-label" aria-hidden="true">{preference === "auto" ? `Auto · ${themes.find((option) => option.id === theme)?.name}` : themes.find((option) => option.id === theme)?.name}</span>

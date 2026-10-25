@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-test("White and Dark themes are selectable and persist through the shared theme provider", async () => {
+test("all five themes are selectable for the current browser session", async () => {
   const provider = await readFile(new URL("../app/ui/theme-provider.tsx", import.meta.url), "utf8");
   const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
   const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
@@ -10,7 +10,10 @@ test("White and Dark themes are selectable and persist through the shared theme 
   assert.match(provider, /id: "white", name: "White"/);
   assert.match(provider, /id: "dark", name: "Dark"/);
   assert.match(provider, /value === "white" \|\| value === "dark"/);
-  assert.match(provider, /saved === "white" \|\| saved === "dark"/);
+  assert.match(provider, /document\.cookie = `tidelight-theme=\$\{preference\}; Path=\/; SameSite=Lax/);
+  assert.match(provider, /localStorage\.removeItem\("tidelight-theme"\)/);
+  assert.doesNotMatch(provider, /theme-quick-auto/);
+  assert.doesNotMatch(provider, /theme-quick-swatch[^>]*>A/);
   assert.match(layout, /savedTheme === "white" \|\| savedTheme === "dark"/);
   assert.match(css, /:root\[data-theme="white"\]\{color-scheme:light/);
   assert.match(css, /:root\[data-theme="dark"\]\{color-scheme:dark/);

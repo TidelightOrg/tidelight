@@ -100,6 +100,18 @@ test("publishing requires the owning session and serializes only cited public ev
     assert.equal(tokenPulsePayload.assets[0].ticker, "rNVDA");
     assert.deepEqual(tokenPulsePayload.assets[0].sources, ["https://news.example/story"]);
 
+    // Earlier saved overview pulses used a descriptive symbol/name/overview shape.
+    // It remains publishable while arbitrary fields and unlineaged sources stay private.
+    context.run.summary = { assets: [{ symbol: "S&P 500", name: "Index pulse", overview: "A public, source-linked market snapshot.", sources: ["https://news.example/story", "https://forged.example/story"], accountId: "private" }] };
+    const legacyPulseResponse = await route.POST(new Request("https://tidelight.app/api/research/replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ researchRunId: token }) }));
+    assert.equal(legacyPulseResponse.status, 200);
+    const legacyPulsePayload = calls.filter(call => call.table === "public_research_replays").at(-1).values.payload;
+    assert.equal(legacyPulsePayload.assets[0].ticker, "S&P 500");
+    assert.equal(legacyPulsePayload.assets[0].issuer, "Index pulse");
+    assert.equal(legacyPulsePayload.assets[0].summary, "A public, source-linked market snapshot.");
+    assert.deepEqual(legacyPulsePayload.assets[0].sources, ["https://news.example/story"]);
+    assert.equal(JSON.stringify(legacyPulsePayload).includes("accountId"), false);
+
     context.run.summary = { summary: "An evidence-first public brief.", sources: [{ url: "https://news.example/story" }], claims: [{ claim: "A source-backed claim.", quote: "A short quotation.", sourceUrl: "https://news.example/story" }] };
     const evidenceBriefResponse = await route.POST(new Request("https://tidelight.app/api/research/replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ researchRunId: token }) }));
     assert.equal(evidenceBriefResponse.status, 200);

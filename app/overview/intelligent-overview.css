@@ -24,3 +24,55 @@
 .iu-stage summary{min-height:56px}
 .iu-stage-complete{background:linear-gradient(90deg,color-mix(in srgb,var(--iu-positive) 5%,var(--panel)),var(--panel) 76%)}
 .iu-stage-blocked{background:linear-gradient(90deg,color-mix(in srgb,var(--amber) 6%,var(--panel)),var(--panel) 76%)}
+
+/* Keep overview labels readable when a phone requests desktop-site layout. */
+.intelligent-overview .iu-eyebrow,
+.intelligent-overview .iu-kicker { font-size: 10px; }
+.intelligent-overview .iu-mode-chip,
+.intelligent-overview .iu-connection,
+.intelligent-overview .iu-prompt-top > span:last-child,
+.intelligent-overview .iu-prompt-controls small,
+.intelligent-overview .iu-suggestions > span,
+.intelligent-overview .iu-suggestions button,
+.intelligent-overview .iu-suggestions > a,
+.intelligent-overview .iu-rail-panel > p,
+.intelligent-overview .iu-context-list b,
+.intelligent-overview .iu-context-list small,
+.intelligent-overview .iu-privacy-note,
+.intelligent-overview .iu-saved-run-top,
+.intelligent-overview .iu-saved-run small,
+.intelligent-overview .iu-empty-rail,
+.intelligent-overview .iu-rail-promo > p,
+.intelligent-overview .iu-rail-promo a,
+.intelligent-overview .iu-subtle-link,
+.intelligent-overview .iu-brief-stats span,
+.intelligent-overview .iu-result-header p,
+.intelligent-overview .iu-panel-state,
+.intelligent-overview .iu-activity-card > p { font-size: 10px; }
+.intelligent-overview .iu-rail-panel h2 { font-size: 18px; }
+.intelligent-overview .iu-saved-run > span:nth-child(2),
+.intelligent-overview .iu-context-list b { font-size: 12px; }
+.intelligent-overview .iu-panel-heading h2 { font-size: 20px; }
+.intelligent-overview .iu-brief-stats b { font-size: 16px; }
+.intelligent-overview .iu-asset-card,
+.intelligent-overview .iu-chart-card,
+.intelligent-overview .iu-scenario,
+.intelligent-overview .iu-risk-grid > article,
+.intelligent-overview .iu-actions-grid > article { font-size: 12px; }
+.intelligent-overview :is(.iu-panel, .iu-rail-panel, .iu-prompt-panel, .iu-welcome-panel) :is(p, small, label, li) { line-height: 1.6; }
+@media (max-width: 1050px) {
+  .intelligent-overview .iu-workspace { grid-template-columns: minmax(0, 1fr) minmax(220px, .34fr); }
+  .intelligent-overview .iu-context-list small,
+  .intelligent-overview .iu-privacy-note { font-size: 10px; }
+}
+@media (max-width: 760px) {
+  .intelligent-overview .iu-workspace { grid-template-columns: 1fr; }
+  .intelligent-overview .iu-prompt-panel > p,
+  .intelligent-overview .iu-welcome-panel > div > p,
+  .intelligent-overview .iu-rail-panel > p,
+  .intelligent-overview .iu-result-header p { font-size: 13px; }
+  .intelligent-overview .iu-mode-chip,
+  .intelligent-overview .iu-connection,
+  .intelligent-overview .iu-saved-run-top,
+  .intelligent-overview .iu-privacy-note { font-size: 10px; }
+}

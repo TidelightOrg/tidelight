@@ -162,5 +162,39 @@
 .tic-premium-top .tic-platform-nav-links{flex:1;min-width:0;justify-content:flex-end;gap:clamp(18px,2.5vw,36px)}
 @media(max-width:900px){.tic-premium-top{padding-inline:24px;gap:14px}.tic-premium-top .tic-platform-nav-links{gap:14px}}
 
+/* A phone in desktop-site mode can report a 980px CSS width. Switch navigation
+   before the full desktop links and the brand label start colliding. */
+@media(min-width:761px) and (max-width:1050px){
+  .tic-platform-nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding-inline:20px}
+  .tic-platform-nav .tic-brand{flex:1;min-width:0;overflow:hidden;white-space:nowrap}
+  .tic-platform-nav .tic-brand-divider,.tic-platform-nav .tic-brand>span:last-child{display:none!important}
+  .tic-platform-nav .tic-platform-nav-links,.tic-platform-nav>.tic-language-toggle{display:none!important}
+  .tic-platform-nav .tic-mobile-quick-cta{display:inline-flex;flex:none;align-items:center;justify-content:center;gap:7px;max-width:45%;min-height:42px;padding:0 12px;border:1px solid color-mix(in srgb,var(--brand-teal) 30%,var(--line));border-radius:12px;background:color-mix(in srgb,var(--brand-teal) 9%,var(--panel));color:var(--text);font-size:11px;font-weight:650;white-space:nowrap}
+  .tic-platform-nav .tic-mobile-menu{display:block;flex:none;margin:0}
+  .tic-platform-nav .tic-mobile-menu-toggle{display:flex;align-items:center;justify-content:center;gap:8px;min-width:78px;min-height:42px;padding:0 11px;border:1px solid color-mix(in srgb,var(--brand-teal) 22%,var(--line));border-radius:13px;background:color-mix(in srgb,var(--panel) 69%,transparent);color:var(--text);font-size:12px;font-weight:650;cursor:pointer}
+  .tic-platform-nav .tic-mobile-menu-panel:not([hidden]){position:fixed;inset:0;z-index:1200;display:flex;flex-direction:column;overflow-y:auto;overscroll-behavior:contain;padding:22px 28px max(25px,env(safe-area-inset-bottom));background:radial-gradient(ellipse at 4% 0%,color-mix(in srgb,var(--brand-teal) 11%,transparent),transparent 44%),color-mix(in srgb,var(--panel) 93%,var(--bg));backdrop-filter:blur(24px) saturate(160%);-webkit-backdrop-filter:blur(24px) saturate(160%)}
+  .tic-platform-nav .tic-mobile-menu-heading{display:flex;flex-direction:column;align-items:flex-start;gap:19px;min-height:107px;padding:3px 0 18px;border-bottom:1px solid var(--line)}
+  .tic-platform-nav .tic-mobile-menu-brand-row{display:flex;align-items:center;justify-content:space-between;gap:15px;width:100%}
+  .tic-platform-nav .tic-mobile-menu-close{display:grid;place-items:center;width:44px;height:44px;flex:none;border:1px solid color-mix(in srgb,var(--brand-teal) 32%,var(--line));border-radius:10px;background:color-mix(in srgb,var(--panel) 82%,transparent);color:var(--text);cursor:pointer}
+  .tic-platform-nav .tic-mobile-menu-heading .tic-brand{flex:none;overflow:visible}
+  .tic-platform-nav .tic-mobile-menu-heading .tic-brand>span:last-child{display:inline!important;color:var(--muted)}
+  .tic-platform-nav .tic-mobile-ecosystem{display:flex;align-items:center;justify-content:space-between;gap:12px;width:100%;padding-top:4px;color:var(--muted);font:9px var(--mono);letter-spacing:.1em}
+  .tic-platform-nav .tic-mobile-menu-items{display:flex;flex:1;flex-direction:column;justify-content:space-evenly}
+  .tic-platform-nav .tic-mobile-menu-items>a{display:flex;align-items:center;justify-content:space-between;gap:15px;min-height:74px;border-bottom:1px solid color-mix(in srgb,var(--line) 76%,transparent);color:var(--text)}
+  .tic-platform-nav .tic-mobile-menu-items>a>span:first-child{display:grid;gap:5px}
+  .tic-platform-nav .tic-mobile-menu-items strong{font-size:20px;font-weight:560;letter-spacing:-.035em}
+  .tic-platform-nav .tic-mobile-menu-items small{color:var(--muted);font-size:13px;line-height:1.45}
+  .tic-platform-nav .tic-mobile-menu-items>a[aria-current="page"],.tic-platform-nav .tic-mobile-menu-arrow{color:var(--brand-teal)}
+  .tic-platform-nav .tic-mobile-menu-preferences{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:auto;padding:23px 0 18px;color:var(--muted);font-size:12px}
+  .tic-platform-nav .tic-mobile-menu-preferences>div{display:flex;align-items:center;justify-content:space-between;gap:8px}
+  .tic-platform-nav .tic-mobile-menu-cta{width:100%;min-height:52px;border-radius:10px!important;font-size:14px!important}
+  .tic-platform-nav .tic-mobile-menu-foot{margin:16px 0 0;color:var(--muted);font:10px var(--mono);letter-spacing:.04em}
+  body:has(.tic-mobile-menu.is-open){overflow:hidden}
+  .tic-premium-hero{grid-template-columns:minmax(0,1fr);gap:38px;padding-top:74px}
+  .tic-premium-hero h1{max-width:12ch;font-size:clamp(52px,7vw,72px)}
+  .tic-hero-copy{max-width:760px}
+  .tic-motion-hero{width:min(100%,720px);margin:0 auto}
+}
+
 .tic-platform-strip>p{font:600 11px var(--font);letter-spacing:.01em;text-transform:none;color:var(--tic-text)}.tic-platform-strip>div{display:grid;grid-template-columns:1fr;gap:0;overflow:hidden;border:1px solid var(--tic-line);border-radius:14px;background:var(--tic-panel);box-shadow:0 20px 60px color-mix(in srgb,var(--tic-text) 5%,transparent)}.tic-route-card{display:grid;grid-template-columns:minmax(160px,.8fr) minmax(0,1fr) 18px;align-items:center;gap:20px;padding:17px 20px;border:0;border-radius:0;background:transparent;transition:background .18s}.tic-route-card+.tic-route-card{border-top:1px solid var(--tic-line)}.tic-route-card:hover{transform:none;border-color:var(--tic-line);background:color-mix(in srgb,var(--tic-accent) 5%,var(--tic-panel))}.tic-route-card>div{display:grid;gap:5px}.tic-route-card strong{font:600 12px var(--font);letter-spacing:0}.tic-route-card small{color:var(--tic-muted);font-size:10px}.tic-route-card code{justify-self:end;color:var(--tic-accent);font:11px var(--mono);text-align:right}.tic-route-arrow{color:var(--tic-muted);font-size:14px}
 @media(max-width:760px){.tic-route-card{grid-template-columns:minmax(0,1fr) 18px;gap:7px 14px}.tic-route-card>div{grid-column:1;grid-row:1}.tic-route-card code{grid-column:1;grid-row:2;justify-self:start;text-align:left}.tic-route-arrow{grid-column:2;grid-row:1/3}}

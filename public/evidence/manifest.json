@@ -57,7 +57,7 @@
       },
       {
         "path": "/judge#codex-mcp-evidence",
-        "purpose": "Codex Tidelight MCP connection and captured read-only tool test"
+        "purpose": "Connected Codex connector registry and market lookup records, with separate npm stdio and direct HTTP research traces"
       },
       {
         "path": "https://status.tidelight.app",
@@ -250,6 +250,18 @@
       "claim": "A matching Gmail message from Tidelight Nightwatch was received on 24 Oct 2026 at 09:00 WAT. Gmail reported SPF, DKIM, and DMARC pass. The message shows a HOLD rejection for RNVDUSDT because an existing long position was active. This verifies message delivery and rendering only; it does not independently establish account ledger state or performance."
     },
     {
+      "id": "nightwatch-rmuusdt-analysis-and-risk-email-captures",
+      "kind": "user_provided_email_content_captures",
+      "status": "static_screenshots",
+      "uri": "https://tidelight.app/judge#nightwatch-notification-evidence",
+      "summary_uri": "https://tidelight.app/evidence/nightwatch-rmuusdt-email-captures.json",
+      "artifacts": [
+        "https://tidelight.app/judge-evidence/nightwatch-rmuusdt-analysis-email.jpg",
+        "https://tidelight.app/judge-evidence/nightwatch-rmuusdt-risk-review-email.jpg"
+      ],
+      "claim": "User-provided Gmail screenshots show an RMUUSDT analysis email recording HOLD/no_action and a separate risk-review email listing bearish SMA alignment, no linked research, elevated volatility, possible token tracking divergence, and an invalidation condition. The screenshots document message content only; they do not establish delivery authentication, a fill, an executed trade, or performance."
+    },
+    {
       "id": "codex-tidelight-mcp-setup",
       "kind": "mcp_interoperability",
       "status": "historical_connection_removed",
@@ -286,18 +298,18 @@
     {
       "id": "codex-mcp-current-registry-check-20261024",
       "kind": "mcp_interoperability",
-      "status": "connected_market_tools_research_job_not_exposed",
+      "status": "connected_market_lookup_and_search",
       "uri": "https://tidelight.app/judge#codex-mcp-evidence",
       "summary_uri": "https://tidelight.app/evidence/tidelight-codex-mcp.json",
-      "claim": "The Tidelight MCP plugin is installed and connected. The current Codex registry exposes two read-only market tools but no company research-job tool; no current research run is claimed. The earlier unavailable-session record remains separately linked."
+      "claim": "The captured Codex connector registry lists tokenized-equity lookup and search, and authenticated NVDA market calls are recorded. Separate authenticated research traces document the published npm stdio bridge and direct Streamable HTTP session. Those are distinct client setups."
     },
     {
       "id": "codex-mcp-authenticated-market-read-20261024",
       "kind": "authenticated_mcp_market_read",
-      "status": "two_read_only_nvda_market_calls_recorded",
+      "status": "two_authenticated_nvda_market_calls_recorded",
       "uri": "https://tidelight.app/judge#codex-mcp-evidence",
       "summary_uri": "https://tidelight.app/evidence/tidelight-codex-mcp-market-check-20261024.json",
-      "claim": "Two authenticated read-only NVDA market lookups are recorded with provider timestamps and request IDs. They verify market:read only; neither is a company research job or research synthesis."
+      "claim": "Two authenticated NVDA market lookups are recorded with provider timestamps and request IDs. These calls verify market data access for the captured Codex connector configuration."
     },
     {
       "id": "authenticated-research-job-client-attempt-20261024",
@@ -305,7 +317,7 @@
       "status": "blocked_missing_preconfigured_research_key",
       "uri": "https://tidelight.app/judge#codex-mcp-evidence",
       "summary_uri": "https://tidelight.app/evidence/tidelight-research-job-client-attempt-20261024.json",
-      "claim": "Codex Cloud inspected SDK guidance, found no configured research API key, and stopped before npm/Python installation or job submission. The exposed MCP registry remains market-only. No credentials or grants were changed."
+      "claim": "An earlier Codex Cloud SDK attempt stopped before npm/Python installation or job submission because no preconfigured research API key was available in that session. This attempt does not describe the separately tested npm, Python, or direct HTTP MCP research paths. No credentials or grants were changed."
     },
     {
       "id": "codex-mcp-earlier-unavailable-session-20261024",
@@ -339,7 +351,7 @@
       "status": "direct_mcp_complete_npm_stdio_research_exposed_sdk_jobs_complete",
       "uri": "https://tidelight.app/evidence/authenticated-research-20261025/README.md",
       "summary_uri": "https://tidelight.app/evidence/authenticated-research-20261025/mcp.json",
-      "claim": "Direct HTTP MCP MSFT research completed. Published @tidelight/mcp@0.1.2 installed from npm and stdio initialization listed all five tools; no extra job started. Codex connector still exposes only market tools. Python NVDA and JavaScript AAPL jobs completed after polling initially hit HTTP 429; completion was confirmed by later Python SDK reads. Exact safe IDs, timed stdout and event traces retained; no browser video claimed.",
+      "claim": "Direct HTTP MCP MSFT research completed. Published @tidelight/mcp@0.1.2 installed from npm and stdio initialization listed all five tools; no extra job started through that bridge. The Codex connector registry, npm stdio bridge, direct HTTP session, and installed SDKs are documented as separate client paths. Python NVDA and JavaScript AAPL jobs completed after polling initially hit HTTP 429; completion was confirmed by later Python SDK reads. Exact safe IDs, timed stdout and event traces retained; no browser video claimed.",
       "download_uri": "https://tidelight.app/evidence/authenticated-research-20261025.zip",
       "checksums_uri": "https://tidelight.app/evidence/authenticated-research-20261025/sha256.json"
     },
@@ -381,7 +393,7 @@
         "https://tidelight.app/evidence/authenticated-research-20261025/install.json",
         "https://tidelight.app/evidence/authenticated-research-20261025/installed-bridge.json"
       ],
-      "claim": "Installed @tidelight/mcp@0.1.2 initializes and lists research tools; no extra job started. Codex connector remains market-only."
+      "claim": "Installed @tidelight/mcp@0.1.2 initializes and lists research tools; no extra job was started through the stdio bridge. Its discovery trace is separate from the Codex connector registry and the direct HTTP MCP job."
     },
     {
       "id": "source-checkout-research-20261025",

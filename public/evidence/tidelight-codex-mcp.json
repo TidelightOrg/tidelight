@@ -31,13 +31,13 @@
         "tidelight_get_tokenized_equity",
         "tidelight_search_tokenized_equities"
       ],
-      "detail": "The current registry exposes two read-only tokenized-equity market tools."
+      "detail": "This registry snapshot returned tokenized-equity lookup and search methods for this connected Codex client."
     },
     {
       "name": "Company research job tool",
       "status": "not_exposed",
       "requested_capability": "research:run",
-      "detail": "No company research-job tool is present in the current Codex registry; no job was submitted in this session."
+      "detail": "This registry snapshot did not return a company research-job method, and no research job was submitted through this Codex connection in this session. Other separately recorded client configurations are documented in the authenticated research evidence."
     },
     {
       "name": "Protected resource metadata",
@@ -61,7 +61,7 @@
         "more_available": true,
         "source": "Bitget Reality spot tokenized equities"
       },
-      "detail": "Read-only request completed from the connected Codex plugin."
+      "detail": "Market lookup request completed from this connected Codex client."
     },
     {
       "name": "Fresh authenticated market lookup",
@@ -85,18 +85,18 @@
         "provider_timestamp": 1792866443633,
         "generated_at": 1792866450485
       },
-      "detail": "Fresh read-only request completed through the connected Tidelight Research Codex tool."
+      "detail": "Fresh market lookup completed through the connected Tidelight Research Codex tool."
     },
     {
       "name": "Company research tools in connected Codex registry",
       "status": "not_exposed",
-      "detail": "The protected-resource metadata advertises research:run, and the MCP server source implements the company research job tools. The connected Codex tool registry exposes only market search and instrument lookup, so a company research job could not be invoked from this session."
+      "detail": "The protected-resource metadata advertises research:run, and the MCP server source implements company research job tools. This connected Codex registry returned market search and instrument lookup; no company research job was submitted through this connection. Separate direct HTTP MCP and npm stdio traces are linked in the authenticated research evidence."
     },
     {
       "name": "Earlier Codex Cloud attempt",
       "status": "historical_unavailable_session",
-      "detail": "The earlier Cloud run could not see the plugin. A later browser check found it installed and connected; the current registry remains market-only. See the separate install-attempt record for that earlier session."
+      "detail": "The earlier Cloud run could not see the plugin. A later browser check found it installed and connected; this file records the registry seen in that later check. See the separate install-attempt record for the earlier session."
     }
   ],
-  "evidence_boundary": "Earlier authenticated market calls are historical. The current connected plugin exposes two read-only market tools but no company research-job operation. No npm, Python, or MCP research-job request was made in this session."
+  "evidence_boundary": "This file documents one connected Codex client configuration and its market lookup calls. It does not describe separately captured npm, PyPI, or direct Streamable HTTP client sessions, which are documented in authenticated-research-20261025. No company research job was submitted through this Codex connection in the recorded session."
 }

@@ -18,6 +18,9 @@ export default async function StatusPage() {
   const incidentsPath = resolveStatusPagePath(requestHeaders.get("host"), "/status/incidents");
   const label = status.status === "operational" ? "All monitored services operational" : "A service is experiencing issues";
   const checked = new Date(status.checkedAt).toLocaleString("en", { timeZone: "UTC", timeZoneName: "short" });
+  const services = status.groups.flatMap(group => group.services);
+  const checkedCount = services.filter(service => service.state !== "monitoring").length;
+  const monitoringCount = services.length - checkedCount;
   return <main className="tic-status-page">
     <header className="tic-status-header">
       <a className="tic-status-wordmark" href="https://tidelight.app" aria-label="Tidelight home">tide<span>light</span></a>
@@ -34,9 +37,14 @@ export default async function StatusPage() {
     </div>
     <section className="tic-status-content" aria-labelledby="status-title">
       <div className="tic-status-page-heading">
-        <p className="tic-status-eyebrow">TIDELIGHT ECOSYSTEM</p>
-        <h1 id="status-title">Service status</h1>
-        <p>Availability checks for Tidelight products, research services, and developer packages.</p>
+        <div><p className="tic-status-eyebrow">TIDELIGHT ECOSYSTEM</p>
+          <h1 id="status-title">Service status</h1>
+          <p>Availability checks for Tidelight products, research services, and developer packages.</p>
+        </div>
+        <div className={`tic-status-signal ${status.status}`} aria-label={`${checkedCount} current checks, ${monitoringCount} background services not monitored`}>
+          <svg viewBox="0 0 340 120" preserveAspectRatio="none" aria-hidden="true"><path className="tic-status-signal-grid" d="M0 30H340M0 60H340M0 90H340M68 0V120M136 0V120M204 0V120M272 0V120"/><path className="tic-status-signal-wave" d="M0 76c34 0 38-32 70-32s36 45 70 45 35-50 70-50 35 38 68 38 34-24 62-24"/><path className="tic-status-signal-wave-secondary" d="M0 78c38 0 37-9 70-9s38 18 70 18 36-21 70-21 34 13 68 13 37-10 62-10"/><circle cx="209" cy="39" r="4"/></svg>
+          <div className="tic-status-signal-caption"><span><i />LIVE CHECKS</span><strong>{checkedCount} <small>monitored</small></strong><em>{monitoringCount} background services are not monitored here</em></div>
+        </div>
       </div>
       <div className="tic-status-groups" aria-label="Tidelight services">
         {status.groups.map(group => {
@@ -57,7 +65,6 @@ export default async function StatusPage() {
                   </div>
                   <span className={`tic-status-state ${service.state}`}><i aria-hidden="true" />{service.state === "monitoring" ? "Not monitored" : service.state === "operational" ? "Operational" : "Degraded"}</span>
                 </div>
-                <p className="tic-status-service-history">History not yet available<span>Scheduled measurements have not been collected.</span></p>
               </div>)}
             </div>
           </details>;
@@ -65,8 +72,8 @@ export default async function StatusPage() {
       </div>
       <p className="tic-status-updated">Checked {checked}. <a href="/health">Health data ↗</a></p>
       <aside className="tic-status-history-note">
-        <strong>Availability history</strong>
-        <p>Live checks run when this page is requested. Historical uptime bars and incident timelines will appear after scheduled monitoring is in place. Background job execution and delivery are not probed by this page.</p>
+        <strong>What these checks cover</strong>
+        <p>Site, API, registry, and database checks run as this page loads. Background job execution and message delivery are not monitored here, so they are shown separately as not monitored.</p>
       </aside>
     </section>
     <footer className="tic-status-footer"><span>One status page for the Tidelight ecosystem</span><a href="https://tidelight.app/developers">Developer platform ↗</a></footer>

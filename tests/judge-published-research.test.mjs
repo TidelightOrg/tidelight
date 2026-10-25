@@ -23,6 +23,17 @@ test("Judge Mode promotes live owner-published research instead of the static fi
   assert.match(page, /href="\/nightwatch\/replays"/);
 });
 
+test("Judge Mode embeds the clearly labeled authenticated terminal replay and links source traces", async () => {
+  const page = await readFile(new URL("../app/judge/page.tsx", import.meta.url), "utf8");
+  const readme = await readFile(new URL("../public/evidence/authenticated-research-20261025/README.md", import.meta.url), "utf8");
+  assert.match(page, /authenticated-research-terminal-replay-20261025\.mp4/);
+  assert.match(page, /visual replay of recorded terminal output, not a fresh browser screen capture/i);
+  assert.match(page, /mcp\.cast/);
+  assert.match(page, /python\.cast/);
+  assert.match(page, /stdio\.cast/);
+  assert.match(readme, /Browser recording initialization failed/);
+});
+
 test("README separates live judge research from the link directory and data exports", async () => {
   const readme = await readFile(new URL("../README.md", import.meta.url), "utf8");
   const judge = readme.indexOf("## Judge review · public evidence");

@@ -1,0 +1,27 @@
+{
+  "kind": "visual_replay_of_sanitized_terminal_recordings",
+  "generated_at": "2026-10-25T09:22:43.860366+00:00",
+  "source": "Original asciicast v2 stdout captures; no requests were rerun during rendering.",
+  "playback_speed": "2x; original timestamps remain in the captured event output and linked source casts.",
+  "video": {
+    "path": "/judge-evidence/authenticated-research-terminal-replay-20261025.mp4",
+    "sha256": "165646b200535a2a640579cb8bd95f80109a646b3422548c012b66817905ba18",
+    "duration_seconds": 62.25,
+    "bytes": 1024144,
+    "codec": "h264",
+    "width": 1280,
+    "height": 720
+  },
+  "source_cast_sha256": {
+    "/evidence/authenticated-research-20261025/mcp.cast": "a574804565dd6fbb7abb855f7a6eaae902f5c78ff3edd81b3e5a4c69b07f1e64",
+    "/evidence/authenticated-research-20261025/stdio.cast": "a2c0acaf361b024a9a1e0d56ebef4fd4f08b8428c75f2a975ba4d874d920fff0",
+    "/evidence/authenticated-research-20261025/python.cast": "213e6cc14f28fd0857bdf715c37bb5a89c5353ce4a36f78562e7b400cdcc86ae",
+    "/evidence/authenticated-research-20261025/published-poll.cast": "f5911e0945d84795a68ff34c919ea98454b4c9831d077aa401a8c61e3ee5d853"
+  },
+  "limitations": [
+    "This is a visual replay generated from actual sanitized terminal stdout; it is not a browser screen recording.",
+    "The npm stdio segment verifies tool discovery and submitted no research job.",
+    "The Python source-checkout recording shows a polling quota error; separate follow-up JSON records later completion.",
+    "The direct Streamable HTTP MCP and published npm plus PyPI cross-SDK traces record completed jobs."
+  ]
+}
