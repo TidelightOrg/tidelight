@@ -105,6 +105,7 @@ test("developer pages expose a language toggle and share the language preference
 test("Simplified Chinese covers visible developer docs and package UI copy", async () => {
   const paths = [
     "app/developers/docs/page.tsx",
+    "app/developers/console/explorer.tsx",
     "app/developers/platform-nav.tsx",
     "app/developers/ecosystem-switcher.tsx",
     "app/developers/packages/page.tsx",
