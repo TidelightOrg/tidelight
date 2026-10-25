@@ -11,6 +11,14 @@ const capabilities = [
   ["Action", "Move from a considered view to paper or live-ready decisions."],
 ];
 
+const workflows = [
+  { number: "01", label: "RESEARCH", title: "Understand a company event", body: "Compare source-backed claims, counter-evidence, and the details that could change the view.", href: "/research", action: "Open Research Desk" },
+  { number: "02", label: "MARKETS", title: "Trace the market exposure", body: "Connect an event to supported tokenized instruments and inspect quote freshness before drawing conclusions.", href: "/markets", action: "Explore Market Map" },
+  { number: "03", label: "STRATEGY", title: "Test a rule on historical data", body: "Review the fixed holdout, costs, trades, and assumptions in a reproducible strategy replay.", href: "/strategies", action: "Open Strategy Lab" },
+  { number: "04", label: "PAPER REVIEW", title: "Observe a guarded decision", body: "Follow an owner-controlled paper check with explicit limits. No live orders are sent.", href: "/nightwatch", action: "See Nightwatch" },
+  { number: "05", label: "BUILD", title: "Connect through API or MCP", body: "Use scoped developer access to request supported market data and asynchronous company research.", href: "/developers", action: "Explore developer tools" },
+];
+
 export default function LandingPage() {
   return <main className="landing-page">
     <nav className="landing-nav" aria-label="Tidelight landing navigation">
@@ -33,7 +41,7 @@ export default function LandingPage() {
       </div>
     </nav>
     <section className="landing-hero">
-      <div className="landing-hero-copy"><span className="landing-kicker"><i /> THE INTELLIGENCE LAYER FOR MARKETS THAT NEVER SLEEP</span><h1>The market moves.<br /><em>Tidelight makes sense of it.</em></h1><p>Ask what you actually want to know. Tidelight connects live market context, evidence, exposure, and scenarios into one calm decision surface—for curious beginners and serious operators alike.</p><div className="landing-actions"><Link className="landing-primary" href="/research">Ask Tidelight a question <NavigationTrail className="landing-arrow" /></Link><Link className="landing-secondary" href="/guide">See the ecosystem <NavigationTrail className="landing-arrow" /></Link></div><div className="landing-trust"><span><i /> Live public market context</span><span><i /> Agent-assisted research</span><span><i /> Paper-first controls</span></div></div>
+      <div className="landing-hero-copy"><span className="landing-kicker"><i /> THE INTELLIGENCE LAYER FOR MARKETS THAT NEVER SLEEP</span><h1>The market moves.<br /><em>Tidelight makes sense of it.</em></h1><p>Ask what you actually want to know. Tidelight connects live market context, evidence, exposure, and scenarios into one calm decision surface—for curious beginners and serious operators alike.</p><div className="landing-actions"><Link className="landing-primary" href="/research">Ask Tidelight a question <NavigationTrail className="landing-arrow" /></Link><Link className="landing-secondary" href="#workflows">Explore use cases <NavigationTrail className="landing-arrow" /></Link></div><div className="landing-trust"><span><i /> Live public market context</span><span><i /> Agent-assisted research</span><span><i /> Paper-first controls</span></div></div>
       <div className="landing-hero-stage" aria-label="Tidelight live signal interface">
         <div className="landing-stage-glow" />
         <p className="landing-dyor"><span>THE TIDELIGHT STANDARD</span><strong>DYOR</strong><small>Do your own research.</small></p>
@@ -48,6 +56,7 @@ export default function LandingPage() {
       </div>
     </section>
     <section className="landing-proof" id="method"><div className="landing-section-heading"><span className="landing-kicker">ONE CONNECTED ECOSYSTEM</span><h2>Everything you need<br /><em>before you make a move.</em></h2><p className="landing-section-lede">Research, markets, paper trading, and decision history—connected in one clear market research workflow.</p></div><div className="landing-capabilities">{capabilities.map(([title, body], index) => <article key={title}><span>0{index + 1}</span><h3>{title}</h3><p>{body}</p></article>)}</div></section>
+    <section className="landing-workflows" id="workflows" aria-labelledby="landing-workflows-title"><div className="landing-section-heading"><span className="landing-kicker">START WITH THE JOB YOU HAVE</span><h2 id="landing-workflows-title">One platform.<br/><em>Five clear ways in.</em></h2><p className="landing-section-lede">Choose a workflow to see what Tidelight can do, how it works, and where to inspect the evidence.</p></div><div className="landing-workflow-grid">{workflows.map(item => <article key={item.number}><div className="landing-workflow-meta"><span>{item.number}</span><small>{item.label}</small></div><h3>{item.title}</h3><p>{item.body}</p><Link href={item.href}>{item.action}<NavigationTrail className="landing-arrow"/></Link></article>)}</div><Link className="landing-guide-link" href="/guide">Read the complete getting-started guide <NavigationTrail className="landing-arrow"/></Link></section>
     <LandingDocsEmbed />
     <section className="landing-method"><div><span className="landing-kicker">THE TIDELIGHT METHOD</span><h2>One question in.<br /><em>One clearer next step out.</em></h2><p>Tide helps you ask naturally. Market research brings together current evidence and exposure. A clear activity trace shows each check. You stay in control of the decision.</p></div><Link href="/flow">Explore market research <NavigationTrail className="landing-arrow" /></Link></section>
     <section className="landing-bottom"><div><span className="landing-kicker">BUILT FOR MARKETS THAT NEVER SLEEP</span><h2>Start with the question<br /><em>you actually have.</em></h2></div><Link className="landing-primary" href="/overview">Enter your workspace <NavigationTrail className="landing-arrow" /></Link></section>
