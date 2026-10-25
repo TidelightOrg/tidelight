@@ -30,6 +30,31 @@ export default async function StatusPage() {
     const state = samples.some(snapshot => snapshot.overall === "degraded") ? "degraded" : samples.length ? "operational" : "unknown";
     return { key, state, count: samples.length };
   });
+  const serviceChecks = new Map<string, { total: number; operational: number; days: Map<string, { count: number; degraded: boolean }> }>();
+  for (const snapshot of status.history.snapshots) {
+    const key = snapshot.sampledAt.slice(0, 10);
+    for (const [name, state] of Object.entries(snapshot.components ?? {})) {
+      if (state !== "operational" && state !== "degraded") continue;
+      const metrics = serviceChecks.get(name) ?? { total: 0, operational: 0, days: new Map<string, { count: number; degraded: boolean }>() };
+      metrics.total += 1;
+      if (state === "operational") metrics.operational += 1;
+      const daily = metrics.days.get(key) ?? { count: 0, degraded: false };
+      daily.count += 1;
+      daily.degraded ||= state === "degraded";
+      metrics.days.set(key, daily);
+      serviceChecks.set(name, metrics);
+    }
+  }
+  const serviceHistory = (name: string) => {
+    const metrics = serviceChecks.get(name);
+    return {
+      uptime: metrics?.total ? Math.round((metrics.operational / metrics.total) * 1000) / 10 : null,
+      days: days.map(day => {
+        const daily = metrics?.days.get(day.key);
+        return { key: day.key, state: daily?.degraded ? "degraded" : daily?.count ? "operational" : "unknown", count: daily?.count ?? 0 };
+      }),
+    };
+  };
   return <main className="tic-status-page">
     <header className="tic-status-header">
       <a className="tic-status-wordmark" href="https://tidelight.app" aria-label="Tidelight home">tide<span>light</span></a>
@@ -82,6 +107,15 @@ export default async function StatusPage() {
                   </div>
                   <span className={`tic-status-state ${service.state}`}><i aria-hidden="true" />{service.state === "monitoring" ? "Not monitored" : service.state === "operational" ? "Operational" : "Degraded"}</span>
                 </div>
+                {service.state !== "monitoring" && status.history.available ? (() => {
+                  const history = serviceHistory(service.name);
+                  return <div className="tic-status-service-history">
+                    <div className="tic-status-service-history-meta"><span>90-day history</span><strong>{history.uptime === null ? "No recorded checks" : `${history.uptime}% recorded uptime`}</strong></div>
+                    <div className="tic-status-history-bars tic-status-service-history-bars" role="img" aria-label="Daily service status over the past 90 days">
+                      {history.days.map(day => <span key={day.key} className={day.state} title={`${day.key}: ${day.count ? `${day.count} recorded checks, ${day.state}` : "no recorded checks"}`} />)}
+                    </div>
+                  </div>;
+                })() : null}
               </div>)}
             </div>
           </details>;

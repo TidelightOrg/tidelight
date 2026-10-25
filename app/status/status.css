@@ -148,3 +148,10 @@ body:has(.tic-status-page) .tide-guide-launcher, body:has(.tic-status-page) .pro
 :root:is([data-theme="daylight"],[data-theme="white"]) body:has(.tic-status-page){background:#f5f6ee}
 :root[data-theme="blue"] .tic-status-page{--status-ink:#eef3ff;--status-muted:#aab8d6;--status-line:#334266;--status-bg:#0b1120;--status-card:#111a30;--status-accent:#b6c5ff;--status-good:#81e2b5;--status-good-bg:#132d2d;--status-good-line:#2b5c50;--status-warn:#f1b27e;--status-warn-bg:#35281f;--status-warn-line:#735037}
 :root[data-theme="blue"] body:has(.tic-status-page){background:#0b1120}
+
+
+.tic-status-service-history{margin:13px 0 2px;padding-top:11px;border-top:1px solid var(--status-line)}
+.tic-status-service-history-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;color:var(--status-muted);font-size:10px}
+.tic-status-service-history-meta strong{color:var(--status-ink);font-size:10px;font-weight:650}
+.tic-status-service-history-bars{grid-template-columns:repeat(90,minmax(1px,1fr));gap:2px;height:25px;margin-top:9px}
+@media(max-width:700px){.tic-status-service-history-meta{font-size:9px}.tic-status-service-history-bars{height:22px}}

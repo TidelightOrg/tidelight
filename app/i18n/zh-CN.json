@@ -5954,5 +5954,19 @@
   "Last verified · v{version}": "最近验证的版本 · v{version}",
   "Published · {registry}": "已发布 · {registry}",
   "Last verified · {registry}": "最近验证 · {registry}",
-  "Checking {registry}…": "正在检查 {registry}…"
+  "Checking {registry}…": "正在检查 {registry}…",
+  "RECORDED CHECKS": "已记录的检查",
+  "90-day status history": "90 天状态历史",
+  "Incident history ↗": "事件历史 ↗",
+  "90-day history is unavailable": "90 天历史记录暂不可用",
+  "No data": "暂无数据",
+  "The scheduled history store is currently unavailable. Live checks above are unaffected.": "计划任务的历史记录存储目前不可用；上方实时检查不受影响。",
+  "Each mark summarizes scheduled checks recorded for that UTC day. Missing marks mean no check was recorded.": "每个标记汇总对应 UTC 日期的计划检查结果。没有标记表示当天没有记录。",
+  "Scheduled history has not started recording yet. The timeline will fill as checks are saved every 15 minutes.": "计划历史记录尚未开始。每 15 分钟保存一次检查后，时间线会逐步填充。",
+  "90-day history": "90 天历史",
+  "No recorded checks": "没有已记录的检查",
+  "{percent}% recorded uptime": "已记录检查的正常运行率 {percent}%",
+  "Daily service status over the past 90 days": "过去 90 天的每日服务状态",
+  "Recorded-check uptime": "已记录检查的正常运行率",
+  "Percentages use recorded checks only; missing checks remain marked as no data.": "百分比仅根据已记录的检查计算；缺失的检查仍标记为暂无数据。"
 }
