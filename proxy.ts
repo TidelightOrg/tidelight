@@ -3,6 +3,7 @@ import { createServerClient } from "@supabase/ssr";
 import { encodeVerifiedAuthUser } from "@/lib/supabase/verified-auth-claims";
 import { resolveServiceHostRoute } from "@/lib/tic/service-host-routing";
 import { excludeRefreshedAuthCookies, readSupabaseAuthCookieHeader, shouldMigrateSharedAuthCookies } from "@/lib/supabase/legacy-cookie-migration";
+import { shouldVerifyProxyAuth } from "@/lib/supabase/proxy-auth-policy";
 
 function notFound() {
   return NextResponse.json({ error: { code: "not_found", message: "This service path is not available." } }, {
@@ -37,7 +38,7 @@ export async function proxy(request: NextRequest) {
   // Supabase SSR needs a request proxy to refresh expired access tokens and
   // persist the refreshed cookie before server components read the session.
   // Keep this on the primary app host, which owns the signed-in workspace.
-  if (request.nextUrl.hostname.toLowerCase().replace(/:\d+$/, "") === "tidelight.app" && authCookieHeader.duplicateNames.length === 0) {
+  if (shouldVerifyProxyAuth(request.nextUrl.hostname, request.nextUrl.pathname) && authCookieHeader.duplicateNames.length === 0) {
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
     if (supabaseUrl && supabaseKey) {
