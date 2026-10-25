@@ -1,21 +1,26 @@
 # Tidelight Codex handoff
 
-**Prepared:** 20 October 2026
+**Prepared:** 25 October 2026
 **Repository:** [`TidelightOrg/tidelight`](https://github.com/TidelightOrg/tidelight)
-**Current baseline at this handoff:** production baseline before this evidence tranche is PR #267 commit `809147af9db35f610d43c549a4a91ad2170af125`. This branch is a proposal; do not treat its pages or evidence-export controls as production until the PR is merged, CI is green, and the production deployment is verified.
 **Purpose:** let a fresh session continue from current verified state without repeating completed work.
 
-## Current proposal: public proof and audit packaging
+## Current verified continuation point · 25 October 2026
 
-The open evidence tranche adds a public manifest (`/evidence`, `/evidence/manifest.json`), a clearly marked non-live replay fixture (`/replay`), a direct Judge Mode entry to all proof surfaces, and a local Nightwatch JSON export limited to currently loaded owner-scoped records. Strategy Lab already provides per-run JSON export containing reproducibility inputs and metrics. Auth, signup, and Bitget package routes are outside this change and must not be modified without a separately verified regression.
+The session resumed with a clean `main` at `807366f49f32da557accc9ca4b01b23eea82b955`. PR #349, **Fix package action contrast in light themes**, is merged. The matching Vercel production deployment `dpl_ACmuJy3Ps8gmnzbu4r7VKNYfJ7Tr` is READY for that commit. PR #349 changed only package action contrast and a regression assertion; the connected Codex review summary reported no findings, and GitHub showed no submitted reviews or inline review threads.
 
-The branch remains unshipped until checks/deployment are confirmed. For status, inspect PR #268 and its latest commit/workflow. Then verify Vercel production deployment and open `https://tidelight.app/judge`, `/evidence`, and `/replay` in a browser; confirm the public routes bypass the account workspace and analytics prompt. Check mobile width with a real viewport before claiming mobile visual verification.
+PR #348, **Polish package workspace readability and navigation**, is also merged and deployed. `docs/PACKAGE_ECOSYSTEM_DESIGN_QA.md` records its implementation and local checks. A desktop production pass on 25 October opened the package home, dashboard, and TypeScript SDK detail page. The dashboard routes to package details and registry pages; no desktop overflow was apparent. Daylight, White, and Dark theme states rendered on the SDK detail page, and Daylight and Dark rendered on the dashboard. The consent notice closed on its six-second timer. Mobile visual verification is still outstanding; do not infer it from CSS review.
 
-## Next session: exact continuation point
+### Next milestone: finish package and developer experience verification
 
-Start by checking out the current `TidelightOrg/tidelight` `main`, reading this file, `AGENTS.md`, and the detailed records linked above. Confirm the current branch and clean/dirty state before changing anything. The repository is now in the new organization; the historical source remote was `NomadDigita/tidelight`. Do not create a parallel project or reimplement milestones already listed as complete.
+1. Complete a real narrow-viewport pass for the package home, dashboard, five package detail pages, developer docs, and API explorer. Check navigation, code blocks, copy controls, overflow, and all supported themes.
+2. Fix any reproducible visual or accessibility defects in a focused PR. Read submitted reviews before merging; run the relevant checks and inspect the preview before merge.
+3. Reconcile the product roadmap with current production evidence, then continue the remaining evidence-gated work: frozen research benchmark, natural Nightwatch schedule observation, and authenticated third-party MCP interoperability. Never weaken research or paper-trading guardrails to manufacture a positive demo.
 
-### Current verified state and next actions
+The detailed 20 October handoff below is retained as historical evidence. Its statuses and deployment IDs are not current unless independently confirmed in this continuation.
+
+## Historical continuation record · 20 October 2026
+
+### State recorded on 20 October 2026 (historical)
 
 1. **PR #165 is merged and live.** The shared market service now applies `underlying_ticker` filtering before cursor pagination. The versioned API, OpenAPI contract, explorer, TypeScript/Python SDKs, and both MCP market tools expose the filter. GitHub application and public-mirror workflows passed; local checks passed with 156 app tests, 7 TypeScript SDK tests, 9 Python SDK tests, lint, typecheck, and production build. Production deployment `dpl_4QhFXLqJ3nfLaVapuUgrwKtBmPSy` is READY from main commit `8b8e01c2fc176b8c362acfc351502478f5d28d06`.
 2. **Authenticated production MCP filtering is verified.** Using a one-day `market:read` test credential, Streamable HTTP initialize, notification, and tool discovery succeeded. The market-only credential exposed exactly the two market tools; ticker searches for NVDA and AAPL each returned a matching Reality spot instrument with Bitget Reality source provenance. The developer console recorded the successful market requests and the security log recorded key creation/revocation. The credential is revoked and its next MCP request returned 401 with `WWW-Authenticate`. The user-owned verification project remains; no test key is active. Details: [`TIC_IMPLEMENTATION.md`](TIC_IMPLEMENTATION.md#market-ticker-filter-before-pagination--pr-165-production-verified).
