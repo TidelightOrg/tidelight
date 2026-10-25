@@ -112,6 +112,20 @@ test("publishing requires the owning session and serializes only cited public ev
     assert.deepEqual(legacyPulsePayload.assets[0].sources, ["https://news.example/story"]);
     assert.equal(JSON.stringify(legacyPulsePayload).includes("accountId"), false);
 
+    // Overview accepts full company names up to 80 characters; publishing should
+    // preserve that same safe, human-readable label rather than requiring a ticker.
+    context.run.summary = { assets: [{ symbol: "Johnson & Johnson, Inc.", name: "Johnson & Johnson, Inc.", overview: "A public, source-linked company research snapshot.", sources: ["https://news.example/story"] }] };
+    const companyNameResponse = await route.POST(new Request("https://tidelight.app/api/research/replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ researchRunId: token }) }));
+    assert.equal(companyNameResponse.status, 200);
+    const companyNamePayload = calls.filter(call => call.table === "public_research_replays").at(-1).values.payload;
+    assert.equal(companyNamePayload.assets[0].ticker, "Johnson & Johnson, Inc.");
+
+    context.run.summary = { assets: [{ symbol: "International Business Machines Corporation", name: "IBM", overview: "A public, source-linked company research snapshot.", sources: ["https://news.example/story"] }] };
+    const longCompanyNameResponse = await route.POST(new Request("https://tidelight.app/api/research/replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ researchRunId: token }) }));
+    assert.equal(longCompanyNameResponse.status, 200);
+    const longCompanyNamePayload = calls.filter(call => call.table === "public_research_replays").at(-1).values.payload;
+    assert.equal(longCompanyNamePayload.assets[0].ticker, "International Business Machines Corporation");
+
     context.run.summary = { summary: "An evidence-first public brief.", sources: [{ url: "https://news.example/story" }], claims: [{ claim: "A source-backed claim.", quote: "A short quotation.", sourceUrl: "https://news.example/story" }] };
     const evidenceBriefResponse = await route.POST(new Request("https://tidelight.app/api/research/replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ researchRunId: token }) }));
     assert.equal(evidenceBriefResponse.status, 200);
