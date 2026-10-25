@@ -36,6 +36,19 @@
 - [Authenticated npm/Python/MCP job attempt](https://tidelight.app/evidence/tidelight-research-job-client-attempt-20261024.json) records the Codex Cloud credential check and live tool list. No SDK install or research job ran because the environment had no preconfigured `research:run` key; the current MCP registry is market-only.
 - [Ecosystem status](https://status.tidelight.app) checks the public product, developer docs, package directory, REST API, protected research-job endpoint, MCP metadata, npm/PyPI registries, and database. Background job execution, delivery history, incidents, and scheduled uptime are not independently monitored yet.
 
+### Authenticated research · 25 October 2026
+
+[Judge result cards](https://tidelight.app/judge#authenticated-research) distinguish each live path. Exact safe request/job IDs are retained; credentials and report bodies are excluded. `.cast` files are timed actual sanitized stdout, not browser video.
+
+| Path | Observed outcome and boundary | Direct artifacts |
+| --- | --- | --- |
+| Published npm + PyPI cross-client | npm SDK starts one AAPL job; PyPI SDK polls the same ID to complete. | [published-start.json](public/evidence/authenticated-research-20261025/published-start.json) · [published-poll.json](public/evidence/authenticated-research-20261025/published-poll.json) · [published-poll.cast](public/evidence/authenticated-research-20261025/published-poll.cast) · [published-sdk-install.json](public/evidence/authenticated-research-20261025/published-sdk-install.json) |
+| Direct authenticated HTTP MCP | MSFT research completed over direct Streamable HTTP, independently of the Codex connector. | [mcp.json](public/evidence/authenticated-research-20261025/mcp.json) · [mcp.cast](public/evidence/authenticated-research-20261025/mcp.cast) |
+| Published npm stdio MCP discovery | Installed @tidelight/mcp@0.1.2 initializes and lists research tools; no extra job started. Codex connector remains market-only. | [stdio.json](public/evidence/authenticated-research-20261025/stdio.json) · [stdio.cast](public/evidence/authenticated-research-20261025/stdio.cast) · [install.json](public/evidence/authenticated-research-20261025/install.json) · [installed-bridge.json](public/evidence/authenticated-research-20261025/installed-bridge.json) |
+| Source-checkout SDK runs | Source-checkout NVDA/AAPL starts hit polling 429; later Python reads confirmed complete. TypeScript has JSON only. | [python.json](public/evidence/authenticated-research-20261025/python.json) · [python.cast](public/evidence/authenticated-research-20261025/python.cast) · [javascript-attempt.json](public/evidence/authenticated-research-20261025/javascript-attempt.json) · [followup.json](public/evidence/authenticated-research-20261025/followup.json) |
+
+[Evidence scope and recorder sources](public/evidence/authenticated-research-20261025/README.md) · [Artifact checksums](public/evidence/authenticated-research-20261025/sha256.json) · [Download evidence ZIP](public/evidence/authenticated-research-20261025.zip). The timed Python source-checkout recording ends at the quota error; completion reads are separate. The published SDK cross-client job has its own package-originated start and polling records.
+
 ## Make sense of the story behind the price
 
 A company update, a policy decision, or a shift in another sector can move a market while the usual headlines are quiet. Tidelight gives you one place to ask what changed, inspect the source, and follow the possible connections.
@@ -212,6 +225,10 @@ Use this directory to move directly between the public product, its judge walkth
 | [Exchange workspace](https://tidelight.app/trading) | Inspect the Bitget workspace and its exchange controls; live trading is disabled. |
 
 ### Developer platform
+
+[Context.dev browser-visible developer experience study](docs/CONTEXT_DEV_REVERSE_ENGINEERING.md) records workspace, usage, credential, batch/monitor and status observations, with Tidelight comparisons and explicit limits on private backend claims.
+
+[Authenticated research evidence](public/evidence/authenticated-research-20261025/README.md) separates direct HTTP MCP, published npm stdio discovery, installed SDK use and the Codex connector registry.
 
 | Visit | What it does |
 | --- | --- |

@@ -2,6 +2,7 @@
 
 Captured from the selected Codex Cloud environment using TidelightOrg/tidelight commit `2fb41aef1f7eab45d6876149bcf730c43ada12e1` (SDK source files unchanged from the initial checkout).
 
+- **Published SDK cross-client job:** npm `@tidelight/sdk@0.1.2` created one AAPL job; isolated PyPI `tidelight==0.1.2` polled that exact job to **complete**. See [install versions and integrities](published-sdk-install.json), [npm start trace](published-start.json), [Python poll trace](published-poll.json), and [timed polling stdout](published-poll.cast). Earlier source-checkout starts remain labeled as such.
 - **Direct MCP:** initialization and discovery succeeded over authenticated Streamable HTTP. All five tools were returned. The actual MSFT research job progressed through queued, running and complete. See [event trace](mcp.json) and [timed terminal output](mcp.cast).
 - **Installed Codex bridge:** only the two market operations were exposed. A real NVDA lookup succeeded. Company research was **not exposed or invoked through this Codex connector**. This differs from the separately installed npm stdio bridge below. See [registry and call evidence](installed-bridge.json). Direct MCP success does not certify bridge research support.
 - **Published npm stdio bridge:** installed `@tidelight/mcp@0.1.2` from npm in `work/authenticated-research`, launched its actual bin entry with the existing API key in its process environment, initialized and listed all five tools including research start/status/cancel. No extra job was started. See [install and integrity record](install.json), [actual event trace](stdio.json), and [timed terminal output](stdio.cast). The package is 0.1.2; its initialize response reports server version 0.1.0. These are recorded separately.
@@ -13,6 +14,8 @@ The `.cast` files are asciicast v2 captures of actual allowlisted stdout emitted
 Exact safe request/job IDs are preserved for correlation. Credentials, authorization headers, account/organization/project IDs, report bodies, market payloads, and unrelated records are excluded. Timestamps in machine traces are UTC. No service-role access, global worker trigger, trading operation, key mutation, or account cleanup was performed. The existing user-provided API key was retained.
 
 The initial Python preflight completed before timed recording began; its IDs were not retained and it is excluded from correlated completion proof. The initial JavaScript preflight encountered a network error before Node proxy support was enabled. No outcome is inferred from either preflight. Browser recording initialization failed before capture; no browser video is published.
+
+The published npm start JSON records actual emitted events but is not a timed terminal recording. The published Python polling cast records timed live stdout.
 
 Recorder sources are provided for inspection. They were executed under `work/authenticated-research/` in the repository; reproduction requires the Python SDK source or built TypeScript SDK and the existing server-side `TIDELIGHT_API_KEY`. Node 24 requires `NODE_USE_ENV_PROXY=1` in this environment. Do not print the credential or substitute a service-role credential.
 

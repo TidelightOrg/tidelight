@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "product": "Tidelight",
   "purpose": "Public index of reproducible evidence and verification paths for the Tidelight S2 evaluator.",
-  "generated_at": "2026-10-25",
+  "generated_at": "2026-10-25T00:43:46.075202+00:00",
   "evidence_boundary": {
     "status": "index_only",
     "note": "Evidence is grouped by public availability, account scope, and reproducibility. Evaluate performance and execution claims against the corresponding source artifacts and test records.",
@@ -339,7 +339,63 @@
       "status": "direct_mcp_complete_npm_stdio_research_exposed_sdk_jobs_complete",
       "uri": "https://tidelight.app/evidence/authenticated-research-20261025/README.md",
       "summary_uri": "https://tidelight.app/evidence/authenticated-research-20261025/mcp.json",
-      "claim": "Direct HTTP MCP MSFT research completed. Published @tidelight/mcp@0.1.2 installed from npm and stdio initialization listed all five tools; no extra job started. Codex connector still exposes only market tools. Python NVDA and JavaScript AAPL jobs completed after polling initially hit HTTP 429; completion was confirmed by later Python SDK reads. Exact safe IDs, timed stdout and event traces retained; no browser video claimed."
+      "claim": "Direct HTTP MCP MSFT research completed. Published @tidelight/mcp@0.1.2 installed from npm and stdio initialization listed all five tools; no extra job started. Codex connector still exposes only market tools. Python NVDA and JavaScript AAPL jobs completed after polling initially hit HTTP 429; completion was confirmed by later Python SDK reads. Exact safe IDs, timed stdout and event traces retained; no browser video claimed.",
+      "download_uri": "https://tidelight.app/evidence/authenticated-research-20261025.zip",
+      "checksums_uri": "https://tidelight.app/evidence/authenticated-research-20261025/sha256.json"
+    },
+    {
+      "id": "published-sdk-cross-client-20261025",
+      "kind": "authenticated_research_path",
+      "status": "complete",
+      "uri": "https://tidelight.app/judge#authenticated-research",
+      "summary_uri": "https://tidelight.app/evidence/authenticated-research-20261025/published-start.json",
+      "artifact_uris": [
+        "https://tidelight.app/evidence/authenticated-research-20261025/published-start.json",
+        "https://tidelight.app/evidence/authenticated-research-20261025/published-poll.json",
+        "https://tidelight.app/evidence/authenticated-research-20261025/published-poll.cast",
+        "https://tidelight.app/evidence/authenticated-research-20261025/published-sdk-install.json"
+      ],
+      "claim": "npm SDK starts one AAPL job; PyPI SDK polls the same ID to complete."
+    },
+    {
+      "id": "direct-http-mcp-research-20261025",
+      "kind": "authenticated_research_path",
+      "status": "complete",
+      "uri": "https://tidelight.app/judge#authenticated-research",
+      "summary_uri": "https://tidelight.app/evidence/authenticated-research-20261025/mcp.json",
+      "artifact_uris": [
+        "https://tidelight.app/evidence/authenticated-research-20261025/mcp.json",
+        "https://tidelight.app/evidence/authenticated-research-20261025/mcp.cast"
+      ],
+      "claim": "MSFT research completed over direct Streamable HTTP, independently of the Codex connector."
+    },
+    {
+      "id": "published-npm-stdio-discovery-20261025",
+      "kind": "authenticated_research_path",
+      "status": "five_tools_exposed_no_extra_job",
+      "uri": "https://tidelight.app/judge#authenticated-research",
+      "summary_uri": "https://tidelight.app/evidence/authenticated-research-20261025/stdio.json",
+      "artifact_uris": [
+        "https://tidelight.app/evidence/authenticated-research-20261025/stdio.json",
+        "https://tidelight.app/evidence/authenticated-research-20261025/stdio.cast",
+        "https://tidelight.app/evidence/authenticated-research-20261025/install.json",
+        "https://tidelight.app/evidence/authenticated-research-20261025/installed-bridge.json"
+      ],
+      "claim": "Installed @tidelight/mcp@0.1.2 initializes and lists research tools; no extra job started. Codex connector remains market-only."
+    },
+    {
+      "id": "source-checkout-research-20261025",
+      "kind": "authenticated_research_path",
+      "status": "quota_limited_polling_later_completion_confirmed",
+      "uri": "https://tidelight.app/judge#authenticated-research",
+      "summary_uri": "https://tidelight.app/evidence/authenticated-research-20261025/python.json",
+      "artifact_uris": [
+        "https://tidelight.app/evidence/authenticated-research-20261025/python.json",
+        "https://tidelight.app/evidence/authenticated-research-20261025/python.cast",
+        "https://tidelight.app/evidence/authenticated-research-20261025/javascript-attempt.json",
+        "https://tidelight.app/evidence/authenticated-research-20261025/followup.json"
+      ],
+      "claim": "Source-checkout NVDA/AAPL starts hit polling 429; later Python reads confirmed complete. TypeScript has JSON only."
     }
   ],
   "owner_published_research": {

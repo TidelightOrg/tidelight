@@ -1,0 +1,4 @@
+import {TidelightClient,TidelightApiError} from '@tidelight/sdk';import {randomUUID} from 'node:crypto';import {writeFileSync} from 'node:fs';
+const events=[];function emit(e){e={at:new Date().toISOString(),...e};events.push(e);console.log(JSON.stringify(e));writeFileSync('work/authenticated-research/published-start.json',JSON.stringify(events,null,2)+'\n')}
+emit({command:'NODE_USE_ENV_PROXY=1 node work/authenticated-research/published-cross.mjs',package:'@tidelight/sdk',version:'0.1.2',origin:'installed npm registry package'});
+try{const c=new TidelightClient({apiKey:process.env.TIDELIGHT_API_KEY});const a=await c.startCompanyResearch('AAPL',randomUUID());emit({operation:'startCompanyResearch',job_id:a.job_id,request_id:a.request_id,status:a.status,duplicate:a.duplicate});}catch(e){emit({operation:'startCompanyResearch',http_status:e.status??null,code:e.code??null,request_id:e.requestId??null,error_type:e.name});}

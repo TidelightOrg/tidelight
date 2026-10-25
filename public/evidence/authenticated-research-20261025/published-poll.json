@@ -1,0 +1,59 @@
+[
+  {
+    "at": "2026-10-25T00:35:46Z",
+    "command": "python work/authenticated-research/published-poll.py python",
+    "source": "actual invocation; allowlisted response metadata only"
+  },
+  {
+    "at": "2026-10-25T00:35:46Z",
+    "origin": "installed PyPI tidelight==0.1.2",
+    "operation": "poll_existing_npm_created_job",
+    "job_id": "7169baf9-53f5-4cd0-ab9e-9ac71106bdb0"
+  },
+  {
+    "at": "2026-10-25T00:35:47Z",
+    "operation": "get_research_job",
+    "job_id": "7169baf9-53f5-4cd0-ab9e-9ac71106bdb0",
+    "request_id": "6c03e5f9-8a2e-4c41-9338-50ca3f55ef50",
+    "status": "queued",
+    "ticker": "AAPL",
+    "attempts": 0,
+    "max_attempts": 3,
+    "created_at": "2026-10-25T00:35:35.892586+00:00",
+    "started_at": null,
+    "completed_at": null,
+    "retry_at": null
+  },
+  {
+    "at": "2026-10-25T00:35:59Z",
+    "operation": "get_research_job",
+    "job_id": "7169baf9-53f5-4cd0-ab9e-9ac71106bdb0",
+    "request_id": "39556162-1595-460c-906e-3c1463cca821",
+    "status": "queued",
+    "ticker": "AAPL",
+    "attempts": 0,
+    "max_attempts": 3,
+    "created_at": "2026-10-25T00:35:35.892586+00:00",
+    "started_at": null,
+    "completed_at": null,
+    "retry_at": null
+  },
+  {
+    "at": "2026-10-25T00:36:11Z",
+    "operation": "get_research_job",
+    "job_id": "7169baf9-53f5-4cd0-ab9e-9ac71106bdb0",
+    "request_id": "6e60c5a9-dab1-49ba-9024-06f422f86b6d",
+    "status": "complete",
+    "ticker": "AAPL",
+    "attempts": 1,
+    "max_attempts": 3,
+    "created_at": "2026-10-25T00:35:35.892586+00:00",
+    "started_at": "2026-10-25T00:36:01.121631+00:00",
+    "completed_at": "2026-10-25T00:36:01.9825+00:00",
+    "retry_at": null
+  },
+  {
+    "at": "2026-10-25T00:36:11Z",
+    "process_state": "finished"
+  }
+]

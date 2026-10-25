@@ -267,10 +267,64 @@ export default function JudgePage() {
         <a href="https://github.com/TidelightOrg/tidelight/blob/main/public/evidence/npm-python-install-walkthrough-fresh-20261024.json">GitHub test record ↗</a>
         <a href="https://github.com/TidelightOrg/tidelight/tree/main/sdk">SDK source ↗</a>
       </div>
+
       <details className="judge-package-proof-prior">
         <summary>Additional repository verification</summary>
         <p>A separate repository run recorded 266 passing tests, a successful typecheck and production build, and four root dependency advisories (2 moderate, 1 high, 1 critical). See the <a href="/evidence/package-install-verification-20261024.json">repository verification record</a> for its full scope.</p>
       </details>
+    </section>
+    <section className="judge-section" id="authenticated-research" aria-labelledby="authenticated-research-title">
+      <div className="judge-section-heading">
+        <div><span className="judge-kicker">AUTHENTICATED RESEARCH · 25 OCT 2026</span><h2 id="authenticated-research-title">Actual runs, inspectable traces.</h2></div>
+        <p>Safe request and job IDs are retained. Credentials and private report bodies are excluded. Cast files record actual sanitized stdout, not browser video.</p>
+      </div>
+      <div className="judge-authenticated-grid">
+        <article>
+          <span className="judge-kicker">PUBLISHED NPM + PYPI · COMPLETE</span>
+          <h3>One job across two installed SDKs</h3>
+          <p>npm @tidelight/sdk 0.1.2 started AAPL; PyPI tidelight 0.1.2 polled the same job to complete. No source checkout was used for this job.</p>
+          <div className="judge-inline-actions">
+            <a href="/evidence/authenticated-research-20261025/published-start.json">npm start JSON ↗</a>
+            <a href="/evidence/authenticated-research-20261025/published-poll.json">PyPI poll JSON ↗</a>
+            <a href="/evidence/authenticated-research-20261025/published-poll.cast">Polling recording ↗</a>
+            <a href="/evidence/authenticated-research-20261025/published-sdk-install.json">Versions and integrities ↗</a>
+          </div>
+        </article>
+        <article>
+          <span className="judge-kicker">DIRECT HTTP MCP · COMPLETE</span>
+          <h3>Authenticated MSFT research</h3>
+          <p>Streamable HTTP initialization and discovery returned five tools. The MSFT job progressed through queued, running and complete. This was a direct MCP invocation.</p>
+          <div className="judge-inline-actions">
+            <a href="/evidence/authenticated-research-20261025/mcp.json">Request and job JSON ↗</a>
+            <a href="/evidence/authenticated-research-20261025/mcp.cast">MCP recording ↗</a>
+          </div>
+        </article>
+        <article>
+          <span className="judge-kicker">PUBLISHED NPM STDIO · DISCOVERY VERIFIED</span>
+          <h3>Installed MCP bridge exposes research</h3>
+          <p>@tidelight/mcp 0.1.2 initialized over stdio and listed all five tools, including research start, status and cancel. No extra job was started. Its protocol server reports version 0.1.0.</p>
+          <div className="judge-inline-actions">
+            <a href="/evidence/authenticated-research-20261025/stdio.json">Stdio discovery JSON ↗</a>
+            <a href="/evidence/authenticated-research-20261025/stdio.cast">Stdio recording ↗</a>
+            <a href="/evidence/authenticated-research-20261025/install.json">Package integrity ↗</a>
+            <a href="/evidence/authenticated-research-20261025/installed-bridge.json">Separate Codex registry ↗</a>
+          </div>
+          <p>The Codex connector exposes only market tools; stdio discovery does not establish Codex research availability.</p>
+        </article>
+        <article>
+          <span className="judge-kicker">SOURCE CHECKOUTS · QUOTA LIMIT RETAINED</span>
+          <h3>Earlier NVDA and AAPL runs</h3>
+          <p>Python and TypeScript source checkouts started these jobs. Polling hit HTTP 429; later Python SDK reads confirmed both original jobs complete. These starts do not prove published-package execution.</p>
+          <div className="judge-inline-actions">
+            <a href="/evidence/authenticated-research-20261025/python.json">Python JSON ↗</a>
+            <a href="/evidence/authenticated-research-20261025/python.cast">Python recording ↗</a>
+            <a href="/evidence/authenticated-research-20261025/javascript-attempt.json">TypeScript JSON ↗</a>
+            <a href="/evidence/authenticated-research-20261025/followup.json">Completion reads ↗</a>
+          </div>
+          <p>TypeScript has an execution report, not a timed recording. The Python recording ends at the quota error; completion reads are separate.</p>
+        </article>
+      </div>
+      <div className="judge-inline-actions"><a href="/evidence/authenticated-research-20261025/README.md">Scope and recorder sources ↗</a><a href="/evidence/authenticated-research-20261025/sha256.json">Artifact checksums ↗</a><a href="/evidence/authenticated-research-20261025.zip" download>Download evidence ZIP ↗</a></div>
     </section>
     <footer className="judge-footer">
       <p>Historical simulations are not audited results. Research is not investment advice; live execution is not enabled.</p>
