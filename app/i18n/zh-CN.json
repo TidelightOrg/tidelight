@@ -5908,5 +5908,13 @@
   "REQUEST REFERENCE": "请求参数说明",
   "Required by the API · The explorer keeps this key for retries. Editing the ticker clears it; generate a new key to start a separate job.": "API 必填 · 浏览器会保留此密钥以便重试。修改代码后，密钥会重置；生成新密钥即可开始独立任务。",
   "Required · Company ticker to research. The explorer uses NVDA when left blank.": "必填 · 要研究的公司代码。留空时将使用 NVDA。",
-  "Uses the selected project credential. Its required scope is": "使用所选项目凭据。所需权限范围为"
+  "Uses the selected project credential. Its required scope is": "使用所选项目凭据。所需权限范围为",
+  "THIS TAB": "当前标签页",
+  "Clear": "清除",
+  "Market instruments": "市场工具",
+  "Company research job": "公司研究任务",
+  "All instruments": "全部工具",
+  "Network error": "网络错误",
+  "View response": "查看响应",
+  "History stays in memory for this page session and clears when you leave.": "历史记录仅保存在当前页面内存中，离开页面后会清除。"
 }
