@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useLanguage } from "@/app/ui/language-provider";
 import { PackageLanguageMark } from "./package-language-mark";
 import { SyntaxCode } from "./syntax-code";
 import { RegistryFacts, useRegistryPackage } from "./registry-facts";
@@ -126,11 +127,13 @@ node dist/bin.js --help`,
 const order: PackageId[] = ["sdk", "mcp", "python", "react", "cli"];
 
 export function PackageWorkbench() {
+  const { translate } = useLanguage();
   const [selected, setSelected] = useState<PackageId>("sdk");
   const [surface, setSurface] = useState<"install" | "example" | "verify" | "receipt">("install");
   const [copied, setCopied] = useState(false);
   const current = previews[selected];
   const { entry: registry, checking } = useRegistryPackage(selected);
+  const registryName = registry.registry === "npm" ? "npm" : "PyPI";
   const exactInstall = registry.version
     ? registry.registry === "npm"
       ? `npm install ${registry.name}@${registry.version}`
@@ -163,7 +166,7 @@ export function PackageWorkbench() {
           <h2 id="package-workbench-title">One platform. Five ways in.</h2>
           <p>Preview package interfaces, install the published release, or run source checks in the Tidelight repository.</p>
         </div>
-          <span className={`tic-package-workbench-status ${registry.status === "published" && registry.version ? "is-verified" : "is-pending"}`}><i aria-hidden="true"/>{registry.status === "published" && registry.version ? "Registry verified" : checking ? "Checking registry…" : registry.version ? "Using last verified" : "Registry unavailable"}</span>
+          <span className={`tic-package-workbench-status ${registry.status === "published" && registry.version ? "is-verified" : "is-pending"}`}><i aria-hidden="true"/>{translate(registry.status === "published" && registry.version ? "Registry verified" : checking ? "Checking registry…" : registry.version ? "Using last verified" : "Registry unavailable")}</span>
       </div>
 
       <div className="tic-package-workbench-shell">
@@ -195,11 +198,11 @@ export function PackageWorkbench() {
             <p className="tic-package-workbench-type">{current.type}</p>
             <h3>{current.name}</h3>
             <p>{current.description}</p>
-            <div className="tic-package-workbench-state"><span>{registry.status === "published" && registry.version ? `Published · v${registry.version}` : checking ? "Checking registry…" : registry.version ? `Last verified · v${registry.version}` : "Registry unavailable"}</span><span>{registry.registry === "npm" ? "npm registry" : "PyPI registry"}</span></div>
+            <div className="tic-package-workbench-state"><span>{translate(registry.status === "published" && registry.version ? `Published · v${registry.version}` : checking ? "Checking registry…" : registry.version ? `Last verified · v${registry.version}` : "Registry unavailable")}</span><span>{translate(`${registryName} registry`)}</span></div>
             <RegistryFacts packageId={selected} compact />
 
             <div className="tic-package-compatibility" aria-label={`${current.name} compatibility`}>
-              <span>COMPATIBILITY</span>
+              <span>{translate("COMPATIBILITY")}</span>
               <div>{compatibilityFacts.map(item => <span key={item}>{item}</span>)}</div>
             </div>
 
@@ -207,7 +210,7 @@ export function PackageWorkbench() {
               <Link href={current.href.startsWith("http") ? current.href : `https://package.tidelight.app${current.href}`}>View package details <span aria-hidden="true">→</span></Link>
               <a href={registry.url} target="_blank" rel="noreferrer">Open registry <span aria-hidden="true">↗</span></a>
             </div>
-            <p className="tic-package-workbench-note" role="status" aria-live="polite">{copied ? `${surface === "install" ? "Install command" : surface === "verify" ? "Source check" : "Example"} copied.` : checking ? `Checking ${registry.registry} for updates; the command stays pinned to v${registry.version ?? "the latest verified release"}.` : registry.status !== "published" ? `Live registry check unavailable. Install is pinned to the last verified version ${registry.version ?? "not yet verified"}.` : registry.integrity ? "Archive integrity is published by the registry and linked in package details." : "Examples show the source interface; they do not include sample market results."}</p>
+            <p className="tic-package-workbench-note" role="status" aria-live="polite">{translate(copied ? `${surface === "install" ? "Install command" : surface === "verify" ? "Source check" : "Example"} copied.` : checking ? `Checking ${registryName} for updates; the command stays pinned to v${registry.version ?? "the latest verified release"}.` : registry.status !== "published" ? `Live registry check unavailable. Install is pinned to the last verified version ${registry.version ?? "not yet verified"}.` : registry.integrity ? "Archive integrity is published by the registry and linked in package details." : "Examples show the source interface; they do not include sample market results.")}</p>
           </div>
 
           <div className="tic-package-workbench-preview" aria-label={`${current.name} package workbench`} key={`${selected}-${surface}`}>
@@ -228,7 +231,7 @@ export function PackageWorkbench() {
               </section>
               <pre tabIndex={0} aria-label="Illustrative research response JSON"><code><SyntaxCode code={preview} language={codeLanguage} /></code></pre>
             </> : <pre tabIndex={0} aria-label={surface === "install" ? "Version-pinned install command" : surface === "verify" ? "Tidelight repository package test command" : "Package example source"}><code><SyntaxCode code={preview} language={codeLanguage} /></code></pre>}
-            <div className="tic-package-preview-footer"><span>{surface === "install" ? (registry.version ? `PINNED TO ${registry.version}` : "REGISTRY VERSION PENDING") : surface === "verify" ? "TIDELIGHT REPOSITORY · LOCAL TESTS" : surface === "receipt" ? "ILLUSTRATIVE RESPONSE · NO LIVE REQUEST" : "QUICKSTART SNIPPET · NO LIVE DATA"}</span>{surface === "verify" && <Link href="https://github.com/TidelightOrg/tidelight">Browse source ↗</Link>}</div>
+            <div className="tic-package-preview-footer"><span>{translate(surface === "install" ? (registry.version ? `PINNED TO ${registry.version}` : "REGISTRY VERSION PENDING") : surface === "verify" ? "TIDELIGHT REPOSITORY · LOCAL TESTS" : surface === "receipt" ? "ILLUSTRATIVE RESPONSE · NO LIVE REQUEST" : "QUICKSTART SNIPPET · NO LIVE DATA")}</span>{surface === "verify" && <Link href="https://github.com/TidelightOrg/tidelight">Browse source ↗</Link>}</div>
           </div>
         </div>
       </div>

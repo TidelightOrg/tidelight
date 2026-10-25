@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 
 import { PackageLanguageMark } from "./package-language-mark";
+import { useLanguage } from "@/app/ui/language-provider";
 
 type PackageId = "sdk" | "mcp" | "react" | "cli" | "python";
 export type RegistryPackage = {
@@ -49,11 +50,13 @@ export function useRegistryPackage(packageId: PackageId) {
 
 export function RegistryFacts({ packageId, compact = false }: { packageId: PackageId; compact?: boolean }) {
   const { entry, checking } = useRegistryPackage(packageId);
+  const { translate } = useLanguage();
+  const registryName = entry.registry === "npm" ? "npm" : "PyPI";
   return <section className={`tic-registry-facts${compact ? " is-compact" : ""}`} aria-label={`${entry.name} registry release details`}>
-    <div className="tic-registry-facts-head"><span className="tic-registry-live-dot" aria-hidden="true"/><strong>{entry.status === "published" ? `Published on ${entry.registry === "npm" ? "npm" : "PyPI"}` : checking ? `Checking ${entry.registry === "npm" ? "npm" : "PyPI"} registry…` : entry.version ? `Last verified release · ${entry.registry === "npm" ? "npm" : "PyPI"}` : "Registry check unavailable"}</strong><span className="tic-registry-version">{entry.version ? `v${entry.version}` : checking ? "Checking…" : "Version unavailable"}</span></div>
+    <div className="tic-registry-facts-head"><span className="tic-registry-live-dot" aria-hidden="true"/><strong>{translate(entry.status === "published" ? `Published on ${registryName}` : checking ? `Checking ${registryName} registry…` : entry.version ? `Last verified release · ${registryName}` : "Registry check unavailable")}</strong><span className="tic-registry-version">{entry.version ? `v${entry.version}` : checking ? translate("Checking…") : translate("Version unavailable")}</span></div>
     {!compact && <p>{entry.summary ?? `Official ${entry.name} distribution.`}</p>}
-    <div className="tic-registry-install-row"><span>Install</span><code className="tic-registry-install">{entry.install}</code></div>
-    <div className="tic-registry-actions"><a href={entry.url} target="_blank" rel="noreferrer">Open registry page <span aria-hidden="true">↗</span></a>{entry.tarball && <a href={entry.tarball}>Download archive <span aria-hidden="true">↓</span></a>}{entry.integrity && <span title={entry.integrity}>npm SHA-512 integrity verified by registry</span>}{entry.files.find(file => file.sha256) && <span title={entry.files.find(file => file.sha256)?.sha256}>PyPI SHA-256 published</span>}</div>
+    <div className="tic-registry-install-row"><span>{translate("Install")}</span><code className="tic-registry-install">{entry.install}</code></div>
+    <div className="tic-registry-actions"><a href={entry.url} target="_blank" rel="noreferrer">{translate("Open registry page")} <span aria-hidden="true">↗</span></a>{entry.tarball && <a href={entry.tarball}>{translate("Download archive")} <span aria-hidden="true">↓</span></a>}{entry.integrity && <span title={entry.integrity}>{translate("npm SHA-512 integrity verified by registry")}</span>}{entry.files.find(file => file.sha256) && <span title={entry.files.find(file => file.sha256)?.sha256}>{translate("PyPI SHA-256 published")}</span>}</div>
   </section>;
 }
 
@@ -61,12 +64,14 @@ export function PackageRegistryCard({ packageId, name, summary, href, ecosystem,
   packageId: PackageId; name: string; summary: string; href: string; glyph?: string; ecosystem: string; index: number;
 }) {
   const { entry, checking } = useRegistryPackage(packageId);
+  const { translate } = useLanguage();
+  const registryName = entry.registry === "npm" ? "npm" : "PyPI";
   return <article className={`tic-package-card ${entry.status === "published" && entry.version ? "is-published" : "is-unavailable"}`}>
     <div className="tic-package-card-top"><PackageLanguageMark packageId={packageId} /><span className="tic-package-number">0{index + 1} / {ecosystem}</span></div>
     <h3>{name}</h3><p>{summary}</p>
-    <div className="tic-package-card-status"><span className="tic-package-status-mark" aria-hidden="true">{entry.status === "published" && entry.version ? "✓" : "·"}</span><span className="tic-package-source-label">{entry.status === "published" && entry.version ? `Published · ${entry.registry}` : checking ? `Checking ${entry.registry}…` : entry.version ? `Last verified · ${entry.registry}` : "Registry unavailable"}</span><code>{entry.version ? `v${entry.version}` : checking ? "Checking…" : "Version unavailable"}</code></div>
+    <div className="tic-package-card-status"><span className="tic-package-status-mark" aria-hidden="true">{entry.status === "published" && entry.version ? "✓" : "·"}</span><span className="tic-package-source-label">{translate(entry.status === "published" && entry.version ? `Published · ${registryName}` : checking ? `Checking ${registryName}…` : entry.version ? `Last verified · ${registryName}` : "Registry unavailable")}</span><code>{entry.version ? `v${entry.version}` : checking ? translate("Checking…") : translate("Version unavailable")}</code></div>
     <code className="tic-package-card-install">{entry.install}</code>
     {packageId === "mcp" && <a className="tic-package-ghcr-link" href="https://github.com/orgs/TidelightOrg/packages/container/package/tidelight-mcp">Container · ghcr.io/tidelightorg/tidelight-mcp:0.1.2 ↗</a>}
-    <a className="tic-package-card-link" href={href.startsWith("http") ? href : `https://package.tidelight.app${href}`}>Package details <span aria-hidden="true">→</span></a>
+    <a className="tic-package-card-link" href={href.startsWith("http") ? href : `https://package.tidelight.app${href}`}>{translate("Package details")} <span aria-hidden="true">→</span></a>
   </article>;
 }
