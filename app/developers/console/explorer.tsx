@@ -94,6 +94,22 @@ export default function ApiExplorer({ projects, keys, currentTime, onViewResearc
     {projects.length > 0 && !availableKeys.length && <p className="tic-explorer-hint">Issue an active key with <code>{scope}</code> access for this project to start.</p>}
     {endpoint === "research" && status !== null && status < 400 && typeof result === "object" && result !== null && "job_id" in result && <div className="tic-explorer-hint" role="status">Research job queued. <button type="button" onClick={onViewResearch}>Open research jobs</button> to follow its status and result.</div>}
 
+    <section className="tic-panel tic-explorer-reference" aria-labelledby="tic-reference-title">
+      <div className="tic-panel-head"><div><p className="tic-explorer-kicker">REQUEST REFERENCE</p><h2 id="tic-reference-title">{endpoint === "market" ? "Market instruments" : "Company research job"}</h2></div><code>{scope}</code></div>
+      <p className="tic-reference-intro">{endpoint === "market" ? "List tokenized equity instruments. Results are paginated and reflect the current public market catalog." : "Queue an issuer research snapshot. The response confirms the job was accepted; follow its status in Research jobs."}</p>
+      <dl>
+        {endpoint === "market" ? <>
+          <div><dt><code>limit</code></dt><dd>Optional · 1–100 results per page. Defaults to 20.</dd></div>
+          <div><dt><code>underlying_ticker</code></dt><dd>Optional · Filter by an underlying equity ticker, such as AAPL.</dd></div>
+          <div><dt><code>cursor</code></dt><dd>Optional · Use the next cursor returned by a previous response.</dd></div>
+        </> : <>
+          <div><dt><code>ticker</code></dt><dd>Required · Company ticker to research. The explorer uses NVDA when left blank.</dd></div>
+          <div><dt><code>Idempotency-Key</code></dt><dd>Required by the API · Reuse the same key when retrying the same ticker to avoid a duplicate job. The explorer generates a fresh key for each submission.</dd></div>
+        </>}
+        <div><dt>Authorization</dt><dd>Uses the selected project credential. Its required scope is <code>{scope}</code>; the secret is never shown in this page.</dd></div>
+      </dl>
+    </section>
+
     <section className="tic-panel tic-explorer-output" aria-labelledby="tic-response-title">
       <div className="tic-panel-head"><div><p className="tic-explorer-kicker">LIVE REQUEST OUTPUT</p><h2 id="tic-response-title">Response</h2></div>{status !== null && <span className={status < 400 ? "tic-response-ok" : "tic-response-error"}>HTTP {status}</span>}</div>
       {busy ? <div className="tic-response-state" role="status"><span className="tic-explorer-spinner" aria-hidden="true" /><div><strong>Request in progress</strong><p>Waiting for the authorized API response…</p></div></div> : result ? <>
