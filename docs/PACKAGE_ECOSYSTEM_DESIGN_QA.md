@@ -14,7 +14,7 @@ The package experience translates those patterns to Tidelight's package-specific
 
 ## Readability and controls
 
-- Package overview and guide copy now use a 13–15 px reading scale; code examples use 12–13 px, with compact metadata kept at or above 11 px.
+- Package overview and guide copy use a 16 px reading scale; secondary copy uses 15 px, code examples use 14 px (13 px on narrow screens), and compact metadata stays at or above 12 px.
 - Workspace links have 42 px minimum height; primary actions have 44 px minimum height, visible focus rings, and restrained hover/press feedback.
 - The mobile workspace hides the desktop rail and keeps the existing responsive navigation and package selector. Package detail navigation remains horizontally scrollable on narrow screens.
 - The five selectable palettes (Daylight, Night Tide, Blue Hour, White, Dark) and automatic mode are inherited from the shared theme provider.
@@ -26,8 +26,10 @@ The package experience translates those patterns to Tidelight's package-specific
 - `npm run lint`: passing with 10 existing warnings and no errors.
 - `npm run build`: passing; all package routes compiled.
 - `git diff --check`: passing.
-- Existing live Tidelight package dashboard and SDK detail were captured before implementation; Context.dev's workspace and package-relevant areas were inspected in the authenticated browser session.
+- Context.dev's workspace and package-relevant areas were inspected in the authenticated browser session. The changed dashboard and SDK detail route have now been opened on the Vercel preview; screenshots confirm the desktop layout and White theme contrast. The workbench's Example tab switched to the expected illustrative snippet, and the live npm registry status resolved successfully.
 
 ## Preview visual review status
 
-The local preview service started successfully, but the browser tool's URL policy rejected opening its `terminal.local` URL and disallowed alternate access paths. The GitHub PR is available, but Vercel's status check currently fails with `build-rate-limit`; no preview deployment for this commit exists to inspect. Therefore, the screenshots captured before implementation are baseline references only. Desktop/mobile visual comparison, theme-by-theme screenshots, and interaction verification against the changed build remain **blocked pending a successful preview deployment**. No visual pass is claimed for the new implementation yet.
+The Vercel preview for PR head `3aa384c0bf4d8720f06da4017eac0a0dd87185f4` is Ready and was visually inspected at desktop size. The dashboard workspace rail, package selector, package catalog, readable workbench, and SDK detail hierarchy render correctly. White theme contrast was verified from a live screenshot; the five palette controls and automatic option are exposed in the accessible tree. The package workbench's Example view and published npm status were checked in the live page.
+
+The typography adjustment above raises regular package copy to 16 px, secondary text to 15 px, and metadata to 12 px minimum. It is in the local workspace and has passed the full test, typecheck, lint, build, and diff checks; it still needs a new PR commit and preview build for live visual confirmation. Mobile layout rules were reviewed in CSS, but the available browser session has no viewport emulation control, so no mobile screenshot pass is claimed. Vercel production deployment and PR merge remain deferred as requested.

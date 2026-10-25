@@ -1,9 +1,9 @@
 /* Legibility and workspace refinements shared by the public package ecosystem. */
 .tic-packages-page {
-  --tic-reading: 15px;
-  --tic-secondary: 13px;
-  --tic-meta: 11px;
-  --tic-control: 13px;
+  --tic-reading: 16px;
+  --tic-secondary: 15px;
+  --tic-meta: 12px;
+  --tic-control: 14px;
 }
 
 .tic-packages-page :is(p:not(.tic-eyebrow), li) {
@@ -57,7 +57,7 @@
 .tic-packages-page .tic-package-detail-content p:not(.tic-eyebrow),
 .tic-packages-page .tic-package-intro-heading > p:not(.tic-eyebrow),
 .tic-packages-page .tic-package-intro-steps p {
-  font-size: var(--tic-secondary);
+  font-size: var(--tic-reading);
 }
 
 .tic-packages-page :is(.tic-package-hero-meta code, .tic-package-detail-badges > span,
@@ -70,7 +70,7 @@
   .tic-package-dashboard-summary > p, .tic-package-dashboard-summary > a,
   .tic-package-intro-steps article > span, .tic-package-receipt-meta,
   .tic-package-receipt dt, .tic-package-receipt dd, .tic-package-receipt footer code) {
-  font-size: max(11px, .75rem);
+  font-size: max(var(--tic-meta), .75rem);
 }
 
 .tic-packages-page .tic-package-detail-nav {
@@ -88,7 +88,7 @@
 .tic-packages-page .tic-package-snippet pre,
 .tic-packages-page .tic-package-workbench-preview pre,
 .tic-packages-page .tic-package-lifecycle-all pre {
-  font-size: 13px;
+  font-size: 14px;
   line-height: 1.8;
 }
 
@@ -155,7 +155,7 @@
   padding: 0 11px;
   border-radius: 8px;
   color: var(--tic-muted);
-  font-size: 14px;
+  font-size: 15px;
   text-decoration: none;
   transition: background-color .15s ease, color .15s ease;
 }
@@ -183,7 +183,7 @@
   margin-top: auto;
   padding: 16px 10px 5px;
   border-top: 1px solid var(--tic-line);
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .tic-package-side-nav-foot span,
@@ -193,7 +193,7 @@
 
 .tic-package-side-nav-foot strong {
   color: var(--tic-text);
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .tic-package-workspace-main {
@@ -236,7 +236,7 @@
 
 .tic-package-dashboard-summary > p,
 .tic-package-dashboard-summary > a {
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .tic-package-dashboard .tic-package-grid {
@@ -253,7 +253,7 @@
 }
 
 .tic-package-dashboard .tic-package-card-link {
-  font-size: 13px;
+  font-size: 14px;
 }
 
 .tic-packages-page :is(a, button, select, input):focus-visible {
@@ -289,11 +289,10 @@
 }
 
 @media (max-width: 520px) {
-  .tic-packages-page .tic-package-detail-content p:not(.tic-eyebrow) { font-size: 15px; }
   .tic-packages-page .tic-package-snippet pre,
   .tic-packages-page .tic-package-workbench-preview pre,
-  .tic-packages-page .tic-package-lifecycle-all pre { font-size: 12px; }
-  .tic-packages-page .tic-package-workbench-tabs button { min-height: 42px; font-size: 12px; }
+  .tic-packages-page .tic-package-lifecycle-all pre { font-size: 13px; }
+  .tic-packages-page .tic-package-workbench-tabs button { min-height: 42px; font-size: 13px; }
   .tic-packages-page .tic-package-detail-nav a { padding-inline: 13px; }
 }
 
