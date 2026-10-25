@@ -5916,5 +5916,7 @@
   "All instruments": "全部工具",
   "Network error": "网络错误",
   "View response": "查看响应",
-  "History stays in memory for this page session and clears when you leave.": "历史记录仅保存在当前页面内存中，离开页面后会清除。"
+  "History stays in memory for this page session and clears when you leave.": "历史记录仅保存在当前页面内存中，离开页面后会清除。",
+  "Select ID to copy": "请手动选择并复制 ID",
+  "Tune how Tidelight presents research and sends product updates.": "调整 Tidelight 展示研究内容和发送产品更新的方式。"
 }
