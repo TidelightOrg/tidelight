@@ -133,6 +133,7 @@ export function PackageWorkbench() {
   const [copied, setCopied] = useState(false);
   const current = previews[selected];
   const { entry: registry, checking } = useRegistryPackage(selected);
+  const registryName = registry.registry === "npm" ? "npm" : "PyPI";
   const exactInstall = registry.version
     ? registry.registry === "npm"
       ? `npm install ${registry.name}@${registry.version}`
@@ -197,7 +198,7 @@ export function PackageWorkbench() {
             <p className="tic-package-workbench-type">{current.type}</p>
             <h3>{current.name}</h3>
             <p>{current.description}</p>
-            <div className="tic-package-workbench-state"><span>{translate(registry.status === "published" && registry.version ? `Published · v${registry.version}` : checking ? "Checking registry…" : registry.version ? `Last verified · v${registry.version}` : "Registry unavailable")}</span><span>{registry.registry === "npm" ? "npm registry" : "PyPI registry"}</span></div>
+            <div className="tic-package-workbench-state"><span>{translate(registry.status === "published" && registry.version ? `Published · v${registry.version}` : checking ? "Checking registry…" : registry.version ? `Last verified · v${registry.version}` : "Registry unavailable")}</span><span>{translate(`${registryName} registry`)}</span></div>
             <RegistryFacts packageId={selected} compact />
 
             <div className="tic-package-compatibility" aria-label={`${current.name} compatibility`}>
@@ -209,7 +210,7 @@ export function PackageWorkbench() {
               <Link href={current.href.startsWith("http") ? current.href : `https://package.tidelight.app${current.href}`}>View package details <span aria-hidden="true">→</span></Link>
               <a href={registry.url} target="_blank" rel="noreferrer">Open registry <span aria-hidden="true">↗</span></a>
             </div>
-            <p className="tic-package-workbench-note" role="status" aria-live="polite">{translate(copied ? `${surface === "install" ? "Install command" : surface === "verify" ? "Source check" : "Example"} copied.` : checking ? `Checking ${registry.registry} for updates; the command stays pinned to v${registry.version ?? "the latest verified release"}.` : registry.status !== "published" ? `Live registry check unavailable. Install is pinned to the last verified version ${registry.version ?? "not yet verified"}.` : registry.integrity ? "Archive integrity is published by the registry and linked in package details." : "Examples show the source interface; they do not include sample market results.")}</p>
+            <p className="tic-package-workbench-note" role="status" aria-live="polite">{translate(copied ? `${surface === "install" ? "Install command" : surface === "verify" ? "Source check" : "Example"} copied.` : checking ? `Checking ${registryName} for updates; the command stays pinned to v${registry.version ?? "the latest verified release"}.` : registry.status !== "published" ? `Live registry check unavailable. Install is pinned to the last verified version ${registry.version ?? "not yet verified"}.` : registry.integrity ? "Archive integrity is published by the registry and linked in package details." : "Examples show the source interface; they do not include sample market results.")}</p>
           </div>
 
           <div className="tic-package-workbench-preview" aria-label={`${current.name} package workbench`} key={`${selected}-${surface}`}>
