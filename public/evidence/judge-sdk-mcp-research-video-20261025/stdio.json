@@ -1,0 +1,28 @@
+{
+  "client": "@tidelight/mcp@0.1.2",
+  "events": [
+    {
+      "operation": "initialize",
+      "status": "success",
+      "server_info": {
+        "name": "tidelight-mcp",
+        "version": "0.1.0"
+      }
+    },
+    {
+      "operation": "tools/list",
+      "status": "success",
+      "tools": [
+        "tidelight_search_tokenized_equities",
+        "tidelight_get_tokenized_equity",
+        "tidelight_start_company_research",
+        "tidelight_get_research_job",
+        "tidelight_cancel_research_job"
+      ],
+      "research_start_exposed": true,
+      "research_status_exposed": true,
+      "research_cancel_exposed": true,
+      "extra_job_started": false
+    }
+  ]
+}

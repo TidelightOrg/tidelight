@@ -1,0 +1,35 @@
+{
+  "client": "direct Streamable HTTP MCP",
+  "events": [
+    {
+      "operation": "initialize",
+      "http_status": 200,
+      "protocol_version": "2025-03-26"
+    },
+    {
+      "operation": "tools/list",
+      "http_status": 200,
+      "tools": [
+        "tidelight_search_tokenized_equities",
+        "tidelight_get_tokenized_equity",
+        "tidelight_start_company_research",
+        "tidelight_get_research_job",
+        "tidelight_cancel_research_job"
+      ]
+    },
+    {
+      "operation": "research_start",
+      "http_status": 200,
+      "status": "queued",
+      "job_id": "f0166629-1db2-4183-8adb-16a3b9e4c3b7",
+      "request_id": "049426a5-a205-4ade-afed-1cc35daa60f6"
+    },
+    {
+      "operation": "research_status",
+      "http_status": 200,
+      "status": "queued",
+      "job_id": "f0166629-1db2-4183-8adb-16a3b9e4c3b7",
+      "request_id": "3d4e3a1b-af51-4c5c-9290-4c01a81ab29f"
+    }
+  ]
+}

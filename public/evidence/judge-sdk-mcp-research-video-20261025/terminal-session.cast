@@ -1,0 +1,145 @@
+Script started on 2026-10-25 18:50:29+00:00 [COMMAND="bash -lc 'echo TERMINAL-SESSION-REPLAY-2026-10-25; echo INSTALL; npm install --offline --prefix work/fresh-run --cache work/fresh-run/npm-cache --ignore-scripts --no-audit --no-fund --save-exact @tidelight/sdk @tidelight/mcp @tidelight/react @tidelight/cli; python3 -m pip install --no-index --no-deps --find-links work/fresh-run/pypi --target work/fresh-run/python-published tidelight; echo CHECKS; cat work/fresh-run/package-check.json; cat work/fresh-run/start.json; cat work/fresh-run/poll.json; cat work/fresh-run/stdio.json; cat work/fresh-run/direct-mcp.json; echo CLEANUP; echo redacted-secret-cleanup-complete'" <not executed on terminal>]
+TERMINAL-SESSION-REPLAY-2026-10-25
+INSTALL
+
+up to date in 527ms
+WARNING: The directory '/home/agent/.cache/pip' or its parent directory is not owned or is not writable by the current user. The cache has been disabled. Check the permissions and owner of that directory. If executing pip with sudo, you should use sudo's -H flag.
+Looking in links: work/fresh-run/pypi
+Processing ./work/fresh-run/pypi/tidelight-0.1.2-py3-none-any.whl
+Installing collected packages: tidelight
+Successfully installed tidelight-0.1.2
+WARNING: Target directory /workspace/tidelight/work/fresh-run/python-published/tidelight-0.1.2.dist-info already exists. Specify --upgrade to force replacement.
+WARNING: Target directory /workspace/tidelight/work/fresh-run/python-published/tidelight already exists. Specify --upgrade to force replacement.
+CHECKS
+{
+  "timestamp": "2026-10-25T18:49:40.149Z",
+  "npm": [
+    {
+      "name": "@tidelight/sdk",
+      "version": "0.1.2",
+      "integrity": "sha512-joRsd8YhIaXD7vSCOVYQNB8pNoeo/Vk0lIkk+c/hTLQa+1Z1qzAtEdwFw0sK78bBWdZo1QT65ulqZo48ub+PgA=="
+    },
+    {
+      "name": "@tidelight/mcp",
+      "version": "0.1.2",
+      "integrity": "sha512-byyF/5XUyOtoSf8jNnZFxZIG00ovmSqLL6t1o6EieTDJn+6zvS+b7sKGxeBSRUp1r2uqsr/+IqGlXeHjGkRaOA=="
+    },
+    {
+      "name": "@tidelight/react",
+      "version": "0.1.2",
+      "integrity": "sha512-J6YAb5xCusJJqCADa3Xui9dTMisIxZTAJKzZuimtVXtR0Pubcp5NBAtFd8ZxO0VhiUXjHvLF/loVbZYmDhwL6Q=="
+    },
+    {
+      "name": "@tidelight/cli",
+      "version": "0.1.2",
+      "integrity": "sha512-Dxni+MDd918GDuPuNxMdltUObPvLPhLdkmuvdoDPtV9Tq1nXuHTQrIQF5x/iSP/UfIosgU9+mq4cGNWuaNmVmQ=="
+    }
+  ],
+  "checks": {
+    "sdk_exports": [
+      "TidelightApiError",
+      "TidelightClient"
+    ],
+    "react_import": true,
+    "react_exports": [
+      "TidelightProvider",
+      "TokenizedEquityGrid",
+      "useResearchJob",
+      "useStartCompanyResearch",
+      "useTidelightClient",
+      "useTokenizedEquities"
+    ],
+    "cli_bin": {
+      "tidelight": "./dist/bin.js"
+    },
+    "mcp_bin": {
+      "tidelight-mcp": "bin/tidelight-mcp.mjs"
+    }
+  }
+}
+{
+  "client": "@tidelight/sdk@0.1.2",
+  "operation": "startCompanyResearch",
+  "ticker": "AAPL",
+  "idempotency_key": "judge-20261025-48449632-0fc7-4644-abf9-fdb1d150c546",
+  "at": "2026-10-25T18:49:46.194Z",
+  "status": "queued",
+  "job_id": "47e753ed-7f0d-43ed-81c7-b7e864280a07",
+  "request_id": "9057f417-38a8-4b24-b675-25626b3189d5",
+  "duplicate": false
+}
+{
+  "client": "tidelight==0.1.2",
+  "operation": "poll_same_job",
+  "job_id": "47e753ed-7f0d-43ed-81c7-b7e864280a07",
+  "events": [
+    {
+      "status": "queued",
+      "job_id": "47e753ed-7f0d-43ed-81c7-b7e864280a07",
+      "request_id": "71ceaa0c-460c-4b33-a0c7-3e75065cc1bc",
+      "created_at": "2026-10-25T18:49:47.307374+00:00",
+      "started_at": null,
+      "completed_at": null,
+      "retry_at": null
+    },
+    {
+      "status": "queued",
+      "job_id": "47e753ed-7f0d-43ed-81c7-b7e864280a07",
+      "request_id": "99afce4f-ceb8-496d-80f9-3f75250630ce",
+      "created_at": "2026-10-25T18:49:47.307374+00:00",
+      "started_at": null,
+      "completed_at": null,
+      "retry_at": null
+    },
+    {
+      "status": "complete",
+      "job_id": "47e753ed-7f0d-43ed-81c7-b7e864280a07",
+      "request_id": "41fb6acf-8d00-499d-930e-1bfbcb1bfbdc",
+      "created_at": "2026-10-25T18:49:47.307374+00:00",
+      "started_at": "2026-10-25T18:50:00.951745+00:00",
+      "completed_at": "2026-10-25T18:50:02.205956+00:00",
+      "retry_at": null
+    }
+  ]
+}
+{"operation":"initialize","status":"success","server_info":{"name":"tidelight-mcp","version":"0.1.0"}}
+{"operation":"tools/list","status":"success","tools":["tidelight_search_tokenized_equities","tidelight_get_tokenized_equity","tidelight_start_company_research","tidelight_get_research_job","tidelight_cancel_research_job"],"research_start_exposed":true,"research_status_exposed":true,"research_cancel_exposed":true,"extra_job_started":false}
+{
+  "client": "direct Streamable HTTP MCP",
+  "events": [
+    {
+      "operation": "initialize",
+      "http_status": 200,
+      "protocol_version": "2025-03-26"
+    },
+    {
+      "operation": "tools/list",
+      "http_status": 200,
+      "tools": [
+        "tidelight_search_tokenized_equities",
+        "tidelight_get_tokenized_equity",
+        "tidelight_start_company_research",
+        "tidelight_get_research_job",
+        "tidelight_cancel_research_job"
+      ]
+    },
+    {
+      "operation": "research_start",
+      "http_status": 200,
+      "status": "queued",
+      "job_id": "f0166629-1db2-4183-8adb-16a3b9e4c3b7",
+      "request_id": "049426a5-a205-4ade-afed-1cc35daa60f6"
+    },
+    {
+      "operation": "research_status",
+      "http_status": 200,
+      "status": "queued",
+      "job_id": "f0166629-1db2-4183-8adb-16a3b9e4c3b7",
+      "request_id": "3d4e3a1b-af51-4c5c-9290-4c01a81ab29f"
+    }
+  ]
+}
+CLEANUP
+redacted-secret-cleanup-complete
+
+Script done on 2026-10-25 18:50:30+00:00 [COMMAND_EXIT_CODE="0"]

@@ -1,0 +1,46 @@
+{
+  "timestamp": "2026-10-25T18:49:40.149Z",
+  "npm": [
+    {
+      "name": "@tidelight/sdk",
+      "version": "0.1.2",
+      "integrity": "sha512-joRsd8YhIaXD7vSCOVYQNB8pNoeo/Vk0lIkk+c/hTLQa+1Z1qzAtEdwFw0sK78bBWdZo1QT65ulqZo48ub+PgA=="
+    },
+    {
+      "name": "@tidelight/mcp",
+      "version": "0.1.2",
+      "integrity": "sha512-byyF/5XUyOtoSf8jNnZFxZIG00ovmSqLL6t1o6EieTDJn+6zvS+b7sKGxeBSRUp1r2uqsr/+IqGlXeHjGkRaOA=="
+    },
+    {
+      "name": "@tidelight/react",
+      "version": "0.1.2",
+      "integrity": "sha512-J6YAb5xCusJJqCADa3Xui9dTMisIxZTAJKzZuimtVXtR0Pubcp5NBAtFd8ZxO0VhiUXjHvLF/loVbZYmDhwL6Q=="
+    },
+    {
+      "name": "@tidelight/cli",
+      "version": "0.1.2",
+      "integrity": "sha512-Dxni+MDd918GDuPuNxMdltUObPvLPhLdkmuvdoDPtV9Tq1nXuHTQrIQF5x/iSP/UfIosgU9+mq4cGNWuaNmVmQ=="
+    }
+  ],
+  "checks": {
+    "sdk_exports": [
+      "TidelightApiError",
+      "TidelightClient"
+    ],
+    "react_import": true,
+    "react_exports": [
+      "TidelightProvider",
+      "TokenizedEquityGrid",
+      "useResearchJob",
+      "useStartCompanyResearch",
+      "useTidelightClient",
+      "useTokenizedEquities"
+    ],
+    "cli_bin": {
+      "tidelight": "./dist/bin.js"
+    },
+    "mcp_bin": {
+      "tidelight-mcp": "bin/tidelight-mcp.mjs"
+    }
+  }
+}

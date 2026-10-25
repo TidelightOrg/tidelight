@@ -142,6 +142,25 @@ export default function JudgePage() {
       </div>
     </section>
 
+    <section className="judge-section judge-test-video" id="fresh-sdk-mcp-research-run" aria-labelledby="fresh-run-title">
+      <div className="judge-section-heading">
+        <div><span className="judge-kicker">FRESH · 25 OCTOBER 2026 · TERMINAL REPLAY</span><h2 id="fresh-run-title">Published SDK and MCP checks passed.</h2></div>
+        <p>Redacted terminal-session replay from the clean consumer install. It is not a browser screen recording and contains no report bodies or credentials.</p>
+      </div>
+      <div className="judge-route-capture-status" role="status">
+        <span className="judge-route-capture-icon" aria-hidden="true">✓</span>
+        <div><strong>npm + PyPI install/import, CLI, stdio MCP, and direct MCP checks passed.</strong><small>npm SDK started AAPL; Python SDK polled the same job to complete; direct MCP started a bounded MSFT job.</small></div>
+        <span className="judge-route-capture-badge">VERIFIED</span>
+      </div>
+      <div className="judge-inline-actions">
+        <a href="/evidence/judge-sdk-mcp-research-video-20261025/terminal-session-replay.mp4">Play terminal-session replay <span aria-hidden="true">↗</span></a>
+        <a href="/evidence/judge-sdk-mcp-research-video-20261025/terminal-session.cast">Source cast <span aria-hidden="true">↓</span></a>
+        <a href="/evidence/judge-sdk-mcp-research-video-20261025/README.md">Read verified results <span aria-hidden="true">↗</span></a>
+        <a href="/evidence/judge-sdk-mcp-research-video-20261025/package-check.json">Versions and integrities <span aria-hidden="true">↗</span></a>
+        <a href="/evidence/judge-sdk-mcp-research-video-20261025/SHA256SUMS.txt">SHA-256 manifest <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+
     <section className="judge-section judge-nightwatch" aria-labelledby="nightwatch-title">
       <div className="judge-capture-heading">
         <div className="judge-capture-title">

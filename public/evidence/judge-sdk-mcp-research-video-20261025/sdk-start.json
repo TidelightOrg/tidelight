@@ -1,0 +1,11 @@
+{
+  "client": "@tidelight/sdk@0.1.2",
+  "operation": "startCompanyResearch",
+  "ticker": "AAPL",
+  "idempotency_key": "judge-20261025-48449632-0fc7-4644-abf9-fdb1d150c546",
+  "at": "2026-10-25T18:49:46.194Z",
+  "status": "queued",
+  "job_id": "47e753ed-7f0d-43ed-81c7-b7e864280a07",
+  "request_id": "9057f417-38a8-4b24-b675-25626b3189d5",
+  "duplicate": false
+}
