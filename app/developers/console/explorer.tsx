@@ -84,6 +84,7 @@ export default function ApiExplorer({ projects, keys, requests, currentTime, onV
       setActiveHistoryId(entry.id);
     } finally {
       setBusy(false);
+      void onRefresh();
     }
   }
 
