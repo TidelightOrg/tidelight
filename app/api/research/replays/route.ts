@@ -22,10 +22,10 @@ function publicSourceUrl(value: unknown, allowedSources: Set<string>): string | 
 function replayLabel(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const label = value.trim();
-  // Token-pulse inputs can be human-readable market names (for example, "S&P 500"
-  // or "BTC:USDT"), not only exchange ticker symbols. Keep the accepted characters
-  // bounded and inert while preserving those legitimate labels.
-  return label.length <= 40 && /^[\p{L}\p{N}][\p{L}\p{N} ._/&+():$^-]{0,39}$/u.test(label) ? label : null;
+  // Token-pulse inputs can be full company and market names, not only short
+  // exchange symbols. Keep labels bounded and inert while allowing common name
+  // punctuation such as commas and apostrophes (for example, "Johnson & Johnson, Inc.").
+  return label.length <= 80 && /^[\p{L}\p{N}][\p{L}\p{N} .,_/&+():$^%'-]{0,79}$/u.test(label) ? label : null;
 }
 
 function replayText(row: Record<string, unknown>, ...keys: string[]): string | null {
