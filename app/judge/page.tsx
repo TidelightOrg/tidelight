@@ -210,7 +210,7 @@ export default function JudgePage() {
         <article><span>AI SYNTHESIS</span><strong>2 / 10</strong><small>Two runs returned model synthesis; eight were source-only or had no synthesis.</small></article>
         <article><span>INTERNAL REVIEW</span><strong>2.5 / 10</strong><small>Single-reviewer descriptive score; protocol claim-quality score remains pending.</small></article>
       </div>
-      <p className="judge-section-note">The 2.5/10 score is my provisional product judgment from the ten captured outputs: synthesis appeared in 2/10 runs, both with material evidence concerns, while eight returned source-only or no usable synthesis. It is not a verified factual-accuracy rate. The formal protocol score remains pending two independent labels and adjudication for every displayed claim. Task time was not measured; the September CPI run also included visibly off-topic sources.</p>
+      <p className="judge-section-note">On this ten-run sample, only two outputs included model synthesis; both raised material evidence concerns. Eight were source-only or had no usable synthesis. The 2.5/10 figure is a provisional single-reviewer product assessment, not a factual-accuracy rate. Formal claim-quality scoring is pending independent labels and adjudication; task time was not measured. The September CPI run included off-topic sources.</p>
       <details className="judge-benchmark-run-table" open>
         <summary>Run-by-run production captures</summary>
         <div className="judge-benchmark-table-scroll"><table>
