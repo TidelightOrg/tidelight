@@ -21,9 +21,14 @@ test("mobile use-case navigation follows the grouped directory and localizes its
   assert.match(page, /<LandingUseCaseMenuLinks\s*\/>/);
   assert.match(menu, /useLanguage\(\)/);
   assert.match(menu, /#use-case-group-\$\{index\}/);
+  assert.match(menu, /tidelight:reveal-use-cases/);
+  assert.match(menu, /scrollIntoView/);
   assert.match(menu, /公司事件/);
   assert.match(menu, /决策流程/);
   assert.match(menu, /aria-label=\{t\("Use case categories"/);
+  const useCases = await read("../app/ui/landing-use-cases.tsx");
+  assert.match(useCases, /tidelight:reveal-use-cases/);
+  assert.doesNotMatch(useCases, /<span className=\{styles\.cardCategory\}>/);
 });
 
 test("shared signature footer exposes real research, developer, package, and trust destinations", async () => {
