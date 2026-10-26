@@ -1,6 +1,7 @@
 .footer{--sf-bg:#081112;--sf-panel:#0c1918;--sf-line:#263b36;--sf-text:#edf6f1;--sf-muted:#96aaa2;--sf-accent:#9ce7c1;position:relative;isolation:isolate;overflow:hidden;margin:45px auto 0;padding:0 clamp(22px,5vw,68px);border-top:1px solid var(--sf-line);background:radial-gradient(ellipse at 79% 4%,#1a574429,transparent 34%),linear-gradient(180deg,var(--sf-bg),color-mix(in srgb,var(--sf-bg) 88%,#163b34));color:var(--sf-text)}
 .top,.directory,.bottom{max-width:1240px;margin:0 auto}
 .top{display:grid;grid-template-columns:minmax(230px,.8fr) minmax(300px,1.2fr);align-items:center;gap:30px;padding:50px 0 42px;border-bottom:1px solid var(--sf-line)}
+:global(.tic-packages-page) .top{display:grid}
 .brandPanel{position:relative;z-index:1}
 .brand{display:inline-flex;align-items:center;gap:11px;color:var(--sf-text);text-decoration:none}
 .brand>span{display:grid;gap:4px}
@@ -19,6 +20,7 @@
 .signal circle{fill:#c4f4d7;filter:drop-shadow(0 0 5px #9ce7c1)}
 .signal>span{position:absolute;right:18px;bottom:12px;color:#8bb0a0;font:7px var(--mono);letter-spacing:.15em}
 .directory{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:35px;padding:31px 0 35px}
+:global(.tic-packages-page) .directory{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:35px}
 .directory section{display:flex;flex-direction:column;align-items:flex-start;gap:10px}
 .directory h2{margin:0 0 4px;color:var(--sf-text);font:600 11px var(--mono);letter-spacing:.09em;text-transform:uppercase}
 .directory a,.bottom a{color:var(--sf-muted);font-size:11px;text-decoration:none;transition:color .16s,transform .16s}

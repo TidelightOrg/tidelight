@@ -41,4 +41,5 @@ test("shared signature footer exposes real research, developer, package, and tru
   assert.match(useCaseStyles, /data-path-count="3"/);
   assert.match(useCaseStyles, /data-path-count="2"/);
   assert.match(useCaseStyles, /@media\(max-width:520px\)/);
+  assert.match(styles, /:global\(\.tic-packages-page\) \.directory\{display:grid/);
 });
