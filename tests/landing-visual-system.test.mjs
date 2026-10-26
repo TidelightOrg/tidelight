@@ -37,4 +37,8 @@ test("shared signature footer exposes real research, developer, package, and tru
   assert.match(styles, /data-theme="blue"/);
   assert.match(styles, /prefers-reduced-motion:reduce/);
   assert.match(styles, /@media\(max-width:700px\)/);
+  const useCaseStyles = await read("../app/ui/landing-use-cases.module.css");
+  assert.match(useCaseStyles, /data-path-count="3"/);
+  assert.match(useCaseStyles, /data-path-count="2"/);
+  assert.match(useCaseStyles, /@media\(max-width:520px\)/);
 });

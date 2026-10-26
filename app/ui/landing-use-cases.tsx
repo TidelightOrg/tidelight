@@ -89,7 +89,7 @@ export default function LandingUseCases() {
         const note = categoryNotes[group];
         return <section className={styles.group} key={group} aria-labelledby={`use-case-group-${groupIndex}`}>
           <header className={styles.groupHead}><div><span>{String(groupIndex + 1).padStart(2, "0")} / {translate(note.eyebrow)}</span><h3 id={`use-case-group-${groupIndex}`}>{translate(group)}</h3></div><p>{translate(note.summary)}</p><span className={styles.groupCount}>{String(groupCases.length).padStart(2, "0")} PATHS</span></header>
-          <div className={styles.groupGrid}>{groupCases.map((item, index) => <article className={styles.card} key={item.title}>
+          <div className={styles.groupGrid} data-path-count={groupCases.length}>{groupCases.map((item, index) => <article className={styles.card} key={item.title}>
             <div className={styles.cardTop}><span className={styles.cardMark} aria-hidden="true"><span>{item.mark}</span><i/></span><span className={styles.index}>{String(index + 1).padStart(2, "0")}</span></div>
             <span className={styles.cardCategory}>{translate(item.category)}</span>
             <h4>{translate(item.title)}</h4>
