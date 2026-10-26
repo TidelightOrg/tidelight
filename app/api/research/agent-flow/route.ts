@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getServerAuthState } from "@/lib/supabase/auth-user";
 import { aiJsonWithFallback, configuredAiProviders } from "@/lib/ai-fallback";
 import { getBitgetAsset, getBitgetCandles, getBitgetStockPerp, getIssuerName, STOCK_PERP_UNIVERSE } from "@/lib/bitget-market";
 import { buildSignals, prepareBacktestCandles } from "@/lib/backtest";
@@ -36,9 +37,11 @@ function event(type: "stage" | "result" | "error", payload: unknown) {
 }
 
 export async function GET(request: Request) {
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return NextResponse.json({ error: "Sign in to reopen saved research." }, { status: 401, headers: { "Cache-Control": "no-store" } });
+  const auth = await getServerAuthState();
+  const { user } = auth;
+  if (auth.errorCode) return NextResponse.json({ error: "Tidelight could not verify your sign-in just now. Please retry shortly." }, { status: 503, headers: { "Cache-Control": "no-store" } });
+  if (!user) return NextResponse.json({ error: "Sign in to reopen saved research." }, { status: 401, headers: { "Cache-Control": "no-store" } });
+  const supabase = createAdminClient();
   const id = new URL(request.url).searchParams.get("id") ?? "";
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) return NextResponse.json({ error: "A valid research record is required." }, { status: 400, headers: { "Cache-Control": "no-store" } });
   const { data, error } = await supabase.from("research_runs").select("summary").eq("id", id).eq("user_id", user.id).eq("event_type", "agent_flow").eq("status", "complete").maybeSingle();
@@ -49,9 +52,11 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   // Reserve time for the final gates and private record commit under maxDuration.
   const analysisDeadline = Date.now() + 108_000;
-  const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
-  if (authError || !user) return NextResponse.json({ error: "Sign in to start a private research flow." }, { status: 401 });
+  const auth = await getServerAuthState();
+  const { user } = auth;
+  if (auth.errorCode) return NextResponse.json({ error: "Tidelight could not verify your sign-in just now. Please retry shortly." }, { status: 503 });
+  if (!user) return NextResponse.json({ error: "Sign in to start a private research flow." }, { status: 401 });
+  const supabase = createAdminClient();
   let body: { question?: unknown; contextRunId?: unknown; workspaceContext?: unknown; researchMonitorId?: unknown; researchMonitorRevision?: unknown };
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Send a valid question." }, { status: 400 }); }
   const question = typeof body.question === "string" ? body.question.trim().replace(/\s+/g, " ") : "";
@@ -89,7 +94,7 @@ export async function POST(request: Request) {
   if (monitor && (!tickers.includes(monitor.ticker) || macroTopic)) return NextResponse.json({ error: `Name ${monitor.ticker} in the company research question for this monitor.` }, { status: 422 });
   if (!tickers.length && !macroTopic) return NextResponse.json({ error: "Name a supported US stock, or ask about a dated FOMC, CPI, or employment release." }, { status: 422 });
   const hourAgo = new Date(Date.now() - 3_600_000).toISOString();
-  const { count, error: limitError } = await supabase.from("research_runs").select("id", { count: "exact", head: true }).gte("created_at", hourAgo);
+  const { count, error: limitError } = await supabase.from("research_runs").select("id", { count: "exact", head: true }).eq("user_id", user.id).gte("created_at", hourAgo);
   if (limitError) return NextResponse.json({ error: "Research capacity could not be checked. Retry shortly." }, { status: 503 });
   if ((count ?? 0) >= 10) return NextResponse.json({ error: "You’ve reached the hourly research limit. Try again later." }, { status: 429 });
   const { data: run, error: runError } = await supabase.from("research_runs").insert({ user_id: user.id, question, status: "collecting", event_type: "agent_flow" }).select("id").single();
@@ -125,7 +130,7 @@ export async function POST(request: Request) {
             const { error } = await supabase.from("research_sources").upsert(allSources, { onConflict: "research_run_id,url", ignoreDuplicates: true });
             if (error) throw new Error(`source-record-failed:${error.code}`);
           }
-          const { error: analyzingError } = await supabase.from("research_runs").update({ status: "analyzing" }).eq("id", run.id);
+          const { error: analyzingError } = await supabase.from("research_runs").update({ status: "analyzing" }).eq("id", run.id).eq("user_id", user.id);
           if (analyzingError) throw new Error(`research-status-failed:${analyzingError.code}`);
           stage("Research analyst", "running", "Separating data from interpretation", "Summarizing official measurements and policy decisions separately from independent reporting and market expectations.");
           const assessments: Record<string, FlowAssessment> = {};
@@ -159,7 +164,7 @@ export async function POST(request: Request) {
           };
           stage("Coordinator", "complete", "Macro research ready", "The macro brief is saved privately. It contains no stock signal, quote, or trade handoff.");
           const result = { researchRunId: run.id, question, researchType: "macro" as const, macroTopic, synthesis: synthesisProvider ? { mode: "model" as const, provider: synthesisProvider } : { mode: "source_only" as const, provider: null }, researchCoverage: { mode: "macro", lookbackDays: macroResearchLookbackDays(question), queriesPerTicker: buildMacroNewsQueries(question).length * 2, collectedItems: macroSources.length, publishers: new Set(macroSources.map(source => source.publisher)).size, sourceDomains: new Set(macroSources.map(source => source.publisherDomain)).size, collectedAt: new Date().toISOString(), limitations: ["Macro coverage is bounded to Federal Reserve/BLS sources and an allowlist of independent publishers.", "Market expectations are reporting context, not a policy outcome or forecast."] }, assets: [asset], tradeable: false, trace, contextRunId, ...(workspaceContext ? { workspaceContext } : {}) };
-          const { error: saveError } = await supabase.from("research_runs").update({ status: "complete", completed_at: new Date().toISOString(), summary: result }).eq("id", run.id);
+          const { error: saveError } = await supabase.from("research_runs").update({ status: "complete", completed_at: new Date().toISOString(), summary: result }).eq("id", run.id).eq("user_id", user.id);
           if (saveError) {
             stage("Coordinator", "blocked", "Private trace could not be saved", "No trading handoff was offered because the macro research record was not committed.");
             throw new Error(`research-save-failed:${saveError.code}`);
@@ -213,7 +218,7 @@ export async function POST(request: Request) {
           const { error } = await supabase.from("research_sources").upsert(allSources, { onConflict: "research_run_id,url", ignoreDuplicates: true });
           if (error) throw new Error(`source-record-failed:${error.code}`);
         }
-        const { error: analyzingError } = await supabase.from("research_runs").update({ status: "analyzing" }).eq("id", run.id);
+        const { error: analyzingError } = await supabase.from("research_runs").update({ status: "analyzing" }).eq("id", run.id).eq("user_id", user.id);
         if (analyzingError) throw new Error(`research-status-failed:${analyzingError.code}`);
 
         stage("Research analyst", "running", "Cross-checking the evidence", "Reviewing primary issuer excerpts alongside headline coverage for corroboration, disagreement, timing, and exact source links. Excerpts remain partial and are not treated as complete filings.");
@@ -274,7 +279,7 @@ export async function POST(request: Request) {
         push("result", { ...result, researchMonitorId: monitor?.id ?? null, ...(monitor ? { monitorObservationSaved } : {}) });
       } catch (cause) {
         console.error("agent-flow-failed", cause instanceof Error ? cause.message : "unknown");
-        await supabase.from("research_runs").update({ status: "failed", completed_at: new Date().toISOString(), summary: { trace, error: "The market or research workflow did not complete." } }).eq("id", run.id);
+        await supabase.from("research_runs").update({ status: "failed", completed_at: new Date().toISOString(), summary: { trace, error: "The market or research workflow did not complete." } }).eq("id", run.id).eq("user_id", user.id);
         push("error", { error: "The research workflow could not finish. No paper or live order was placed." });
       } finally {
         try { controller.close(); } catch {}
