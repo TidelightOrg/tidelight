@@ -35,16 +35,31 @@ const zh: Record<string, string> = {
   "Show all use cases": "显示全部用例", "Every path begins with a question you can edit.": "每条流程都从一个可编辑的问题开始。", "Open the research desk": "打开研究工作台",
 };
 
-const useCases: Array<{ title: string; category: Exclude<Category, "All use cases">; description: string; question: string; mark: string }> = [
-  { title: "After-hours earnings", category: "Company events", description: "Check what changed after a company update and which evidence could change the reading.", question: "What changed for NVDA after its latest earnings, and which risks could alter the view?", mark: "EV" },
-  { title: "Compare two companies", category: "Company events", description: "Review recent evidence side by side while keeping each issuer’s risks distinct.", question: "Compare NVDA and TSLA using recent evidence and show the risks for each company.", mark: "VS" },
-  { title: "Company catalysts", category: "Company events", description: "Gather current public catalysts and the uncertainties that still need a closer look.", question: "What are the latest public catalysts and key uncertainties for MSFT?", mark: "CA" },
-  { title: "Review a tokenized market", category: "Tokenized markets", description: "Separate issuer coverage from instrument context, quote freshness, and market limitations.", question: "Is the rNVDA market worth reviewing? Separate issuer evidence from tokenized-market limits.", mark: "TK" },
-  { title: "Check quote freshness", category: "Tokenized markets", description: "See whether the available quote context is current enough to support a market review.", question: "Review current market context for rAAPL and flag stale or unavailable quotes.", mark: "QT" },
-  { title: "Connect a macro event", category: "Macro context", description: "Keep official economic facts separate from their possible market interpretation.", question: "How might the latest Federal Reserve decision affect tokenized US equity markets? Separate facts from interpretation.", mark: "MC" },
-  { title: "Review risk before a decision", category: "Decision workflows", description: "Inspect supporting evidence, counterpoints, exposure, and the existing research gate.", question: "Review current evidence and risks for AAPL before I consider a paper strategy.", mark: "RK" },
-  { title: "Inspect a strategy idea", category: "Decision workflows", description: "Start with a research question, then continue to the strategy lab to test a rule on unseen data.", question: "What recent evidence and risks should I review for NVDA before testing a paper strategy?", mark: "ST" },
+const useCases: Array<{ title: string; category: Exclude<Category, "All use cases">; description: string; question: string; icon: string }> = [
+  { title: "After-hours earnings", category: "Company events", description: "Check what changed after a company update and which evidence could change the reading.", question: "What changed for NVDA after its latest earnings, and which risks could alter the view?", icon: "pulse" },
+  { title: "Compare two companies", category: "Company events", description: "Review recent evidence side by side while keeping each issuer’s risks distinct.", question: "Compare NVDA and TSLA using recent evidence and show the risks for each company.", icon: "compare" },
+  { title: "Company catalysts", category: "Company events", description: "Gather current public catalysts and the uncertainties that still need a closer look.", question: "What are the latest public catalysts and key uncertainties for MSFT?", icon: "spark" },
+  { title: "Review a tokenized market", category: "Tokenized markets", description: "Separate issuer coverage from instrument context, quote freshness, and market limitations.", question: "Is the rNVDA market worth reviewing? Separate issuer evidence from tokenized-market limits.", icon: "market" },
+  { title: "Check quote freshness", category: "Tokenized markets", description: "See whether the available quote context is current enough to support a market review.", question: "Review current market context for rAAPL and flag stale or unavailable quotes.", icon: "clock" },
+  { title: "Connect a macro event", category: "Macro context", description: "Keep official economic facts separate from their possible market interpretation.", question: "How might the latest Federal Reserve decision affect tokenized US equity markets? Separate facts from interpretation.", icon: "globe" },
+  { title: "Review risk before a decision", category: "Decision workflows", description: "Inspect supporting evidence, counterpoints, exposure, and the existing research gate.", question: "Review current evidence and risks for AAPL before I consider a paper strategy.", icon: "shield" },
+  { title: "Inspect a strategy idea", category: "Decision workflows", description: "Start with a research question, then continue to the strategy lab to test a rule on unseen data.", question: "What recent evidence and risks should I review for NVDA before testing a paper strategy?", icon: "path" },
 ];
+
+function UseCaseIcon({ name }: { name: string }) {
+  const common = { fill: "none", stroke: "currentColor", strokeWidth: 1.65, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
+  const shapes: Record<string, React.ReactNode> = {
+    pulse: <><path d="M4 12h4l2.1-5 3.8 10 2.1-5H20"/><path d="M4.8 5.2A9 9 0 1 1 4 18.7"/></>,
+    compare: <><path d="M4 7h12M13 4l3 3-3 3M20 17H8m3-3-3 3 3 3"/><path d="M6 4v16"/></>,
+    spark: <><path d="m12 3 1.7 5.3L19 10l-5.3 1.7L12 17l-1.7-5.3L5 10l5.3-1.7L12 3Z"/><path d="m19 15 .9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9L19 15Z"/></>,
+    market: <><path d="M4 18.5V6.7L12 3l8 3.7v11.8L12 22l-8-3.5Z"/><path d="m4.5 7 7.5 3.5L19.5 7M12 10.8V21"/><circle cx="17.4" cy="13.7" r="1.4"/></>,
+    clock: <><circle cx="12" cy="12" r="8.5"/><path d="M12 7v5l3.5 2"/><path d="M5 3 3 5M19 3l2 2"/></>,
+    globe: <><circle cx="12" cy="12" r="9"/><path d="M3.5 9h17M3.5 15h17M12 3c2.2 2.4 3.3 5.4 3.3 9S14.2 18.6 12 21M12 3C9.8 5.4 8.7 8.4 8.7 12S9.8 18.6 12 21"/></>,
+    shield: <><path d="M12 3 19 6v5.1c0 4.7-2.9 7.8-7 9.9-4.1-2.1-7-5.2-7-9.9V6l7-3Z"/><path d="m9 12 2 2 4-4"/></>,
+    path: <><circle cx="6" cy="6" r="2"/><circle cx="18" cy="18" r="2"/><path d="M8 6h4a4 4 0 0 1 4 4v4a4 4 0 0 0 4 4M6 8v7a3 3 0 0 0 3 3h7"/></>,
+  };
+  return <svg viewBox="0 0 24 24" aria-hidden="true" {...common}>{shapes[name] ?? shapes.pulse}</svg>;
+}
 
 const categoryNotes: Record<Exclude<Category, "All use cases">, { eyebrow: string; summary: string }> = {
   "Company events": { eyebrow: "ISSUER INTELLIGENCE", summary: "Earnings, comparisons, and catalysts" },
@@ -73,6 +88,16 @@ export default function LandingUseCases() {
   });
 
   return <section className={styles.section} id="use-cases" aria-labelledby="landing-use-cases-title">
+    <aside className={styles.directoryRail} aria-label={translate("Use case categories")}>
+      <span>{translate("USE CASES")}</span>
+      {categoryGroups.map((group, index) => <a key={group} href={`#use-case-group-${index}`} onClick={(event) => {
+        event.preventDefault();
+        setCategory("All use cases");
+        setQuery("");
+        window.history.replaceState(null, "", `#use-case-group-${index}`);
+        window.setTimeout(() => document.getElementById(`use-case-group-${index}`)?.scrollIntoView({ behavior: "smooth", block: "center" }), 0);
+      }}><i aria-hidden="true"><UseCaseIcon name={["pulse", "market", "globe", "shield"][index]} /></i><span>{translate(group)}</span><b aria-hidden="true">↗</b></a>)}
+    </aside>
     <div className={styles.heading}>
       <div>
         <span className="landing-kicker"><i /> {translate("A CLEAR PLACE TO BEGIN")}</span>
@@ -98,9 +123,8 @@ export default function LandingUseCases() {
         return <section className={styles.group} key={group} aria-labelledby={`use-case-group-${groupIndex}`}>
           <header className={styles.groupHead}><div><span>{String(groupIndex + 1).padStart(2, "0")} / {translate(note.eyebrow)}</span><h3 id={`use-case-group-${groupIndex}`}>{translate(group)}</h3></div><p>{translate(note.summary)}</p><span className={styles.groupCount}>{String(groupCases.length).padStart(2, "0")} PATHS</span></header>
           <div className={styles.groupGrid} data-path-count={groupCases.length}>{groupCases.map((item, index) => <article className={styles.card} key={item.title}>
-            <div className={styles.cardTop}><span className={styles.cardMark} aria-hidden="true"><span>{item.mark}</span><i/></span><span className={styles.index}>{String(index + 1).padStart(2, "0")}</span></div>
-            <h4>{translate(item.title)}</h4>
-            <p>{translate(item.description)}</p>
+            <div className={styles.cardTop}><span className={styles.cardMark}><UseCaseIcon name={item.icon} /></span><span className={styles.index}>{String(index + 1).padStart(2, "0")}</span></div>
+            <div className={styles.cardCopy}><h4>{translate(item.title)}</h4><p>{translate(item.description)}</p></div>
             <Link href={`/flow?question=${encodeURIComponent(translate(item.question))}`} aria-label={`${translate("Open research path")} — ${translate(item.title)}`}>
               {translate("Open research path")} <span aria-hidden="true">↗</span>
             </Link>

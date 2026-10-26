@@ -142,6 +142,12 @@
 /* The landing header shares the workspace theme controls without changing them there. */
 .landing-nav-actions{display:flex;align-items:center;gap:18px}
 .landing-nav-actions .landing-nav-links{gap:22px}
+.landing-nav{gap:clamp(20px,3vw,48px)}
+.landing-brand{flex:none;position:relative;z-index:1;gap:10px;white-space:nowrap}
+.landing-nav-actions{flex:1;min-width:0;justify-content:flex-end}
+.landing-nav-links{gap:clamp(13px,1.55vw,22px)!important}
+.landing-nav-links a{white-space:nowrap}
+@media(min-width:801px) and (max-width:1120px){.landing-nav{gap:18px}.landing-nav-actions .landing-nav-links{gap:12px!important}.landing-nav-links a{font-size:10px}.landing-nav-actions{gap:11px}}
 .landing-nav-workspace{display:inline-flex;align-items:center;min-height:36px;padding:0 13px;border:1px solid #62d6ad66;border-radius:7px;color:#a6f4d0;text-decoration:none;font-size:11px;transition:background .18s,border-color .18s}
 .landing-nav-workspace:hover{border-color:#80e4bf;background:#62d6ad12}
 :root:is([data-theme="daylight"], [data-theme="white"]) .landing-nav-workspace{border-color:#a7c9ae;color:#286a4d}
