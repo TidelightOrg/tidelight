@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0.0",
   "title": "Tidelight Research Monitor production verification",
-  "generated_at": "2026-10-26T20:58:43+01:00",
+  "generated_at": "2026-10-26T20:05:28Z",
   "result": "passed_with_scope_limits",
   "product": "Tidelight",
   "production": {
@@ -29,7 +29,7 @@
       "name": "Automated test suite",
       "status": "passed",
       "result": "315 passed; 0 failed.",
-      "source": "PR #412 verification run"
+      "source": "PR #412 verification run 40392249667"
     },
     {
       "name": "TypeScript",
@@ -72,7 +72,7 @@
     },
     {
       "name": "CI workflow run",
-      "uri": "https://github.com/TidelightOrg/tidelight/actions/runs/40391881625"
+      "uri": "https://github.com/TidelightOrg/tidelight/actions/runs/40392249667"
     }
   ],
   "scope_note": "This is a production UI smoke verification plus automated code checks. It does not claim end-to-end production CRUD validation or investment performance."
