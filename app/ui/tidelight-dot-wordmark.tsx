@@ -132,7 +132,9 @@ export default function TidelightDotWordmark({ className }: { className?: string
     };
 
     const observer = new ResizeObserver(buildField);
+    const themeObserver = new MutationObserver(buildField);
     observer.observe(canvas);
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
     buildField();
     if (!reducedMotion.matches) frame = window.requestAnimationFrame(animate);
     const onMotionChange = () => {
@@ -149,6 +151,7 @@ export default function TidelightDotWordmark({ className }: { className?: string
       running = false;
       window.cancelAnimationFrame(frame);
       observer.disconnect();
+      themeObserver.disconnect();
       reducedMotion.removeEventListener("change", onMotionChange);
     };
   }, []);
