@@ -104,12 +104,11 @@ export function useExperience() {
 }
 
 export function ThemeQuickSwitch() {
-  const { theme, preference, setTheme } = useContext(ThemeContext);
+  const { theme, setTheme } = useContext(ThemeContext);
   return <div className="theme-quick-switch" role="group" aria-label="Quick theme switcher">
     {themes.map((option) => <button type="button" key={option.id} className={`theme-quick-option${theme === option.id ? " selected" : ""}`} aria-label={`Use ${option.name} theme`} aria-pressed={theme === option.id} onClick={() => setTheme(option.id)}>
       <span className="theme-quick-swatch" style={{ backgroundColor: option.swatches[0], borderColor: option.swatches[1] }} aria-hidden="true" />
     </button>)}
-    <span className="theme-quick-label" aria-hidden="true">{preference === "auto" ? `Auto · ${themes.find((option) => option.id === theme)?.name}` : themes.find((option) => option.id === theme)?.name}</span>
   </div>;
 }
 
