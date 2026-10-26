@@ -26,7 +26,7 @@ test("monitor schema enforces owner-linked immutable history and private tables"
 
 test("each monitor mutation authenticates and uses owner-aware database functions", async () => {
   const actions = await readFile(files.actions, "utf8");
-  assert.equal(actions.split("getServerUser()").length - 1, 3);
+  assert.equal(actions.split("supabase.auth.getUser()").length - 1, 3);
   assert.match(actions, /create_research_monitor/);
   assert.match(actions, /update_research_monitor_thesis/);
   assert.match(actions, /set_research_monitor_status/);
@@ -58,6 +58,7 @@ test("active monitors are independent of paginated archived monitors", async () 
   const page = await readFile(new URL("../app/monitor/page.tsx", import.meta.url), "utf8");
   const ui = await readFile(files.ui, "utf8");
   assert.ok(page.includes('.eq("status", "active")'));
+  assert.ok(page.includes("supabase.auth.getUser()"));
   assert.ok(page.includes('.eq("status", "archived")'));
   assert.ok(page.includes("archivedPageSize"));
   assert.ok(ui.includes('aria-label="Archived monitor pages"'));
