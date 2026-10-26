@@ -64,6 +64,16 @@ export default function LandingPage() {
     <LandingDocsEmbed />
     <section className="landing-method"><div><span className="landing-kicker">THE TIDELIGHT METHOD</span><h2>One question in.<br /><em>One clearer next step out.</em></h2><p>Tide helps you ask naturally. Market research brings together current evidence and exposure. A clear activity trace shows each check. You stay in control of the decision.</p></div><Link href="/flow">Explore market research <NavigationTrail className="landing-arrow" /></Link></section>
     <section className="landing-bottom"><div><span className="landing-kicker">BUILT FOR MARKETS THAT NEVER SLEEP</span><h2>Start with the question<br /><em>you actually have.</em></h2></div><Link className="landing-primary" href="/overview">Enter your workspace <NavigationTrail className="landing-arrow" /></Link></section>
+    <section className="landing-ecosystem" aria-labelledby="landing-ecosystem-title">
+      <div className="landing-ecosystem-heading"><span className="landing-kicker">TIDELIGHT ECOSYSTEM</span><h2 id="landing-ecosystem-title">Explore the ecosystem</h2></div>
+      <div className="landing-ecosystem-grid">
+        <a className="landing-ecosystem-link" href="https://dev.tidelight.app/"><span className="landing-ecosystem-index">01</span><strong>Developer docs</strong><small>Guides and API reference</small><NavigationTrail className="landing-arrow" /></a>
+        <a className="landing-ecosystem-link" href="https://package.tidelight.app/"><span className="landing-ecosystem-index">02</span><strong>Packages</strong><small>SDK, MCP, Python, React, and CLI</small><NavigationTrail className="landing-arrow" /></a>
+        <Link className="landing-ecosystem-link" href="/developers/console"><span className="landing-ecosystem-index">03</span><strong>Console</strong><small>API explorer</small><NavigationTrail className="landing-arrow" /></Link>
+        <Link className="landing-ecosystem-link" href="/developers/integrations"><span className="landing-ecosystem-index">04</span><strong>Integration guides</strong><small>Choose between API, MCP, and packages</small><NavigationTrail className="landing-arrow" /></Link>
+        <Link className="landing-ecosystem-link" href="/developers/support"><span className="landing-ecosystem-index">05</span><strong>Human support</strong><small>Talk directly with the Tidelight team</small><NavigationTrail className="landing-arrow" /></Link>
+      </div>
+    </section>
     <footer className="landing-footer"><span>© 2026 Tidelight Research</span><span>Clarity when the bell is quiet.</span><div><Link href="/developers">Developers</Link><Link href="/judge">Judge Mode</Link><Link href="/status">System status</Link><Link href="https://blogs.tidelight.app">Field Notes</Link><Link href="/terms">Terms</Link><Link href="/privacy">Privacy</Link><a href="mailto:support@tidelight.app">Contact</a></div></footer>
   </main>;
 }
