@@ -75,7 +75,7 @@ export default function LandingSystemStatus() {
       <span className="landing-status-orbit landing-status-orbit-one" />
       <span className="landing-status-orbit landing-status-orbit-two" />
       <span className="landing-status-center"><i /><b>{language === "zh-CN" ? status?.status === "degraded" ? "关注" : status?.status === "operational" ? "正常" : "状态" : status?.status === "degraded" ? "Review" : status?.status === "operational" ? "Live" : "Status"}</b><small>{language === "zh-CN" ? "服务检查" : "Service checks"}</small></span>
-      <span className="landing-status-visual-label">{language === "zh-CN" ? "实时状态快照" : "LIVE SNAPSHOT"}</span>
+      <span className="landing-status-visual-label">{status ? language === "zh-CN" ? "实时状态快照" : "LIVE SNAPSHOT" : unavailable ? language === "zh-CN" ? "状态暂不可用" : "STATUS UNAVAILABLE" : language === "zh-CN" ? "正在检查状态" : "CHECKING STATUS"}</span>
     </div>
     <div className="landing-status-summary" role="status" aria-live="polite">
       <span className="landing-status-light" aria-hidden="true" />
