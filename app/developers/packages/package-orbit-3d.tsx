@@ -58,7 +58,14 @@ export function PackageOrbit3D({ motionTargetSelector = ".tic-package-constellat
     }
 
     const onThemeChange = () => {
-      accentColor.setStyle(themeAccent());
+      const nextAccent = themeAccent();
+      scene.traverse(object => {
+        if (!(object instanceof THREE.Mesh)) return;
+        const materials = Array.isArray(object.material) ? object.material : [object.material];
+        materials.forEach(material => {
+          if ("color" in material) (material as THREE.MeshBasicMaterial).color.setStyle(nextAccent);
+        });
+      });
       renderer.render(scene, camera);
     };
     const themeObserver = new MutationObserver(onThemeChange);
