@@ -35,17 +35,20 @@ export function PackageOrbit3D({ motionTargetSelector = ".tic-package-constellat
     const group = new THREE.Group();
     scene.add(group);
 
-    const core = new THREE.Mesh(new THREE.IcosahedronGeometry(1.05, 2), new THREE.MeshBasicMaterial({ color: 0x47d7a1, wireframe: true, transparent: true, opacity: 0.56 }));
+    const themeRoot = container.closest<HTMLElement>(".tic") ?? document.documentElement;
+    const themeAccent = () => getComputedStyle(themeRoot).getPropertyValue("--tic-accent").trim() || "#47d7a1";
+    const accentColor = new THREE.Color(themeAccent());
+    const core = new THREE.Mesh(new THREE.IcosahedronGeometry(1.05, 2), new THREE.MeshBasicMaterial({ color: accentColor, wireframe: true, transparent: true, opacity: 0.56 }));
     group.add(core);
-    const inner = new THREE.Mesh(new THREE.IcosahedronGeometry(0.68, 1), new THREE.MeshBasicMaterial({ color: 0x75f0be, wireframe: true, transparent: true, opacity: 0.26 }));
+    const inner = new THREE.Mesh(new THREE.IcosahedronGeometry(0.68, 1), new THREE.MeshBasicMaterial({ color: accentColor, wireframe: true, transparent: true, opacity: 0.26 }));
     group.add(inner);
-    const ringMaterial = new THREE.MeshBasicMaterial({ color: 0x47d7a1, transparent: true, opacity: 0.2, wireframe: true });
+    const ringMaterial = new THREE.MeshBasicMaterial({ color: accentColor, transparent: true, opacity: 0.2, wireframe: true });
     const rings = [new THREE.Mesh(new THREE.TorusGeometry(2.05, 0.008, 4, 120), ringMaterial), new THREE.Mesh(new THREE.TorusGeometry(2.55, 0.006, 4, 120), ringMaterial.clone())];
     rings[0].rotation.set(0.9, 0.3, 0.15);
     rings[1].rotation.set(0.1, 1.05, 0.8);
     rings.forEach(ring => group.add(ring));
     const nodeGeometry = new THREE.SphereGeometry(0.055, 10, 8);
-    const nodeMaterial = new THREE.MeshBasicMaterial({ color: 0x7cf0c2 });
+    const nodeMaterial = new THREE.MeshBasicMaterial({ color: accentColor });
     for (let index = 0; index < 14; index++) {
       const angle = index * Math.PI * 2 / 14;
       const radius = index % 2 ? 2.1 : 2.58;
@@ -53,6 +56,20 @@ export function PackageOrbit3D({ motionTargetSelector = ".tic-package-constellat
       node.position.set(Math.cos(angle) * radius, Math.sin(angle) * radius * 0.56, Math.sin(angle * 2) * 0.48);
       group.add(node);
     }
+
+    const onThemeChange = () => {
+      const nextAccent = themeAccent();
+      scene.traverse(object => {
+        if (!(object instanceof THREE.Mesh)) return;
+        const materials = Array.isArray(object.material) ? object.material : [object.material];
+        materials.forEach(material => {
+          if ("color" in material) (material as THREE.MeshBasicMaterial).color.setStyle(nextAccent);
+        });
+      });
+      renderer.render(scene, camera);
+    };
+    const themeObserver = new MutationObserver(onThemeChange);
+    themeObserver.observe(document.documentElement, { attributes: true, attributeFilter: ["data-theme"] });
 
     const resize = () => {
       const width = Math.max(1, container.clientWidth);
@@ -125,6 +142,7 @@ export function PackageOrbit3D({ motionTargetSelector = ".tic-package-constellat
     return () => {
       if (frame) window.cancelAnimationFrame(frame);
       observer.disconnect();
+      themeObserver.disconnect();
       inViewport.disconnect();
       document.removeEventListener("visibilitychange", onVisibilityChange);
       motionTarget?.removeEventListener("pointermove", onPointerMove);
