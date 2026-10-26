@@ -111,6 +111,43 @@ export default function JudgePage() {
       </div>
     </section>
 
+    <section className="judge-section judge-monitor-verification" id="research-monitor-verification" aria-labelledby="monitor-verification-title">
+      <div className="judge-section-heading">
+        <div><span className="judge-kicker">PRODUCTION VERIFICATION · 26 OCT 2026</span><h2 id="monitor-verification-title">Research Monitor, verified live.</h2></div>
+        <p>Signed-in production captures show the Monitor workspace and its research flow rendering successfully. This record separates automated checks from live account actions.</p>
+      </div>
+
+      <div className="judge-monitor-summary">
+        <div className="judge-monitor-summary-mark" aria-hidden="true">✓</div>
+        <div><span className="judge-monitor-eyebrow">LIVE UI CHECK · PASS</span><h3>Two core research surfaces are ready to review.</h3><p>Monitor opened to its empty-state thesis desk, and Research Flow displayed its question composer and suggested prompts. Both routes loaded without the unavailable-state error.</p></div>
+        <a className="judge-monitor-report-link" href="/evidence/research-monitor-verification-20261026.json">Open full test record <span aria-hidden="true">↗</span></a>
+      </div>
+
+      <div className="judge-monitor-results" aria-label="Verification results">
+        <article className="judge-monitor-result"><span className="judge-monitor-result-status pass">PASS</span><h3>Production routes</h3><p>Signed-in browser smoke check on <a href="https://tidelight.app/monitor">Monitor</a> and <a href="https://tidelight.app/flow">Research Flow</a>.</p></article>
+        <article className="judge-monitor-result"><span className="judge-monitor-result-status pass">PASS</span><h3>Automated checks</h3><p>315 tests passed; TypeScript and clean production build passed. CI: <a href="https://github.com/TidelightOrg/tidelight/actions/runs/40390375180">view workflow run ↗</a>.</p></article>
+        <article className="judge-monitor-result"><span className="judge-monitor-result-status note">PASS · NOTES</span><h3>Lint</h3><p>Passed with 10 pre-existing warnings, unrelated to the Monitor changes.</p></article>
+        <article className="judge-monitor-result"><span className="judge-monitor-result-status limited">NOT RUN</span><h3>Production data changes</h3><p>Create, edit, and archive were not submitted in production; no fabricated thesis was written to a personal workspace.</p></article>
+      </div>
+
+      <div className="judge-monitor-capture-heading"><div><span className="judge-kicker">CAPTURED FROM PRODUCTION</span><h3>What the live workspace showed</h3></div><p>Captured 26 Oct 2026 · account details cropped from the public images.</p></div>
+      <div className="judge-monitor-capture-grid">
+        <a className="judge-monitor-capture" href="/judge-evidence/tidelight-monitor-production-20261026.jpg" target="_blank" rel="noreferrer">
+          <Image src="/judge-evidence/tidelight-monitor-production-20261026.jpg" alt="Production screenshot of the Tidelight Research Monitor thesis desk" width={1085} height={630} />
+          <span><b>Research Monitor</b><small>Empty-state thesis desk · production</small><i aria-hidden="true">↗</i></span>
+        </a>
+        <a className="judge-monitor-capture" href="/judge-evidence/tidelight-research-flow-production-20261026.jpg" target="_blank" rel="noreferrer">
+          <Image src="/judge-evidence/tidelight-research-flow-production-20261026.jpg" alt="Production screenshot of Tidelight Research Flow with its question composer and suggested prompts" width={1085} height={862} />
+          <span><b>Research Flow</b><small>Research composer · production</small><i aria-hidden="true">↗</i></span>
+        </a>
+      </div>
+      <div className="judge-inline-actions">
+        <a href="/evidence/research-monitor-verification-20261026.json">Download machine-readable results <span aria-hidden="true">↓</span></a>
+        <a href="https://tidelight.app/monitor">Open Monitor <span aria-hidden="true">↗</span></a>
+        <a href="https://tidelight.app/flow">Open Research Flow <span aria-hidden="true">↗</span></a>
+      </div>
+    </section>
+
     <section className="judge-section judge-strategy" aria-labelledby="strategy-title">
       <div className="judge-strategy-copy">
         <span className="judge-kicker">STRATEGY LAB</span>
