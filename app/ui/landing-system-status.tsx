@@ -69,6 +69,7 @@ export default function LandingSystemStatus() {
         <path className="landing-status-grid" d="M0 40H560M0 90H560M0 140H560M70 0V180M210 0V180M350 0V180M490 0V180" />
         <path className="landing-status-wave landing-status-wave-back" d="M0 107C52 107 57 75 112 75s58 55 112 55 66-60 118-60 56 46 105 46 70-36 113-36" />
         <path className="landing-status-wave landing-status-wave-front" d="M0 108C55 108 59 96 112 96s61 20 112 20 63-27 118-27 58 16 105 16 67-14 113-14" />
+        <path className="landing-status-wave-signal" pathLength="560" d="M0 108C55 108 59 96 112 96s61 20 112 20 63-27 118-27 58 16 105 16 67-14 113-14" />
         <circle className="landing-status-wave-point" cx="344" cy="89" r="5" />
       </svg>
       <span className="landing-status-orbit landing-status-orbit-one" />
