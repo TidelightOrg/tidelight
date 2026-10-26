@@ -14,6 +14,7 @@ import { LanguageToggle } from "@/app/ui/language-provider";
 const navigation: { href: string; label: string; icon: NavigationIconName; technical?: boolean }[] = [
   { href: "/overview", label: "Overview", icon: "overview" },
   { href: "/flow", label: "Market research", icon: "flow" },
+  { href: "/monitor", label: "Research Monitor", icon: "monitor" },
   { href: "/markets", label: "Market map", icon: "markets" },
   { href: "/watchlist", label: "Watchlist", icon: "watchlist" },
   { href: "/strategies", label: "Strategy lab", icon: "strategies", technical: true },
@@ -33,6 +34,7 @@ const navigation: { href: string; label: string; icon: NavigationIconName; techn
 const mobilePrimaryNavigation = [
   { href: "/overview", label: "Overview", icon: "overview" as NavigationIconName },
   { href: "/flow", label: "Research", icon: "flow" as NavigationIconName },
+  { href: "/monitor", label: "Monitor", icon: "monitor" as NavigationIconName },
   { href: "/markets", label: "Markets", icon: "markets" as NavigationIconName },
   { href: "/watchlist", label: "Watchlist", icon: "watchlist" as NavigationIconName },
 ];
