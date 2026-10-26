@@ -14,6 +14,7 @@ import { LanguageToggle } from "@/app/ui/language-provider";
 const navigation: { href: string; label: string; icon: NavigationIconName; technical?: boolean }[] = [
   { href: "/overview", label: "Overview", icon: "overview" },
   { href: "/flow", label: "Market research", icon: "flow" },
+  { href: "/monitor", label: "Research Monitor", icon: "monitor" },
   { href: "/markets", label: "Market map", icon: "markets" },
   { href: "/watchlist", label: "Watchlist", icon: "watchlist" },
   { href: "/strategies", label: "Strategy lab", icon: "strategies", technical: true },
