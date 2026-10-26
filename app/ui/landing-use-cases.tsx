@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLanguage } from "@/app/ui/language-provider";
 import styles from "./landing-use-cases.module.css";
 
@@ -58,6 +58,14 @@ export default function LandingUseCases() {
   const translate = (source: string) => language === "zh-CN" ? zh[source] ?? source : source;
   const [category, setCategory] = useState<Category>("All use cases");
   const [query, setQuery] = useState("");
+  useEffect(() => {
+    const revealAllUseCases = () => {
+      setCategory("All use cases");
+      setQuery("");
+    };
+    window.addEventListener("tidelight:reveal-use-cases", revealAllUseCases);
+    return () => window.removeEventListener("tidelight:reveal-use-cases", revealAllUseCases);
+  }, []);
   const visibleUseCases = useCases.filter((item) => {
     const matchesCategory = category === "All use cases" || item.category === category;
     const searchable = [item.title, item.category, item.description, item.question].map(translate).join(" ").toLocaleLowerCase();
@@ -91,7 +99,6 @@ export default function LandingUseCases() {
           <header className={styles.groupHead}><div><span>{String(groupIndex + 1).padStart(2, "0")} / {translate(note.eyebrow)}</span><h3 id={`use-case-group-${groupIndex}`}>{translate(group)}</h3></div><p>{translate(note.summary)}</p><span className={styles.groupCount}>{String(groupCases.length).padStart(2, "0")} PATHS</span></header>
           <div className={styles.groupGrid} data-path-count={groupCases.length}>{groupCases.map((item, index) => <article className={styles.card} key={item.title}>
             <div className={styles.cardTop}><span className={styles.cardMark} aria-hidden="true"><span>{item.mark}</span><i/></span><span className={styles.index}>{String(index + 1).padStart(2, "0")}</span></div>
-            <span className={styles.cardCategory}>{translate(item.category)}</span>
             <h4>{translate(item.title)}</h4>
             <p>{translate(item.description)}</p>
             <Link href={`/flow?question=${encodeURIComponent(translate(item.question))}`} aria-label={`${translate("Open research path")} — ${translate(item.title)}`}>
