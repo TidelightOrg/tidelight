@@ -67,7 +67,7 @@ export function EcosystemSwitcher({ current }: EcosystemSwitcherProps) {
         <div className="tic-ecosystem-system-heading"><span className="tic-ecosystem-system-dot" aria-hidden="true"/><div><strong>{system.name}</strong><small>{system.note}</small></div>{system.id === current ? <span className="tic-ecosystem-current">CURRENT</span> : null}</div>
         <div className="tic-ecosystem-destinations"><a href={system.landing.href}>{system.landing.label}<span aria-hidden="true">↗</span></a><a href={system.dashboard.href}>{system.dashboard.label}<span aria-hidden="true">→</span></a></div>
       </article>)}</div>
-      <footer>One Tidelight identity · Three dedicated experiences</footer>
+      <footer><span>One Tidelight identity · Three dedicated experiences</span><a href="https://tidelight.app/developers/integrations">Integration guides <span aria-hidden="true">↗</span></a></footer>
     </section> : null}
   </div>;
 }

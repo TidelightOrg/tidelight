@@ -31,6 +31,7 @@ const menuItems = [
   { href: "https://tidelight.app/developers", title: "Intelligence Cloud", note: "Build on Tidelight market intelligence", key: "platform" },
   { href: "https://dev.tidelight.app", title: "Documentation", note: "Guides, API reference, and quickstarts", key: "docs" },
   { href: "https://package.tidelight.app", title: "Packages", note: "SDK, MCP, Python, React, and CLI", key: "packages" },
+  { href: "https://tidelight.app/developers/integrations", title: "Integration guides", note: "Choose API, remote MCP, or official packages", key: "integrations" },
   { href: "https://status.tidelight.app", title: "System status", note: "Live availability across Tidelight services", key: "status" },
   { href: "https://tidelight.app/developers/support", title: "Human support", note: "Talk directly with the Tidelight team", key: "support" },
 ] as const;
