@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getServerUser } from "@/lib/supabase/auth-user";
 import ResearchMonitor from "@/app/ui/research-monitor";
 import "./monitor.css";
 
@@ -8,9 +9,9 @@ export const dynamic = "force-dynamic";
 export const metadata = { title: "Research Monitor · Tidelight", description: "Follow an investment thesis through dated, source-linked research reviews and evidence changes." };
 
 export default async function MonitorPage({ searchParams }: { searchParams: Promise<{ notice?: string; archivedPage?: string }> }) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getServerUser();
   if (!user) redirect("/login?next=%2Fmonitor");
+  const supabase = createAdminClient();
   const params = await searchParams;
   const requestedArchivedPage = Math.min(10000, Math.max(0, Number.isInteger(Number(params.archivedPage)) ? Number(params.archivedPage) : 0));
   const archivedPageSize = 24;

@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 
 const files = {
   migration: new URL("../supabase/migrations/20261026190000_research_monitor_foundation.sql", import.meta.url),
+  proxyAuthMigration: new URL("../supabase/migrations/20261026200000_research_monitor_proxy_auth.sql", import.meta.url),
   actions: new URL("../app/monitor/actions.ts", import.meta.url),
   route: new URL("../app/api/research/agent-flow/route.ts", import.meta.url),
   ui: new URL("../app/ui/research-monitor.tsx", import.meta.url),
@@ -24,9 +25,20 @@ test("monitor schema enforces owner-linked immutable history and private tables"
   assert.ok(sql.includes("thesis_revision = thesis_revision + 1"));
 });
 
+test("proxy-verified Monitor actions scope service-role access to the verified owner", async () => {
+  const sql = await readFile(files.proxyAuthMigration, "utf8");
+  assert.equal((sql.match(/auth\.role\(\) <> 'service_role'/g) ?? []).length, 3);
+  assert.equal((sql.match(/p_user_id uuid/g) ?? []).length, 3);
+  assert.ok(sql.includes("to service_role"));
+  assert.ok(sql.includes("from public, anon, authenticated"));
+  assert.ok(sql.includes("research_monitor_observations_research_run_id_idx"));
+});
+
 test("each monitor mutation authenticates and uses owner-aware database functions", async () => {
   const actions = await readFile(files.actions, "utf8");
-  assert.equal(actions.split("supabase.auth.getUser()").length - 1, 3);
+  assert.equal(actions.split("getServerUser()").length - 1, 3);
+  assert.equal(actions.split("p_user_id: user.id").length - 1, 3);
+  assert.ok(actions.includes("createAdminClient()"));
   assert.match(actions, /create_research_monitor/);
   assert.match(actions, /update_research_monitor_thesis/);
   assert.match(actions, /set_research_monitor_status/);
@@ -42,6 +54,9 @@ test("Agent Flow attaches only an owned active monitor and records completed run
   assert.ok(route.includes("researchMonitorRevision?: unknown"));
   assert.ok(route.includes("expectedQuestion"));
   assert.ok(route.includes("thesis_revision: revision.revision"));
+  assert.ok(route.includes("getServerAuthState()"));
+  assert.ok(route.includes("createAdminClient()"));
+  assert.ok(route.includes('.eq("user_id", user.id).gte("created_at", hourAgo)'));
 });
 
 test("monitor history pins the reviewed thesis revision and ticker-specific evidence", async () => {
@@ -49,6 +64,8 @@ test("monitor history pins the reviewed thesis revision and ticker-specific evid
   const ui = await readFile(files.ui, "utf8");
   assert.ok(flowPage.includes("monitorRevision?: string"));
   assert.ok(flowPage.includes("research_monitor_thesis_revisions"));
+  assert.ok(flowPage.includes("getServerUser()"));
+  assert.ok(flowPage.includes("createAdminClient()"));
   assert.ok(ui.includes("assetFor(latest, monitor.ticker)"));
   assert.ok(ui.includes("sources(run?.summary, ticker)"));
   assert.ok(ui.includes("monitorRevision=${monitor.thesis_revision}"));
@@ -58,7 +75,8 @@ test("active monitors are independent of paginated archived monitors", async () 
   const page = await readFile(new URL("../app/monitor/page.tsx", import.meta.url), "utf8");
   const ui = await readFile(files.ui, "utf8");
   assert.ok(page.includes('.eq("status", "active")'));
-  assert.ok(page.includes("supabase.auth.getUser()"));
+  assert.ok(page.includes("getServerUser()"));
+  assert.ok(page.includes("createAdminClient()"));
   assert.ok(page.includes('.eq("status", "archived")'));
   assert.ok(page.includes("archivedPageSize"));
   assert.ok(ui.includes('aria-label="Archived monitor pages"'));

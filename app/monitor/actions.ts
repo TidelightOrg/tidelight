@@ -2,7 +2,8 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { getServerUser } from "@/lib/supabase/auth-user";
 import { STOCK_PERP_UNIVERSE } from "@/lib/bitget-market";
 
 const tickerPattern = /^[A-Z]{1,6}$/;
@@ -10,40 +11,40 @@ const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}
 function back(message: string): never { redirect(`/monitor?notice=${encodeURIComponent(message)}`); }
 
 export async function createMonitor(formData: FormData) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getServerUser();
   if (!user) redirect("/login?next=%2Fmonitor");
   const ticker = String(formData.get("ticker") ?? "").trim().toUpperCase();
   const thesis = String(formData.get("thesis") ?? "").trim();
   if (!tickerPattern.test(ticker) || !(STOCK_PERP_UNIVERSE as readonly string[]).includes(`${ticker}USDT`)) back("Enter one of Tidelight’s supported US stock tickers.");
   if (thesis.length < 12 || thesis.length > 440) back("Write a thesis between 12 and 440 characters.");
-  const { error } = await supabase.rpc("create_research_monitor", { p_ticker: ticker, p_thesis: thesis });
+  const supabase = createAdminClient();
+  const { error } = await supabase.rpc("create_research_monitor", { p_ticker: ticker, p_thesis: thesis, p_user_id: user.id });
   if (error) back(error.message.includes("limit") ? "You have reached the limit of 12 active monitors." : "The monitor could not be saved. Please try again.");
   revalidatePath("/monitor");
   back(`${ticker} monitor created. Your first review is ready to run.`);
 }
 
 export async function updateThesis(formData: FormData) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getServerUser();
   if (!user) redirect("/login?next=%2Fmonitor");
   const id = String(formData.get("monitorId") ?? "");
   const thesis = String(formData.get("thesis") ?? "").trim();
   if (!uuidPattern.test(id) || thesis.length < 12 || thesis.length > 440) back("Check the thesis text and try again.");
-  const { data, error } = await supabase.rpc("update_research_monitor_thesis", { p_monitor_id: id, p_thesis: thesis });
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc("update_research_monitor_thesis", { p_monitor_id: id, p_thesis: thesis, p_user_id: user.id });
   if (error || data === null) back("The thesis revision could not be saved.");
   revalidatePath("/monitor");
   back(`Thesis revision ${data} saved. Earlier revisions remain in the history.`);
 }
 
 export async function setMonitorStatus(formData: FormData) {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const user = await getServerUser();
   if (!user) redirect("/login?next=%2Fmonitor");
   const id = String(formData.get("monitorId") ?? "");
   const status = String(formData.get("status") ?? "");
   if (!uuidPattern.test(id) || !["active", "archived"].includes(status)) back("That monitor action is invalid.");
-  const { data, error } = await supabase.rpc("set_research_monitor_status", { p_monitor_id: id, p_status: status });
+  const supabase = createAdminClient();
+  const { data, error } = await supabase.rpc("set_research_monitor_status", { p_monitor_id: id, p_status: status, p_user_id: user.id });
   if (error || data !== true) back("The monitor status could not be updated.");
   revalidatePath("/monitor");
   back(status === "archived" ? "Monitor archived. Its dated history is preserved." : "Monitor restored to your active list.");

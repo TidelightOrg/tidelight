@@ -36,6 +36,7 @@ function queryFor(table) {
 
 globalThis.flowTest = {
   macroCalls: 0,
+  user,
   auth: { getUser: async () => ({ data: { user }, error: null }) },
   from: queryFor,
   rpc: async (...args) => globalThis.flowTest.admin.rpc(...args),
@@ -59,6 +60,7 @@ const modules = {
   "next/server": "export const after=()=>{}; export const NextResponse=class extends Response { static json(data,init={}) { return Response.json(data,init); } };",
   "@/lib/supabase/server": "export const createClient=async()=>globalThis.flowTest;",
   "@/lib/supabase/admin": "export const createAdminClient=()=>globalThis.flowTest.admin;",
+  "@/lib/supabase/auth-user": "export const getServerAuthState=async()=>({user:globalThis.flowTest.user,errorCode:null});",
   "@/lib/ai-fallback": `export const configuredAiProviders=()=>["fixture"]; export const aiJsonWithFallback=async(messages)=>{const text=messages.map(message=>message.content).join(" ");return /FOMC/.test(text)?{assets:[{ticker:"MACRO",summary:"The Federal Reserve maintained the target range in its September 2026 decision. The supplied official source states the decision; Reuters reports economist expectations as context. The sources do not establish the next policy move.",stance:"unclear",confidence:0.3,citedUrls:["${macroRows[0].url}","${macroRows[1].url}"],supportingEvidence:[{text:"The Committee maintained the target range.",citedUrls:["${macroRows[0].url}"]}],counterEvidence:[{text:"Economists had expected the same decision.",citedUrls:["${macroRows[1].url}"]}],risks:["This is not a forecast of the next policy move."],nextCheck:"Read the next official statement and minutes."}]}:{assets:[{ticker:"NVDA",summary:"Synthetic fixture: two current independent publishers agree on a directional scenario for test coverage only.",stance:"bullish",confidence:0.9,citedUrls:["${sourceRows[0].url}","${sourceRows[1].url}"],risks:["Synthetic fixture only"],nextCheck:"Remove the fixture after the isolated test."}]};};`,
   "@/lib/bitget-market": "export const STOCK_PERP_UNIVERSE=[\"NVDAUSDT\"]; export const getIssuerName=()=>\"Synthetic NVIDIA\"; export const getBitgetAsset=(...args)=>globalThis.flowTest.asset(...args); export const getBitgetStockPerp=(...args)=>globalThis.flowTest.perp(...args); export const getBitgetCandles=(...args)=>globalThis.flowTest.candles(...args);",
   "@/lib/backtest": "export const prepareBacktestCandles=()=>Array.from({length:80},(_,i)=>({timestamp:Date.now()-(80-i)*14400000-60000,close:100})); export const buildSignals=()=>Array.from({length:80},(_,i)=>i===79); export const ALPHA_STRATEGIES={sma_trend_v1:{label:\"Synthetic SMA fixture\"}};",
