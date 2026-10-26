@@ -47,6 +47,63 @@ export default function DevelopersPage() {
       <div>{routeCards.map(card => <Link href={card.href} key={card.number} className="tic-route-card"><div><strong>{card.label}</strong><small>{card.note}</small></div><code>{card.host}{card.path}</code><span className="tic-route-arrow" aria-hidden="true">↗</span></Link>)}</div>
     </section>
 
+    <section className="tic-capability-examples" aria-labelledby="tic-capability-examples-title">
+      <header className="tic-capability-examples-heading">
+        <p className="tic-eyebrow">THREE CONTRACT-BACKED ENTRY POINTS</p>
+        <h2 id="tic-capability-examples-title">Start with the capability your product needs.</h2>
+        <p>These examples follow the published REST and MCP contracts. They are not sent from this page; use a project credential in the authenticated console.</p>
+      </header>
+      <div className="tic-capability-examples-grid">
+        <article className="tic-capability-example">
+          <div className="tic-capability-example-top"><span>01 / MARKET DATA</span><span className="tic-capability-example-method">REST · GET</span></div>
+          <h3>Look up a tokenized equity.</h3>
+          <p>List supported Reality tokenized-equity spot instruments, optionally filtered by the underlying US stock ticker.</p>
+          <div className="tic-capability-code-label">REQUEST SHAPE</div>
+          <pre><code>{"GET https://api.tidelight.app/v1/market/instruments?kind=rtoken&limit=20&underlying_ticker=NVDA\nAuthorization: Bearer $TIDELIGHT_API_KEY"}</code></pre>
+          <div className="tic-capability-code-label">200 RESPONSE ENVELOPE</div>
+          <pre><code>{"data: Instrument[]\nnext_cursor: string | null\ngenerated_at: Unix milliseconds\nrequest_id: UUID"}</code></pre>
+          <p className="tic-capability-example-limit">These are tokenized spot products, not direct stock shares or stock perpetuals. Market data may return 503 when the provider is unavailable or redistribution terms are unconfirmed.</p>
+          <div className="tic-capability-example-actions">
+            <Link href="https://tidelight.app/developers/console">Open console → API explorer</Link>
+            <Link href="https://dev.tidelight.app/#reference">API reference ↗</Link>
+          </div>
+        </article>
+
+        <article className="tic-capability-example">
+          <div className="tic-capability-example-top"><span>02 / COMPANY RESEARCH</span><span className="tic-capability-example-method">REST · POST</span></div>
+          <h3>Queue an async research snapshot.</h3>
+          <p>Start a durable job for a supported US stock, then read its status and completed, source-linked evidence snapshot.</p>
+          <div className="tic-capability-code-label">REQUEST SHAPE</div>
+          <pre><code>{"POST https://api.tidelight.app/v1/research/jobs\nAuthorization: Bearer $TIDELIGHT_API_KEY\nIdempotency-Key: research-example-001\n\n{\"ticker\":\"NVDA\"}\n\nGET /v1/research/jobs/{job_id}"}</code></pre>
+          <div className="tic-capability-code-label">202 ACCEPTED RESPONSE</div>
+          <pre><code>{"job_id: UUID\nstatus: queued | running | retry_wait | complete | failed | cancelled\nduplicate: boolean\nrequest_id: UUID"}</code></pre>
+          <p className="tic-capability-example-limit">Requires the <code>research:run</code> scope and an 8–128 character idempotency key. Each project can start up to 10 jobs per rolling hour. The result can be null until completion; research is not a recommendation or valuation.</p>
+          <div className="tic-capability-example-actions">
+            <Link href="https://tidelight.app/developers/console">Open console → API explorer</Link>
+            <Link href="https://dev.tidelight.app/#research">Research job guide ↗</Link>
+          </div>
+        </article>
+
+        <article className="tic-capability-example">
+          <div className="tic-capability-example-top"><span>03 / AGENT INTEGRATION</span><span className="tic-capability-example-method">REMOTE MCP</span></div>
+          <h3>Connect a client over Streamable HTTP.</h3>
+          <p>Use the hosted MCP endpoint to discover and call supported market and research tools from a compatible client.</p>
+          <div className="tic-capability-code-label">SERVER ENDPOINT</div>
+          <pre><code>{"https://mcp.tidelight.app/mcp"}</code></pre>
+          <div className="tic-capability-code-label">EXAMPLE TOOL INPUT</div>
+          <pre><code>{"tidelight_search_tokenized_equities({\n  underlying_ticker: \"NVDA\",\n  limit: 5\n})"}</code></pre>
+          <div className="tic-capability-code-label">TOOL RESULT SHAPE</div>
+          <pre><code>{"structuredContent: { data: Instrument[], next_cursor: string | null, generated_at: number, request_id: string }\ncontent: [{ type: \"text\", text: JSON.stringify(structuredContent) }]"}</code></pre>
+          <p className="tic-capability-example-limit">The server exposes tools allowed by the credential’s existing scopes: market lookup uses <code>market:read</code>; company research uses <code>research:run</code>. Client authorization and project limits still apply.</p>
+          <div className="tic-capability-example-actions">
+            <Link href="https://tidelight.app/developers/console">Open console → API explorer</Link>
+            <Link href="https://dev.tidelight.app/#mcp">MCP connection guide ↗</Link>
+          </div>
+        </article>
+      </div>
+      <p className="tic-capability-examples-footnote">The link opens the developer console; sign in if prompted, then choose API explorer. Credentials are project-scoped; this public page never sends a request or stores a key.</p>
+    </section>
+
     <section className="tic-cloud-workspace" aria-labelledby="tic-cloud-workspace-title">
       <div className="tic-cloud-workspace-copy">
         <p className="tic-eyebrow">THE DEVELOPER WORKSPACE</p>
@@ -70,11 +127,6 @@ export default function DevelopersPage() {
     <section className="tic-intelligence-showcase" aria-labelledby="tic-intelligence-showcase-title">
       <div className="tic-intelligence-showcase-copy"><p className="tic-eyebrow">INTELLIGENCE, MADE INTERACTIVE</p><h2 id="tic-intelligence-showcase-title">Make the evidence part of the interface.</h2><p>Give people a clear path from a question to its sources and structured response. The same scoped Tidelight services can power a calm, source-aware experience inside your own product.</p><Link href="https://package.tidelight.app/react">Explore the React package <span aria-hidden="true">→</span></Link></div>
       <IntelligenceUiPreview />
-    </section>
-
-    <section className="tic-premium-showcase">
-      <div className="tic-showcase-copy"><p className="tic-eyebrow">A RESPONSE WITH CONTEXT</p><h2>Every instrument has a source. Keep it that way.</h2><p>Tokenized equity spot instruments are clearly distinguished from underlying US stocks and perpetual contracts. Responses carry provider timing and source labels, so downstream systems can preserve what the data represents.</p><Link href="https://dev.tidelight.app#reference">Read the market endpoint reference <span aria-hidden="true">→</span></Link></div>
-      <div className="tic-code-window"><div className="tic-window-bar"><div className="tic-window-dots"><i/><i/><i/></div><span>MARKET INSTRUMENTS / RESPONSE SHAPE</span><span>JSON</span></div><pre aria-label="Example response schema"><code><span className="tic-code-fade">{"// Shape of a supported market response"}</span>{"\n"}<span className="tic-code-key">GET</span> <span className="tic-code-value">/v1/market/instruments</span>{"\n"}<span className="tic-code-fade">Authorization: Bearer YOUR_KEY</span>{"\n\n"}{"{"}{"\n"}  <span className="tic-code-key">{"\"data\""}</span>: [ ... ],{"\n"}  <span className="tic-code-key">{"\"next_cursor\""}</span>: <span className="tic-code-fade">{"null | \"…\""}</span>,{"\n"}  <span className="tic-code-key">{"\"generated_at\""}</span>: <span className="tic-code-fade">{"\"ISO timestamp\""}</span>,{"\n"}  <span className="tic-code-key">{"\"request_id\""}</span>: <span className="tic-code-fade">{"\"request identifier\""}</span>{"\n"}{"}"}</code></pre><div className="tic-code-caption"><span className="tic-code-caption-mark">↳</span><span>Actual responses include provider-sourced instrument fields and timing. This illustration shows the contract shape, not live market data.</span></div></div>
     </section>
 
     <section className="tic-core-render"><div className="tic-core-copy"><p className="tic-eyebrow">ONE SHARED INTELLIGENCE CORE</p><h2>Different interfaces.<br/><em>One source-aware foundation.</em></h2><p>The API and remote MCP server expose supported Tidelight capabilities through the same service boundaries. The developer console keeps keys, activity, and access under your account.</p><div className="tic-core-pills"><span>SHARED SERVICES</span><i/><span>SCOPED ACCESS</span><i/><span>VISIBLE ACTIVITY</span></div></div><Image src="/tic-intelligence-glass.webp" alt="Abstract translucent glass illustration of one central intelligence service connected to three developer interfaces" width={1536} height={1024} sizes="(max-width: 760px) 100vw, 50vw" className="tic-core-image" /></section>
