@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import TidelightDotWordmark from "./tidelight-dot-wordmark";
 import styles from "./tidelight-signature-footer.module.css";
 
 type Surface = "research" | "intelligence" | "packages";
@@ -37,5 +38,6 @@ export function TidelightSignatureFooter({ surface }: { surface: Surface }) {
       <section><h2>Trust & updates</h2><Link href="https://tidelight.app/judge">Judge Mode</Link><Link href="https://status.tidelight.app/">System status</Link><Link href="https://blogs.tidelight.app/">Field Notes</Link><Link href="https://tidelight.app/terms">Terms</Link><Link href="https://tidelight.app/privacy">Privacy</Link></section>
     </div>
     <div className={styles.bottom}><span>© 2026 Tidelight Research</span><span>Evidence first. Decisions stay yours.</span><a href="mailto:support@tidelight.app">Contact Tidelight <span aria-hidden="true">↗</span></a></div>
+    <TidelightDotWordmark className={styles.endmark} />
   </footer>;
 }
