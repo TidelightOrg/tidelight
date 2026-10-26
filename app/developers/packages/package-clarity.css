@@ -300,6 +300,9 @@
   .tic-packages-page .tic-package-lifecycle-all pre { font-size: 13px; }
   .tic-packages-page .tic-package-workbench-tabs button { min-height: 42px; font-size: 13px; }
   .tic-packages-page .tic-package-detail-nav a { padding-inline: 13px; }
+  .tic-packages-page .tic-package-detail-title { align-items: flex-start; gap: 12px; min-width: 0; }
+  .tic-packages-page .tic-package-detail-title .tic-package-glyph { flex: 0 0 42px; width: 42px; height: 42px; }
+  .tic-packages-page .tic-package-detail-title h1 { min-width: 0; font-size: clamp(22px, 6.5vw, 31px); line-height: 1.12; letter-spacing: -.06em; }
 }
 
 @media (prefers-reduced-motion: reduce) {
