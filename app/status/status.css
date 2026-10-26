@@ -30,6 +30,7 @@
 .tic-status-header nav a:hover, .tic-status-header nav a[aria-current=page] { color: var(--status-ink); }
 .tic-status-header nav a[aria-current=page] { font-weight: 700; }
 .tic-status-page a:focus-visible, .tic-status-group > summary:focus-visible { outline: 2px solid #80d9c5; outline-offset: 5px; border-radius: 3px; }
+.tic-status-group > summary:focus-visible { outline-offset: -4px; border-radius: 11px; }
 .tic-status-summary { position:relative;isolation:isolate;display: flex; align-items: center; gap: 14px; min-height: 82px; margin: 34px 0 0; padding: 18px 22px; overflow:hidden;border: 1px solid var(--status-good-line); border-radius: 16px; background: radial-gradient(ellipse at 91% 50%,color-mix(in srgb,var(--status-good) 18%,transparent),transparent 42%),var(--status-good-bg); color: var(--status-good); font-size: 16px; line-height: 1.5;box-shadow:0 20px 56px #0002,inset 0 1px #ffffff0b; }
 .tic-status-summary::after{position:absolute;z-index:-1;inset:0;content:"";background:linear-gradient(110deg,transparent 38%,color-mix(in srgb,var(--status-good) 5%,transparent) 57%,transparent 72%);background-size:220% 100%;animation:tic-status-sweep 10s linear infinite;pointer-events:none}
 .tic-status-summary.degraded { border-color: var(--status-warn-line); background: radial-gradient(ellipse at 91% 50%,color-mix(in srgb,var(--status-warn) 18%,transparent),transparent 42%),var(--status-warn-bg); color: var(--status-warn); }
