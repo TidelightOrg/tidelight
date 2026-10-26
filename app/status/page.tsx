@@ -21,7 +21,10 @@ export default async function StatusPage() {
   const checked = new Date(status.checkedAt).toLocaleString(locale, { timeZone: "UTC", timeZoneName: "short" });
   const services = status.groups.flatMap(group => group.services);
   const checkedCount = services.filter(service => service.state !== "monitoring").length;
+  const operationalCount = services.filter(service => service.state === "operational").length;
+  const degradedCount = services.filter(service => service.state === "degraded").length;
   const monitoringCount = services.length - checkedCount;
+  const isChinese = locale === "zh-CN";
   const today = new Date();
   const days = Array.from({ length: 90 }, (_, index) => {
     const day = new Date(Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate() - (89 - index)));
@@ -69,6 +72,11 @@ export default async function StatusPage() {
       <span className="tic-status-summary-icon" aria-hidden="true">{status.status === "operational" ? "✓" : "!"}</span>
       <strong>{label}</strong>
     </div>
+    <section className="tic-status-breakdown" aria-label={isChinese ? "当前检查概览" : "Current check breakdown"}>
+      <article className="operational"><span>{isChinese ? "正常运行" : "Operational"}</span><strong>{operationalCount}</strong></article>
+      <article className="degraded"><span>{isChinese ? "运行异常" : "Degraded"}</span><strong>{degradedCount}</strong></article>
+      <article className="monitoring"><span>{isChinese ? "未监控" : "Not monitored"}</span><strong>{monitoringCount}</strong></article>
+    </section>
     <section className="tic-status-content" aria-labelledby="status-title">
       <div className="tic-status-page-heading">
         <div><p className="tic-status-eyebrow">TIDELIGHT ECOSYSTEM</p>
