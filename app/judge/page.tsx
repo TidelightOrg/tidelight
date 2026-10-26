@@ -77,7 +77,14 @@ export default function JudgePage() {
       <div className="judge-test-route-list" aria-label="Routes checked">
         {["/", "/markets", "/research", "/flow", "/strategies", "/nightwatch", "/judge"].map(path => <span key={path}><i aria-hidden="true">200</i><code>{path}</code></span>)}
       </div>
-      <p className="judge-section-note">The route check results are listed below and in the JSON report. The linked MP4 artifact is invalid and has been excluded; no playable browser video is available for this check. Signed-in research, publishing, strategy execution, account data, and trading behavior are not represented.</p>
+      <p className="judge-section-note">The route-check results are listed below and in the JSON report. The video here is a product walkthrough, not the route-test recording. Signed-in research, publishing, strategy execution, account data, and trading behavior are not represented.</p>
+      <figure className="judge-test-video-frame judge-product-walkthrough">
+        <video controls playsInline preload="metadata" poster="/landing-preview.png" aria-label="Tidelight public product walkthrough for the Bitget AI Base Camp Hackathon">
+          <source src="https://raw.githubusercontent.com/TidelightOrg/tidelight/main/production/tidelight-hackathon-cinematic-demo/deliverables/Tidelight_Hackathon_Cinematic_Demo_1080p.mp4" type="video/mp4" />
+          Your browser does not support the video element.
+        </video>
+        <figcaption><span>Public product walkthrough · 3:54 · 1920 × 1080</span><a href="https://raw.githubusercontent.com/TidelightOrg/tidelight/main/production/tidelight-hackathon-cinematic-demo/deliverables/Tidelight_Hackathon_Cinematic_Demo_1080p.mp4" target="_blank" rel="noreferrer">Open full video ↗</a></figcaption>
+      </figure>
       <div className="judge-inline-actions">
         <Link href="/evidence/tidelight-live-route-test-20261024.json">Open capture record <span aria-hidden="true">↗</span></Link>
       </div>
