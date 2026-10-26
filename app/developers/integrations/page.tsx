@@ -54,7 +54,7 @@ export default function DeveloperIntegrationsPage() {
           <div className="tic-integration-card-top"><span className="tic-integration-card-icon" aria-hidden="true">01</span><span className="tic-integration-card-kind">HTTP API</span></div>
           <h3>Build with the REST API.</h3>
           <p>Make versioned, server-side requests with project-scoped credentials. Start research jobs, check their status, read supported market instruments when available, and receive job webhooks.</p>
-          <div className="tic-integration-card-details"><span>Base URL</span><code>api.tidelight.app/v1</code><span>Access</span><code>Scoped bearer key</code></div>
+          <div className="tic-integration-card-details"><span>Base URL</span><code>api.tidelight.app/v1</code><span>Access</span><span className="tic-integration-detail-value">Project-scoped bearer token</span></div>
           <Link className="tic-integration-card-link" href="https://dev.tidelight.app/#quickstart">Open API quickstart <span aria-hidden="true">→</span></Link>
         </article>
 
@@ -62,7 +62,7 @@ export default function DeveloperIntegrationsPage() {
           <div className="tic-integration-card-top"><span className="tic-integration-card-icon" aria-hidden="true">02</span><span className="tic-integration-card-kind">REMOTE MCP</span></div>
           <h3>Connect an AI client.</h3>
           <p>Use Tidelight’s hosted Streamable HTTP MCP endpoint. Authenticate with a scoped bearer key or OAuth 2.1 with PKCE when the client supports it.</p>
-          <div className="tic-integration-card-details"><span>Endpoint</span><code>mcp.tidelight.app/mcp</code><span>Access</span><code>Tools follow key scopes</code></div>
+          <div className="tic-integration-card-details"><span>Endpoint</span><code>mcp.tidelight.app/mcp</code><span>Access</span><span className="tic-integration-detail-value">Scope-filtered MCP tools</span></div>
           <Link className="tic-integration-card-link" href="https://dev.tidelight.app/#mcp">Read the remote MCP guide <span aria-hidden="true">→</span></Link>
         </article>
 
@@ -70,7 +70,7 @@ export default function DeveloperIntegrationsPage() {
           <div className="tic-integration-card-top"><span className="tic-integration-card-icon" aria-hidden="true">03</span><span className="tic-integration-card-kind">LOCAL MCP</span></div>
           <h3>Bridge a stdio-only host.</h3>
           <p>The published Node.js bridge connects a local stdio MCP client to the hosted Tidelight service. The service validates credentials, filters tools by scope, and applies quotas.</p>
-          <div className="tic-integration-card-details"><span>Package</span><code>@tidelight/mcp</code><span>Transport</span><code>Local stdio → remote HTTP</code></div>
+          <div className="tic-integration-card-details"><span>Package</span><code>@tidelight/mcp</code><span>Transport</span><span className="tic-integration-detail-value">Local stdio → hosted Streamable HTTP</span></div>
           <Link className="tic-integration-card-link" href="https://package.tidelight.app/mcp">View the MCP bridge setup <span aria-hidden="true">→</span></Link>
         </article>
 

@@ -38,6 +38,7 @@
 .tic-integration-card-details{display:grid;grid-template-columns:75px minmax(0,1fr);gap:8px 12px;margin-top:20px;padding:13px 0;border-top:1px solid var(--tic-line);border-bottom:1px solid var(--tic-line);font-size:9px}
 .tic-integration-card-details span{color:var(--tic-muted)}
 .tic-integration-card-details code{min-width:0;color:var(--tic-text);font:9px var(--mono);overflow-wrap:anywhere}
+.tic-integration-card-details .tic-integration-detail-value{min-width:0;color:var(--tic-text);font:9px var(--mono);overflow-wrap:anywhere}
 .tic-integration-card-link{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:auto;padding-top:19px;color:var(--tic-accent);font-size:11px;font-weight:650}
 .tic-integration-card-link span,.tic-integration-package-links span{font-size:15px;transition:transform .18s}
 .tic-integration-card-link:hover span{transform:translateX(3px)}
