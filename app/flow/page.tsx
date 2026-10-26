@@ -1,6 +1,5 @@
 import AgentFlowDesk from "@/app/ui/agent-flow-desk";
 import { createClient } from "@/lib/supabase/server";
-import { getServerUser } from "@/lib/supabase/auth-user";
 import "./flow.css";
 
 export const metadata = {
@@ -12,7 +11,7 @@ export default async function FlowPage({ searchParams }: { searchParams: Promise
   const { q, question, demo, monitorId, monitorRevision } = await searchParams;
   const initialQuestion = question || q || "";
   const supabase = await createClient();
-  const user = await getServerUser();
+  const { data: { user } } = await supabase.auth.getUser();
   const [watchlistResult, historyResult] = user ? await Promise.all([
     supabase.from("watchlist_items").select("symbol").order("created_at", { ascending: true }).limit(12),
     supabase.from("research_runs").select("question, summary").eq("user_id", user.id).eq("event_type", "agent_flow").eq("status", "complete").order("created_at", { ascending: false }).limit(8),
