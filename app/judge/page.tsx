@@ -235,6 +235,16 @@ export default function JudgePage() {
         <article><span>AI SYNTHESIS</span><strong>2 / 10</strong><small>Two runs returned model synthesis; eight were source-only or had no synthesis.</small></article>
         <article><span>INTERNAL REVIEW</span><strong>2.5 / 10</strong><small>Single-reviewer descriptive score; protocol claim-quality score remains pending.</small></article>
       </div>
+      <figure className="judge-benchmark-visual" aria-labelledby="benchmark-visual-title">
+        <div className="judge-benchmark-visual-heading">
+          <div><span className="judge-kicker">CAPTURED OUTPUT MIX</span><h3 id="benchmark-visual-title">Synthesis appeared in 2 of 10 runs.</h3></div>
+          <span className="judge-benchmark-visual-total">10 production captures</span>
+        </div>
+        <div className="judge-benchmark-meter" role="meter" aria-label="Runs with model synthesis returned" aria-valuemin={0} aria-valuemax={10} aria-valuenow={2}>
+          <span className="judge-benchmark-meter-fill" />
+        </div>
+        <figcaption><span><i className="judge-benchmark-key judge-benchmark-key-synthesis" />Synthesis returned <strong>2 / 10</strong></span><span><i className="judge-benchmark-key judge-benchmark-key-fallback" />Source-only or no synthesis <strong>8 / 10</strong></span></figcaption>
+      </figure>
       <p className="judge-section-note">On this ten-run sample, only two outputs included model synthesis; both raised material evidence concerns. Eight were source-only or had no usable synthesis. The 2.5/10 figure is a provisional single-reviewer product assessment, not a factual-accuracy rate. Formal claim-quality scoring is pending independent labels and adjudication; task time was not measured. The September CPI run included off-topic sources.</p>
       <details className="judge-benchmark-run-table" open>
         <summary>Run-by-run production captures</summary>
