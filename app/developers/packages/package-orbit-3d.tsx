@@ -35,7 +35,8 @@ export function PackageOrbit3D({ motionTargetSelector = ".tic-package-constellat
     const group = new THREE.Group();
     scene.add(group);
 
-    const themeAccent = () => getComputedStyle(document.documentElement).getPropertyValue("--tic-accent").trim() || "#47d7a1";
+    const themeRoot = container.closest<HTMLElement>(".tic") ?? document.documentElement;
+    const themeAccent = () => getComputedStyle(themeRoot).getPropertyValue("--tic-accent").trim() || "#47d7a1";
     const accentColor = new THREE.Color(themeAccent());
     const core = new THREE.Mesh(new THREE.IcosahedronGeometry(1.05, 2), new THREE.MeshBasicMaterial({ color: accentColor, wireframe: true, transparent: true, opacity: 0.56 }));
     group.add(core);
