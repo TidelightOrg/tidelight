@@ -125,7 +125,7 @@ export default function JudgePage() {
 
       <div className="judge-monitor-results" aria-label="Verification results">
         <article className="judge-monitor-result"><span className="judge-monitor-result-status pass">PASS</span><h3>Production routes</h3><p>Signed-in browser smoke check on <a href="https://tidelight.app/monitor">Monitor</a> and <a href="https://tidelight.app/flow">Research Flow</a>.</p></article>
-        <article className="judge-monitor-result"><span className="judge-monitor-result-status pass">PASS</span><h3>Automated checks</h3><p>315 tests passed; TypeScript and clean production build passed. CI: <a href="https://github.com/TidelightOrg/tidelight/actions/runs/40391881625">view workflow run ↗</a>.</p></article>
+        <article className="judge-monitor-result"><span className="judge-monitor-result-status pass">PASS</span><h3>Automated checks</h3><p>315 tests passed; TypeScript and clean production build passed. CI: <a href="https://github.com/TidelightOrg/tidelight/actions/runs/40392249667">view workflow run ↗</a>.</p></article>
         <article className="judge-monitor-result"><span className="judge-monitor-result-status note">PASS · NOTES</span><h3>Lint</h3><p>Passed with 10 pre-existing warnings, unrelated to the Monitor changes.</p></article>
         <article className="judge-monitor-result"><span className="judge-monitor-result-status limited">NOT RUN</span><h3>Production data changes</h3><p>Create, edit, and archive were not submitted in production; no fabricated thesis was written to a personal workspace.</p></article>
       </div>
