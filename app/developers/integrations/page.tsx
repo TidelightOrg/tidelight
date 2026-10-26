@@ -8,7 +8,7 @@ import "./integrations.css";
 
 export const metadata: Metadata = {
   title: { absolute: "Tidelight Integrations — API, MCP, and SDKs" },
-  description: "Choose a verified Tidelight integration path for your product, AI client, or developer workflow.",
+  description: "Explore Tidelight connection paths for your product, AI client, or developer workflow.",
   alternates: { canonical: "https://tidelight.app/developers/integrations" },
 };
 
@@ -53,7 +53,7 @@ export default function DeveloperIntegrationsPage() {
         <article className="tic-integration-card">
           <div className="tic-integration-card-top"><span className="tic-integration-card-icon" aria-hidden="true">01</span><span className="tic-integration-card-kind">HTTP API</span></div>
           <h3>Build with the REST API.</h3>
-          <p>Make versioned, server-side requests with project-scoped credentials. Start research jobs, check their status, read supported market instruments, and receive job webhooks.</p>
+          <p>Make versioned, server-side requests with project-scoped credentials. Start research jobs, check their status, read supported market instruments when available, and receive job webhooks.</p>
           <div className="tic-integration-card-details"><span>Base URL</span><code>api.tidelight.app/v1</code><span>Access</span><code>Scoped bearer key</code></div>
           <Link className="tic-integration-card-link" href="https://dev.tidelight.app/#quickstart">Open API quickstart <span aria-hidden="true">→</span></Link>
         </article>

@@ -6101,7 +6101,7 @@
   "Browse all packages": "浏览所有软件包",
   "HTTP API": "HTTP API",
   "Build with the REST API.": "使用 REST API 构建。",
-  "Make versioned, server-side requests with project-scoped credentials. Start research jobs, check their status, read supported market instruments, and receive job webhooks.": "使用项目权限范围内的凭证发送版本化服务器请求。创建研究任务、查看任务状态、读取受支持的市场工具，并接收任务 Webhook。",
+  "Make versioned, server-side requests with project-scoped credentials. Start research jobs, check their status, read supported market instruments when available, and receive job webhooks.": "使用项目权限范围内的凭证发送版本化服务器请求。创建研究任务、查看任务状态、在数据可用时读取受支持的市场工具，并接收任务 Webhook。",
   "Base URL": "基础 URL",
   "Scoped bearer key": "权限范围受限的 Bearer 密钥",
   "Open API quickstart": "打开 API 快速入门",
