@@ -62,7 +62,7 @@ export default async function StatusPage() {
         <Link aria-current="page" href={statusPath}>Status</Link>
         <Link href={maintenancePath}>Maintenance</Link>
         <Link href={incidentsPath}>Previous incidents</Link>
-        <a href="https://tidelight.app/support">Get in touch</a>
+        <a href="https://tidelight.app/contact">Get in touch</a>
       </nav>
     </header>
     <div className={`tic-status-summary ${status.status}`} role="status">

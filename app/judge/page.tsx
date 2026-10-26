@@ -66,12 +66,12 @@ export default function JudgePage() {
 
     <section className="judge-section judge-test-video" id="live-route-test-recording" aria-labelledby="test-video-title">
       <div className="judge-section-heading">
-        <div><span className="judge-kicker">LIVE SITE · ROUTE CHECK</span><h2 id="test-video-title">Seven public routes responded.</h2></div>
-        <p>Checked while signed out at 1280 × 720. The browser opened all seven public routes below and received HTTP 200 from each.</p>
+        <div><span className="judge-kicker">PUBLIC ROUTE CAPTURE · 24 OCT 2026</span><h2 id="test-video-title">Seven public routes responded.</h2></div>
+        <p>In a signed-out browser check captured on 24 October 2026 at 1280 × 720, all seven public routes below returned HTTP 200.</p>
       </div>
       <div className="judge-route-capture-status" role="status">
         <span className="judge-route-capture-icon" aria-hidden="true">✓</span>
-        <div><strong>Seven public routes returned HTTP 200.</strong><small>Signed-out browser check · 1280 × 720 · machine-readable results linked below</small></div>
+        <div><strong>Seven public routes returned HTTP 200 at capture time.</strong><small>Captured 24 October 2026 · Signed-out browser check · 1280 × 720 · machine-readable results linked below</small></div>
         <span className="judge-route-capture-badge">7 / 7 PASS</span>
       </div>
       <div className="judge-test-route-list" aria-label="Routes checked">

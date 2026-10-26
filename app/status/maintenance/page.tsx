@@ -14,7 +14,7 @@ export default async function MaintenancePage() {
   return <main className="tic-status-page">
     <header className="tic-status-header">
       <a className="tic-status-wordmark" href="https://tidelight.app" aria-label="Tidelight home">tide<span>light</span></a>
-      <nav aria-label="Status navigation"><Link href={statusPath}>Status</Link><Link aria-current="page" href={maintenancePath}>Maintenance</Link><Link href={incidentsPath}>Previous incidents</Link><a href="https://tidelight.app/support">Get in touch</a></nav>
+      <nav aria-label="Status navigation"><Link href={statusPath}>Status</Link><Link aria-current="page" href={maintenancePath}>Maintenance</Link><Link href={incidentsPath}>Previous incidents</Link><a href="https://tidelight.app/contact">Get in touch</a></nav>
     </header>
     <section className="tic-status-empty-page" aria-labelledby="maintenance-title">
       <p className="tic-status-eyebrow">TIDELIGHT STATUS</p>
