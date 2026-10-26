@@ -209,3 +209,34 @@ body:has(.judge-page) :is(.product-quick-actions,.tide-guide){display:none!impor
 @keyframes judge-benchmark-fill{from{transform:scaleX(.01)}to{transform:scaleX(1)}}
 @media(max-width:700px){.judge-benchmark-visual{padding:18px}.judge-benchmark-visual-heading{align-items:flex-start;flex-direction:column;gap:7px}}
 @media(prefers-reduced-motion:reduce){.judge-benchmark-meter-fill{animation:none}}
+
+.judge-monitor-verification{scroll-margin-top:28px}
+.judge-monitor-summary{display:grid;grid-template-columns:44px minmax(0,1fr) auto;gap:18px;align-items:center;margin:22px 0 16px;padding:23px 25px;border:1px solid color-mix(in srgb,#b8a477 42%,var(--line));border-radius:20px;background:linear-gradient(115deg,color-mix(in srgb,#b8a477 12%,var(--surface)),var(--surface) 58%);box-shadow:0 18px 48px #00000012}
+.judge-monitor-summary-mark{display:grid;place-items:center;width:42px;height:42px;border-radius:50%;color:#d8c393;background:#b59a5b24;border:1px solid #b59a5b59;font-size:21px}
+.judge-monitor-eyebrow{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--muted)}
+.judge-monitor-summary h3{margin:5px 0 6px;font-size:19px;letter-spacing:-.025em}
+.judge-monitor-summary p{margin:0;max-width:720px;color:var(--muted);font-size:13px;line-height:1.65}
+.judge-monitor-report-link{white-space:nowrap;color:var(--text);font-size:12px;text-decoration:none;border-bottom:1px solid #b59a5b88;padding:8px 0}
+.judge-monitor-results{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px}
+.judge-monitor-result{min-height:148px;padding:18px;border:1px solid var(--judge-line);border-radius:16px;background:linear-gradient(145deg,color-mix(in srgb,var(--surface) 95%,#b59a5b 5%),var(--surface));box-shadow:0 12px 32px #0000000d}
+.judge-monitor-result-status{display:inline-flex;align-items:center;min-height:22px;padding:3px 8px;border-radius:999px;font-size:9px;letter-spacing:.1em;font-weight:700}
+.judge-monitor-result-status.pass{color:#7ac8a1;background:#54ae7b1b}
+.judge-monitor-result-status.note{color:#d8c393;background:#b59a5b1b}
+.judge-monitor-result-status.limited{color:#c7b4a0;background:#9a82661b}
+.judge-monitor-result h3{margin:13px 0 6px;font-size:14px}
+.judge-monitor-result p{margin:0;color:var(--muted);font-size:12px;line-height:1.6}
+.judge-monitor-result a{color:var(--text);text-decoration-color:#b59a5b80;text-underline-offset:3px}
+.judge-monitor-capture-heading{display:flex;justify-content:space-between;align-items:end;gap:20px;margin:34px 0 14px}
+.judge-monitor-capture-heading h3{margin:5px 0 0;font-size:19px;letter-spacing:-.025em}
+.judge-monitor-capture-heading>p{margin:0;color:var(--muted);font-size:11px}
+.judge-monitor-capture-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.judge-monitor-capture{overflow:hidden;border:1px solid var(--judge-line);border-radius:18px;background:var(--surface);text-decoration:none;box-shadow:0 18px 46px #00000014;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+.judge-monitor-capture:hover{transform:translateY(-3px);border-color:color-mix(in srgb,#b8a477 55%,var(--line));box-shadow:0 22px 54px #00000020}
+.judge-monitor-capture>img{display:block;width:100%;height:auto;aspect-ratio:1085/630;object-fit:cover;object-position:top;border-bottom:1px solid var(--judge-line);background:#101513}
+.judge-monitor-capture:nth-child(2)>img{aspect-ratio:1085/862}
+.judge-monitor-capture>span{display:grid;grid-template-columns:1fr auto;gap:3px 12px;padding:15px 17px}
+.judge-monitor-capture b{font-size:13px;color:var(--text)}
+.judge-monitor-capture small{grid-column:1;color:var(--muted);font-size:11px}
+.judge-monitor-capture i{grid-column:2;grid-row:1/3;align-self:center;color:#d8c393;font-style:normal;font-size:15px}
+@media(max-width:900px){.judge-monitor-results{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:620px){.judge-monitor-summary{grid-template-columns:38px minmax(0,1fr);gap:12px;padding:18px}.judge-monitor-summary-mark{width:36px;height:36px}.judge-monitor-report-link{grid-column:2;justify-self:start}.judge-monitor-results,.judge-monitor-capture-grid{grid-template-columns:1fr}.judge-monitor-result{min-height:0}.judge-monitor-capture-heading{display:block}.judge-monitor-capture-heading>p{margin-top:8px}.judge-monitor-capture>img,.judge-monitor-capture:nth-child(2)>img{aspect-ratio:1085/650}}
