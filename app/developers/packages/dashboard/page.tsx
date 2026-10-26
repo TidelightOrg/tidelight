@@ -32,7 +32,7 @@ export default function PackageDashboardPage() {
     <div className="tic-package-workspace-main">
     <section className="tic-package-dashboard-heading">
       <div><p className="tic-eyebrow"><span className="tic-status-dot"/> PACKAGES / WORKSPACE</p><h1>Your package<br/><em>dashboard.</em></h1><p>Find the right integration, inspect the published release, and start with a verified install command.</p></div>
-      <div className="tic-package-dashboard-summary"><span className="tic-package-dashboard-live"><i/> Registry status</span><strong>Five official integrations</strong><p>npm · PyPI · GitHub Container Registry</p><Link href="https://package.tidelight.app">Back to Packages home <span aria-hidden="true">↗</span></Link></div>
+      <div className="tic-package-dashboard-summary"><span className="tic-package-dashboard-live"><i/> Registry status</span><strong>Five official integrations</strong><div className="tic-package-dashboard-registries" aria-label="Package registries"><span>npm</span><span>PyPI</span><span>GitHub Container Registry</span></div><Link href="https://package.tidelight.app">Back to Packages home <span aria-hidden="true">↗</span></Link></div>
     </section>
     <PackageWorkbench />
     <section className="tic-package-directory tic-package-dashboard-directory" aria-labelledby="package-directory-title">
