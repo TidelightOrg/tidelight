@@ -661,3 +661,4 @@
   .agent-flow-page .flow-orbit-ring{animation:none}
   .agent-flow-page .flow-hero,.agent-flow-page .flow-form-row,.agent-flow-page .flow-form button,.agent-flow-page .flow-orbit-core{transition:none}
 }
+\n.monitor-flow-return{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-top:13px;padding:11px 13px;border:1px solid var(--line);border-radius:9px;background:color-mix(in srgb,var(--panel) 85%,transparent);color:var(--muted);font:10px/1.6 var(--font)}.monitor-flow-return.is-saved{border-color:color-mix(in srgb,var(--mint-2) 35%,var(--line));color:var(--text)}.monitor-flow-return.is-failed{border-color:color-mix(in srgb,var(--amber) 35%,var(--line))}.monitor-flow-return a{flex:none;color:var(--mint);text-decoration:none}@media(max-width:560px){.monitor-flow-return{align-items:flex-start;flex-direction:column}}
