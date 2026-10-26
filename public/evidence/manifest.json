@@ -2,7 +2,7 @@
   "schema_version": "1.0.0",
   "product": "Tidelight",
   "purpose": "Public index of reproducible evidence and verification paths for the Tidelight S2 evaluator.",
-  "generated_at": "2026-10-25T00:43:46.075202+00:00",
+  "generated_at": "2026-10-26T19:58:43Z",
   "evidence_boundary": {
     "status": "index_only",
     "note": "Evidence is grouped by public availability, account scope, and reproducibility. Evaluate performance and execution claims against the corresponding source artifacts and test records.",
@@ -82,6 +82,10 @@
       {
         "path": "/judge-evidence/npm-python-install-walkthrough-fresh-20261024.mp4",
         "purpose": "Playable Chromium capture of fresh npm and Python package installation and entry-point checks"
+      },
+      {
+        "path": "/judge#research-monitor-verification",
+        "purpose": "Dated production screenshots and test results for Research Monitor and Research Flow; includes explicit scope limits"
       }
     ],
     "source_repository": "https://github.com/TidelightOrg/tidelight",
@@ -408,6 +412,19 @@
         "https://tidelight.app/evidence/authenticated-research-20261025/followup.json"
       ],
       "claim": "Source-checkout NVDA/AAPL starts hit polling 429; later Python reads confirmed complete. TypeScript has JSON only."
+    },
+    {
+      "id": "research-monitor-production-verification-20261026",
+      "kind": "production_ui_verification",
+      "status": "passed_with_scope_limits",
+      "uri": "https://tidelight.app/judge#research-monitor-verification",
+      "summary_uri": "https://tidelight.app/evidence/research-monitor-verification-20261026.json",
+      "artifact_uris": [
+        "https://tidelight.app/evidence/research-monitor-verification-20261026.json",
+        "https://tidelight.app/judge-evidence/tidelight-monitor-production-20261026.jpg",
+        "https://tidelight.app/judge-evidence/tidelight-research-flow-production-20261026.jpg"
+      ],
+      "claim": "Signed-in production browser smoke checks confirmed that Research Monitor and Research Flow rendered without unavailable-state errors. Automated test, TypeScript, lint, and production build results are published with limitations. Production create/edit/archive actions were not run."
     }
   ],
   "owner_published_research": {
