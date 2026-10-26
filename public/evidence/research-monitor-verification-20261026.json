@@ -1,0 +1,74 @@
+{
+  "schema_version": "1.0.0",
+  "title": "Tidelight Research Monitor production verification",
+  "generated_at": "2026-10-26T20:58:43+01:00",
+  "result": "passed_with_scope_limits",
+  "product": "Tidelight",
+  "production": {
+    "origin": "https://tidelight.app",
+    "source_commit": "c4a9f9b4911b8d292b9dee1d0d90b3913decdb5f",
+    "deployment_id": "dpl_HNwSe5HmC2MU8p4KaYyj8CWALGp3",
+    "deployment_status": "READY"
+  },
+  "checks": [
+    {
+      "name": "Research Monitor production route",
+      "status": "passed",
+      "method": "Signed-in browser smoke check",
+      "route": "https://tidelight.app/monitor",
+      "result": "Thesis desk empty state rendered; no unavailable-state error."
+    },
+    {
+      "name": "Research Flow production route",
+      "status": "passed",
+      "method": "Signed-in browser smoke check",
+      "route": "https://tidelight.app/flow",
+      "result": "Research question composer and suggested questions rendered."
+    },
+    {
+      "name": "Automated test suite",
+      "status": "passed",
+      "result": "315 passed; 0 failed.",
+      "source": "PR #411 verification run"
+    },
+    {
+      "name": "TypeScript",
+      "status": "passed",
+      "result": "TypeScript check passed."
+    },
+    {
+      "name": "Lint",
+      "status": "passed_with_warnings",
+      "result": "Lint passed with 10 pre-existing warnings unrelated to the changed files."
+    },
+    {
+      "name": "Production build",
+      "status": "passed",
+      "result": "Clean production build passed."
+    },
+    {
+      "name": "Production create/edit/archive mutations",
+      "status": "not_run",
+      "result": "No synthetic thesis was created, edited, or archived in a personal production workspace."
+    }
+  ],
+  "artifacts": [
+    {
+      "name": "Research Monitor production capture",
+      "uri": "https://tidelight.app/judge-evidence/tidelight-monitor-production-20261026.jpg"
+    },
+    {
+      "name": "Research Flow production capture",
+      "uri": "https://tidelight.app/judge-evidence/tidelight-research-flow-production-20261026.jpg"
+    },
+    {
+      "name": "Judge page",
+      "uri": "https://tidelight.app/judge#research-monitor-verification"
+    },
+    {
+      "name": "CI workflow run",
+      "uri": "https://github.com/TidelightOrg/tidelight/actions/runs/40390375180"
+    }
+  ],
+  "scope_note": "This is a production UI smoke verification plus automated code checks. It does not claim end-to-end production CRUD validation or investment performance."
+}
