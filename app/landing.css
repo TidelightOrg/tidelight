@@ -266,6 +266,8 @@
 .landing-status-card-foot>span{color:var(--ls-muted);font-size:11px;line-height:1.45}
 :root:is([data-theme="daylight"],[data-theme="white"]) .landing-status-card{--ls-bg:#f6f7ef;--ls-panel:#fffefa;--ls-line:#d4dfd2;--ls-text:#172c24;--ls-muted:#5e7367;--ls-accent:#14745d;--ls-good:#18835d;--ls-warn:#9d571e;box-shadow:0 22px 58px #223c2515,inset 0 1px #fff}
 :root[data-theme="blue"] .landing-status-card{--ls-bg:#111a30;--ls-panel:#101a30;--ls-line:#35466a;--ls-text:#eef3ff;--ls-muted:#aab8d6;--ls-accent:#b6c5ff;--ls-good:#7ee0b3;--ls-warn:#f1b27e;box-shadow:0 24px 62px #05091a70,inset 0 1px #c4d2ff12}
+:root:is([data-theme="daylight"],[data-theme="white"],[data-theme="blue"]) .landing-status-card.is-degraded{--ls-accent:var(--ls-warn)}
+:root:is([data-theme="daylight"],[data-theme="white"],[data-theme="blue"]) .landing-status-card.is-unavailable{--ls-accent:var(--ls-muted)}
 @keyframes landing-status-flow{to{stroke-dashoffset:-204}}
 @keyframes landing-status-signal{to{stroke-dashoffset:-560}}
 @keyframes landing-status-point{0%,100%{opacity:.55;r:4}50%{opacity:1;r:7}}
