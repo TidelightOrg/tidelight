@@ -5,6 +5,8 @@ import { NavigationTrail } from "@/app/ui/navigation-icon";
 import { ThemeQuickSwitch } from "@/app/ui/theme-provider";
 import { LanguageToggle } from "@/app/ui/language-provider";
 import LandingUseCases from "@/app/ui/landing-use-cases";
+import { TidelightSignatureFooter } from "@/app/ui/tidelight-signature-footer";
+import { LandingUseCaseMenuLinks } from "@/app/ui/landing-use-case-menu-links";
 
 const capabilities = [
   ["Research", "Turn a plain-language question into a source-led market brief."],
@@ -29,7 +31,7 @@ export default function LandingPage() {
         <details className="landing-mobile-menu">
           <summary aria-label="Open site navigation"><span className="landing-menu-glyph" aria-hidden="true"><i /><i /><i /></span><span>Menu</span></summary>
           <div className="landing-mobile-menu-panel" aria-label="Site navigation">
-            <a href="#use-cases">Use cases <NavigationTrail className="landing-arrow" /></a>
+            <LandingUseCaseMenuLinks />
             <a href="#method">The method <NavigationTrail className="landing-arrow" /></a>
             <a href="#handbook">Handbook <NavigationTrail className="landing-arrow" /></a>
             <Link href="/developers">Developers <NavigationTrail className="landing-arrow" /></Link>
@@ -74,6 +76,6 @@ export default function LandingPage() {
         <Link className="landing-ecosystem-link" href="/developers/support"><span className="landing-ecosystem-index">05</span><strong>Human support</strong><small>Talk directly with the Tidelight team</small><NavigationTrail className="landing-arrow" /></Link>
       </div>
     </section>
-    <footer className="landing-footer"><span>© 2026 Tidelight Research</span><span>Clarity when the bell is quiet.</span><div><Link href="/developers">Developers</Link><Link href="/judge">Judge Mode</Link><Link href="/status">System status</Link><Link href="https://blogs.tidelight.app">Field Notes</Link><Link href="/terms">Terms</Link><Link href="/privacy">Privacy</Link><a href="mailto:support@tidelight.app">Contact</a></div></footer>
+    <TidelightSignatureFooter surface="research" />
   </main>;
 }

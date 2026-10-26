@@ -305,6 +305,14 @@
   .landing-mobile-menu-panel a:hover,.landing-mobile-menu-panel a:focus-visible{outline:none;background:color-mix(in srgb,var(--brand-teal) 12%,transparent);color:var(--brand-teal)}
   .landing-mobile-menu-panel .landing-arrow{width:15px;height:15px;opacity:.75}
 }
+
+@media(max-width:800px){
+  .landing-mobile-menu-panel .landing-mobile-menu-featured{min-height:44px;border:1px solid color-mix(in srgb,var(--brand-teal) 27%,var(--line));background:color-mix(in srgb,var(--brand-teal) 8%,transparent);font-weight:700}
+  .landing-mobile-menu-groups{display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:8px 4px 10px;border-bottom:1px solid var(--line)}
+  .landing-mobile-menu-panel .landing-mobile-menu-groups a{justify-content:flex-start;gap:8px;min-height:37px;padding:0 8px;color:var(--muted);font-size:10px}
+  .landing-mobile-menu-groups i{color:var(--brand-teal);font:8px var(--mono);font-style:normal}
+  :root:is([data-theme="daylight"],[data-theme="white"]) .landing-mobile-menu-panel .landing-mobile-menu-featured{color:#286a4d}
+}
 @media(max-width:380px){
   .landing-nav{padding-inline:12px}
   .landing-brand{gap:6px;font-size:17px}

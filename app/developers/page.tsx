@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import type { Metadata } from "next";
+import { TidelightSignatureFooter } from "@/app/ui/tidelight-signature-footer";
 import { PlatformNav } from "./platform-nav";
 import { IntelligenceUiPreview } from "./intelligence-ui-preview";
 import "./tidelight-developers.css";
@@ -141,6 +142,6 @@ export default function DevelopersPage() {
     </section>
 
     <section className="tic-cta-band"><div><p className="tic-eyebrow">BUILD WITH TIDELIGHT</p><h2>Start with the service that fits your workflow.</h2><p>Set up a project, grant only what you need, then explore the live API or connect an MCP client.</p></div><div><Link href="https://tidelight.app/developers/console" className="tic-button tic-primary">Open developer console <span aria-hidden="true">→</span></Link><Link href="https://dev.tidelight.app#quickstart" className="tic-cta-text">Read the quickstart ↗</Link></div></section>
-    <footer className="tic-footer tic-premium-footer"><Link href="/developers" className="tic-brand"><Image src="/tidelight-mark.svg" alt="" width={24} height={24}/><span className="tic-brand-name">Tidelight</span><span>Intelligence Cloud</span></Link><span>Source-aware intelligence infrastructure</span><div><Link href="https://package.tidelight.app">Packages</Link><Link href="https://dev.tidelight.app">Documentation</Link><Link href="https://tidelight.app/developers/console">Console</Link><Link href="https://github.com/TidelightOrg/tidelight" target="_blank" rel="noreferrer">GitHub ↗</Link><Link href="https://x.com/TidelightOrg" target="_blank" rel="noreferrer">X ↗</Link><Link href="/">Tidelight home</Link></div></footer>
+    <TidelightSignatureFooter surface="intelligence" />
   </main>;
 }

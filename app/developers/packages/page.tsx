@@ -1,8 +1,8 @@
 import Link from "next/link";
-import Image from "next/image";
 import type { Metadata } from "next";
 import { PlatformNav } from "../platform-nav";
 import { packageCatalog } from "./catalog.generated";
+import { TidelightSignatureFooter } from "@/app/ui/tidelight-signature-footer";
 import { PackageRegistryCard } from "./registry-facts";
 import { PackageOrbit3D } from "./package-orbit-3d";
 import "../tidelight-developers.css";
@@ -58,6 +58,6 @@ export default function DeveloperPackagesPage() {
       <div className="tic-package-section-head"><div><h2 id="package-directory-title">Available packages</h2><p>Install commands, release history, and canonical source for each package.</p></div><span className="tic-package-live-label"><i/> CURRENT RELEASES</span></div>
       <div className="tic-package-grid">{packageCatalog.map((item, index) => <PackageRegistryCard key={item.id} packageId={item.id} name={item.display.name} summary={item.display.summary} href={item.display.href} ecosystem={item.display.ecosystem} index={index} />)}</div>
     </section>
-    <footer className="tic-footer"><Link href="https://package.tidelight.app" className="tic-brand"><Image src="/tidelight-mark.svg" alt="" width={23} height={23}/><span className="tic-brand-name">Tidelight</span><span>Packages</span></Link><div><Link href="https://dev.tidelight.app">Documentation</Link><Link href="https://tidelight.app/developers/console">Developer console</Link><Link href="https://package.tidelight.app/dashboard">Package dashboard</Link><Link href="https://github.com/TidelightOrg/tidelight" target="_blank" rel="noreferrer">GitHub ↗</Link><Link href="https://x.com/TidelightOrg" target="_blank" rel="noreferrer">X ↗</Link></div></footer>
+    <TidelightSignatureFooter surface="packages" />
   </main>;
 }

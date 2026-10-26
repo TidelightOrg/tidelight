@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { TidelightSignatureFooter } from "@/app/ui/tidelight-signature-footer";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { PlatformNav } from "../platform-nav";
@@ -95,6 +95,6 @@ export default function DeveloperIntegrationsPage() {
       <Link className="tic-button tic-primary" href="https://tidelight.app/developers/console">Open the developer console <span aria-hidden="true">→</span></Link>
     </section>
 
-    <footer className="tic-footer"><Link href="https://tidelight.app/developers" className="tic-brand"><Image src="/tidelight-mark.svg" alt="" width={23} height={23}/><span className="tic-brand-name">Tidelight</span><span>Developer platform</span></Link><div><Link href="https://dev.tidelight.app">Documentation</Link><Link href="https://package.tidelight.app">Packages</Link><Link href="https://tidelight.app/developers/console">Developer console</Link><Link href="https://status.tidelight.app">System status</Link><Link href="https://github.com/TidelightOrg/tidelight" target="_blank" rel="noreferrer">GitHub ↗</Link></div></footer>
+    <TidelightSignatureFooter surface="intelligence" />
   </main>;
 }
