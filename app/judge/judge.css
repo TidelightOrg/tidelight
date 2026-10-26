@@ -1,4 +1,6 @@
 .judge-page{--judge-line:color-mix(in srgb,var(--line) 82%,transparent);min-height:100vh;padding:28px clamp(20px,5vw,76px) 34px;background:radial-gradient(ellipse at 84% 0,color-mix(in srgb,var(--mint) 13%,transparent),transparent 34%),var(--bg);color:var(--text)}
+/* Keep shared floating helpers from covering evidence headings and media controls. */
+body:has(.judge-page) :is(.product-quick-actions,.tide-guide){display:none!important}
 .judge-page a{color:inherit;text-decoration:none}
 .judge-page a:focus-visible{outline:2px solid var(--mint);outline-offset:4px}
 .judge-hero,.judge-section,.judge-footer{width:min(100%,1190px);margin-inline:auto}
