@@ -15,9 +15,10 @@ export const metadata: Metadata = {
 };
 
 const routeCards = [
-  { number: "01", label: "REST API", host: "api.tidelight.app", path: "/v1", note: "Versioned, scoped requests" },
-  { number: "02", label: "REMOTE MCP", host: "mcp.tidelight.app", path: "/mcp", note: "Streamable HTTP · OAuth" },
-  { number: "03", label: "DOCUMENTATION", host: "dev.tidelight.app", path: "/", note: "Guides and API reference" },
+  { number: "01", label: "REST API", host: "api.tidelight.app", path: "/v1", note: "Versioned, scoped requests", href: "https://api.tidelight.app/v1" },
+  { number: "02", label: "REMOTE MCP", host: "mcp.tidelight.app", path: "/mcp", note: "Streamable HTTP · OAuth", href: "https://mcp.tidelight.app/mcp" },
+  { number: "03", label: "DOCUMENTATION", host: "dev.tidelight.app", path: "/", note: "Guides and API reference", href: "https://dev.tidelight.app" },
+  { number: "04", label: "INTEGRATION GUIDES", host: "tidelight.app", path: "/developers/integrations", note: "Choose between API, MCP, and packages", href: "https://tidelight.app/developers/integrations" },
 ];
 
 export default function DevelopersPage() {
@@ -43,7 +44,7 @@ export default function DevelopersPage() {
 
     <section className="tic-platform-strip" aria-label="Platform services">
       <p>Service directory</p>
-      <div>{routeCards.map(card => <Link href={card.label === "DOCUMENTATION" ? "https://dev.tidelight.app" : card.label === "REMOTE MCP" ? "https://mcp.tidelight.app/mcp" : "https://api.tidelight.app/v1"} key={card.number} className="tic-route-card"><div><strong>{card.label}</strong><small>{card.note}</small></div><code>{card.host}{card.path}</code><span className="tic-route-arrow" aria-hidden="true">↗</span></Link>)}</div>
+      <div>{routeCards.map(card => <Link href={card.href} key={card.number} className="tic-route-card"><div><strong>{card.label}</strong><small>{card.note}</small></div><code>{card.host}{card.path}</code><span className="tic-route-arrow" aria-hidden="true">↗</span></Link>)}</div>
     </section>
 
     <section className="tic-cloud-workspace" aria-labelledby="tic-cloud-workspace-title">
