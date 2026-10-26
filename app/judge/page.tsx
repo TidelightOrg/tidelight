@@ -140,7 +140,7 @@ export default function JudgePage() {
       </div>
       <div className="judge-inline-actions">
         <Link href="/replay/ed08a907-14b0-41dd-b731-78870fe3255b">Open fresh NVDA replay <span aria-hidden="true">↗</span></Link>
-        <a href="https://dev.tidelight.app/#connect-with-the-mcp-server">MCP connection guide <span aria-hidden="true">↗</span></a>
+        <a href="https://dev.tidelight.app/#mcp">MCP connection guide <span aria-hidden="true">↗</span></a>
         <a href="https://mcp.tidelight.app/.well-known/oauth-protected-resource/mcp">OAuth resource metadata <span aria-hidden="true">↗</span></a>
         <Link href="/evidence/tidelight-codex-mcp.json">Current registry check <span aria-hidden="true">↗</span></Link>
         <Link href="/evidence/tidelight-codex-mcp-market-check-20261024.json">Live Codex market calls <span aria-hidden="true">↗</span></Link>
