@@ -52,7 +52,7 @@ export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) return NextResponse.json({ error: "Sign in to start a private research flow." }, { status: 401 });
-  let body: { question?: unknown; contextRunId?: unknown; workspaceContext?: unknown };
+  let body: { question?: unknown; contextRunId?: unknown; workspaceContext?: unknown; researchMonitorId?: unknown };
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Send a valid question." }, { status: 400 }); }
   const question = typeof body.question === "string" ? body.question.trim().replace(/\s+/g, " ") : "";
   if (question.length < 5 || question.length > 500) return NextResponse.json({ error: "Ask a market question in 5 to 500 characters." }, { status: 400 });
@@ -71,8 +71,17 @@ export async function POST(request: Request) {
       return [{ ticker: row.ticker.slice(0, 16), summary: row.summary.slice(0, 700), stance: typeof row.stance === "string" ? row.stance.slice(0, 16) : "unclear", confidence: typeof row.confidence === "number" && Number.isFinite(row.confidence) ? Math.max(0, Math.min(1, row.confidence)) : 0, risks: Array.isArray(row.risks) ? row.risks.filter((risk): risk is string => typeof risk === "string").slice(0, 5).map((risk) => risk.slice(0, 180)) : [] }];
     }).slice(0, 3) };
   }
+  const monitorId = typeof body.researchMonitorId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.researchMonitorId) ? body.researchMonitorId : null;
+  let monitor: { id: string; ticker: string; thesis_revision: number } | null = null;
+  if (body.researchMonitorId !== undefined && !monitorId) return NextResponse.json({ error: "That Research Monitor link is invalid." }, { status: 400 });
+  if (monitorId) {
+    const { data } = await supabase.from("research_monitors").select("id,ticker,thesis_revision").eq("id", monitorId).eq("user_id", user.id).eq("status", "active").maybeSingle();
+    if (!data) return NextResponse.json({ error: "That active Research Monitor is unavailable." }, { status: 404 });
+    monitor = data;
+  }
   const tickers = extractFlowTickers(`${question} ${workspaceContext ?? ""}`, STOCK_PERP_UNIVERSE);
   const macroTopic: MacroTopic | null = tickers.length ? null : classifyMacroQuestion(question);
+  if (monitor && (!tickers.includes(monitor.ticker) || macroTopic)) return NextResponse.json({ error: `Name ${monitor.ticker} in the company research question for this monitor.` }, { status: 422 });
   if (!tickers.length && !macroTopic) return NextResponse.json({ error: "Name a supported US stock, or ask about a dated FOMC, CPI, or employment release." }, { status: 422 });
   const hourAgo = new Date(Date.now() - 3_600_000).toISOString();
   const { count, error: limitError } = await supabase.from("research_runs").select("id", { count: "exact", head: true }).gte("created_at", hourAgo);
@@ -246,11 +255,18 @@ export async function POST(request: Request) {
         });
         stage("Coordinator", "complete", "Review ready", assets.some(asset => asset.tradeable) ? "One or more scenarios may proceed to a separate trade review. Nothing was sent to Bitget or the paper ledger." : "Keep watching the evidence and market. No scenario passed every trade review gate.");
         const result = { researchRunId: run.id, question, synthesis: synthesisProvider ? { mode: "model" as const, provider: synthesisProvider } : { mode: "source_only" as const, provider: null }, researchCoverage: { mode: "deep", lookbackDays, queriesPerTicker: buildIssuerNewsQueries(tickers[0], getIssuerName(tickers[0]), question).length * 2, collectedItems: snapshots.reduce((count, snap) => count + snap.sources.length, 0), publishers: [...new Set(snapshots.flatMap(snap => snap.sources.map(source => source.publisher)))].length, sourceDomains: [...new Set(snapshots.flatMap(snap => snap.sources.map(source => new URL(source.url).hostname)))].length, collectedAt: new Date().toISOString(), limitations: ["Primary issuer excerpts are bounded and partial; open the cited source for the complete release.", "Public-feed coverage is bounded and cannot represent the entire internet."] }, assets, tradeable: assets.some(asset => asset.tradeable), trace, contextRunId, ...(workspaceContext ? { workspaceContext } : {}) };
-        const { error: saveError } = await supabase.from("research_runs").update({ status: "complete", completed_at: new Date().toISOString(), summary: result }).eq("id", run.id);
+        const { error: saveError } = await supabase.from("research_runs").update({ status: "complete", completed_at: new Date().toISOString(), summary: result }).eq("id", run.id).eq("user_id", user.id);
         if (saveError) {
           stage("Coordinator", "blocked", "Private trace could not be saved", "No trade handoff was offered because the research record was not committed.");
           throw new Error(`research-save-failed:${saveError.code}`);
-        } else push("result", result);
+        }
+        let monitorObservationSaved = false;
+        if (monitor) {
+          const { error: observationError } = await supabase.from("research_monitor_observations").insert({ monitor_id: monitor.id, user_id: user.id, research_run_id: run.id, thesis_revision: monitor.thesis_revision });
+          monitorObservationSaved = !observationError;
+          if (observationError) console.error("research-monitor-observation-save-failed", observationError.code);
+        }
+        push("result", { ...result, researchMonitorId: monitor?.id ?? null, ...(monitor ? { monitorObservationSaved } : {}) });
       } catch (cause) {
         console.error("agent-flow-failed", cause instanceof Error ? cause.message : "unknown");
         await supabase.from("research_runs").update({ status: "failed", completed_at: new Date().toISOString(), summary: { trace, error: "The market or research workflow did not complete." } }).eq("id", run.id);

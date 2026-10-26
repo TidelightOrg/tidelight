@@ -18,7 +18,7 @@ type AssetRead = {
   market: { perpSymbol: string | null; spotSymbol: string | null; lastPrice: number | null; providerTimestamp?: number | null; perpLastPrice?: number | null; perpProviderTimestamp?: number | null; spotLastPrice?: number | null; spotProviderTimestamp?: number | null };
   handoff: { destinations: Destination[]; reason: string } | null;
 };
-type FlowResult = { researchRunId?: string; question: string; researchType?: "issuer" | "macro"; macroTopic?: "monetary_policy" | "inflation" | "labor_market"; assets: AssetRead[]; tradeable: boolean; synthesis?: { mode: "model" | "source_only"; provider: string | null }; handoff?: unknown; trace: StageEvent[]; researchCoverage?: { mode: string; lookbackDays: number; queriesPerTicker: number; collectedItems: number; publishers: number; sourceDomains: number; collectedAt: string; limitations: string[] } };
+type FlowResult = { researchRunId?: string; researchMonitorId?: string | null; monitorObservationSaved?: boolean; question: string; researchType?: "issuer" | "macro"; macroTopic?: "monetary_policy" | "inflation" | "labor_market"; assets: AssetRead[]; tradeable: boolean; synthesis?: { mode: "model" | "source_only"; provider: string | null }; handoff?: unknown; trace: StageEvent[]; researchCoverage?: { mode: string; lookbackDays: number; queriesPerTicker: number; collectedItems: number; publishers: number; sourceDomains: number; collectedAt: string; limitations: string[] } };
 
 const DEFAULT_FAVORITES = ["NVDA", "TSLA", "AAPL", "MSFT"];
 const QUESTION_PATTERNS = [
@@ -106,7 +106,7 @@ function safeDeskLink(destination: Destination) {
   return null;
 }
 
-export default function AgentFlowDesk({ initialQuestion, favorites = [], recentQuestions = [], evaluatorMode = false }: { initialQuestion: string; favorites?: string[]; recentQuestions?: Array<{ question: string; tickers: string[] }>; evaluatorMode?: boolean }) {
+export default function AgentFlowDesk({ initialQuestion, initialMonitorId = null, favorites = [], recentQuestions = [], evaluatorMode = false }: { initialQuestion: string; initialMonitorId?: string | null; favorites?: string[]; recentQuestions?: Array<{ question: string; tickers: string[] }>; evaluatorMode?: boolean }) {
   const { mode, setMode } = useExperience();
   const { language } = useLanguage();
   const [question, setQuestion] = useState(initialQuestion);
@@ -177,7 +177,7 @@ export default function AgentFlowDesk({ initialQuestion, favorites = [], recentQ
     try {
       const response = await fetch("/api/research/agent-flow", {
         method: "POST", headers: { "Content-Type": "application/json", Accept: "text/event-stream" },
-        body: JSON.stringify({ question: submitted }), signal: request.signal,
+        body: JSON.stringify({ question: submitted, ...(initialMonitorId ? { researchMonitorId: initialMonitorId } : {}) }), signal: request.signal,
       });
       if (!response.ok || !response.body) {
         const failure = await response.json().catch(() => null);
@@ -263,6 +263,7 @@ export default function AgentFlowDesk({ initialQuestion, favorites = [], recentQ
         </form>
         {!focused ? <div className="flow-prompts" aria-label="Suggested questions"><span>Suggested</span>{suggestions.map((suggestion) => <button type="button" key={suggestion} onClick={() => completeSuggestion(suggestion)} disabled={busy}>{localizeResearchSuggestion(suggestion, language)}<b aria-hidden="true">↗</b></button>)}</div> : null}
         <ResearchReplayShare researchRunId={result?.researchRunId} />
+        {initialMonitorId && result ? <div className={`monitor-flow-return ${result.monitorObservationSaved ? "is-saved" : "is-failed"}`} role="status">{result.monitorObservationSaved ? <>This dated review is saved to your Research Monitor. <Link href="/monitor">Return to the monitor ↗</Link></> : <>Research finished, but its monitor link could not be saved. Your research brief remains available. <Link href="/monitor">Open Research Monitor ↗</Link></>}</div> : null}
       </div>
       <div className="flow-orbit" aria-hidden="true"><div className="flow-orbit-ring"><span>EVENT</span><span>EVIDENCE</span><span>EXPOSURE</span><span>DECISION</span></div><div className="flow-orbit-core"><Image src="/tidelight-mark.svg" alt="" width={42} height={42} /><small>TIDELIGHT</small></div></div>
     </section>

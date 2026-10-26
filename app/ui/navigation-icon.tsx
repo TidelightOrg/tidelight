@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-export type NavigationIconName = "overview" | "guide" | "research" | "flow" | "community" | "markets" | "strategies" | "nightwatch" | "futures" | "trading" | "watchlist" | "briefs" | "demo" | "systems" | "settings" | "notifications";
+export type NavigationIconName = "overview" | "guide" | "research" | "flow" | "community" | "markets" | "strategies" | "nightwatch" | "futures" | "trading" | "watchlist" | "briefs" | "demo" | "systems" | "settings" | "notifications" | "monitor";
 
 export function NavigationIcon({ name, className }: { name: NavigationIconName; className?: string }) {
   const shared = { fill: "none", stroke: "currentColor", strokeWidth: 1.7, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
@@ -21,6 +21,7 @@ export function NavigationIcon({ name, className }: { name: NavigationIconName; 
     systems: <><rect x="4" y="4" width="16" height="6" rx="1.5"/><rect x="4" y="14" width="16" height="6" rx="1.5"/><path d="M8 7h.01M8 17h.01M12 7h5m-5 10h5"/></>,
     settings: <><path d="M4 6h16M4 12h16M4 18h16"/><circle cx="9" cy="6" r="2" fill="var(--bg)"/><circle cx="16" cy="12" r="2" fill="var(--bg)"/><circle cx="10" cy="18" r="2" fill="var(--bg)"/></>,
     notifications: <><path d="M18 9a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9"/><path d="M10 21h4"/></>,
+    monitor: <><path d="M3 12h4l2.2-5 4.1 10 2.2-5H21"/><path d="M4 4h16v16H4z"/></>,
   };
   return <svg className={className} viewBox="0 0 24 24" aria-hidden="true" focusable="false" {...shared}>{paths[name]}</svg>;
 }

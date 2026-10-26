@@ -1,0 +1,67 @@
+"use client";
+
+import Link from "next/link";
+import { useMemo } from "react";
+import { createMonitor, setMonitorStatus, updateThesis } from "@/app/monitor/actions";
+
+type Monitor = { id: string; ticker: string; thesis: string; thesis_revision: number; status: "active" | "archived"; created_at: string; updated_at: string };
+type Revision = { monitor_id: string; revision: number; thesis: string; created_at: string };
+type Observation = { id: string; monitor_id: string; research_run_id: string; thesis_revision: number; observed_at: string };
+type Source = { title: string; url: string; publisher: string; publishedAt: string | null; via?: string };
+type Asset = { ticker: string; issuer?: string; summary: string; stance: string; confidence: number; confidenceCapped?: boolean; tradeable: boolean; gateReasons: string[]; sources: Source[]; evidenceBalance?: { supporting: Array<{ text: string; citedUrls: string[] }>; counter: Array<{ text: string; citedUrls: string[] }> }; market?: { providerTimestamp?: number | null; perpProviderTimestamp?: number | null; spotProviderTimestamp?: number | null } };
+type Run = { id: string; question: string; summary: { assets?: Asset[]; synthesis?: { mode?: string; provider?: string | null }; researchCoverage?: { collectedAt?: string; limitations?: string[] } } | null; created_at: string; completed_at: string | null };
+
+const date = (value: string) => new Date(value).toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+function sources(summary: Run["summary"] | undefined) { return summary?.assets?.flatMap((asset) => asset.sources ?? []) ?? []; }
+function Delta({ current, previous }: { current: Run; previous?: Run }) {
+  if (!previous) return <div className="monitor-delta"><span className="monitor-delta-mark">01</span><div><b>First recorded review</b><p>This becomes the baseline for your next evidence comparison.</p></div></div>;
+  const nowSources = sources(current.summary), beforeSources = sources(previous.summary);
+  const beforeUrls = new Set(beforeSources.map((source) => source.url));
+  const added = nowSources.filter((source) => !beforeUrls.has(source.url));
+  const currentAsset = current.summary?.assets?.[0], previousAsset = previous.summary?.assets?.[0];
+  const changedStance = currentAsset?.stance && previousAsset?.stance && currentAsset.stance !== previousAsset.stance;
+  const evidenceCount = (asset?: Asset) => (asset?.evidenceBalance?.supporting.length ?? 0) + (asset?.evidenceBalance?.counter.length ?? 0);
+  return <div className="monitor-delta"><span className="monitor-delta-mark">Δ</span><div><b>Since the previous review</b><p>{added.length ? `${added.length} source link${added.length === 1 ? "" : "s"} are new to this run.` : "No new source URLs were captured in this run."}{changedStance ? ` The model reading changed from ${previousAsset?.stance} to ${currentAsset?.stance}.` : ""} Evidence points: {evidenceCount(previousAsset)} → {evidenceCount(currentAsset)}.</p><small>Comparison describes saved model outputs and source links; it does not independently verify truth or editorial independence.</small></div></div>;
+}
+
+function ObservationCard({ observation, run, previous, revision }: { observation: Observation; run?: Run; previous?: Run; revision?: Revision }) {
+  const asset = run?.summary?.assets?.find((item) => item.ticker === (run.summary?.assets?.[0]?.ticker ?? "")) ?? run?.summary?.assets?.[0];
+  const allSources = sources(run?.summary);
+  const timestamp = asset?.market?.providerTimestamp ?? asset?.market?.perpProviderTimestamp ?? asset?.market?.spotProviderTimestamp;
+  const quoteAge = typeof timestamp === "number" ? Date.parse(observation.observed_at) - timestamp : null;
+  const freshness = quoteAge === null ? "Unverified" : quoteAge <= 120_000 ? "Within 2 min at capture" : "Outside 2 min at capture";
+  return <article className="monitor-observation">
+    <header><div><span className="monitor-date">{date(observation.observed_at)}</span><span className="monitor-revision">THESIS REV. {observation.thesis_revision}</span></div><span className={`monitor-stance monitor-stance-${asset?.stance ?? "unclear"}`}>{asset?.stance ?? "RUN UNAVAILABLE"}</span></header>
+    {!run ? <div className="monitor-unavailable" role="status">This dated run is no longer available. The observation record remains visible.</div> : <>
+      <h3>{asset?.issuer || asset?.ticker || "Research review"}</h3><p className="monitor-summary">{asset?.summary || "No research summary was stored for this run."}</p>
+      <div className="monitor-metrics"><span><small>Model confidence</small><b>{typeof asset?.confidence === "number" ? `${Math.round(asset.confidence * 100)}%${asset.confidenceCapped ? " · capped" : ""}` : "Not reported"}</b></span><span><small>Source links</small><b>{allSources.length}</b></span><span><small>Quote at capture</small><b>{freshness}</b></span></div>
+      <Delta current={run} previous={previous}/>
+      {asset?.gateReasons?.length ? <details className="monitor-gates"><summary>Research limits · {asset.gateReasons.length}</summary><ul>{asset.gateReasons.map((reason, index) => <li key={index}>{reason}</li>)}</ul></details> : null}
+      <details className="monitor-sources"><summary>Inspect {allSources.length} dated source links</summary>{allSources.length ? <ul>{allSources.map((source, index) => <li key={`${source.url}-${index}`}><span>{source.publisher || "Publisher not identified"}{source.publishedAt ? ` · published ${date(source.publishedAt)}` : " · publication date unavailable"}{source.via ? ` · ${source.via}` : ""}</span><a href={source.url} target="_blank" rel="noopener noreferrer">{source.title || source.url} ↗</a></li>)}</ul> : <p>No sources were retained in this result.</p>}</details>
+    </>}
+    {revision ? <details className="monitor-thesis-at-run"><summary>Thesis used in this review · revision {revision.revision}</summary><p>{revision.thesis}</p></details> : null}
+  </article>;
+}
+
+export default function ResearchMonitor({ monitors, revisions, observations, runs, notice }: { monitors: Monitor[]; revisions: Revision[]; observations: Observation[]; runs: Run[]; notice: string }) {
+  const runById = useMemo(() => new Map(runs.map((run) => [run.id, run])), [runs]);
+  const revisionByMonitor = useMemo(() => { const map = new Map<string, Revision[]>(); for (const row of revisions) map.set(row.monitor_id, [...(map.get(row.monitor_id) ?? []), row]); return map; }, [revisions]);
+  const observationsByMonitor = useMemo(() => { const map = new Map<string, Observation[]>(); for (const row of observations) map.set(row.monitor_id, [...(map.get(row.monitor_id) ?? []), row]); return map; }, [observations]);
+  const active = monitors.filter((item) => item.status === "active"), archived = monitors.filter((item) => item.status === "archived");
+  return <div className="monitor-workspace">
+    {notice ? <p className="monitor-notice" role="status">{notice}</p> : null}
+    <section className="monitor-create-card"><div className="monitor-create-copy"><span className="monitor-section-label">START WITH A THESIS</span><h2>Give the evidence a question to answer.</h2><p>Save a company thesis, then run a fresh review when you want to revisit it. Tidelight preserves each completed run and the thesis revision used.</p><div className="monitor-create-promise"><i/> Private to your account <i/> Manual runs <i/> No trade action</div></div><form action={createMonitor} className="monitor-create-form"><label htmlFor="monitor-ticker">Company ticker</label><input id="monitor-ticker" name="ticker" required minLength={1} maxLength={6} pattern="[A-Za-z]{1,6}" placeholder="NVDA" autoCapitalize="characters"/><label htmlFor="monitor-thesis">Your investment thesis</label><textarea id="monitor-thesis" name="thesis" required minLength={12} maxLength={440} rows={4} placeholder="What do you believe, and what evidence would change your mind?"/><div className="monitor-form-foot"><small>12–440 characters · up to 12 active monitors</small><button type="submit" disabled={active.length >= 12}>Create monitor <span>↗</span></button></div></form></section>
+    {active.length ? <section className="monitor-list-section"><header className="monitor-list-head"><div><span className="monitor-section-label">YOUR RESEARCH MEMORY</span><h2>Active monitors <span>{String(active.length).padStart(2,"0")}</span></h2></div><p>Each review is a dated snapshot. Source links and earlier thesis revisions stay inspectable.</p></header><div className="monitor-list">{active.map((monitor) => {
+      const rows = observationsByMonitor.get(monitor.id) ?? [], items = rows.map((row) => ({ row, run: runById.get(row.research_run_id) }));
+      const latest = items[0]?.run; const latestAsset = latest?.summary?.assets?.[0];
+      const question = `For ${monitor.ticker}, evaluate this thesis: ${monitor.thesis}`;
+      return <article className="monitor-card" key={monitor.id}><div className="monitor-card-top"><div className="monitor-identity"><span className="monitor-symbol">{monitor.ticker.slice(0,1)}</span><div><span className="monitor-card-kicker">THESIS MONITOR · REVISION {monitor.thesis_revision}</span><h3>{monitor.ticker}</h3></div></div><span className="monitor-live-state"><i/> ACTIVE</span></div><p className="monitor-thesis">{monitor.thesis}</p><div className="monitor-card-meta"><span>{rows.length ? `${rows.length} dated review${rows.length === 1 ? "" : "s"}` : "Awaiting first review"}</span><span>{latest ? `Last reviewed ${date(items[0].row.observed_at)}` : `Created ${date(monitor.created_at)}`}</span>{latestAsset ? <span>Latest model reading · {latestAsset.stance}</span> : null}</div>
+      <div className="monitor-card-actions"><Link className="monitor-primary-action" href={`/flow?monitorId=${encodeURIComponent(monitor.id)}&question=${encodeURIComponent(question)}`}>Review this thesis <span>↗</span></Link><details className="monitor-edit"><summary>Edit thesis</summary><form action={updateThesis}><input type="hidden" name="monitorId" value={monitor.id}/><label htmlFor={`thesis-${monitor.id}`}>New thesis revision</label><textarea id={`thesis-${monitor.id}`} name="thesis" required minLength={12} maxLength={440} defaultValue={monitor.thesis}/><button type="submit">Save revision</button></form></details><form action={setMonitorStatus}><input type="hidden" name="monitorId" value={monitor.id}/><input type="hidden" name="status" value="archived"/><button className="monitor-quiet-action" type="submit">Archive</button></form></div>
+      {items.length ? <div className="monitor-timeline"><div className="monitor-timeline-head"><h4>Evidence timeline</h4><span>Newest first</span></div>{items.map(({row,run}, index) => <ObservationCard key={row.id} observation={row} run={run} previous={items[index+1]?.run} revision={revisionByMonitor.get(monitor.id)?.find((item)=>item.revision===row.thesis_revision)}/>)}</div> : <div className="monitor-empty-review"><div className="monitor-empty-mark">↗</div><div><b>Your first review sets the baseline.</b><p>Run the current thesis through the research desk. The result will return here with its sources, freshness, counter-evidence, and limits.</p></div><Link href={`/flow?monitorId=${encodeURIComponent(monitor.id)}&question=${encodeURIComponent(question)}`}>Begin first review <span>↗</span></Link></div>}
+      {revisionByMonitor.get(monitor.id)?.length ? <details className="monitor-revision-history"><summary>Thesis history · {revisionByMonitor.get(monitor.id)?.length} revisions</summary><ol>{revisionByMonitor.get(monitor.id)?.map((revision)=><li key={revision.revision}><span>Revision {revision.revision} · {date(revision.created_at)}</span><p>{revision.thesis}</p></li>)}</ol></details> : null}
+      </article>;
+    })}</div></section> : <section className="monitor-first-empty"><span className="monitor-empty-mark">✳</span><h2>Your research desk starts with a thesis.</h2><p>Pin a company and the conditions that matter to you. Your first evidence review will become the reference point for future changes.</p></section>}
+    {archived.length ? <section className="monitor-archived"><details><summary>Archived monitors · {archived.length}</summary><div>{archived.map((monitor)=><article key={monitor.id}><span><b>{monitor.ticker}</b> · {monitor.thesis}</span><form action={setMonitorStatus}><input type="hidden" name="monitorId" value={monitor.id}/><input type="hidden" name="status" value="active"/><button type="submit" disabled={active.length>=12}>Restore</button></form></article>)}</div></details></section> : null}
+    <footer className="monitor-footnote"><span>Research assistance, not investment advice.</span><span>Model confidence is not a measured accuracy score.</span><Link href="/judge">Inspect Tidelight’s research gates ↗</Link></footer>
+  </div>;
+}
