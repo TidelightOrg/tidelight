@@ -29,7 +29,7 @@
       "name": "Automated test suite",
       "status": "passed",
       "result": "315 passed; 0 failed.",
-      "source": "PR #411 verification run"
+      "source": "PR #412 verification run"
     },
     {
       "name": "TypeScript",
@@ -50,6 +50,11 @@
       "name": "Production create/edit/archive mutations",
       "status": "not_run",
       "result": "No synthetic thesis was created, edited, or archived in a personal production workspace."
+    },
+    {
+      "name": "Database jobs",
+      "status": "passed",
+      "result": "All 6 isolated database verification jobs passed in the PR workflow."
     }
   ],
   "artifacts": [
@@ -67,7 +72,7 @@
     },
     {
       "name": "CI workflow run",
-      "uri": "https://github.com/TidelightOrg/tidelight/actions/runs/40390375180"
+      "uri": "https://github.com/TidelightOrg/tidelight/actions/runs/40391881625"
     }
   ],
   "scope_note": "This is a production UI smoke verification plus automated code checks. It does not claim end-to-end production CRUD validation or investment performance."
