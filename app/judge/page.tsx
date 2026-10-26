@@ -13,6 +13,7 @@ const researchReplays = [
   { id: "91bb478a-7977-4b34-b32d-b1f558a8af75", symbol: "NVDA + TSLA", focus: "Company comparison", question: "Compare the latest evidence and risks.", detail: "Separate issuer assessments · decision gates" },
   { id: "13bcee6c-3d69-4bd0-bb2c-e3591c73529b", symbol: "NVDA", focus: "AI infrastructure and competition", question: "What changed for NVDA based on current public sources?", detail: "40 headlines · 27 publishers · Gemini synthesis · mixed · 40% model-reported confidence · HOLD" },
   { id: "ed08a907-14b0-41dd-b731-78870fe3255b", symbol: "NVDA", focus: "Current public catalysts", question: "What are the latest public catalysts and key uncertainties for NVDA?", detail: "Fresh live research · 20 sources · 8 steps · handoff held" },
+  { id: "edcb1a1e-790d-4eaa-b448-bdd6360cc426", symbol: "NVDA", focus: "Recent evidence and tokenized market context", question: "What recent public evidence supports or challenges the NVDA outlook?", detail: "20 sources · 30% model-reported confidence · quote stale · no directional scenario or trade handoff" },
 ]; 
 
 const captures = [
