@@ -97,7 +97,7 @@ export default function DevelopersPage() {
           <p className="tic-capability-example-limit">The server exposes tools allowed by the credential’s existing scopes: market lookup uses <code>market:read</code>; company research uses <code>research:run</code>. Client authorization and project limits still apply.</p>
           <div className="tic-capability-example-actions">
             <Link href="https://tidelight.app/developers/console">Open console → API explorer</Link>
-            <Link href="https://dev.tidelight.app/#connect-with-the-mcp-server">MCP connection guide ↗</Link>
+            <Link href="https://dev.tidelight.app/#mcp">MCP connection guide ↗</Link>
           </div>
         </article>
       </div>
