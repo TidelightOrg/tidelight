@@ -1,6 +1,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import TidelightAnimatedMark from "@/app/ui/tidelight-animated-mark";
+import { TidelightSignatureFooter } from "@/app/ui/tidelight-signature-footer";
 import "./judge.css";
 
 const researchReplays = [
@@ -64,6 +65,15 @@ export default function JudgePage() {
         <article><span>04</span><div><b>Review the gate</b><small>See why a paper action is allowed or blocked.</small></div></article>
       </div>
     </section>
+
+    <nav className="judge-review-nav" aria-label="Judge evidence sections">
+      <span>REVIEW PATH</span>
+      <a href="#live-route-test-recording"><i>01</i> Live verification</a>
+      <a href="#research-title"><i>02</i> Research replays</a>
+      <a href="#research-benchmark"><i>03</i> Benchmark</a>
+      <a href="#codex-mcp-evidence"><i>04</i> Developer proof</a>
+      <a href="#nightwatch-title"><i>05</i> Nightwatch records</a>
+    </nav>
 
     <section className="judge-section judge-test-video" id="live-route-test-recording" aria-labelledby="test-video-title">
       <div className="judge-section-heading">
@@ -419,5 +429,6 @@ export default function JudgePage() {
       <Link href="/evidence">Evidence manifest <span aria-hidden="true">↗</span></Link>
       <a href="https://status.tidelight.app">Tidelight ecosystem status <span aria-hidden="true">↗</span></a>
     </footer>
+    <TidelightSignatureFooter surface="research" />
   </main>;
 }
