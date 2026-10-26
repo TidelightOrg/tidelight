@@ -1,8 +1,22 @@
 # Tidelight Codex handoff
 
-**Prepared:** 25 October 2026
+**Prepared:** 26 October 2026
 **Repository:** [`TidelightOrg/tidelight`](https://github.com/TidelightOrg/tidelight)
 **Purpose:** let a fresh session continue from current verified state without repeating completed work.
+
+## Current verified continuation point · 26 October 2026
+
+PR #390, **Add a public developer integration directory**, is merged and its production deployment is READY. The live developer integration page, developer landing page, package home, and package dashboard were opened in the connected browser at desktop width. The integration page rendered four integration cards; the package dashboard rendered the registry workbench and five integration entries. The visible status route, support route, and five theme controls were present. No desktop header or card overlap appeared in these views. The preview page also rendered, and its Simplified Chinese page heading and integration copy were verified.
+
+The Vercel CLI 65.2.0 is available through `npm exec --yes --package vercel@latest -- vercel --version`; it was not added to the project dependencies. This browser surface could not set a narrow viewport, so mobile visual verification remains outstanding. The shared navigation has compact mobile menu breakpoints, but do not mark the narrow-viewport milestone complete based on CSS inspection alone.
+
+PRs #387 and #389 (research publishing shape normalization; status discovery and judge evidence dates) are already merged in the production baseline. The earlier landing-page use-case directory is also present. Translation follow-up is considered complete for this continuation; resume on visual QA and the outstanding evidence gates rather than reopening broad translation work.
+
+### Next milestone: reproduce the reported card/header overlap
+
+1. Use a real narrow viewport on package home, dashboard, five package detail pages, developer docs, and API explorer. Inspect header, title/cards, code blocks, copy controls, overflow, and all supported themes. Fix reproducible issues in a focused PR.
+2. Review GitHub feedback and CI before merging each PR; inspect its Vercel preview and confirm the resulting production deployment before moving on.
+3. Reconcile the product roadmap with current production evidence, then continue the frozen research benchmark, natural Nightwatch schedule observation, and authenticated third-party MCP interoperability. Never weaken research or paper-trading guardrails to manufacture a positive demo.
 
 ## Current verified continuation point · 25 October 2026
 
