@@ -1,12 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useLanguage } from "@/app/ui/language-provider";
 import styles from "./landing-use-cases.module.css";
 
 const categories = ["All use cases", "Company events", "Tokenized markets", "Macro context", "Decision workflows"] as const;
 type Category = (typeof categories)[number];
+const categoryGroups = categories.slice(1) as Array<Exclude<Category, "All use cases">>;
 
 const zh: Record<string, string> = {
   "A CLEAR PLACE TO BEGIN": "清晰的起点",
@@ -45,11 +46,26 @@ const useCases: Array<{ title: string; category: Exclude<Category, "All use case
   { title: "Inspect a strategy idea", category: "Decision workflows", description: "Start with a research question, then continue to the strategy lab to test a rule on unseen data.", question: "What recent evidence and risks should I review for NVDA before testing a paper strategy?", mark: "ST" },
 ];
 
+const categoryNotes: Record<Exclude<Category, "All use cases">, { eyebrow: string; summary: string }> = {
+  "Company events": { eyebrow: "ISSUER INTELLIGENCE", summary: "Earnings, comparisons, and catalysts" },
+  "Tokenized markets": { eyebrow: "INSTRUMENT CONTEXT", summary: "Freshness, structure, and market limits" },
+  "Macro context": { eyebrow: "MACRO SIGNALS", summary: "Official releases, clearly separated from interpretation" },
+  "Decision workflows": { eyebrow: "DECISION SUPPORT", summary: "Counter-evidence before a paper decision" },
+};
+
 export default function LandingUseCases() {
   const { language } = useLanguage();
   const translate = (source: string) => language === "zh-CN" ? zh[source] ?? source : source;
   const [category, setCategory] = useState<Category>("All use cases");
   const [query, setQuery] = useState("");
+  useEffect(() => {
+    const revealAllUseCases = () => {
+      setCategory("All use cases");
+      setQuery("");
+    };
+    window.addEventListener("tidelight:reveal-use-cases", revealAllUseCases);
+    return () => window.removeEventListener("tidelight:reveal-use-cases", revealAllUseCases);
+  }, []);
   const visibleUseCases = useCases.filter((item) => {
     const matchesCategory = category === "All use cases" || item.category === category;
     const searchable = [item.title, item.category, item.description, item.question].map(translate).join(" ").toLocaleLowerCase();
@@ -59,9 +75,10 @@ export default function LandingUseCases() {
   return <section className={styles.section} id="use-cases" aria-labelledby="landing-use-cases-title">
     <div className={styles.heading}>
       <div>
-        <span className="landing-kicker">{translate("A CLEAR PLACE TO BEGIN")}</span>
+        <span className="landing-kicker"><i /> {translate("A CLEAR PLACE TO BEGIN")}</span>
         <h2 id="landing-use-cases-title">{translate("Start with a market question.")}</h2>
         <p>{translate("Choose a starting point. Tidelight opens the research desk with your question ready to refine.")}</p>
+        <div className={styles.headingProof}><span><b>01</b> Source-led context</span><i/><span><b>02</b> Risks in view</span><i/><span><b>03</b> You stay in control</span></div>
       </div>
       <label className={styles.search}>
         <span className={styles.searchIcon} aria-hidden="true">⌕</span>
@@ -74,15 +91,22 @@ export default function LandingUseCases() {
       {categories.map((item) => <button type="button" key={item} className={category === item ? styles.active : ""} aria-pressed={category === item} onClick={() => setCategory(item)}>{translate(item)}</button>)}
     </div>
     <div className={styles.grid} aria-live="polite">
-      {visibleUseCases.map((item, index) => <article className={styles.card} key={item.title}>
-        <div className={styles.cardTop}><span className={styles.cardMark} aria-hidden="true">{item.mark}</span><span className={styles.index}>{String(index + 1).padStart(2, "0")}</span></div>
-        <span className={styles.cardCategory}>{translate(item.category)}</span>
-        <h3>{translate(item.title)}</h3>
-        <p>{translate(item.description)}</p>
-        <Link href={`/flow?question=${encodeURIComponent(translate(item.question))}`} aria-label={`${translate("Open research path")} — ${translate(item.title)}`}>
-          {translate("Open research path")} <span aria-hidden="true">↗</span>
-        </Link>
-      </article>)}
+      {categoryGroups.map((group, groupIndex) => {
+        const groupCases = visibleUseCases.filter((item) => item.category === group);
+        if (!groupCases.length) return null;
+        const note = categoryNotes[group];
+        return <section className={styles.group} key={group} aria-labelledby={`use-case-group-${groupIndex}`}>
+          <header className={styles.groupHead}><div><span>{String(groupIndex + 1).padStart(2, "0")} / {translate(note.eyebrow)}</span><h3 id={`use-case-group-${groupIndex}`}>{translate(group)}</h3></div><p>{translate(note.summary)}</p><span className={styles.groupCount}>{String(groupCases.length).padStart(2, "0")} PATHS</span></header>
+          <div className={styles.groupGrid} data-path-count={groupCases.length}>{groupCases.map((item, index) => <article className={styles.card} key={item.title}>
+            <div className={styles.cardTop}><span className={styles.cardMark} aria-hidden="true"><span>{item.mark}</span><i/></span><span className={styles.index}>{String(index + 1).padStart(2, "0")}</span></div>
+            <h4>{translate(item.title)}</h4>
+            <p>{translate(item.description)}</p>
+            <Link href={`/flow?question=${encodeURIComponent(translate(item.question))}`} aria-label={`${translate("Open research path")} — ${translate(item.title)}`}>
+              {translate("Open research path")} <span aria-hidden="true">↗</span>
+            </Link>
+          </article>)}</div>
+        </section>;
+      })}
       {!visibleUseCases.length ? <div className={styles.empty}><b>{translate("No matching use cases")}</b><span>{translate("Try another search or choose a different category.")}</span><button type="button" onClick={() => { setQuery(""); setCategory("All use cases"); }}>{translate("Show all use cases")}</button></div> : null}
     </div>
     <div className={styles.foot}><span>{translate("Every path begins with a question you can edit.")}</span><Link href="/flow">{translate("Open the research desk")} <span aria-hidden="true">↗</span></Link></div>

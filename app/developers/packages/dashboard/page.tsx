@@ -1,3 +1,4 @@
+import { TidelightSignatureFooter } from "@/app/ui/tidelight-signature-footer";
 import Link from "next/link";
 import type { Metadata } from "next";
 import { PlatformNav } from "../../platform-nav";
@@ -42,6 +43,6 @@ export default function PackageDashboardPage() {
     <section className="tic-package-dashboard-help"><div><p className="tic-eyebrow">NEED THE FULL PLATFORM?</p><h2>Build with Tidelight Intelligence Cloud.</h2><p>Use one account for your projects, API keys, usage, and research jobs.</p></div><Link className="tic-button tic-primary" href="https://tidelight.app/developers">Visit Intelligence Cloud <span aria-hidden="true">→</span></Link></section>
     </div>
     </div>
-    <footer className="tic-footer"><Link href="https://package.tidelight.app" className="tic-brand"><strong className="tic-brand-name">Tidelight</strong><span>Packages</span></Link><span>Official packages · one connected ecosystem</span><div><Link href="https://package.tidelight.app">Packages home</Link><Link href="https://tidelight.app/developers">Intelligence Cloud</Link><Link href="https://tidelight.app/">Tidelight</Link><Link href="https://github.com/TidelightOrg/tidelight" target="_blank" rel="noreferrer">GitHub ↗</Link></div></footer>
+    <TidelightSignatureFooter surface="packages" />
   </main>;
 }

@@ -1,5 +1,5 @@
+import { TidelightSignatureFooter } from "@/app/ui/tidelight-signature-footer";
 import Link from "next/link";
-import Image from "next/image";
 import type { Metadata } from "next";
 import { PlatformNav } from "../../platform-nav";
 import { ReactPackageDetail } from "../react-detail";
@@ -20,6 +20,6 @@ export default function ReactPackagePage() {
     <PlatformNav active="packages" />
     <div className="tic-package-breadcrumb"><Link href="https://package.tidelight.app">Packages</Link><span>/</span><span>@tidelight/react</span></div>
     <ReactPackageDetail />
-    <footer className="tic-footer"><Link href="https://package.tidelight.app" className="tic-brand"><Image src="/tidelight-mark.svg" alt="" width={23} height={23}/><span className="tic-brand-name">Tidelight</span><span>Packages</span></Link><div><Link href="https://package.tidelight.app/dashboard">Package dashboard →</Link><Link href="https://package.tidelight.app">All packages</Link><Link href="https://github.com/TidelightOrg/tidelight" target="_blank" rel="noreferrer">GitHub ↗</Link><Link href="https://x.com/TidelightOrg" target="_blank" rel="noreferrer">X ↗</Link><Link href="https://tidelight.app/developers">Intelligence Cloud</Link></div></footer>
+    <TidelightSignatureFooter surface="packages" />
   </main>;
 }
