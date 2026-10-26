@@ -52,7 +52,7 @@ export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: { user }, error: authError } = await supabase.auth.getUser();
   if (authError || !user) return NextResponse.json({ error: "Sign in to start a private research flow." }, { status: 401 });
-  let body: { question?: unknown; contextRunId?: unknown; workspaceContext?: unknown; researchMonitorId?: unknown };
+  let body: { question?: unknown; contextRunId?: unknown; workspaceContext?: unknown; researchMonitorId?: unknown; researchMonitorRevision?: unknown };
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Send a valid question." }, { status: 400 }); }
   const question = typeof body.question === "string" ? body.question.trim().replace(/\s+/g, " ") : "";
   if (question.length < 5 || question.length > 500) return NextResponse.json({ error: "Ask a market question in 5 to 500 characters." }, { status: 400 });
@@ -75,9 +75,14 @@ export async function POST(request: Request) {
   let monitor: { id: string; ticker: string; thesis_revision: number } | null = null;
   if (body.researchMonitorId !== undefined && !monitorId) return NextResponse.json({ error: "That Research Monitor link is invalid." }, { status: 400 });
   if (monitorId) {
-    const { data } = await supabase.from("research_monitors").select("id,ticker,thesis_revision").eq("id", monitorId).eq("user_id", user.id).eq("status", "active").maybeSingle();
-    if (!data) return NextResponse.json({ error: "That active Research Monitor is unavailable." }, { status: 404 });
-    monitor = data;
+    if (!Number.isSafeInteger(body.researchMonitorRevision) || Number(body.researchMonitorRevision) < 1) return NextResponse.json({ error: "A valid thesis revision is required for this monitor review." }, { status: 400 });
+    const { data: owned } = await supabase.from("research_monitors").select("id,ticker").eq("id", monitorId).eq("user_id", user.id).eq("status", "active").maybeSingle();
+    if (!owned) return NextResponse.json({ error: "That active Research Monitor is unavailable." }, { status: 404 });
+    const { data: revision } = await supabase.from("research_monitor_thesis_revisions").select("revision,thesis").eq("monitor_id", owned.id).eq("user_id", user.id).eq("revision", Number(body.researchMonitorRevision)).maybeSingle();
+    if (!revision) return NextResponse.json({ error: "That saved thesis revision is unavailable." }, { status: 404 });
+    const expectedQuestion = `For ${owned.ticker}, evaluate this thesis: ${revision.thesis}`.trim().replace(/\s+/g, " ");
+    if (question !== expectedQuestion) return NextResponse.json({ error: "The saved thesis question changed. Reopen the monitor review to use the selected revision." }, { status: 409 });
+    monitor = { id: owned.id, ticker: owned.ticker, thesis_revision: revision.revision };
   }
   const tickers = extractFlowTickers(`${question} ${workspaceContext ?? ""}`, STOCK_PERP_UNIVERSE);
   const macroTopic: MacroTopic | null = tickers.length ? null : classifyMacroQuestion(question);

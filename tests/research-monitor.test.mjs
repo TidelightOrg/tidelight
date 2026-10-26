@@ -39,6 +39,28 @@ test("Agent Flow attaches only an owned active monitor and records completed run
   assert.ok(route.includes("!tickers.includes(monitor.ticker)"));
   assert.ok(route.includes("research_monitor_observations"));
   assert.ok(route.includes("monitorObservationSaved"));
+  assert.ok(route.includes("researchMonitorRevision?: unknown"));
+  assert.ok(route.includes("expectedQuestion"));
+  assert.ok(route.includes("thesis_revision: revision.revision"));
+});
+
+test("monitor history pins the reviewed thesis revision and ticker-specific evidence", async () => {
+  const flowPage = await readFile(new URL("../app/flow/page.tsx", import.meta.url), "utf8");
+  const ui = await readFile(files.ui, "utf8");
+  assert.ok(flowPage.includes("monitorRevision?: string"));
+  assert.ok(flowPage.includes("research_monitor_thesis_revisions"));
+  assert.ok(ui.includes("assetFor(latest, monitor.ticker)"));
+  assert.ok(ui.includes("sources(run?.summary, ticker)"));
+  assert.ok(ui.includes("monitorRevision=${monitor.thesis_revision}"));
+});
+
+test("active monitors are independent of paginated archived monitors", async () => {
+  const page = await readFile(new URL("../app/monitor/page.tsx", import.meta.url), "utf8");
+  const ui = await readFile(files.ui, "utf8");
+  assert.ok(page.includes('.eq("status", "active")'));
+  assert.ok(page.includes('.eq("status", "archived")'));
+  assert.ok(page.includes("archivedPageSize"));
+  assert.ok(ui.includes('aria-label="Archived monitor pages"'));
 });
 
 test("Monitor appears in desktop and mobile navigation", async () => {
