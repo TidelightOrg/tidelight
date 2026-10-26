@@ -94,6 +94,7 @@ export function PlatformNav({ active = "platform", ecosystem, packageHome = fals
     <div className="tic-platform-nav-links">
       <Link href="https://dev.tidelight.app">Docs</Link>
       <Link href="https://package.tidelight.app" aria-current={active === "packages" ? "page" : undefined}>Packages</Link>
+      <Link href="https://status.tidelight.app">Status</Link>
       <Link href={`https://tidelight.app/developers/support?ecosystem=${currentSystem}`} aria-current={active === "support" ? "page" : undefined}>Support</Link>
       <EcosystemSwitcher current={currentSystem} />
       <ThemeQuickSwitch />
