@@ -476,3 +476,30 @@
 :root[data-theme="blue"] .landing-workflow-grid a{color:#c5d0ff}
 :root[data-theme="blue"] .landing-guide-link{color:#aab5d0}
 @media(max-width:800px){.landing-workflows{padding-bottom:72px}.landing-workflow-grid{grid-template-columns:1fr}.landing-workflow-grid article{min-height:0;padding:20px}.landing-workflow-grid h3{margin-top:22px}.landing-workflow-grid p{max-width:600px}}
+
+
+/* Direct entry points to the public developer ecosystem. */
+.landing-ecosystem{max-width:1240px;margin:0 auto;padding:0 clamp(22px,5vw,68px) 20px}
+.landing-ecosystem-heading{display:flex;align-items:end;justify-content:space-between;gap:24px;margin-bottom:20px}
+.landing-ecosystem-heading .landing-kicker{margin:0}
+.landing-ecosystem-heading h2{margin:0;font-size:clamp(25px,3.2vw,38px);letter-spacing:-.045em}
+.landing-ecosystem-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:10px}
+.landing-ecosystem-link{position:relative;display:flex;min-height:145px;flex-direction:column;align-items:flex-start;gap:9px;padding:17px 18px;border:1px solid #1a2a2d;border-radius:13px;background:linear-gradient(145deg,#0d1919,#091112);color:#edf6f2;text-decoration:none;transition:transform .18s ease,border-color .18s ease,background .18s ease}
+.landing-ecosystem-link:hover{transform:translateY(-2px);border-color:#3b7562;background:linear-gradient(145deg,#10241f,#0b1618)}
+.landing-ecosystem-link:focus-visible{outline:2px solid #74d9b3;outline-offset:3px}
+.landing-ecosystem-index{color:#74d9b3;font:10px var(--mono);letter-spacing:.08em}
+.landing-ecosystem-link strong{padding-right:12px;font-size:14px;letter-spacing:-.02em}
+.landing-ecosystem-link small{max-width:210px;color:#849994;font-size:10px;line-height:1.55}
+.landing-ecosystem-link .landing-arrow{position:absolute;right:15px;top:15px;width:13px;height:13px;color:#74d9b3}
+:root:is([data-theme="daylight"],[data-theme="white"]) .landing-ecosystem-link{border-color:#dfe5dc;background:linear-gradient(145deg,#fffefa,#f5f7ef);color:#20342a}
+:root:is([data-theme="daylight"],[data-theme="white"]) .landing-ecosystem-link:hover{border-color:#a7c9ae;background:#fffefa}
+:root:is([data-theme="daylight"],[data-theme="white"]) .landing-ecosystem-index,:root:is([data-theme="daylight"],[data-theme="white"]) .landing-ecosystem-link .landing-arrow{color:#286a4d}
+:root:is([data-theme="daylight"],[data-theme="white"]) .landing-ecosystem-link small{color:#66776d}
+:root[data-theme="blue"] .landing-ecosystem-link{border-color:#283550;background:linear-gradient(145deg,#121e35,#0c1628);color:#eef3ff}
+:root[data-theme="blue"] .landing-ecosystem-link:hover{border-color:#556d9d;background:linear-gradient(145deg,#182644,#111c31)}
+:root[data-theme="blue"] .landing-ecosystem-index,:root[data-theme="blue"] .landing-ecosystem-link .landing-arrow{color:#b6c5ff}
+:root[data-theme="blue"] .landing-ecosystem-link small{color:#9ba8c6}
+@media(max-width:980px){.landing-ecosystem-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:800px){.landing-ecosystem{padding-bottom:8px}.landing-ecosystem-heading{align-items:flex-start;flex-direction:column;gap:12px}.landing-ecosystem-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.landing-ecosystem-link{min-height:135px;padding:15px}}
+@media(max-width:380px){.landing-ecosystem-grid{grid-template-columns:1fr}.landing-ecosystem-link{min-height:120px}}
+@media(prefers-reduced-motion:reduce){.landing-ecosystem-link{transition:none}.landing-ecosystem-link:hover{transform:none}}
