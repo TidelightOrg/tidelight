@@ -240,6 +240,10 @@
 .landing-status-center{z-index:1;display:grid;justify-items:center;gap:5px;width:82px;height:82px;align-content:center;border:1px solid color-mix(in srgb,var(--ls-accent) 38%,var(--ls-line));border-radius:50%;background:color-mix(in srgb,var(--ls-bg) 88%,transparent);box-shadow:0 0 0 8px color-mix(in srgb,var(--ls-accent) 5%,transparent),0 13px 40px #02090980;text-align:center}
 .landing-status-center>i{width:8px;height:8px;border-radius:50%;background:var(--ls-good);box-shadow:0 0 13px var(--ls-good)}
 .landing-status-card.is-degraded .landing-status-center>i,.landing-status-card.is-degraded .landing-status-light{background:var(--ls-warn);box-shadow:0 0 0 4px color-mix(in srgb,var(--ls-warn) 13%,transparent),0 0 13px color-mix(in srgb,var(--ls-warn) 55%,transparent)}
+.landing-status-card.is-degraded{--ls-accent:var(--ls-warn)}
+.landing-status-card.is-unavailable{--ls-accent:var(--ls-muted)}
+.landing-status-card.is-unavailable .landing-status-wave-signal,.landing-status-card.is-unavailable .landing-status-wave-point,.landing-status-card.is-unavailable .landing-status-orbit{animation:none;opacity:.28}
+.landing-status-card.is-unavailable .landing-status-wave-signal{stroke-dasharray:3 8;stroke-dashoffset:0}
 .landing-status-card.is-unavailable .landing-status-center>i{background:var(--ls-muted);box-shadow:none}
 .landing-status-center>b{font:650 12px var(--font)}
 .landing-status-center>small{color:var(--ls-muted);font:9px var(--mono)}
