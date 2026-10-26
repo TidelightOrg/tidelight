@@ -24,3 +24,10 @@
 .tic-code-card pre:focus-visible{outline:2px solid var(--brand-teal);outline-offset:-3px}
 .tic-code-card code{color:inherit;font:inherit}
 @media(max-width:600px){.tic-code-card{margin:18px -2px;border-radius:10px}.tic-code-card pre{padding:16px;font-size:10px}}
+
+
+/* Keep the long-form docs index comfortable to scan at desktop sizes. */
+@media(min-width:801px){
+  .tic-doc-layout aside .tic-eyebrow{font-size:11px}
+  .tic-doc-layout aside a{font-size:13px;line-height:1.45;padding:9px 8px}
+}
