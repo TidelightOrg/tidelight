@@ -67,7 +67,7 @@ as $$
   ) order by monitor.name), '[]'::jsonb)
   from (values
     ('Research job processing', 'research_job_processing', interval '5 minutes'),
-    ('Scheduled paper analysis', 'scheduled_paper_analysis', interval '5 minutes'),
+    ('Scheduled paper analysis', 'scheduled_paper_analysis', interval '26 hours'),
     ('Webhook delivery', 'webhook_delivery', interval '5 minutes'),
     ('Email delivery', 'email_delivery', interval '26 hours')
   ) as monitor(name, worker_name, max_age)
