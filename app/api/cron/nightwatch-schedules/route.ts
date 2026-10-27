@@ -81,5 +81,5 @@ async function handleStatusCheck(request: Request) {
     return NextResponse.json({claimed:true,status:failure.error?'failure_state_unavailable':failure.data?.status ?? 'failed',paperOnly:true},{status:503,headers});
   }
 }
-export const POST = (request: Request) => withStatusWorkerHeartbeat("scheduled_paper_analysis", () => handleStatusCheck(request));
+export const POST = (request: Request) => withStatusWorkerHeartbeat("scheduled_paper_analysis", async () => {\n  const response = await handleStatusCheck(request);\n  if (response.status === 401 || response.status === 403) return response;\n  const payload = await response.clone().json().catch(() => null) as { claimed?: unknown } | null;\n  return response.status === 503 && payload?.claimed === false ? new Response(JSON.stringify({ claimed: false, idle: true }), { status: 200, headers });\n  return response;\n});
 export const GET = POST;
