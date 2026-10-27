@@ -27,7 +27,7 @@ async function probe(name: string, url: string, options: { expected?: number[]; 
 
 async function checkDatabase(): Promise<StatusService> {
   if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !(process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY)) {
-    return { name: "Application database", state: "monitoring", detail: "Database monitoring is not configured for this deployment.", href: "https://supabase.com" };
+    return { name: "Application database", state: "degraded", detail: "Database monitoring is not configured for this deployment.", href: "https://supabase.com" };
   }
   try {
     const admin = createAdminClient();
@@ -69,9 +69,28 @@ export async function getStatusHistory(): Promise<StatusHistory> {
   }
 }
 
+async function checkBackgroundServices(): Promise<StatusService[]> {
+  try {
+    const admin = createAdminClient();
+    const { data, error } = await admin.rpc("get_tic_background_worker_status");
+    if (error || !Array.isArray(data)) throw error ?? new Error("invalid_worker_health");
+    return data.map((worker: { name: string; state: ServiceState; detail: string }) => ({
+      name: worker.name,
+      state: worker.state,
+      detail: worker.detail,
+    }));
+  } catch {
+    return [
+      { name: "Research job processing", state: "degraded", detail: "Scheduler health could not be read." },
+      { name: "Scheduled paper analysis", state: "degraded", detail: "Scheduler health could not be read." },
+      { name: "Webhook delivery", state: "degraded", detail: "Scheduler health could not be read." },
+      { name: "Email delivery", state: "degraded", detail: "Worker health could not be read." },
+    ];
+  }
+}
+
 export async function getSystemStatus(options: { includeHistory?: boolean } = {}): Promise<SystemStatus> {
-  const origin = "https://tidelight.app";
-  const [application, docs, packages, api, researchJobs, mcp, npm, python, database] = await Promise.all([
+  const [application, docs, packages, api, researchJobs, mcp, npm, python, database, backgroundServices] = await Promise.all([
     probe("Tidelight app", "https://tidelight.app/", { href: "https://tidelight.app" }),
     probe("Developer docs", "https://dev.tidelight.app/", { href: "https://dev.tidelight.app" }),
     probe("Package directory", "https://package.tidelight.app/", { href: "https://package.tidelight.app" }),
@@ -81,6 +100,7 @@ export async function getSystemStatus(options: { includeHistory?: boolean } = {}
     probe("npm registry", "https://registry.npmjs.org/%40tidelight%2Fsdk", { href: "https://www.npmjs.com/org/tidelight" }),
     probe("Python package registry", "https://pypi.org/pypi/tidelight/json", { href: "https://pypi.org/project/tidelight/" }),
     checkDatabase(),
+    checkBackgroundServices(),
   ]);
 
   const groups: StatusGroup[] = [
@@ -88,11 +108,7 @@ export async function getSystemStatus(options: { includeHistory?: boolean } = {}
     { name: "APIs", services: [api, researchJobs, mcp] },
     { name: "Package registries", services: [npm, python] },
     { name: "Data", services: [database] },
-    { name: "Background services", services: [
-      { name: "Research job processing", state: "monitoring", detail: "Job execution history is available in the developer console; this page does not run a job." },
-      { name: "Scheduled research", state: "monitoring", detail: "Scheduler configuration is available through the system health endpoint; executions are not probed here.", href: `${origin}/api/system/health` },
-      { name: "Webhook and email delivery", state: "monitoring", detail: "Delivery health is visible in the owner-scoped developer console." },
-    ] },
+    { name: "Background services", services: backgroundServices },
   ];
   const checked = groups.flatMap(group => group.services).filter(service => service.state !== "monitoring");
   const status = checked.every(service => service.state === "operational") ? "operational" : "degraded";

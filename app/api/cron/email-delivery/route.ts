@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { drainEmailQueue } from "@/lib/email/delivery";
+import { withStatusWorkerHeartbeat } from "@/lib/tic/worker-health";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
@@ -14,11 +15,23 @@ function authorized(request: Request) {
   return left.length === right.length && timingSafeEqual(left, right);
 }
 
-export async function GET(request: Request) {
+async function handleDelivery(request: Request) {
   if (!authorized(request)) return NextResponse.json({ error: "Unauthorized scheduled delivery." }, { status: 401, headers: { "Cache-Control": "no-store" } });
   if (!process.env.RESEND_API_KEY) return NextResponse.json({ error: "Email delivery is not configured." }, { status: 503, headers: { "Cache-Control": "no-store" } });
   if (!process.env.SUPABASE_SECRET_KEY && !process.env.SUPABASE_SERVICE_ROLE_KEY) return NextResponse.json({ error: "The protected delivery worker is not configured." }, { status: 503 });
-  try { return NextResponse.json(await drainEmailQueue(createAdminClient()), { headers: { "Cache-Control": "no-store" } }); }
-  catch { return NextResponse.json({ error: "The email queue could not be processed." }, { status: 503, headers: { "Cache-Control": "no-store" } }); }
+  try {
+    return NextResponse.json(await drainEmailQueue(createAdminClient()), { headers: { "Cache-Control": "no-store" } });
+  } catch {
+    return NextResponse.json({ error: "The email queue could not be processed." }, { status: 503, headers: { "Cache-Control": "no-store" } });
+  }
 }
 
+export const GET = (request: Request) => withStatusWorkerHeartbeat(
+  "email_delivery",
+  () => handleDelivery(request),
+  async (response) => {
+    if (!response.ok) return false;
+    const result = await response.json() as { state?: unknown; retried?: unknown; failed?: unknown };
+    return result.state === "complete" && result.retried === 0 && result.failed === 0;
+  },
+);

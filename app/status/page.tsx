@@ -83,9 +83,9 @@ export default async function StatusPage() {
           <h1 id="status-title">Service status</h1>
           <p>Availability checks for Tidelight products, research services, and developer packages.</p>
         </div>
-        <div className={`tic-status-signal ${status.status}`} aria-label={`${checkedCount} current checks, ${monitoringCount} background services not monitored`}>
+        <div className={`tic-status-signal ${status.status}`} aria-label={`${checkedCount} current checks, ${operationalCount} operational, ${degradedCount} degraded, ${monitoringCount} not monitored`}>
           <svg viewBox="0 0 340 120" preserveAspectRatio="none" aria-hidden="true"><path className="tic-status-signal-grid" d="M0 30H340M0 60H340M0 90H340M68 0V120M136 0V120M204 0V120M272 0V120"/><path className="tic-status-signal-wave" d="M0 76c34 0 38-32 70-32s36 45 70 45 35-50 70-50 35 38 68 38 34-24 62-24"/><path className="tic-status-signal-wave-secondary" d="M0 78c38 0 37-9 70-9s38 18 70 18 36-21 70-21 34 13 68 13 37-10 62-10"/><circle cx="209" cy="39" r="4"/></svg>
-          <div className="tic-status-signal-caption"><span><i />LIVE CHECKS</span><strong>{checkedCount} <small>monitored</small></strong><em>{monitoringCount} background services are not monitored here</em></div>
+          <div className="tic-status-signal-caption"><span><i />LIVE CHECKS</span><strong>{checkedCount} <small>monitored</small></strong><em>{monitoringCount ? `${monitoringCount} checks need configuration` : "All checks reporting"}</em></div>
         </div>
       </div>
       <section className="tic-status-history" aria-labelledby="history-title">
@@ -132,7 +132,7 @@ export default async function StatusPage() {
       <p className="tic-status-updated">Checked {checked}. <a href="/health">Health data ↗</a></p>
       <aside className="tic-status-history-note">
         <strong>What these checks cover</strong>
-        <p>Site, API, registry, and database checks run as this page loads. Background job execution and message delivery are not monitored here, so they are shown separately as not monitored.</p>
+        <p>Site, API, registry, and database checks run as this page loads. Background workers report their latest authenticated execution result; missing or stale worker responses appear as degraded.</p>
       </aside>
     </section>
     <footer className="tic-status-footer"><span>One status page for the Tidelight ecosystem</span><a href="https://tidelight.app/developers">Developer platform ↗</a></footer>

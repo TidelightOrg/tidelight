@@ -15,17 +15,19 @@ test("landing use-case directory keeps its four research disciplines and direct 
   assert.match(source, /aria-live="polite"/);
 });
 
-test("mobile use-case navigation follows the grouped directory and localizes its labels", async () => {
+test("landing links use cases to the dedicated directory and localizes its menu labels", async () => {
   const menu = await read("../app/ui/landing-use-case-menu-links.tsx");
   const page = await read("../app/ui/landing-page.tsx");
-  assert.match(page, /<LandingUseCaseMenuLinks\s*\/>/);
+  assert.match(page, /<UseCasesPortalLink\s*\/>/);
   assert.match(menu, /useLanguage\(\)/);
-  assert.match(menu, /#use-case-group-\$\{index\}/);
-  assert.match(menu, /tidelight:reveal-use-cases/);
-  assert.match(menu, /scrollIntoView/);
+  assert.ok(menu.includes("const targetId = `use-case-group-${index}`;"));
+  assert.match(menu, /tidelight:reveal-use-case-category/);
+  assert.match(menu, /window\.dispatchEvent/);
   assert.match(menu, /公司事件/);
   assert.match(menu, /决策流程/);
   assert.match(menu, /aria-label=\{t\("Use case categories"/);
+  const portal = await read("../app/ui/use-cases-portal-link.tsx");
+  assert.ok(portal.includes(`href="/use-cases"`));
   const useCases = await read("../app/ui/landing-use-cases.tsx");
   assert.match(useCases, /tidelight:reveal-use-cases/);
   assert.doesNotMatch(useCases, /<span className=\{styles\.cardCategory\}>/);

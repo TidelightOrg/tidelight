@@ -1,5 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
+import { withStatusWorkerHeartbeat } from "@/lib/tic/worker-health";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendSignedWebhook } from "@/lib/tic/webhook-security";
 
@@ -26,7 +27,7 @@ function safeErrorCode(error: unknown) {
   return "network_error";
 }
 
-export async function POST(request: Request) {
+async function handleStatusCheck(request: Request) {
   if (!authorize(request)) return NextResponse.json({ error: "Unauthorized webhook worker." }, { status: 401, headers: { "Cache-Control": "no-store" } });
   let admin: ReturnType<typeof createAdminClient>;
   try { admin = createAdminClient(); }
@@ -66,7 +67,17 @@ export async function POST(request: Request) {
       results.push("record_failed");
     } else results.push(typeof result === "string" ? result : "recorded");
   }
-  return NextResponse.json({ claimed: deliveries.length, outcomes: results }, { headers: { "Cache-Control": "no-store" } });
+  const status = results.includes("record_failed") ? 503 : 200;
+  return NextResponse.json({ claimed: deliveries.length, outcomes: results }, { status, headers: { "Cache-Control": "no-store" } });
 }
 
+export const POST = (request: Request) => withStatusWorkerHeartbeat(
+  "webhook_delivery",
+  () => handleStatusCheck(request),
+  async (response) => {
+    if (!response.ok) return false;
+    const payload = await response.json() as { outcomes?: unknown };
+    return Array.isArray(payload.outcomes) && payload.outcomes.every((outcome) => outcome === "succeeded");
+  },
+);
 export const GET = POST;

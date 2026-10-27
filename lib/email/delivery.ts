@@ -13,13 +13,14 @@ export async function drainEmailQueue(admin: SupabaseClient) {
   await admin.from("email_delivery_queue").update({ state: "failed", last_error_code: "attempts_exhausted" }).eq("state", "sending").gte("attempts", EMAIL_MAX_ATTEMPTS).lte("next_attempt_at", new Date().toISOString());
   const { data: jobs, error } = await admin.rpc("claim_email_delivery_jobs", { p_limit: 20 });
   if (error) throw new Error("Could not claim the email delivery queue.");
-  let delivered = 0, suppressed = 0, retried = 0, failed = 0;
+  let delivered = 0, suppressed = 0, retried = 0, failed = 0, persistenceFailures = 0;
   for (const job of (jobs ?? []) as Job[]) {
     try {
       const { data: preferences } = await admin.from("email_notification_preferences").select("nightwatch_analysis,nightwatch_signals,nightwatch_fills,nightwatch_risks,nightwatch_research,nightwatch_daily_summary").eq("user_id", job.user_id).maybeSingle();
       const enabled = job.category === "security" || job.category === "futures_access_request" || job.category === "futures_access_submitted" || job.category === "futures_access_decision" || job.category === "futures_paper_trade" ? true : preferences ? job.category === "nightwatch_analysis" ? preferences.nightwatch_analysis : job.category === "nightwatch_signal" ? preferences.nightwatch_signals : job.category === "nightwatch_fill" ? preferences.nightwatch_fills : job.category === "nightwatch_risk" ? preferences.nightwatch_risks : job.category === "nightwatch_research" ? preferences.nightwatch_research : job.category === "nightwatch_summary" ? preferences.nightwatch_daily_summary : false : true;
       if (!enabled) {
-        await admin.from("email_delivery_queue").update({ state: "suppressed" }).eq("id", job.id);
+        const { error: suppressionError } = await admin.from("email_delivery_queue").update({ state: "suppressed" }).eq("id", job.id);
+        if (suppressionError) persistenceFailures++;
         suppressed++;
         continue;
       }
@@ -28,7 +29,8 @@ export async function drainEmailQueue(admin: SupabaseClient) {
       const recipient = isOperatorReview ? "admin@tidelight.com" : userResult.user?.email;
       if (userError || !recipient) throw Object.assign(new Error("Email recipient is unavailable."), { code: "recipient_unavailable" });
       if (!isOperatorReview && !userResult.user?.email_confirmed_at) {
-        await admin.from("email_delivery_queue").update({ state: "suppressed", last_error_code: "unverified_recipient" }).eq("id", job.id);
+        const { error: suppressionError } = await admin.from("email_delivery_queue").update({ state: "suppressed", last_error_code: "unverified_recipient" }).eq("id", job.id);
+        if (suppressionError) persistenceFailures++;
         suppressed++;
         continue;
       }
@@ -50,6 +52,6 @@ export async function drainEmailQueue(admin: SupabaseClient) {
   }
   const retentionCutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
   await admin.from("email_delivery_queue").delete().in("state", ["sent", "suppressed", "failed"]).lt("created_at", retentionCutoff);
-  return { state: "complete" as const, claimed: jobs?.length ?? 0, delivered, suppressed, retried, failed };
+  return { state: "complete" as const, claimed: jobs?.length ?? 0, delivered, suppressed, retried, failed, persistenceFailures };
 }
 
