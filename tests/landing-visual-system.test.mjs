@@ -26,7 +26,9 @@ test("landing links use cases to the dedicated directory and localizes its menu 
   assert.match(menu, /公司事件/);
   assert.match(menu, /决策流程/);
   assert.match(menu, /aria-label=\{t\("Use case categories"/);
-  const portal = await read("../app/ui/use-cases-portal-link.tsx");\n  assert.match(portal, /href="\\/use-cases"/);\n  const useCases = await read("../app/ui/landing-use-cases.tsx");
+  const portal = await read("../app/ui/use-cases-portal-link.tsx");
+  assert.match(portal, /href="\\/use-cases"/);
+  const useCases = await read("../app/ui/landing-use-cases.tsx");
   assert.match(useCases, /tidelight:reveal-use-cases/);
   assert.doesNotMatch(useCases, /<span className=\{styles\.cardCategory\}>/);
 });
