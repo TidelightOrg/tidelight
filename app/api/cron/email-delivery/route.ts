@@ -26,4 +26,12 @@ async function handleDelivery(request: Request) {
   }
 }
 
-export const GET = (request: Request) => withStatusWorkerHeartbeat("email_delivery", () => handleDelivery(request));
+export const GET = (request: Request) => withStatusWorkerHeartbeat(
+  "email_delivery",
+  () => handleDelivery(request),
+  async (response) => {
+    if (!response.ok) return false;
+    const result = await response.json() as { state?: unknown; retried?: unknown; failed?: unknown };
+    return result.state === "complete" && result.retried === 0 && result.failed === 0;
+  },
+);
