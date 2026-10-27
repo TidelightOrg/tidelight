@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from "react";
 import IssuerLogo from "@/app/ui/issuer-logo";
-import TidelightDotWordmark from "@/app/ui/tidelight-dot-wordmark";
 
 type Market = { symbol: string; baseCoin: string; underlyingTicker: string | null; name: string; logoUrl: string | null; isReality: boolean; kind: string };
 type MarketResponse = { assets?: Market[]; generatedAt?: number; coverage?: { rTokens?: number } };
@@ -50,14 +49,15 @@ export function LandingMarketOrbit() {
         </div>
       </div>
     </div>
-    <div className="landing-market-signature" aria-hidden="true">
-      <svg className="landing-market-signature-wave" viewBox="0 0 180 36" fill="none">
-        <path d="M2 21c16 0 16-11 32-11s16 22 32 22 16-30 32-30 16 17 32 17 16-9 32-9 16 12 18 12" />
-        <path d="M2 25c16 0 16-8 32-8s16 16 32 16 16-22 32-22 16 13 32 13 16-7 32-7 16 8 18 8" />
-        <circle cx="34" cy="10" r="2.2" /><circle cx="98" cy="2" r="2.2" /><circle cx="162" cy="10" r="2.2" />
-      </svg>
-      <TidelightDotWordmark className="landing-market-signature-wordmark" />
-      <span className="landing-market-signature-label">EVERY SIGNAL HAS A SOURCE</span>
+    <div className="landing-market-signature" role="img" aria-label="Tidelight follows a question through its sources into market context">
+      <span className="landing-market-signature-brand">
+        <svg viewBox="0 0 28 28" aria-hidden="true"><path d="M3 17.5c4.1 0 4.1-7 8.2-7s4.1 7 8.2 7 4.1-7 8.2-7" /><circle cx="11.2" cy="10.5" r="1.6" /><circle cx="19.4" cy="17.5" r="1.6" /></svg>
+        <span><b>TIDELIGHT</b><small>MARKET INTELLIGENCE</small></span>
+      </span>
+      <span className="landing-market-signature-path" aria-hidden="true">
+        <span>QUESTION</span><i /><span>SOURCE</span><i /><span>CONTEXT</span>
+      </span>
+      <span className="landing-market-signature-live"><i /> LIVE SIGNAL</span>
     </div>
   </section>;
 }
