@@ -15,7 +15,7 @@ export default async function StatusPage() {
   const [status, requestHeaders, cookieStore] = await Promise.all([getSystemStatus(), headers(), cookies()]);
   const statusPath = resolveStatusPagePath(requestHeaders.get("host"), "/status");
   const maintenancePath = resolveStatusPagePath(requestHeaders.get("host"), "/status/maintenance");
-  const incidentsPath = resolveStatusPagePath(requestHeaders.get("host"), "/status/incidents");
+  const incidentsPath = resolveStatusPagePath(requestHeaders.get("host"), "/status/history");
   const label = status.status === "operational" ? "All monitored services operational" : "A service is experiencing issues";
   const locale = cookieStore.get("tidelight-language")?.value === "zh-CN" ? "zh-CN" : "en-US";
   const checked = new Date(status.checkedAt).toLocaleString(locale, { timeZone: "UTC", timeZoneName: "short" });
@@ -64,7 +64,7 @@ export default async function StatusPage() {
       <nav aria-label="Status navigation">
         <Link aria-current="page" href={statusPath}>Status</Link>
         <Link href={maintenancePath}>Maintenance</Link>
-        <Link href={incidentsPath}>Previous incidents</Link>
+        <Link href={incidentsPath}>History</Link>
         <a href="https://tidelight.app/contact">Get in touch</a>
       </nav>
     </header>
