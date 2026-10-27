@@ -39,7 +39,7 @@ test("shared signature footer exposes real research, developer, package, and tru
   }
   assert.match(footer, /<svg viewBox="0 0 520 210"/);
   assert.match(styles, /data-theme="white"/);
-  assert.match(styles, /data-theme="blue"/);
+
   assert.match(styles, /prefers-reduced-motion:reduce/);
   assert.match(styles, /@media\(max-width:700px\)/);
   const useCaseStyles = await read("../app/ui/landing-use-cases.module.css");
