@@ -17,7 +17,7 @@ The package experience translates those patterns to Tidelight's package-specific
 - Package overview and guide copy use a 16 px reading scale; secondary copy uses 15 px, code examples use 14 px (13 px on narrow screens), and compact metadata stays at or above 12 px.
 - Workspace links have 42 px minimum height; primary actions have 44 px minimum height, visible focus rings, and restrained hover/press feedback.
 - The mobile workspace hides the desktop rail and keeps the existing responsive navigation and package selector. Package detail navigation remains horizontally scrollable on narrow screens.
-- The five selectable palettes (Daylight, Night Tide, Blue Hour, White, Dark) and automatic mode are inherited from the shared theme provider.
+- The two selectable palettes (Dark and White) are inherited from the shared theme provider, with Dark as the first-visit default.
 
 ## Verification completed
 
@@ -30,8 +30,8 @@ The package experience translates those patterns to Tidelight's package-specific
 
 ## Production review status · 25 October 2026
 
-PR #348 (**Polish package workspace readability and navigation**) is merged. Its production deployment is READY at commit `3a191ac9b5983a9834f4e040eea9ae7c9715c13d`. PR #349 (**Fix package action contrast in light themes**) is merged at `807366f49f32da557accc9ca4b01b23eea82b955`; the matching production deployment is READY. PR #349 covers the package header dashboard action and package detail secondary actions in White and Daylight themes.
+PR #348 (**Polish package workspace readability and navigation**) is merged. Its production deployment is READY at commit `3a191ac9b5983a9834f4e040eea9ae7c9715c13d`. PR #349 (**Fix package action contrast in light themes**) is merged at `807366f49f32da557accc9ca4b01b23eea82b955`; the matching production deployment is READY. PR #349 covers the package header dashboard action and package detail secondary actions in White theme.
 
-A live desktop browser pass opened the package home, dashboard, and TypeScript SDK detail route. The dashboard showed its workspace rail, package selector, workbench, registry details, and package catalog. The SDK page showed the lifecycle walkthrough, quickstart, API surface, compatibility, security, and live release sections. Daylight, White, and Dark were checked on the SDK page; Daylight and Dark were checked on the dashboard. The registry release displayed v0.1.2. The privacy notice closed automatically after six seconds. No narrow-viewport pass or automated accessibility audit was performed in this review.
+A live desktop browser pass opened the package home, dashboard, and TypeScript SDK detail route. The dashboard showed its workspace rail, package selector, workbench, registry details, and package catalog. The SDK page showed the lifecycle walkthrough, quickstart, API surface, compatibility, security, and live release sections. White and Dark were checked on the SDK page and dashboard. The registry release displayed v0.1.2. The privacy notice closed automatically after six seconds. No narrow-viewport pass or automated accessibility audit was performed in this review.
 
-The earlier preview-only status is superseded. Remaining visual verification: check the package home, dashboard, all five detail routes, developer docs, and API explorer at narrow widths and across all five palettes, then correct any observed defects before closing the developer-experience milestone.
+The earlier preview-only status is superseded. Remaining visual verification: check the package home, dashboard, all five detail routes, developer docs, and API explorer at narrow widths and across both palettes, then correct any observed defects before closing the developer-experience milestone.
