@@ -799,36 +799,14 @@
 @media(max-width:800px){.landing-hero h1.landing-dot-headline{margin:34px 0 30px}.landing-dot-headline-art{width:100%;height:clamp(205px,34vw,245px)}}
 @media(max-width:420px){.landing-hero h1.landing-dot-headline{margin:30px 0 27px}.landing-dot-headline-art{height:205px}}
 
-/* Hero wordmark refinement: preserve clear space from floating controls and keep a crisp dot rhythm. */
-.landing-hero h1.landing-dot-headline{width:100%;margin:34px 0 30px}
-.landing-dot-headline-art{height:clamp(180px,19vw,230px);filter:drop-shadow(0 5px 14px color-mix(in srgb,var(--wordmark-accent) 24%,transparent))}
-.landing-dot-headline-art canvas{overflow:hidden}
-.landing-hero-copy{position:relative;z-index:2}
-.landing-dot-headline{position:relative;z-index:0}
-.landing-hero .landing-hero-copy .landing-kicker{max-width:100%}
-@media(max-width:800px){
- .landing-hero{padding-top:30px}
- .landing-hero-copy{display:flex;flex-direction:column;align-items:center;text-align:center;max-width:680px;margin-inline:auto}
- .landing-hero h1.landing-dot-headline{margin:24px 0 24px}
- .landing-dot-headline-art{height:clamp(225px,43vw,270px)}
- .landing-hero-copy>p{max-width:42rem}
- .landing-trust{justify-content:center;margin-top:30px}
-}
+/* Mobile-only headline refinement; desktop art keeps its original composition. */
 @media(max-width:600px){
- .landing-hero{padding:26px 18px 56px}
- .landing-hero h1.landing-dot-headline{margin:18px 0 19px}
- .landing-dot-headline-art{height:clamp(230px,64vw,285px)}
- .landing-hero .landing-kicker{justify-content:center;font-size:clamp(8px,2vw,10px);letter-spacing:1.05px;text-align:center}
- .landing-hero-copy>p{font-size:15px;line-height:1.7}
- .landing-actions{justify-content:center;gap:17px;margin-top:26px}
- .landing-trust{gap:11px 14px;font-size:8px}
+ .landing-hero h1.landing-dot-headline{margin:20px 0 22px}
+ .landing-dot-headline-art{height:236px}
 }
 @media(max-width:390px){
- .landing-hero{padding-inline:14px}
- .landing-dot-headline-art{height:236px}
- .landing-hero h1.landing-dot-headline{margin-block:16px}
- .landing-hero-copy>p{font-size:14px}
- .landing-actions{gap:13px}
+ .landing-hero h1.landing-dot-headline{margin:16px 0 18px}
+ .landing-dot-headline-art{height:224px}
+ .landing-hero-copy>p{font-size:15px;line-height:1.68}
+ .landing-actions{gap:14px}
 }
-:root:is([data-theme="daylight"],[data-theme="white"]) .landing-dot-headline-art{filter:drop-shadow(0 5px 14px #08765322)}
-:root[data-theme="blue"] .landing-dot-headline-art{filter:drop-shadow(0 5px 16px #718cff3b)}
