@@ -1,5 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
+import { withStatusWorkerHeartbeat } from "@/lib/tic/worker-health";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { runCompanySnapshot } from "@/lib/tic/research-snapshot";
 
@@ -14,7 +15,7 @@ function authorize(request: Request) {
   return left.length === right.length && timingSafeEqual(left, right);
 }
 
-export async function GET(request: Request) {
+async function handleStatusCheck(request: Request) {
   if (!authorize(request)) return NextResponse.json({ error: "Unauthorized research worker." }, { status: 401, headers: { "Cache-Control": "no-store" } });
   let admin: ReturnType<typeof createAdminClient>;
   try { admin = createAdminClient(); }
@@ -59,4 +60,5 @@ export async function GET(request: Request) {
 }
 
 // Supabase pg_net invokes the worker over HTTPS with its Vault-held bearer.
+export const GET = (request: Request) => withStatusWorkerHeartbeat("research_job_processing", () => handleStatusCheck(request));
 export const POST = GET;
