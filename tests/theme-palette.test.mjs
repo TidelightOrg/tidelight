@@ -2,33 +2,28 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-test("all five themes are selectable and manual choices reset when leaving", async () => {
+test("Dark and White are the only themes, with Dark as the default", async () => {
   const provider = await readFile(new URL("../app/ui/theme-provider.tsx", import.meta.url), "utf8");
   const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
   const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
-  assert.match(provider, /"daylight" \| "night" \| "blue" \| "white" \| "dark"/);
-  assert.match(provider, /id: "white", name: "White"/);
+  assert.match(provider, /export type Theme = "dark" \| "white"/);
+  assert.match(provider, /const DEFAULT_THEME: Theme = "dark"/);
   assert.match(provider, /id: "dark", name: "Dark"/);
+  assert.match(provider, /id: "white", name: "White"/);
+  assert.doesNotMatch(provider, /id: "(?:daylight|night|blue)"|automaticTheme|"auto"/);
   assert.match(provider, /value === "white" \|\| value === "dark"/);
-  assert.match(provider, /document\.cookie = `tidelight-theme=\$\{preference\}; Path=\/; SameSite=Lax/);
-  assert.match(provider, /window\.addEventListener\("pagehide", clearThemePreference\)/);
-  assert.match(provider, /window\.addEventListener\("pageshow", restoreDynamicTheme\)/);
-  assert.match(provider, /Max-Age=0; SameSite=Lax/);
-  assert.match(provider, /localStorage\.removeItem\("tidelight-theme"\)/);
-  assert.doesNotMatch(provider, /theme-quick-auto/);
-  assert.doesNotMatch(provider, /theme-quick-swatch[^>]*>A/);
-  assert.match(layout, /savedTheme === "white" \|\| savedTheme === "dark"/);
+  assert.match(layout, /savedTheme === "white" \|\| savedTheme === "dark"\) \? savedTheme : "dark"/);
+  assert.match(css, /\.theme-picker\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(css, /:root\[data-theme="white"\]\{color-scheme:light/);
   assert.match(css, /:root\[data-theme="dark"\]\{color-scheme:dark/);
 });
 
-test("position share cards define a canvas palette for every selectable theme", async () => {
+test("P&L cards only expose and render Dark and White palettes", async () => {
   const card = await readFile(new URL("../app/ui/pnl-share-card.tsx", import.meta.url), "utf8");
-  assert.match(card, /currentTheme === "white" \|\| currentTheme === "dark"/);
-  for (const theme of ["daylight", "night", "blue", "white", "dark"]) {
-    assert.match(card, new RegExp(`id: "${theme}"`));
-    assert.match(card, new RegExp(`^  ${theme}: \\{`, "m"));
-  }
+  assert.match(card, /\{ id: "dark", label: "Dark" \}/);
+  assert.match(card, /\{ id: "white", label: "White" \}/);
+  assert.match(card, /const \[theme, setTheme\] = useState<Theme>\("dark"\)/);
+  assert.doesNotMatch(card, /^  (?:daylight|night|blue): \{/m);
 });
 
 test("public research replays render in the White and Dark palettes", async () => {
@@ -37,7 +32,7 @@ test("public research replays render in the White and Dark palettes", async () =
   assert.match(replay, /:root\[data-theme="dark"\] \.shared-replay-page\{background:#090a0c/);
 });
 
-test("package secondary actions retain readable contrast in light themes", async () => {
+test("package secondary actions retain readable contrast in White theme", async () => {
   const css = await readFile(new URL("../app/developers/packages/package-clarity.css", import.meta.url), "utf8");
   assert.match(css, /:root:is\(\[data-theme="daylight"\], \[data-theme="white"\]\) \.tic-packages-page a\.tic-button:not\(\.tic-primary\)/);
   assert.match(css, /background-color: #fff !important;/);
