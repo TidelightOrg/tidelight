@@ -7,13 +7,14 @@ test("ecosystem status groups real service checks and labels unmonitored workloa
   const page = await readFile(new URL("../app/status/page.tsx", import.meta.url), "utf8");
   const status = await readFile(new URL("../lib/tic/system-status.ts", import.meta.url), "utf8");
   for (const group of ["Websites", "APIs", "Package registries", "Data", "Background services"]) assert.ok(status.includes(`name: "${group}"`));
-  for (const service of ["Tidelight app", "Developer docs", "Package directory", "REST API", "Research job API", "MCP server metadata", "npm registry", "Python package registry", "Application database"]) assert.ok(status.includes(`"${service}"`));
+  for (const service of ["Tidelight app", "Developer docs", "Package directory", "REST API", "Research job API", "MCP server metadata", "npm registry", "Python package registry", "Application database", "Research job processing", "Scheduled paper analysis", "Webhook delivery", "Email delivery"]) assert.ok(status.includes(`"${service}"`));
   assert.match(status, /state: "monitoring"/);
   assert.match(status, /Database monitoring is not configured for this deployment\./);
   assert.match(status, /if \(!process\.env\.NEXT_PUBLIC_SUPABASE_URL \|\| !\(process\.env\.SUPABASE_SECRET_KEY \|\| process\.env\.SUPABASE_SERVICE_ROLE_KEY\)\)/);
   assert.match(status, /state: error \? "degraded" : "operational"/);
+  assert.match(status, /get_tic_background_worker_status/);
   assert.match(page, /Not monitored/);
-  assert.match(page, /Background job execution and message delivery are not monitored here/);
+  assert.match(page, /Background workers report their latest authenticated execution result/);
   assert.doesNotMatch(page, /\b(?:99\.\d+%|90-day uptime)\b/);
 });
 
@@ -60,7 +61,7 @@ test("service categories use native keyboard accordions and preserve unknown his
   assert.match(page, /<summary>/);
   assert.doesNotMatch(page, /role="button"|onClick=/);
   assert.match(page, /What these checks cover/);
-  assert.match(page, /Background job execution and message delivery are not monitored here/);
+  assert.match(page, /Background workers report their latest authenticated execution result/);
   assert.match(page, /group\.services\.some\(service => service\.state === "degraded"\)/);
   assert.match(css, /summary:focus-visible/);
   assert.match(css, /max-width: 810px/);
