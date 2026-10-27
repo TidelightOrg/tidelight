@@ -137,7 +137,6 @@
 @media(prefers-reduced-motion:reduce){.landing-hero-stage .landing-stage-glow,.landing-dyor strong,.landing-dyor strong::before{animation:none}}
 /* Keep the cinematic title and the Tide artwork comfortably framed on phones. */
 @media(max-width:800px){.landing-page .landing-hero-stage{min-height:470px}}
-@media(max-width:800px){.landing-page .landing-hero-stage{min-height:470px}}
 @media(max-width:520px){.landing-page .landing-hero-stage{min-height:440px}}
 
 /* The market ribbon fills the narrow breathing space above the landing headline. */
@@ -166,6 +165,7 @@
 @keyframes landing-market-roll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
 @keyframes landing-market-beacon{0%,100%{opacity:.62;transform:scale(.82)}50%{opacity:1;transform:scale(1.14)}}
 @media(max-width:800px){.landing-market-ribbon{padding:8px 20px 0}.landing-market-ribbon+.landing-hero{padding-top:26px}}
+@media(prefers-reduced-motion:reduce){.landing-market-track{animation:none}.landing-market-cylinder-head i{animation:none}}
 
 /* The landing header shares the workspace theme controls without changing them there. */
 .landing-nav-actions{display:flex;align-items:center;gap:18px}
