@@ -158,7 +158,7 @@
 .landing-market-chip{display:flex;align-items:center;gap:7px;min-width:84px;height:38px;padding:4px 8px;border:1px solid var(--market-chip-border);border-radius:12px;background:var(--market-chip);box-shadow:inset 0 1px #ffffff0a}
 .landing-market-chip .landing-market-logo.issuer-logo{position:relative;isolation:isolate;box-sizing:border-box;display:grid;place-items:center;width:26px;height:26px;flex:0 0 26px;overflow:hidden;border:1px solid color-mix(in srgb,var(--market-accent) 48%,transparent);border-radius:8px;background:var(--market-chip);color:var(--market-accent);box-shadow:0 0 12px color-mix(in srgb,var(--market-accent) 12%,transparent)}
 .landing-market-logo .issuer-logo-fallback{position:relative;z-index:0;display:grid;place-items:center;width:100%;height:100%;font:700 8px/1 var(--mono);letter-spacing:-.35px}
-.landing-market-chip .landing-market-logo.issuer-logo img{position:absolute!important;inset:3px!important;display:block!important;width:18px!important;height:18px!important;max-width:18px!important;max-height:18px!important;object-fit:contain!important;object-position:center!important;border-radius:4px}
+.landing-market-chip .landing-market-logo.issuer-logo img{position:absolute!important;inset:3px!important;display:block!important;width:18px!important;height:18px!important;max-width:18px!important;max-height:18px!important;object-fit:contain!important;object-position:center!important;transform:none!important;translate:none!important;border-radius:4px}
 .landing-market-chip>span:last-child{display:grid;gap:1px}
 .landing-market-chip b{color:var(--market-text);font:650 9px var(--mono);letter-spacing:.2px}
 .landing-market-chip small{color:var(--market-muted);font:6px var(--mono);letter-spacing:.55px;text-transform:uppercase}
