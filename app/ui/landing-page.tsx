@@ -4,7 +4,8 @@ import LandingDocsEmbed from "@/app/ui/landing-docs-embed";
 import { NavigationTrail } from "@/app/ui/navigation-icon";
 import { ThemeQuickSwitch } from "@/app/ui/theme-provider";
 import { LanguageToggle } from "@/app/ui/language-provider";
-import LandingUseCases from "@/app/ui/landing-use-cases";
+import LandingUseTidelightWith from "@/app/ui/landing-use-tidelight-with";
+import UseCasesSignalLink from "@/app/ui/use-cases-signal-link";
 import { TidelightSignatureFooter } from "@/app/ui/tidelight-signature-footer";
 import { LandingUseCaseMenuLinks } from "@/app/ui/landing-use-case-menu-links";
 
@@ -24,7 +25,7 @@ const workflows = [
 
 const signalStages = [
   { number: "01", title: "Frame the event", body: "Turn the question on your mind into a useful research starting point.", tag: "QUESTION", icon: "event", href: "/research", action: "Ask a question" },
-  { number: "02", title: "Follow the evidence", body: "Review source links, timestamps, supporting claims, and counterpoints together.", tag: "SOURCE TRAIL", icon: "evidence", href: "/evidence", action: "Inspect evidence" },
+  { number: "02", title: "Follow the evidence", body: "Review source links, timestamps, supporting claims, and counterpoints together.", tag: "SOURCE TRAIL", icon: "evidence", href: "/research", action: "Inspect evidence" },
   { number: "03", title: "Map the exposure", body: "Keep issuer research distinct from tokenized instrument and quote context.", tag: "MARKET CONTEXT", icon: "exposure", href: "/markets", action: "Explore markets" },
   { number: "04", title: "Review the gate", body: "See what supports or blocks a paper handoff. Every action stays yours.", tag: "DECISION CHECK", icon: "gate", href: "/judge", action: "Review Judge Mode" },
 ];
@@ -44,7 +45,7 @@ export default function LandingPage() {
     <nav className="landing-nav" aria-label="Tidelight landing navigation">
       <Link className="landing-brand" href="/"><Image className="landing-mark" src="/tidelight-mark.svg" alt="" width={30} height={30} priority /><span>tide<span>light</span></span></Link>
       <div className="landing-nav-actions">
-        <div className="landing-nav-links"><a href="#use-cases">Use cases</a><a href="#method">The method</a><a href="#handbook">Docs <NavigationTrail className="landing-arrow" /></a><Link href="/developers">Developers</Link><Link href="/judge">Judge Mode</Link><Link href="/status">Status</Link><Link href="https://blogs.tidelight.app">Field Notes</Link></div>
+        <div className="landing-nav-links"><Link href="/use-cases">Use cases</Link><a href="#method">The method</a><a href="#handbook">Docs <NavigationTrail className="landing-arrow" /></a><Link href="/developers">Developers</Link><Link href="/judge">Judge Mode</Link><Link href="/status">Status</Link><Link href="https://blogs.tidelight.app">Field Notes</Link></div>
         <details className="landing-mobile-menu">
           <summary aria-label="Open site navigation"><span className="landing-menu-glyph" aria-hidden="true"><i /><i /><i /></span><span>Menu</span></summary>
           <div className="landing-mobile-menu-panel" aria-label="Site navigation">
@@ -63,7 +64,7 @@ export default function LandingPage() {
       </div>
     </nav>
     <section className="landing-hero">
-      <div className="landing-hero-copy"><span className="landing-kicker"><i /> THE INTELLIGENCE LAYER FOR MARKETS THAT NEVER SLEEP</span><h1>The market moves.<br /><em>Tidelight makes sense of it.</em></h1><p>Ask what you actually want to know. Tidelight connects live market context, evidence, exposure, and scenarios into one calm decision surface—for curious beginners and serious operators alike.</p><div className="landing-actions"><Link className="landing-primary" href="/research">Ask Tidelight a question <NavigationTrail className="landing-arrow" /></Link><Link className="landing-secondary" href="#use-cases">Explore use cases <NavigationTrail className="landing-arrow" /></Link></div><div className="landing-trust"><span><i /> Live public market context</span><span><i /> Agent-assisted research</span><span><i /> Paper-first controls</span></div></div>
+      <div className="landing-hero-copy"><span className="landing-kicker"><i /> THE INTELLIGENCE LAYER FOR MARKETS THAT NEVER SLEEP</span><h1>The market moves.<br /><em>Tidelight makes sense of it.</em></h1><p>Ask what you actually want to know. Tidelight connects live market context, evidence, exposure, and scenarios into one calm decision surface—for curious beginners and serious operators alike.</p><div className="landing-actions"><Link className="landing-primary" href="/research">Ask Tidelight a question <NavigationTrail className="landing-arrow" /></Link><Link className="landing-secondary" href="/use-cases">Explore use cases <NavigationTrail className="landing-arrow" /></Link></div><div className="landing-trust"><span><i /> Live public market context</span><span><i /> Agent-assisted research</span><span><i /> Paper-first controls</span></div></div>
       <div className="landing-hero-stage" aria-label="Tidelight live signal interface">
         <div className="landing-stage-glow" />
         <p className="landing-dyor"><span>THE TIDELIGHT STANDARD</span><strong>DYOR</strong><small>Do your own research.</small></p>
@@ -77,7 +78,8 @@ export default function LandingPage() {
         <div className="landing-stage-readout"><span><i /> SIGNAL DESK</span><b>Following the ripple</b><small>Event → Evidence → Exposure → Scenario</small></div>
       </div>
     </section>
-    <LandingUseCases />
+    <UseCasesSignalLink />
+    <LandingUseTidelightWith />
     <section className="landing-signal-path" aria-labelledby="landing-signal-path-title">
       <div className="landing-signal-heading"><div><span className="landing-kicker"><i /> A RESEARCH PATH YOU CAN TRACE</span><h2 id="landing-signal-path-title">From market question<br /><em>to a clearer decision.</em></h2><p>Each step adds context you can inspect. The signal stays connected to its sources, market limits, and decision gate.</p></div><Link href="/judge">See how Judge Mode works <NavigationTrail className="landing-arrow" /></Link></div>
       <div className="landing-signal-visual" aria-label="Illustration of the Tidelight research path, from event through evidence and exposure to a review gate">

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useLanguage } from "@/app/ui/language-provider";
 import styles from "./landing-use-cases.module.css";
 
@@ -73,14 +73,6 @@ export default function LandingUseCases() {
   const translate = (source: string) => language === "zh-CN" ? zh[source] ?? source : source;
   const [category, setCategory] = useState<Category>("All use cases");
   const [query, setQuery] = useState("");
-  useEffect(() => {
-    const revealAllUseCases = () => {
-      setCategory("All use cases");
-      setQuery("");
-    };
-    window.addEventListener("tidelight:reveal-use-cases", revealAllUseCases);
-    return () => window.removeEventListener("tidelight:reveal-use-cases", revealAllUseCases);
-  }, []);
   const visibleUseCases = useCases.filter((item) => {
     const matchesCategory = category === "All use cases" || item.category === category;
     const searchable = [item.title, item.category, item.description, item.question].map(translate).join(" ").toLocaleLowerCase();
@@ -90,13 +82,7 @@ export default function LandingUseCases() {
   return <section className={styles.section} id="use-cases" aria-labelledby="landing-use-cases-title">
     <aside className={styles.directoryRail} aria-label={translate("Use case categories")}>
       <span>{translate("USE CASES")}</span>
-      {categoryGroups.map((group, index) => <a key={group} href={`#use-case-group-${index}`} onClick={(event) => {
-        event.preventDefault();
-        setCategory("All use cases");
-        setQuery("");
-        window.history.replaceState(null, "", `#use-case-group-${index}`);
-        window.setTimeout(() => document.getElementById(`use-case-group-${index}`)?.scrollIntoView({ behavior: "smooth", block: "center" }), 0);
-      }}><i aria-hidden="true"><UseCaseIcon name={["pulse", "market", "globe", "shield"][index]} /></i><span>{translate(group)}</span><b aria-hidden="true">↗</b></a>)}
+      {categoryGroups.map((group, index) => <a key={group} href={`#use-case-group-${index}`} onClick={() => { setCategory("All use cases"); setQuery(""); }}><i aria-hidden="true"><UseCaseIcon name={["pulse", "market", "globe", "shield"][index]} /></i><span>{translate(group)}</span><b aria-hidden="true">↗</b></a>)}
     </aside>
     <div className={styles.heading}>
       <div>

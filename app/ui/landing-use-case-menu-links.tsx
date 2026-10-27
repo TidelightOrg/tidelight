@@ -13,15 +13,9 @@ export function LandingUseCaseMenuLinks() {
   const { language } = useLanguage();
   const t = (en: string, zh: string) => language === "zh-CN" ? zh : en;
   return <>
-    <a className="landing-mobile-menu-featured" href="#use-cases">{t("Explore use cases", "浏览使用场景")} <span aria-hidden="true">↗</span></a>
+    <a className="landing-mobile-menu-featured" href="/use-cases">{t("Explore use cases", "浏览使用场景")} <span aria-hidden="true">↗</span></a>
     <div className="landing-mobile-menu-groups" aria-label={t("Use case categories", "使用场景类别")}>
-      {groups.map(([en, zh], index) => <a key={en} href={`#use-case-group-${index}`} onClick={(event) => {
-        event.preventDefault();
-        const id = `use-case-group-${index}`;
-        window.dispatchEvent(new Event("tidelight:reveal-use-cases"));
-        window.history.replaceState(null, "", `#${id}`);
-        window.setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: "smooth", block: "start" }), 0);
-      }}><i aria-hidden="true">0{index + 1}</i> {t(en, zh)}</a>)}
+      {groups.map(([en, zh], index) => <a key={en} href={`/use-cases#use-case-group-${index}`}><i aria-hidden="true">0{index + 1}</i> {t(en, zh)}</a>)}
     </div>
   </>;
 }
