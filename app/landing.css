@@ -755,5 +755,5 @@
 @media(prefers-reduced-motion:reduce){
  .landing-market-story-step{display:none;animation:none}
  .landing-market-story-step:first-child{display:flex;opacity:1;transform:none}
- .landing-market-signature-orbit i,.landing-market-signature-live i{animation:none}
+ .landing-market-signature-orbit i:nth-child(n),.landing-market-signature-live i{animation:none}
 }
