@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {registerHooks} from 'node:module';
 const modules={
+  '@/lib/tic/worker-health':'export const withStatusWorkerHeartbeat=(_worker,run)=>run();',
   '@/lib/supabase/admin':'export const createAdminClient=()=>globalThis.nwTest.admin;',
   '@/lib/bitget-market':'export const getBitgetAsset=(...args)=>globalThis.nwTest.asset(...args); export const getBitgetCandles=async()=>Array.from({length:60},(_,i)=>({timestamp:Date.now()-(61-i)*14400000,close:100}));',
   '@/lib/backtest':'export const prepareBacktestCandles=c=>c; export const ALPHA_STRATEGIES={sma_trend_v1:{label:"SMA"}};',
