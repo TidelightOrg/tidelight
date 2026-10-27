@@ -2,6 +2,7 @@ import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getSystemStatus } from "@/lib/tic/system-status";
+import { notifyStatusSubscribers } from "@/lib/tic/status-notifications";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,9 @@ export async function GET(request: Request) {
       p_components: status.components,
     });
     if (error) throw error;
-    return NextResponse.json({ ok: true, ...data }, { headers: { "Cache-Control": "no-store" } });
+    let notifications = { sent: 0, skipped: true };
+    try { notifications = await notifyStatusSubscribers(); } catch { /* Status recording remains authoritative if email delivery is unavailable. */ }
+    return NextResponse.json({ ok: true, ...data, notifications }, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return NextResponse.json({ error: "The scheduled status check did not complete." }, { status: 503, headers: { "Cache-Control": "no-store" } });
   }
