@@ -4,6 +4,7 @@ import Link from "next/link";
 import { getSystemStatus } from "@/lib/tic/system-status";
 import { resolveStatusPagePath } from "@/lib/tic/status-links";
 import "./status.css";
+import { StatusActions } from "./status-actions";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -64,9 +65,10 @@ export default async function StatusPage() {
       <nav aria-label="Status navigation">
         <Link aria-current="page" href={statusPath}>Status</Link>
         <Link href={maintenancePath}>Maintenance</Link>
-        <Link href={incidentsPath}>History</Link>
+        <Link href={resolveStatusPagePath(requestHeaders.get("host"), "/status/history")}>History</Link>
         <a href="https://tidelight.app/contact">Get in touch</a>
       </nav>
+      <StatusActions />
     </header>
     <div className={`tic-status-summary ${status.status}`} role="status">
       <span className="tic-status-summary-icon" aria-hidden="true">{status.status === "operational" ? "✓" : "!"}</span>
