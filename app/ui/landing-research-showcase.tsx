@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import styles from "./landing-research-showcase.module.css";
 
 const stages = [
@@ -109,7 +110,7 @@ export default function LandingResearchShowcase() {
           <article className={`${styles.pathCard} ${styles.secondaryCard}`}><span className={styles.cardIndex}>NEXT IN THE THREAD</span><div className={styles.pathCardMain}><span className={styles.stageGlyph}><StageGlyph kind={stages[(stages.findIndex((item) => item.id === stage.id) + 1) % stages.length].kind}/></span><div><h4>{stages[(stages.findIndex((item) => item.id === stage.id) + 1) % stages.length].label}</h4><p>Continue with the supporting context</p></div><span className={styles.cardArrow}>→</span></div></article>
         </div>
       </div>
-      <div className={styles.demoFoot}><span><i/> Source-linked context</span><span>One reviewable step at a time</span><a href="/research">Open the research desk <b aria-hidden="true">↗</b></a></div>
+      <div className={styles.demoFoot}><span><i/> Source-linked context</span><span>One reviewable step at a time</span><Link href="/research">Open the research desk <b aria-hidden="true">↗</b></Link></div>
     </div>
     <div className={styles.integration}>
       <div className={styles.integrationIntro}><span className="landing-kicker">BUILT TO FIT YOUR STACK</span><h2>Use Tidelight<br/><em>with your tools.</em></h2><p>Bring source-linked market context into your product through the framework, language, or agent workflow you already use.</p><span className={styles.keyNote}><i/> Keep project keys in trusted server code.</span></div>
