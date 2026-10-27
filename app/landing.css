@@ -678,15 +678,15 @@
 @media(max-width:800px){
  .landing-market-ribbon{padding:6px 20px 0}
  .landing-market-ribbon+.landing-hero{padding-top:14px}
- .landing-market-cylinder{height:42px}
+ .landing-market-cylinder{height:38px}
  .landing-market-cylinder-head{display:grid;grid-template-columns:auto;align-content:center;gap:2px;padding:0 8px}
  .landing-market-cylinder-head small{max-width:106px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:5px}
- .landing-market-chip{min-width:72px;height:30px;gap:5px;padding:3px 5px;border-radius:10px}
- .landing-market-chip .landing-market-logo.issuer-logo{width:22px;height:22px;flex-basis:22px;border-radius:7px}
- .landing-market-chip .landing-market-logo.issuer-logo img{inset:2px!important;width:16px!important;height:16px!important;max-width:16px!important;max-height:16px!important;padding:2px!important}
+ .landing-market-chip{min-width:72px;height:26px;gap:5px;padding:3px 5px;border-radius:10px}
+ .landing-market-chip .landing-market-logo.issuer-logo{width:20px;height:20px;flex-basis:20px;border-radius:7px}
+ .landing-market-chip .landing-market-logo.issuer-logo img{inset:2px!important;width:14px!important;height:14px!important;max-width:14px!important;max-height:14px!important;padding:1px!important}
  .landing-market-logo .issuer-logo-fallback{font-size:7px}
  .landing-market-track{gap:6px}
- .landing-market-signature{width:min(100%,360px);height:42px;margin-top:5px;padding:4px 9px;gap:7px}
+ .landing-market-signature{width:min(100%,360px);height:38px;margin-top:5px;padding:4px 9px;gap:7px}
  .landing-market-signature-brand{gap:4px;padding-right:7px}
  .landing-market-signature-brand svg{width:19px;height:19px}
  .landing-market-signature-brand b{font-size:6.5px}
