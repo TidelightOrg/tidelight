@@ -49,15 +49,19 @@ export function LandingMarketOrbit() {
         </div>
       </div>
     </div>
-    <div className="landing-market-signature" role="img" aria-label="Tidelight follows a question through its sources into market context">
+    <div className="landing-market-signature" role="img" aria-label="Tidelight: question, evidence, exposure, decision">
       <span className="landing-market-signature-brand">
         <svg viewBox="0 0 28 28" aria-hidden="true"><path d="M3 17.5c4.1 0 4.1-7 8.2-7s4.1 7 8.2 7 4.1-7 8.2-7" /><circle cx="11.2" cy="10.5" r="1.6" /><circle cx="19.4" cy="17.5" r="1.6" /></svg>
-        <span><b>TIDELIGHT</b><small>MARKET INTELLIGENCE</small></span>
+        <b>TIDELIGHT</b>
       </span>
-      <span className="landing-market-signature-path" aria-hidden="true">
-        <span>QUESTION</span><i /><span>SOURCE</span><i /><span>CONTEXT</span>
+      <span className="landing-market-signature-window" aria-hidden="true">
+        <span className="landing-market-signature-track">
+          {[0, 1].map((copy) => <span className="landing-market-signature-run" key={copy}>
+            {["QUESTION", "EVIDENCE", "EXPOSURE", "DECISION"].map((word, index) => <span className="landing-market-signature-word" key={word}>{word}{index < 3 ? <i /> : null}</span>)}
+          </span>)}
+        </span>
       </span>
-      <span className="landing-market-signature-live"><i /> LIVE SIGNAL</span>
+      <span className="landing-market-signature-live"><i /> LIVE</span>
     </div>
   </section>;
 }
