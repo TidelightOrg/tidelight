@@ -13,20 +13,24 @@ export async function notifyStatusSubscribers() {
   const secret = signingSecret();
   if (!secret || !process.env.RESEND_API_KEY) return { sent: 0, skipped: true };
   const admin = createAdminClient();
-  const since = new Date(Date.now() - 20 * 60 * 1000).toISOString();
-  const [created, resolved, subscriptions] = await Promise.all([
-    admin.from("tic_status_incidents").select("id,component,started_at,resolved_at,state,latest_detail").gte("started_at", since).order("started_at", { ascending: true }),
-    admin.from("tic_status_incidents").select("id,component,started_at,resolved_at,state,latest_detail").gte("resolved_at", since).not("resolved_at", "is", null).order("resolved_at", { ascending: true }),
-    admin.from("tic_status_subscriptions").select("id,email,components,token_hash").not("confirmed_at", "is", null).is("unsubscribed_at", null).limit(500),
+  const cutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+  const [created, resolved] = await Promise.all([
+    admin.from("tic_status_incidents").select("id,component,started_at,resolved_at,state,latest_detail").gte("started_at", cutoff).order("started_at", { ascending: true }).limit(5000),
+    admin.from("tic_status_incidents").select("id,component,started_at,resolved_at,state,latest_detail").gte("resolved_at", cutoff).not("resolved_at", "is", null).order("resolved_at", { ascending: true }).limit(5000),
   ]);
-  if (created.error || resolved.error || subscriptions.error) throw new Error("Status notification records could not be loaded.");
+  if (created.error || resolved.error) throw new Error("Status notification events could not be loaded.");
   const events = [
     ...(created.data ?? []).map(incident => ({ incident: incident as Incident, kind: "new" as const, at: incident.started_at })),
     ...(resolved.data ?? []).map(incident => ({ incident: incident as Incident, kind: "resolved" as const, at: incident.resolved_at! })),
   ];
   let sent = 0;
-  for (const event of events) {
-    for (const subscription of (subscriptions.data ?? []) as Subscription[]) {
+  for (let offset = 0; ; offset += 500) {
+    const { data: batch, error: subscribersError } = await admin.from("tic_status_subscriptions").select("id,email,components,token_hash").not("confirmed_at", "is", null).is("unsubscribed_at", null).order("id", { ascending: true }).range(offset, offset + 499);
+    if (subscribersError) throw new Error("Status notification subscribers could not be loaded.");
+    const subscriptions = (batch ?? []) as Subscription[];
+    if (!subscriptions.length) break;
+    for (const event of events) {
+      for (const subscription of subscriptions) {
       if (subscription.components?.length && !subscription.components.includes(event.incident.component)) continue;
       const alreadySent = await admin.from("tic_status_subscription_deliveries").select("subscription_id").eq("subscription_id", subscription.id).eq("incident_id", event.incident.id).eq("event_kind", event.kind).maybeSingle();
       if (alreadySent.error) continue;
@@ -47,7 +51,9 @@ export async function notifyStatusSubscribers() {
       } catch {
         await admin.from("tic_status_subscription_deliveries").delete().eq("subscription_id", subscription.id).eq("incident_id", event.incident.id).eq("event_kind", event.kind);
       }
+      }
     }
+    if (subscriptions.length < 500) break;
   }
   return { sent, skipped: false };
 }
