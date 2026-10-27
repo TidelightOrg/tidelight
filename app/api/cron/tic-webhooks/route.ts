@@ -67,7 +67,8 @@ async function handleStatusCheck(request: Request) {
       results.push("record_failed");
     } else results.push(typeof result === "string" ? result : "recorded");
   }
-  return NextResponse.json({ claimed: deliveries.length, outcomes: results }, { headers: { "Cache-Control": "no-store" } });
+  const status = results.includes("record_failed") ? 503 : 200;
+  return NextResponse.json({ claimed: deliveries.length, outcomes: results }, { status, headers: { "Cache-Control": "no-store" } });
 }
 
 export const POST = (request: Request) => withStatusWorkerHeartbeat(
