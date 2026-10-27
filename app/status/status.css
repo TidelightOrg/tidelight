@@ -238,3 +238,5 @@ body:has(.tic-status-page) .tide-guide-launcher, body:has(.tic-status-page) .pro
 .tic-status-form-error{background:var(--status-warn-bg);color:var(--status-warn)}
 .tic-status-feed-links code{display:block;overflow-wrap:anywhere;padding:13px;border:1px solid var(--status-line);border-radius:7px;background:var(--status-card);color:var(--status-accent);font-size:12px}
 @media(max-width:700px){.tic-status-header{align-items:center;flex-direction:row;gap:10px;padding:17px 0}.tic-status-header nav{order:3;flex:1 0 100%;gap:8px 16px}.tic-status-header nav a{font-size:11px}.tic-status-actions{gap:6px}.tic-status-report,.tic-status-subscribe{min-height:34px;padding:7px 9px;font-size:10px}.tic-status-modal-backdrop{padding:10px}.tic-status-modal>header{padding:16px}.tic-status-tabs{gap:17px;padding:0 16px}.tic-status-subscribe-form,.tic-status-feed-links{padding:18px 16px}.tic-status-component-picker>div{grid-template-columns:1fr}}
+
+.tic-status-subscription-result{margin:18px 0 0;padding:12px 16px;border:1px solid var(--status-good-line);border-radius:8px;background:var(--status-good-bg);color:var(--status-good);font-size:13px}
