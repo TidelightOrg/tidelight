@@ -95,7 +95,7 @@
     inset 0 -1px 0 color-mix(in srgb,var(--brand-teal) 22%,transparent),
     0 0 30px color-mix(in srgb,var(--brand-teal) 21%,transparent);
 }
-:root:is([data-theme="daylight"], [data-theme="white"]) .tide-guide-launcher {
+:root[data-theme="white"] .tide-guide-launcher {
   background: color-mix(in srgb,#fffefa 52%,transparent) !important;
   border-color: color-mix(in srgb,#6f9a7a 32%,transparent) !important;
   box-shadow: 0 14px 38px #263d2924,
@@ -103,14 +103,7 @@
     inset 0 -1px 0 #6f9a7a21,
     0 0 22px #6f9a7a12;
 }
-:root[data-theme="blue"] .tide-guide-launcher {
-  background: color-mix(in srgb,#111b31 48%,transparent) !important;
-  border-color: color-mix(in srgb,#9caeff 35%,transparent) !important;
-  box-shadow: 0 14px 38px #05091666,
-    inset 0 1px 0 #dbe3ff2b,
-    inset 0 -1px 0 #9caeff21,
-    0 0 24px #9caeff16;
-}
+
 
 /* Premium liquid-glass mastheads, matched to the draggable quick-action pill. */
 .main-area > .topbar {
@@ -139,20 +132,14 @@
 }
 .main-area > .topbar > * { z-index: 1; }
 
-:root:is([data-theme="daylight"], [data-theme="white"]) .main-area > .topbar {
+:root[data-theme="white"] .main-area > .topbar {
   --masthead-glass: color-mix(in srgb, #fffefa 53%, transparent);
   border-color: color-mix(in srgb, #6f9a7a 29%, transparent) !important;
   box-shadow: 0 12px 34px #263d291a,
     inset 0 1px 0 #ffffffd4,
     inset 0 -1px 0 #6f9a7a24;
 }
-:root[data-theme="blue"] .main-area > .topbar {
-  --masthead-glass: color-mix(in srgb, #111b31 52%, transparent);
-  border-color: color-mix(in srgb, #9caeff 29%, transparent) !important;
-  box-shadow: 0 12px 34px #05091666,
-    inset 0 1px 0 #dbe3ff2b,
-    inset 0 -1px 0 #9caeff21;
-}
+
 
 .landing-nav {
   border: 1px solid color-mix(in srgb, var(--brand-teal) 24%, transparent);
@@ -165,20 +152,14 @@
     inset 0 1px 0 color-mix(in srgb, white 24%, transparent),
     inset 0 -1px 0 color-mix(in srgb, var(--brand-teal) 14%, transparent);
 }
-:root:is([data-theme="daylight"], [data-theme="white"]) .landing-nav {
+:root[data-theme="white"] .landing-nav {
   background: color-mix(in srgb, #fbfaf5 56%, transparent);
   border-color: color-mix(in srgb, #6f9a7a 28%, transparent);
   box-shadow: 0 12px 34px #263d291a,
     inset 0 1px 0 #ffffffd4,
     inset 0 -1px 0 #6f9a7a24;
 }
-:root[data-theme="blue"] .landing-nav {
-  background: color-mix(in srgb, #111b31 56%, transparent);
-  border-color: color-mix(in srgb, #9caeff 28%, transparent);
-  box-shadow: 0 12px 34px #05091666,
-    inset 0 1px 0 #dbe3ff2b,
-    inset 0 -1px 0 #9caeff21;
-}
+
 @media (max-width: 780px) {
   .main-area > .topbar { border-radius: 0 0 20px 20px; }
   .landing-nav { border-radius: 0 0 20px 20px; }
