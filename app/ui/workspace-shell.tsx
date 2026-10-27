@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import AnalyticsConsent from "@/app/ui/analytics-consent";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
@@ -65,7 +64,7 @@ export default function WorkspaceShell({ children, email, avatarUrl, displayName
   useEffect(() => { if (mobileMenuOpen) window.dispatchEvent(new Event("tidelight:close-guide")); }, [mobileMenuOpen]);
 
   if (pathname === "/status" || pathname.startsWith("/status/") || pathname === "/judge" || pathname === "/evidence" || pathname === "/replay" || pathname.startsWith("/replay/")) return <>{children}</>;
-  if (pathname.startsWith("/login") || pathname.startsWith("/auth/") || pathname.startsWith("/developers") || pathname === "/" || pathname === "/use-cases") return <>{children}<AnalyticsConsent /></>;
+  if (pathname.startsWith("/login") || pathname.startsWith("/auth/") || pathname.startsWith("/developers") || pathname === "/" || pathname === "/use-cases") return <>{children}</>;
 
   return (
     <div className="app-shell" data-experience={mode}>
@@ -93,7 +92,6 @@ export default function WorkspaceShell({ children, email, avatarUrl, displayName
         </div>
       </aside>
       <main className="main-area">
-        <AnalyticsConsent />
         <header className="topbar">
           <Link className="mobile-brand" href="/"><Image src="/tidelight-mark.svg" alt="" width={36} height={36} priority /><span>tide<span className="brand-light">light</span></span></Link><LanguageToggle className="mobile-language-toggle" />
           <div className="breadcrumb">Workspace <span>/</span> {active.label}</div><div className="mobile-utility"><button type="button" className="mobile-menu-toggle" aria-label={mobileMenuOpen ? "Close workspace navigation" : "Open workspace navigation"} aria-expanded={mobileMenuOpen} aria-controls="mobile-workspace-drawer" onClick={() => setMobileMenuPath(mobileMenuOpen ? null : pathname)}><i/><i/><i/></button><b>{active.label}</b><div className="mobile-utility-controls"><ExperienceSwitch /><ThemeQuickSwitch /><Link className="top-signin" href={email ? "/account" : "/login"} prefetch={false}>{email ? "ACCOUNT" : "SIGN IN"}</Link></div></div>
