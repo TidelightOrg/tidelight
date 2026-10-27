@@ -6,6 +6,7 @@ import LandingResearchShowcase from "@/app/ui/landing-research-showcase";
 import { TidelightSignatureFooter } from "@/app/ui/tidelight-signature-footer";
 import { LandingNavigation } from "@/app/ui/landing-navigation";
 import { UseCasesPortalLink } from "@/app/ui/use-cases-portal-link";
+import { LandingMarketOrbit } from "@/app/ui/landing-market-orbit";
 
 const capabilities = [
   ["Research", "Turn a plain-language question into a source-led market brief."],
@@ -41,6 +42,7 @@ function SignalStageIcon({ name }: { name: string }) {
 export default function LandingPage() {
   return <main className="landing-page">
     <LandingNavigation />
+    <LandingMarketOrbit />
     <section className="landing-hero">
       <div className="landing-hero-copy"><span className="landing-kicker"><i /> THE INTELLIGENCE LAYER FOR MARKETS THAT NEVER SLEEP</span><h1>The market moves.<br /><em>Tidelight makes sense of it.</em></h1><p>Ask what you actually want to know. Tidelight connects live market context, evidence, exposure, and scenarios into one calm decision surface—for curious beginners and serious operators alike.</p><div className="landing-actions"><Link className="landing-primary" href="/research">Ask Tidelight a question <NavigationTrail className="landing-arrow" /></Link><Link className="landing-secondary" href="/use-cases">Explore use cases <NavigationTrail className="landing-arrow" /></Link></div><div className="landing-trust"><span><i /> Live public market context</span><span><i /> Agent-assisted research</span><span><i /> Paper-first controls</span></div></div>
       <div className="landing-hero-stage" aria-label="Tidelight live signal interface">
