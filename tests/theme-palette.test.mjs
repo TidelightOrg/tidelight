@@ -34,7 +34,7 @@ test("public research replays render in the White and Dark palettes", async () =
 
 test("package secondary actions retain readable contrast in White theme", async () => {
   const css = await readFile(new URL("../app/developers/packages/package-clarity.css", import.meta.url), "utf8");
-  assert.match(css, /:root\\[data-theme="white"\\] \\.tic-packages-page a\\.tic-button:not\\(\\.tic-primary\\)/);
+  assert.match(css, /:root\[data-theme="white"\] \.tic-packages-page a\.tic-button:not\(\.tic-primary\)/);
   assert.match(css, /background-color: #fff !important;/);
   assert.match(css, /color: #17221e !important;/);
   assert.match(css, /border-color: #dfe5e2 !important;/);
