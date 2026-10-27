@@ -137,6 +137,7 @@
 @media(prefers-reduced-motion:reduce){.landing-hero-stage .landing-stage-glow,.landing-dyor strong,.landing-dyor strong::before{animation:none}}
 /* Keep the cinematic title and the Tide artwork comfortably framed on phones. */
 @media(max-width:800px){.landing-page .landing-hero-stage{min-height:470px}}
+@media(max-width:800px){.landing-page .landing-hero-stage{min-height:470px}}
 @media(max-width:520px){.landing-page .landing-hero-stage{min-height:440px}}
 
 /* The market ribbon fills the narrow breathing space above the landing headline. */
@@ -497,7 +498,8 @@
 .landing-workflow-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid #1a2a2d;border-left:1px solid #1a2a2d}
 .landing-workflow-grid article{display:flex;min-width:0;min-height:230px;flex-direction:column;padding:23px 24px;border-right:1px solid #1a2a2d;border-bottom:1px solid #1a2a2d;background:linear-gradient(145deg,#0d1919,#091112)}
 .landing-workflow-meta{display:flex;align-items:center;justify-content:space-between;color:#74d9b3;font:10px var(--mono);letter-spacing:.08em}
-.landing-workflow-meta small{color:#71847f;font-size:9px}.landing-workflow-grid h3{margin:30px 0 9px;font-size:19px;letter-spacing:-.035em}
+.landing-workflow-meta small{color:#71847f;font-size:9px}
+.landing-workflow-grid h3{margin:30px 0 9px;font-size:19px;letter-spacing:-.035em}
 .landing-workflow-grid p{flex:1;max-width:340px;margin:0;color:#849994;font-size:12px;line-height:1.7}
 .landing-workflow-grid a,.landing-guide-link{display:inline-flex;align-items:center;gap:9px;width:max-content;margin-top:22px;color:#a6f4d0;font-size:11px;font-weight:650;text-decoration:none}
 .landing-workflow-grid a .landing-arrow,.landing-guide-link .landing-arrow{width:14px;height:14px}
