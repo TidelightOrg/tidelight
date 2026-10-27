@@ -166,7 +166,7 @@ export default function TidelightDotWordmark({ className, lines, decorative = fa
       themeObserver.disconnect();
       reducedMotion.removeEventListener("change", onMotionChange);
     };
-  }, [linesKey]);
+  }, [linesKey, emphasis]);
 
   return <span className={className}>
     <canvas ref={canvasRef} role={decorative ? undefined : "img"} aria-hidden={decorative || undefined} aria-label={decorative ? undefined : "Tidelight written as a living field of signal dots"} />
