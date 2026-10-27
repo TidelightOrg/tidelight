@@ -788,3 +788,12 @@
   .landing-market-story-step{animation:none;display:none;opacity:0;transform:none}
   .landing-market-story-step:first-child{display:flex;opacity:1}
 }
+
+/* Experimental hero treatment: the message is drawn in the same living dot field as the footer wordmark. */
+.landing-hero h1.landing-dot-headline{margin:23px 0 20px;font-size:0;line-height:1;letter-spacing:0}
+.landing-dot-headline-art{--wordmark-dot:#d5e0da;--wordmark-accent:#9ce7c1;--wordmark-pointer:#4a86ff;display:block;width:min(100%,1000px);height:clamp(155px,19vw,230px);margin-inline:auto}
+.landing-dot-headline-art canvas{display:block;width:100%;height:100%;overflow:visible}
+:root:is([data-theme="daylight"],[data-theme="white"]) .landing-dot-headline-art{--wordmark-dot:#486454;--wordmark-accent:#317253;--wordmark-pointer:#326fe6}
+:root[data-theme="blue"] .landing-dot-headline-art{--wordmark-dot:#cbd7f4;--wordmark-accent:#b5c6ff;--wordmark-pointer:#6b91ff}
+@media(max-width:800px){.landing-hero h1.landing-dot-headline{margin:20px 0 18px}.landing-dot-headline-art{width:100%;height:clamp(142px,36vw,190px)}}
+@media(max-width:420px){.landing-dot-headline-art{height:150px}}
