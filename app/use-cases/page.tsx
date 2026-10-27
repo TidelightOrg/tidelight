@@ -15,8 +15,8 @@ export default function UseCasesPage() {
     </nav>
     <header className="use-cases-page-intro">
       <span className="landing-kicker"><i /> TIDELIGHT RESEARCH PATHS</span>
-      <h1>Start with the question.<br /><em>Follow it to the signal.</em></h1>
-      <p>Choose a market workflow. Refine the question before research begins, then inspect the sources, uncertainty, and market context behind the result.</p>
+      <h1>Eight ways in.<br /><em>One connected view.</em></h1>
+      <p>Explore source-led workflows for company events, tokenized markets, macro context, and decision review. Refine the question before research begins, then inspect the sources and market context behind each result.</p>
       <div className="use-cases-page-proof"><span>01 / Source-linked</span><span>02 / Risk-aware</span><span>03 / Owner-controlled</span></div>
     </header>
     <LandingUseCases />

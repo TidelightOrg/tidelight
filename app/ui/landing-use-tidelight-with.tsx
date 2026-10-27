@@ -26,9 +26,9 @@ const examples = {
     code: `curl --fail-with-body \\\n  -H "Authorization: Bearer $TIDELIGHT_API_KEY" \\\n  -H "Accept: application/json" \\\n+  "https://api.tidelight.app/v1/market/instruments?kind=rtoken&underlying_ticker=AAPL&limit=10"`,
   },
   MCP: {
-    mark: "MCP", label: "MCP", language: "json", href: "https://package.tidelight.app/mcp", action: "MCP integration guide",
-    install: "Remote endpoint  ·  mcp.tidelight.app/mcp",
-    code: `import { Client } from "@modelcontextprotocol/sdk/client/index.js";\nimport { StreamableHTTPClientTransport } from\n  "@modelcontextprotocol/sdk/client/streamableHttp.js";\n\nconst client = new Client({ name: "research-assistant", version: "1.0.0" });\nconst transport = new StreamableHTTPClientTransport(\n  new URL("https://mcp.tidelight.app/mcp"),\n);\n\nawait client.connect(transport);\nconst { tools } = await client.listTools();\nconsole.log(tools.map((tool) => tool.name));`,
+    mark: "MCP", label: "MCP", language: "bash", href: "https://package.tidelight.app/mcp", action: "MCP integration guide",
+    install: "npm install --global @tidelight/mcp@0.1.2",
+    code: `# Store a scoped project key in your local secret manager or process env.\nexport TIDELIGHT_API_KEY="YOUR_TIDELIGHT_PROJECT_KEY"\n\n# The bridge forwards MCP requests to Tidelight over Streamable HTTP.\ntidelight-mcp`,
   },
 } as const;
 type Framework = keyof typeof examples;
