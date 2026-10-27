@@ -67,7 +67,7 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
   const cookieStore = await cookies();
   const savedTheme = cookieStore.get("tidelight-theme")?.value;
   const themeMode = cookieStore.get("tidelight-theme-mode")?.value;
-  const theme = themeMode === "manual" && (savedTheme === "daylight" || savedTheme === "night" || savedTheme === "blue" || savedTheme === "white" || savedTheme === "dark") ? savedTheme : "blue";
+  const theme = themeMode === "manual" && (savedTheme === "white" || savedTheme === "dark") ? savedTheme : "dark";
   const requestHeaders = await headers();
   const requestHost = (requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host") ?? "").split(",")[0].trim().toLowerCase().replace(/:\d+$/, "");
   const isPublicPackageHost = requestHost === "package.tidelight.app";
