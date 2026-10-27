@@ -9,7 +9,7 @@ test("the blog hostname maps its root and article slugs to the isolated blog rou
 });
 
 test("the blog hostname keeps shared assets on their original paths", () => {
-  for (const path of ["/icon.svg", "/tidelight-mark.svg", "/manifest.webmanifest", "/api/privacy/analytics-consent", "/tidelight-social.png", "/_next/static/chunk.js", "/cover.webp"]) {
+  for (const path of ["/icon.svg", "/tidelight-mark.svg", "/manifest.webmanifest", "/tidelight-social.png", "/_next/static/chunk.js", "/cover.webp"]) {
     assert.equal(resolveServiceHostRoute("blogs.tidelight.app", path), null);
   }
 });

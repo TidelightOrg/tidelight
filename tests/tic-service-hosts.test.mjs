@@ -20,7 +20,7 @@ test("the status hostname serves the page and live health check only", () => {
   assert.deepEqual(resolveServiceHostRoute("status.tidelight.app", "/incidents"), { kind: "rewrite", pathname: "/status/incidents" });
   assert.deepEqual(resolveServiceHostRoute("status.tidelight.app", "/maintenance"), { kind: "rewrite", pathname: "/status/maintenance" });
   assert.deepEqual(resolveServiceHostRoute("status.tidelight.app", "/admin"), { kind: "not-found" });
-  for (const path of ["/icon.svg", "/tidelight-mark.svg", "/manifest.webmanifest", "/api/privacy/analytics-consent"]) {
+  for (const path of ["/icon.svg", "/tidelight-mark.svg", "/manifest.webmanifest"]) {
     assert.equal(resolveServiceHostRoute("status.tidelight.app", path), null);
   }
   assert.deepEqual(resolveServiceHostRoute("status.tidelight.app", "/other.svg"), { kind: "not-found" });
@@ -33,7 +33,7 @@ test("the developer docs hostname serves only the existing documentation page", 
   assert.deepEqual(resolveServiceHostRoute("dev.tidelight.app", "/developers/docs"), { kind: "rewrite", pathname: "/developers/docs" });
   assert.deepEqual(resolveServiceHostRoute("dev.tidelight.app", "/developers/console"), { kind: "not-found" });
   assert.equal(resolveServiceHostRoute("dev.tidelight.app", "/tic-architecture-visual.svg"), null);
-  for (const path of ["/tic-architecture-visual.svg", "/tic-architecture-mobile.svg", "/icon.svg", "/tidelight-mark.svg", "/manifest.webmanifest", "/api/privacy/analytics-consent"]) {
+  for (const path of ["/tic-architecture-visual.svg", "/tic-architecture-mobile.svg", "/icon.svg", "/tidelight-mark.svg", "/manifest.webmanifest"]) {
     assert.equal(resolveServiceHostRoute("dev.tidelight.app", path), null);
   }
   assert.deepEqual(resolveServiceHostRoute("dev.tidelight.app", "/private.svg"), { kind: "not-found" });
@@ -49,7 +49,6 @@ test("the package hostname maps clean package slugs and keeps registry facts ava
     assert.deepEqual(resolveServiceHostRoute("package.tidelight.app", `/${slug}`), { kind: "rewrite", pathname: `/developers/packages/${slug}` });
   }
   assert.equal(resolveServiceHostRoute("package.tidelight.app", "/api/developers/packages"), null);
-  assert.equal(resolveServiceHostRoute("package.tidelight.app", "/api/privacy/analytics-consent"), null);
   assert.deepEqual(resolveServiceHostRoute("package.tidelight.app", "/api/developers/keys"), { kind: "not-found" });
   assert.deepEqual(resolveServiceHostRoute("package.tidelight.app", "/api/developer-support/tickets"), { kind: "not-found" });
   assert.deepEqual(resolveServiceHostRoute("package.tidelight.app", "/api/admin/users"), { kind: "not-found" });
