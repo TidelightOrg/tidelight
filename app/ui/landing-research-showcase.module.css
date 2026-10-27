@@ -28,7 +28,7 @@
 .markRest circle{fill:#62d6ad;stroke:#0e2823;stroke-width:1}
 .markMcp path{fill:none;stroke:#a6f4d0;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.6}
 .markMcp circle{fill:#62d6ad;stroke:#14372e;stroke-width:1.5}
-@media(max-width:560px){.frameworkGlyph{width:31px;height:31px}.frameworkGlyph svg{width:30px;height:30px}.frameworkTabs button{min-height:57px}.frameworkLabel{font-size:9px}}
+@media(max-width:560px){.frameworkTabs{display:flex;overflow-x:auto;overscroll-behavior-x:contain;scrollbar-width:thin}.frameworkTabs button{flex:0 0 auto;min-width:max-content;padding-inline:12px}.frameworkGlyph{width:31px;height:31px}.frameworkGlyph svg{width:30px;height:30px}.frameworkTabs button{min-height:57px}.frameworkLabel{font-size:9px}}
 
 .install{font-size:9px}
 .install code{padding:8px 10px;font-size:10px}
