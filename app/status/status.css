@@ -157,11 +157,11 @@ body:has(.tic-status-page) .tide-guide-launcher, body:has(.tic-status-page) .pro
 @media(prefers-reduced-motion:reduce){.tic-status-summary::after,.tic-status-signal-wave,.tic-status-signal-wave-secondary,.tic-status-signal circle{animation:none}}
 @media(max-width:700px){.tic-status-page-heading{grid-template-columns:1fr;gap:20px}.tic-status-signal{min-height:126px}.tic-status-summary{margin-top:28px}}
 @media(prefers-reduced-motion:reduce){.tic-status-group,.tic-status-chevron{transition:none}}
-:root:is([data-theme="daylight"],[data-theme="white"]) .tic-status-page{--status-ink:#172b22;--status-muted:#53695d;--status-line:#d2ddd0;--status-bg:#f5f6ee;--status-card:#fffefa;--status-accent:#176e57;--status-good:#166b4c;--status-good-bg:#e4f3e8;--status-good-line:#acd0b4;--status-warn:#92511d;--status-warn-bg:#fbefe1;--status-warn-line:#e5c7a1;color-scheme:light}
-:root:is([data-theme="daylight"],[data-theme="white"]) .tic-status-page .tic-status-summary{color:var(--status-good)}
-:root:is([data-theme="daylight"],[data-theme="white"]) body:has(.tic-status-page){background:#f5f6ee}
-:root[data-theme="blue"] .tic-status-page{--status-ink:#eef3ff;--status-muted:#aab8d6;--status-line:#334266;--status-bg:#0b1120;--status-card:#111a30;--status-accent:#b6c5ff;--status-good:#81e2b5;--status-good-bg:#132d2d;--status-good-line:#2b5c50;--status-warn:#f1b27e;--status-warn-bg:#35281f;--status-warn-line:#735037}
-:root[data-theme="blue"] body:has(.tic-status-page){background:#0b1120}
+:root[data-theme="white"] .tic-status-page{--status-ink:#172b22;--status-muted:#53695d;--status-line:#d2ddd0;--status-bg:#f5f6ee;--status-card:#fffefa;--status-accent:#176e57;--status-good:#166b4c;--status-good-bg:#e4f3e8;--status-good-line:#acd0b4;--status-warn:#92511d;--status-warn-bg:#fbefe1;--status-warn-line:#e5c7a1;color-scheme:light}
+:root[data-theme="white"] .tic-status-page .tic-status-summary{color:var(--status-good)}
+:root[data-theme="white"] body:has(.tic-status-page){background:#f5f6ee}
+
+
 
 
 .tic-status-service-history{margin:13px 0 2px;padding:12px 13px 10px;border:1px solid var(--status-line);border-radius:9px;background:color-mix(in srgb,var(--status-bg) 42%,var(--status-card))}
