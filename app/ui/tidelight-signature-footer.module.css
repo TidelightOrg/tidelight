@@ -40,9 +40,10 @@
 
 @media(max-width:700px){.footer{margin-top:25px}.top{grid-template-columns:1fr;gap:24px;padding:35px 0 28px}.signal{justify-self:stretch;width:auto}.directory{gap:22px;padding:26px 0;grid-template-columns:repeat(2,minmax(0,1fr))}.directory section:last-child{grid-column:1/-1}.directory section:last-child{display:grid;grid-template-columns:1fr 1fr}.directory section:last-child h2{grid-column:1/-1}.bottom{flex-wrap:wrap}.bottom>span:nth-child(2){display:none}}
 @media(max-width:380px){.directory{gap:18px 12px}.directory a{font-size:10px}.bottom{font-size:8px}}
-.endmark{width:min(100%,1240px);height:clamp(118px,18vw,220px);margin:0 auto;padding:0 0 10px}
-.endmark canvas{display:block;width:100%;height:100%;overflow:visible}
-:global(:root[data-theme="white"]) .footer{--wordmark-dot:#486454;--wordmark-accent:#317253;--wordmark-pointer:#326fe6}
+.endmark{--wordmark-dot:#d5e0da;--wordmark-accent:#9ce7c1;--wordmark-pointer:#4a86ff;position:relative;isolation:isolate;width:min(100%,1240px);height:clamp(118px,18vw,220px);margin:0 auto;padding:0 0 10px;border:1px solid #8de7ba38;border-radius:24px 24px 0 0;background:radial-gradient(ellipse at 50% 78%,#08785b4a,transparent 58%),linear-gradient(180deg,#081714 0%,#06100f 100%);box-shadow:inset 0 1px #d6ffea12,0 -12px 48px #08785b14;overflow:hidden}
+.endmark:before{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 100%,#19b98717,transparent 63%),linear-gradient(90deg,transparent 8%,#c7ffe909 50%,transparent 92%);content:"";pointer-events:none}
+.endmark canvas{position:relative;z-index:1;display:block;width:100%;height:100%;overflow:visible}
+:global(:root[data-theme="white"]) .endmark{--wordmark-dot:#e1ede6;--wordmark-accent:#a5f2cf;--wordmark-pointer:#78a7ff;border-color:#244f42;background:radial-gradient(ellipse at 50% 78%,#08785b70,transparent 60%),linear-gradient(180deg,#071b16 0%,#06110f 100%);box-shadow:inset 0 1px #e6fff22a,0 -12px 48px #08785b1c}
 
-@media(max-width:700px){.endmark{height:clamp(120px,22vw,172px);padding-bottom:6px}}
+@media(max-width:700px){.endmark{height:clamp(82px,24vw,138px);padding:0 8px 6px;border-radius:18px 18px 0 0}}
 @media(prefers-reduced-motion:reduce){.directory a,.bottom a{transition:none}}
