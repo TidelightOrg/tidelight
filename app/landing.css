@@ -789,11 +789,12 @@
   .landing-market-story-step:first-child{display:flex;opacity:1}
 }
 
-/* Experimental hero treatment: the message is drawn in the same living dot field as the footer wordmark. */
-.landing-hero h1.landing-dot-headline{margin:23px 0 20px;font-size:0;line-height:1;letter-spacing:0}
-.landing-dot-headline-art{--wordmark-dot:#d5e0da;--wordmark-accent:#9ce7c1;--wordmark-pointer:#4a86ff;display:block;width:min(100%,1000px);height:clamp(155px,19vw,230px);margin-inline:auto}
+/* Experimental hero treatment: larger, high-contrast dot lettering with room around the message. */
+.landing-hero h1.landing-dot-headline{display:block;margin:38px 0 34px;font-size:0;line-height:1;letter-spacing:0}
+.landing-dot-headline-art{--wordmark-dot:#e5f4ed;--wordmark-accent:#9cf4cb;--wordmark-pointer:#70a0ff;display:block;width:min(100%,1000px);height:clamp(190px,22vw,260px);margin-inline:auto;filter:drop-shadow(0 0 12px color-mix(in srgb,var(--wordmark-accent) 20%,transparent))}
 .landing-dot-headline-art canvas{display:block;width:100%;height:100%;overflow:visible}
-:root:is([data-theme="daylight"],[data-theme="white"]) .landing-dot-headline-art{--wordmark-dot:#486454;--wordmark-accent:#317253;--wordmark-pointer:#326fe6}
-:root[data-theme="blue"] .landing-dot-headline-art{--wordmark-dot:#cbd7f4;--wordmark-accent:#b5c6ff;--wordmark-pointer:#6b91ff}
-@media(max-width:800px){.landing-hero h1.landing-dot-headline{margin:20px 0 18px}.landing-dot-headline-art{width:100%;height:clamp(142px,36vw,190px)}}
-@media(max-width:420px){.landing-dot-headline-art{height:150px}}
+:root:is([data-theme="daylight"],[data-theme="white"]) .landing-dot-headline-art{--wordmark-dot:#203f30;--wordmark-accent:#087653;--wordmark-pointer:#225ed5;filter:drop-shadow(0 0 10px color-mix(in srgb,#087653 18%,transparent))}
+:root[data-theme="blue"] .landing-dot-headline-art{--wordmark-dot:#e6ebff;--wordmark-accent:#a9bdff;--wordmark-pointer:#88a6ff;filter:drop-shadow(0 0 13px color-mix(in srgb,#91aaff 28%,transparent))}
+:root[data-theme="dark"] .landing-dot-headline-art{--wordmark-dot:#f0f3f1;--wordmark-accent:#c1d0c8;--wordmark-pointer:#83a0ff}
+@media(max-width:800px){.landing-hero h1.landing-dot-headline{margin:34px 0 30px}.landing-dot-headline-art{width:100%;height:clamp(205px,34vw,245px)}}
+@media(max-width:420px){.landing-hero h1.landing-dot-headline{margin:30px 0 27px}.landing-dot-headline-art{height:205px}}
