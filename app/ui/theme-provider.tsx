@@ -1,43 +1,29 @@
 "use client";
 
-import { createContext, useContext, useEffect, useState, useSyncExternalStore, type ReactNode } from "react";
-import { automaticTheme } from "@/lib/automatic-theme.mjs";
+import { createContext, useContext, useEffect, useSyncExternalStore, type ReactNode } from "react";
 
-export type Theme = "daylight" | "night" | "blue" | "white" | "dark";
-export type ThemePreference = Theme | "auto";
+export type Theme = "dark" | "white";
 export type ExperienceMode = "mini" | "pro";
 export const themes: { id: Theme; name: string; detail: string; swatches: string[] }[] = [
-  { id: "daylight", name: "Daylight", detail: "Warm paper, clear ink", swatches: ["#f5f3eb", "#18382f", "#76ae88"] },
-  { id: "night", name: "Night Tide", detail: "The original deep sea", swatches: ["#080f11", "#a8ebc8", "#142522"] },
-  { id: "blue", name: "Blue Hour", detail: "A cooler evening desk", swatches: ["#0b1020", "#b6c5ff", "#222b4c"] },
-  { id: "white", name: "White", detail: "Bright white, crisp contrast", swatches: ["#ffffff", "#153b31", "#e8f0eb"] },
   { id: "dark", name: "Dark", detail: "Graphite, low-glare surfaces", swatches: ["#090a0c", "#d8e1dc", "#202328"] },
+  { id: "white", name: "White", detail: "Bright white, crisp contrast", swatches: ["#ffffff", "#153b31", "#e8f0eb"] },
 ];
-const DEFAULT_THEME: Theme = "blue";
-const ThemeContext = createContext<{ theme: Theme; preference: ThemePreference; setTheme: (theme: ThemePreference) => void }>({ theme: DEFAULT_THEME, preference: "auto", setTheme: () => {} });
+const DEFAULT_THEME: Theme = "dark";
+const ThemeContext = createContext<{ theme: Theme; setTheme: (theme: Theme) => void }>({ theme: DEFAULT_THEME, setTheme: () => {} });
 const ExperienceContext = createContext<{ mode: ExperienceMode; setMode: (mode: ExperienceMode) => void }>({ mode: "pro", setMode: () => {} });
-const validTheme = (value: string | null): value is Theme => value === "night" || value === "daylight" || value === "blue" || value === "white" || value === "dark";
-const getPreference = (): ThemePreference => {
-  const shared = document.cookie.split(";").map((part) => part.trim()).find((part) => part.startsWith("tidelight-theme="))?.slice("tidelight-theme=".length);
+const validTheme = (value: string | null): value is Theme => value === "white" || value === "dark";
+const getTheme = (): Theme => {
+  const shared = document.cookie.split(";").map((part) => part.trim()).find((part) => part.startsWith("tidelight-theme="))?.slice("tidelight-theme=".length) ?? null;
   const mode = document.cookie.split(";").map((part) => part.trim()).find((part) => part.startsWith("tidelight-theme-mode="))?.slice("tidelight-theme-mode=".length);
-  if (mode === "manual" && validTheme(shared ?? null)) return shared as Theme;
-  if (mode === "auto") return "auto";
-  return "auto";
+  return mode === "manual" && validTheme(shared) ? shared : DEFAULT_THEME;
 };
-const saveTheme = (preference: ThemePreference) => {
+const saveTheme = (theme: Theme) => {
   try { window.localStorage.removeItem("tidelight-theme"); } catch { /* Theme selection still works when storage is blocked. */ }
   const sharedDomain = location.hostname === "tidelight.app" || location.hostname.endsWith(".tidelight.app") ? `; Domain=.tidelight.app${location.protocol === "https:" ? "; Secure" : ""}` : "";
-  // Keep a manual choice only while this page is active. Leaving the site clears it,
-  // so a new visit starts with the dynamic local-clock theme.
-  document.cookie = `tidelight-theme=${preference}; Path=/; SameSite=Lax${sharedDomain}`;
-  document.cookie = `tidelight-theme-mode=${preference === "auto" ? "auto" : "manual"}; Path=/; SameSite=Lax${sharedDomain}`;
+  // Keep an explicit choice available across Tidelight pages and subdomains in this browser session.
+  document.cookie = `tidelight-theme=${theme}; Path=/; SameSite=Lax${sharedDomain}`;
+  document.cookie = `tidelight-theme-mode=manual; Path=/; SameSite=Lax${sharedDomain}`;
 };
-const clearThemePreference = () => {
-  const sharedDomain = location.hostname === "tidelight.app" || location.hostname.endsWith(".tidelight.app") ? `; Domain=.tidelight.app${location.protocol === "https:" ? "; Secure" : ""}` : "";
-  document.cookie = `tidelight-theme=; Path=/; Max-Age=0; SameSite=Lax${sharedDomain}`;
-  document.cookie = `tidelight-theme-mode=; Path=/; Max-Age=0; SameSite=Lax${sharedDomain}`;
-};
-const getTheme = (): Theme => { const preference = getPreference(); return preference === "auto" ? automaticTheme() : preference; };
 const getExperienceMode = (): ExperienceMode => window.localStorage.getItem("tidelight-experience") === "mini" ? "mini" : "pro";
 const subscribe = (callback: () => void) => {
   window.addEventListener("storage", callback);
@@ -46,8 +32,6 @@ const subscribe = (callback: () => void) => {
 };
 
 export function ThemeProvider({ children, initialTheme = DEFAULT_THEME }: { children: ReactNode; initialTheme?: Theme }) {
-  const [clock, setClock] = useState(0);
-  const preference = useSyncExternalStore(subscribe, getPreference, (): ThemePreference => "auto");
   const theme = useSyncExternalStore(subscribe, getTheme, (): Theme => initialTheme);
   const mode = useSyncExternalStore(subscribe, getExperienceMode, (): ExperienceMode => "pro");
   const setMode = (next: ExperienceMode) => {
@@ -55,36 +39,17 @@ export function ThemeProvider({ children, initialTheme = DEFAULT_THEME }: { chil
     window.dispatchEvent(new Event("tidelight-theme-change"));
   };
   useEffect(() => {
-    const timer = window.setInterval(() => setClock(value => value + 1), 60_000);
-    return () => window.clearInterval(timer);
-  }, []);
-  useEffect(() => {
-    const restoreDynamicTheme = () => {
-      clearThemePreference();
-      window.dispatchEvent(new Event("tidelight-theme-change"));
-    };
-    window.addEventListener("pagehide", clearThemePreference);
-    window.addEventListener("pageshow", restoreDynamicTheme);
-    return () => {
-      window.removeEventListener("pagehide", clearThemePreference);
-      window.removeEventListener("pageshow", restoreDynamicTheme);
-    };
-  }, []);
-  useEffect(() => {
-    // Explicit choices follow the current browser session across Tidelight products; automatic mode resolves locally.
-    saveTheme(preference);
+    saveTheme(theme);
     document.documentElement.dataset.theme = theme;
-    document.documentElement.dataset.themeMode = preference;
+    document.documentElement.dataset.themeMode = "manual";
     document.documentElement.dataset.experience = mode;
-    document.documentElement.style.colorScheme = theme === "daylight" || theme === "white" ? "light" : "dark";
-    void clock;
-  }, [clock, mode, preference, theme]);
-  const setTheme = (next: ThemePreference) => {
+    document.documentElement.style.colorScheme = theme === "white" ? "light" : "dark";
+  }, [mode, theme]);
+  const setTheme = (next: Theme) => {
     saveTheme(next);
     window.dispatchEvent(new Event("tidelight-theme-change"));
-    setClock(value => value + 1);
   };
-  return <ThemeContext.Provider value={{ theme, preference, setTheme }}><ExperienceContext.Provider value={{ mode, setMode }}>{children}</ExperienceContext.Provider></ThemeContext.Provider>;
+  return <ThemeContext.Provider value={{ theme, setTheme }}><ExperienceContext.Provider value={{ mode, setMode }}>{children}</ExperienceContext.Provider></ThemeContext.Provider>;
 }
 
 export function ThemePicker() {
@@ -119,4 +84,3 @@ export function ExperienceSwitch() {
     <button type="button" className={mode === "pro" ? "selected" : ""} aria-pressed={mode === "pro"} onClick={() => setMode("pro")}>PRO</button>
   </div>;
 }
-

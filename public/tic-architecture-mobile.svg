@@ -29,9 +29,9 @@
       .icon{fill:none;stroke:var(--tic-visual-mint,#67c99b);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
       .core-copy{fill:#f4fff8}.core-subcopy{fill:#d3eee0}
       @media(prefers-color-scheme:light){:root{--tic-visual-bg:#f5f8f4;--tic-visual-surface:#fff;--tic-visual-surface-deep:#edf4ee;--tic-visual-card:#fff;--tic-visual-card-deep:#f5f8f4;--tic-visual-ink:#18312a;--tic-visual-muted:#61766b;--tic-visual-line:#d3e0d6;--tic-visual-mint:#347b58;--tic-visual-mint-hi:#8cc8a1;--tic-visual-teal:#4d9b76;--tic-visual-deep:#276548}}
-      :root[data-theme="daylight"],[data-theme="daylight"]{--tic-visual-bg:#f5f8f4;--tic-visual-surface:#fff;--tic-visual-surface-deep:#edf4ee;--tic-visual-card:#fff;--tic-visual-card-deep:#f5f8f4;--tic-visual-ink:#18312a;--tic-visual-muted:#61766b;--tic-visual-line:#d3e0d6;--tic-visual-mint:#347b58;--tic-visual-mint-hi:#8cc8a1;--tic-visual-teal:#4d9b76;--tic-visual-deep:#276548}
-      :root[data-theme="night-tide"],[data-theme="night-tide"]{--tic-visual-bg:#0b1413;--tic-visual-surface:#10201d;--tic-visual-surface-deep:#0a1513;--tic-visual-card:#172724;--tic-visual-card-deep:#101c1a;--tic-visual-ink:#edf7f1;--tic-visual-muted:#98ada4;--tic-visual-line:#29413b;--tic-visual-mint:#67c99b;--tic-visual-mint-hi:#b8f1d5;--tic-visual-teal:#3b9a83;--tic-visual-deep:#164d43}
-      :root[data-theme="blue-hour"],[data-theme="blue-hour"]{--tic-visual-bg:#0b1420;--tic-visual-surface:#101d2d;--tic-visual-surface-deep:#0a1420;--tic-visual-card:#172638;--tic-visual-card-deep:#101b29;--tic-visual-ink:#edf5ff;--tic-visual-muted:#91a7bd;--tic-visual-line:#2b4056;--tic-visual-mint:#79cdb8;--tic-visual-mint-hi:#c1f0df;--tic-visual-teal:#4ba896;--tic-visual-deep:#1c5b54}
+      :root[data-theme="white"], [data-theme="white"]{--tic-visual-bg:#f5f8f4;--tic-visual-surface:#fff;--tic-visual-surface-deep:#edf4ee;--tic-visual-card:#fff;--tic-visual-card-deep:#f5f8f4;--tic-visual-ink:#18312a;--tic-visual-muted:#61766b;--tic-visual-line:#d3e0d6;--tic-visual-mint:#347b58;--tic-visual-mint-hi:#8cc8a1;--tic-visual-teal:#4d9b76;--tic-visual-deep:#276548}
+      
+      
     </style>
   </defs>
   <rect class="canvas" width="420" height="1000" rx="20"/>

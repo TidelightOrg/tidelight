@@ -20,18 +20,12 @@ export type PnlCardDetails = {
 };
 
 const themes: { id: Theme; label: string }[] = [
-  { id: "daylight", label: "Daylight" },
-  { id: "night", label: "Night Tide" },
-  { id: "blue", label: "Blue Hour" },
-  { id: "white", label: "White" },
   { id: "dark", label: "Dark" },
+  { id: "white", label: "White" },
 ];
 const palettes: Record<Theme, { background: string; wash: string; panel: string; ink: string; muted: string; line: string; mint: string; accent: string; loss: string }> = {
-  daylight: { background: "#f3f2e9", wash: "#e2eee3", panel: "#fffefa", ink: "#17352a", muted: "#617269", line: "#d7dfd5", mint: "#167351", accent: "#c3964b", loss: "#b84e4a" },
-  night: { background: "#071311", wash: "#0c2e28", panel: "#0b1b18", ink: "#eff9f3", muted: "#9bb4aa", line: "#244139", mint: "#a6f4d0", accent: "#f1c377", loss: "#ff978c" },
-  blue: { background: "#0b1020", wash: "#19294d", panel: "#111a30", ink: "#f0f2ff", muted: "#a2adca", line: "#2e3b60", mint: "#c5d0ff", accent: "#8ce2d1", loss: "#ff9a9e" },
-  white: { background: "#ffffff", wash: "#e8f0eb", panel: "#ffffff", ink: "#17221e", muted: "#5d6b64", line: "#dfe5e2", mint: "#176b4c", accent: "#91621e", loss: "#b84e4a" },
   dark: { background: "#090a0c", wash: "#252a2d", panel: "#111316", ink: "#f0f2f1", muted: "#a5ada9", line: "#2a2e33", mint: "#c4d2cb", accent: "#e6c48d", loss: "#ff978c" },
+  white: { background: "#ffffff", wash: "#e8f0eb", panel: "#ffffff", ink: "#17221e", muted: "#5d6b64", line: "#dfe5e2", mint: "#176b4c", accent: "#91621e", loss: "#b84e4a" },
 };
 
 const money = (value: number, digits = 2) => new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", minimumFractionDigits: digits, maximumFractionDigits: digits }).format(value);
@@ -75,7 +69,7 @@ async function drawCard(canvas: HTMLCanvasElement, details: PnlCardDetails, them
 
   ctx.fillStyle = p.background; ctx.fillRect(0, 0, w, h);
   const glow = ctx.createRadialGradient(887, 300, 10, 887, 300, 470);
-  glow.addColorStop(0, theme === "daylight" || theme === "white" ? "rgba(115,194,151,.20)" : theme === "blue" ? "rgba(114,143,255,.24)" : "rgba(61,205,163,.19)");
+  glow.addColorStop(0, theme === "white" ? "rgba(115,194,151,.20)" : "rgba(61,205,163,.19)");
   glow.addColorStop(1, "rgba(0,0,0,0)"); ctx.fillStyle = glow; ctx.fillRect(0, 0, w, h);
 
   rounded(30, 30, 1140, 570, 30); ctx.fillStyle = p.panel; ctx.fill();
@@ -89,7 +83,7 @@ async function drawCard(canvas: HTMLCanvasElement, details: PnlCardDetails, them
   ctx.fillStyle = p.muted; ctx.font = "10px ui-monospace, SFMono-Regular, monospace"; ctx.letterSpacing = "2px"; ctx.fillText("MARKET RESEARCH DESK", 134, 101);
 
   const badge = details.status === "OPEN" ? "OPEN POSITION" : "CLOSED POSITION";
-  rounded(932, 66, 194, 34, 17); ctx.fillStyle = theme === "daylight" || theme === "white" ? "#e8f1e8" : "#ffffff08"; ctx.fill(); ctx.strokeStyle = p.line; ctx.stroke();
+  rounded(932, 66, 194, 34, 17); ctx.fillStyle = theme === "white" ? "#e8f1e8" : "#ffffff08"; ctx.fill(); ctx.strokeStyle = p.line; ctx.stroke();
   ctx.fillStyle = p.mint; ctx.font = "10px ui-monospace, monospace"; ctx.letterSpacing = "1.25px"; ctx.fillText(badge, 952, 88);
 
   ctx.letterSpacing = "0px"; ctx.fillStyle = p.muted; ctx.font = "11px ui-monospace, monospace"; ctx.letterSpacing = "2px"; ctx.fillText(`${details.desk}  /  PAPER LEDGER`, 68, 160);
@@ -140,11 +134,11 @@ export default function PnlShareCard({ details, label = "Share P&L" }: { details
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [open, setOpen] = useState(false);
   const [notice, setNotice] = useState("");
-  const [theme, setTheme] = useState<Theme>("daylight");
+  const [theme, setTheme] = useState<Theme>("dark");
 
   function openCard() {
     const currentTheme = document.documentElement.dataset.theme;
-    setTheme(currentTheme === "night" || currentTheme === "blue" || currentTheme === "white" || currentTheme === "dark" ? currentTheme : "daylight");
+    setTheme(currentTheme === "white" ? "white" : "dark");
     setNotice("");
     setOpen(true);
   }

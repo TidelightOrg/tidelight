@@ -35,14 +35,14 @@ export default function TidelightDotWordmark({ className }: { className?: string
       width = box.width;
       height = box.height;
       ratio = Math.min(window.devicePixelRatio || 1, 2);
-      spacing = Math.max(6.5, Math.min(10, width / 112));
+      spacing = Math.max(4.8, Math.min(9, width / 132));
       canvas.width = Math.round(width * ratio);
       canvas.height = Math.round(height * ratio);
       mask.width = canvas.width;
       mask.height = canvas.height;
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
 
-      const fontSize = height * 0.77;
+      const fontSize = height * (width < 700 ? 0.68 : 0.77);
       maskContext.setTransform(ratio, 0, 0, ratio, 0, 0);
       maskContext.clearRect(0, 0, width, height);
       maskContext.font = `700 ${fontSize}px Arial, Helvetica, sans-serif`;
@@ -81,11 +81,11 @@ export default function TidelightDotWordmark({ className }: { className?: string
       if (!force && reducedMotion.matches && frame) return;
       context.clearRect(0, 0, width, height);
       const elapsed = reducedMotion.matches ? 0 : time * 0.001;
-      const radius = Math.max(1.15, spacing * 0.2);
+      const radius = Math.max(width < 700 ? 1.45 : 1.15, spacing * (width < 700 ? 0.27 : 0.23));
       for (const point of points) {
         const wave = (Math.sin(point.x * 0.018 - elapsed * 1.25 + Math.sin(point.y * 0.027) * 0.65) + 1) / 2;
         const glint = Math.max(0, Math.sin(elapsed * 2.1 + point.phase)) ** 8;
-        const alpha = Math.min(0.95, 0.28 + wave * 0.34 + point.weight * 0.18 + glint * 0.34);
+        const alpha = Math.min(1, 0.42 + wave * 0.34 + point.weight * 0.18 + glint * 0.34);
         const isAccent = wave > 0.79 || glint > 0.7;
         context.globalAlpha = alpha;
         context.fillStyle = isAccent ? accentColor : dotColor;

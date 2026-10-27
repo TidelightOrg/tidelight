@@ -262,17 +262,9 @@
 }
 
 :root[data-theme="white"] .tic-packages-page .tic-primary,
-:root[data-theme="daylight"] .tic-packages-page .tic-primary {
-  color: #10271e;
-}
+:root[data-theme="dark"] .tic-packages-page .tic-primary { color: #071510; }
 
-:root[data-theme="dark"] .tic-packages-page .tic-primary,
-:root[data-theme="night"] .tic-packages-page .tic-primary,
-:root[data-theme="blue"] .tic-packages-page .tic-primary {
-  color: #071510;
-}
-
-:root:is([data-theme="daylight"], [data-theme="white"]) .tic-packages-page a.tic-button:not(.tic-primary) {
+:root[data-theme="white"] .tic-packages-page a.tic-button:not(.tic-primary) {
   border-color: #dfe5e2 !important;
   background-color: #fff !important;
   color: #17221e !important;
