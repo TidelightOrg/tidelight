@@ -44,7 +44,7 @@ test("status history worker records actual observed component states through the
 });
 
 test("database history keeps 90 days, quarter-hour slots, private reads, and observed-state-only incidents", async () => {
-  const sql = await readFile(new URL("../supabase/migrations/20261025120000_status_history.sql", import.meta.url), "utf8");
+  const sql = await readFile(new URL("../supabase/migrations/20261027205032_tic_status_history.sql", import.meta.url), "utf8");
   assert.match(sql, /date_bin\('15 minutes'/);
   assert.match(sql, /interval '90 days'/);
   assert.match(sql, /enable row level security/);
