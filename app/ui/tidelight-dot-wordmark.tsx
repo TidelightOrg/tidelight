@@ -4,7 +4,7 @@ import { useEffect, useRef } from "react";
 
 type Point = { x: number; y: number; phase: number; weight: number };
 
-export default function TidelightDotWordmark({ className, lines, decorative = false }: { className?: string; lines?: string[]; decorative?: boolean }) {
+export default function TidelightDotWordmark({ className, lines, decorative = false, emphasis = false }: { className?: string; lines?: string[]; decorative?: boolean; emphasis?: boolean }) {
   const linesKey = lines?.length ? lines.join("\n") : "TIDELIGHT";
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -37,7 +37,7 @@ export default function TidelightDotWordmark({ className, lines, decorative = fa
       width = box.width;
       height = box.height;
       ratio = Math.min(window.devicePixelRatio || 1, 2);
-      spacing = Math.max(5.5, Math.min(8.5, width / 112));
+      spacing = emphasis ? Math.max(5.5, Math.min(8.5, width / 112)) : Math.max(6.5, Math.min(10, width / 112));
       canvas.width = Math.round(width * ratio);
       canvas.height = Math.round(height * ratio);
       mask.width = canvas.width;
@@ -50,8 +50,9 @@ export default function TidelightDotWordmark({ className, lines, decorative = fa
       maskContext.textBaseline = "alphabetic";
       const rowHeight = height / displayLines.length;
       displayLines.forEach((line, index) => {
-        const fontSize = displayLines.length === 1 ? height * 0.8 : rowHeight * 0.9;
-        maskContext.font = `800 ${fontSize}px "Arial Black", Arial, Helvetica, sans-serif`;
+        const fontSize = displayLines.length === 1 ? height * 0.77 : rowHeight * (emphasis ? 0.9 : 0.75);
+        const fontWeight = emphasis ? 800 : 700;
+        maskContext.font = `${fontWeight} ${fontSize}px ${emphasis ? '"Arial Black", ' : ""}Arial, Helvetica, sans-serif`;
         const measuredWidth = maskContext.measureText(line).width;
         const scaleX = Math.min(1.48, (width - spacing * 2) / measuredWidth);
         const baseline = displayLines.length === 1 ? height * 0.82 : (index + 0.82) * rowHeight;
@@ -88,19 +89,22 @@ export default function TidelightDotWordmark({ className, lines, decorative = fa
       if (!force && reducedMotion.matches && frame) return;
       context.clearRect(0, 0, width, height);
       const elapsed = reducedMotion.matches ? 0 : time * 0.001;
-      const radius = Math.max(1.55, spacing * 0.32);
+      const radius = Math.max(emphasis ? 1.55 : 1.15, spacing * (emphasis ? 0.32 : 0.2));
       for (const point of points) {
         const wave = (Math.sin(point.x * 0.018 - elapsed * 1.25 + Math.sin(point.y * 0.027) * 0.65) + 1) / 2;
         const glint = Math.max(0, Math.sin(elapsed * 2.1 + point.phase)) ** 8;
-        const alpha = Math.min(1, 0.76 + wave * 0.16 + point.weight * 0.06 + glint * 0.12);
+        const alpha = emphasis
+          ? Math.min(1, 0.76 + wave * 0.16 + point.weight * 0.06 + glint * 0.12)
+          : Math.min(0.95, 0.28 + wave * 0.34 + point.weight * 0.18 + glint * 0.34);
         const isAccent = wave > 0.79 || glint > 0.7;
         context.globalAlpha = alpha;
         context.fillStyle = isAccent ? accentColor : dotColor;
         context.strokeStyle = isAccent ? accentColor : dotColor;
-        context.lineWidth = Math.max(1, radius * 0.58);
+        context.lineWidth = Math.max(0.75, radius * (emphasis ? 0.58 : 0.46));
         context.beginPath();
         context.arc(point.x, point.y, radius * (0.88 + glint * 0.18), 0, Math.PI * 2);
-        context.fill();
+        if (emphasis || (point.phase * 10) % 7 > 4.6 || glint > 0.6) context.fill();
+        else context.stroke();
       }
       context.globalAlpha = 1;
 
