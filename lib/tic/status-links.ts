@@ -1,4 +1,4 @@
-export type StatusPagePath = "/status" | "/status/incidents" | "/status/maintenance";
+export type StatusPagePath = "/status" | "/status/incidents" | "/status/maintenance" | "/status/history";
 
 export function resolveStatusPagePath(hostname: string | null, pathname: StatusPagePath): string {
   const host = hostname?.toLowerCase().replace(/:\d+$/, "");
