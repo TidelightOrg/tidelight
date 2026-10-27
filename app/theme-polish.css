@@ -1,6 +1,6 @@
-:root:is([data-theme="daylight"], [data-theme="white"]) .sidebar-promo a,
-:root:is([data-theme="daylight"], [data-theme="white"]) .privacy-links a { color: #286a4d; }
-:root:is([data-theme="daylight"], [data-theme="white"]) .sidebar-promo a { font-weight: 600; }
+:root[data-theme="white"] .sidebar-promo a,
+:root[data-theme="white"] .privacy-links a { color: #286a4d; }
+:root[data-theme="white"] .sidebar-promo a { font-weight: 600; }
 
 /* Keep the navigation as the flexible, scrollable region on short desktop
    viewports so the research promo and account controls never get clipped. */
@@ -61,15 +61,15 @@
   .company-card-volume b { font-size:6px; }
 }
 @media (prefers-reduced-motion:reduce) { .chart-brand-watermark { animation:none; } }
-:root:is([data-theme="daylight"], [data-theme="white"]) .data-status b,
-:root:is([data-theme="daylight"], [data-theme="white"]) .account-identity > div:nth-child(2) b { color: #2d4437; }
-:root:is([data-theme="daylight"], [data-theme="white"]) .data-status small,
-:root:is([data-theme="daylight"], [data-theme="white"]) .user-profile small,
-:root:is([data-theme="daylight"], [data-theme="white"]) .account-identity > div:nth-child(2) small,
-:root:is([data-theme="daylight"], [data-theme="white"]) .settings-footnote,
-:root:is([data-theme="daylight"], [data-theme="white"]) .connection-meta span { color: #637168; }
-:root:is([data-theme="daylight"], [data-theme="white"]) .connected-pill,
-:root:is([data-theme="daylight"], [data-theme="white"]) .connection-row > b { color: #286a4d; }
+:root[data-theme="white"] .data-status b,
+:root[data-theme="white"] .account-identity > div:nth-child(2) b { color: #2d4437; }
+:root[data-theme="white"] .data-status small,
+:root[data-theme="white"] .user-profile small,
+:root[data-theme="white"] .account-identity > div:nth-child(2) small,
+:root[data-theme="white"] .settings-footnote,
+:root[data-theme="white"] .connection-meta span { color: #637168; }
+:root[data-theme="white"] .connected-pill,
+:root[data-theme="white"] .connection-row > b { color: #286a4d; }
 
 
 /* Profile imagery and compact mobile brand rail */
@@ -239,32 +239,20 @@
   backdrop-filter: blur(18px) saturate(145%);
 }
 
-:root:is([data-theme="daylight"], [data-theme="white"]) .topbar,
-:root:is([data-theme="daylight"], [data-theme="white"]) .mobile-nav,
-:root:is([data-theme="daylight"], [data-theme="white"]) .mobile-workspace-drawer,
-:root:is([data-theme="daylight"], [data-theme="white"]) .mobile-more-menu,
-:root:is([data-theme="daylight"], [data-theme="white"]) .product-quick-actions,
-:root:is([data-theme="daylight"], [data-theme="white"]) .page-heading,
-:root:is([data-theme="daylight"], [data-theme="white"]) .station-heading {
+:root[data-theme="white"] .topbar,
+:root[data-theme="white"] .mobile-nav,
+:root[data-theme="white"] .mobile-workspace-drawer,
+:root[data-theme="white"] .mobile-more-menu,
+:root[data-theme="white"] .product-quick-actions,
+:root[data-theme="white"] .page-heading,
+:root[data-theme="white"] .station-heading {
   --chrome-glass-bg: color-mix(in srgb, #fffefa 70%, transparent);
   --chrome-glass-edge: color-mix(in srgb, #6f9a7a 22%, #dfe1d7);
   box-shadow: 0 12px 34px #263d2914,
     inset 0 1px 0 #ffffffb8,
     inset 0 -1px 0 #66866b12;
 }
-:root[data-theme="blue"] .topbar,
-:root[data-theme="blue"] .mobile-nav,
-:root[data-theme="blue"] .mobile-workspace-drawer,
-:root[data-theme="blue"] .mobile-more-menu,
-:root[data-theme="blue"] .product-quick-actions,
-:root[data-theme="blue"] .page-heading,
-:root[data-theme="blue"] .station-heading {
-  --chrome-glass-bg: color-mix(in srgb, #111b31 72%, transparent);
-  --chrome-glass-edge: color-mix(in srgb, #9caeff 23%, #344267);
-  box-shadow: 0 12px 34px #05091655,
-    inset 0 1px 0 #dbe3ff20,
-    inset 0 -1px 0 #aebeff12;
-}
+
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .topbar, .mobile-nav, .mobile-workspace-drawer, .mobile-more-menu,
@@ -301,16 +289,12 @@
   box-shadow: 0 8px 28px #0208091c, inset 0 1px 0 #ffffff0a;
 }
 
-:root:is([data-theme="daylight"], [data-theme="white"]) .landing-nav {
+:root[data-theme="white"] .landing-nav {
   background: color-mix(in srgb, #fbfaf5 78%, transparent);
   border-bottom-color: #7b9c8138;
   box-shadow: 0 8px 28px #263d2914, inset 0 1px 0 #ffffffa8;
 }
-:root[data-theme="blue"] .landing-nav {
-  background: color-mix(in srgb, #0d1426 78%, transparent);
-  border-bottom-color: #aebeff2b;
-  box-shadow: 0 8px 28px #05091640, inset 0 1px 0 #dbe3ff12;
-}
+
 
 /* A movable helper should read as glass, with the page still visible through it. */
 .product-quick-actions {
@@ -322,16 +306,12 @@
     inset 0 1px 0 color-mix(in srgb, white 25%, transparent),
     inset 0 -1px 0 color-mix(in srgb, var(--brand-teal) 14%, transparent) !important;
 }
-:root:is([data-theme="daylight"], [data-theme="white"]) .product-quick-actions {
+:root[data-theme="white"] .product-quick-actions {
   background: color-mix(in srgb, #fffefa 48%, transparent) !important;
   border-color: color-mix(in srgb, #6f9a7a 32%, transparent) !important;
   box-shadow: 0 12px 30px #263d2924, inset 0 1px 0 #ffffffb8 !important;
 }
-:root[data-theme="blue"] .product-quick-actions {
-  background: color-mix(in srgb, #111b31 44%, transparent) !important;
-  border-color: color-mix(in srgb, #9caeff 35%, transparent) !important;
-  box-shadow: 0 12px 30px #05091655, inset 0 1px 0 #dbe3ff20 !important;
-}
+
 
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .landing-nav { background: #081013e8; }
@@ -462,12 +442,12 @@
 .app-shell .settings-card-head h2 { min-width:0; overflow-wrap:anywhere; line-height:1.22; }
 .app-shell .settings-card > :not(.settings-card-head) { min-width:0; }
 .app-shell .settings-card :is(p,small,b,a) { overflow-wrap:anywhere; }
-:root:is([data-theme="daylight"], [data-theme="white"]) .app-shell :is(.station-panel,.settings-card) {
+:root[data-theme="white"] .app-shell :is(.station-panel,.settings-card) {
   border-color:color-mix(in srgb,#68a88c 22%,var(--line));
   background:radial-gradient(ellipse at 7% 0%,rgba(109,190,157,.09),transparent 48%),linear-gradient(145deg,rgba(255,255,255,.88),rgba(247,250,245,.94));
   box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 12px 32px rgba(40,69,53,.09);
 }
-:root:is([data-theme="daylight"], [data-theme="white"]) .app-shell :is(.station-panel-head,.settings-card-head) {
+:root[data-theme="white"] .app-shell :is(.station-panel-head,.settings-card-head) {
   border-color:rgba(86,158,128,.23);
   background:radial-gradient(ellipse at 0 0,rgba(103,186,151,.13),transparent 62%),linear-gradient(120deg,rgba(237,248,241,.91),rgba(249,251,247,.78));
   box-shadow:inset 0 1px 0 rgba(255,255,255,.94),0 5px 16px rgba(40,69,53,.07);
