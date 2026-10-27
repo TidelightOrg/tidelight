@@ -16,3 +16,16 @@
 @media(max-width:820px){.showcase{padding-top:65px;padding-bottom:80px}.showcaseHead{grid-template-columns:1fr;gap:13px}.showcaseHead>p{max-width:560px}.demoBody{grid-template-columns:1fr;gap:24px;padding:30px 24px}.story h3{max-width:650px}.story>p{max-width:580px}.status{margin-top:15px}.path{gap:18px}.integration{grid-template-columns:1fr;gap:24px;padding-top:70px}.integrationIntro{position:static}.integrationIntro>p{max-width:600px}.integrationIntro h2 br{display:none}}
 @media(max-width:560px){.showcase{padding-inline:18px}.showcaseHead h2{font-size:37px}.demo{border-radius:15px}.demoBar{align-items:flex-start;flex-direction:column;gap:7px;padding:13px 15px;font-size:7px}.demoTabs{gap:3px;overflow:auto;padding:8px 12px}.demoMark{width:32px;height:32px;margin-right:3px;font-size:21px}.demoTabs button{min-height:33px;padding:0 9px;font-size:9px;white-space:nowrap}.demoBody{min-height:0;padding:25px 16px}.story h3{font-size:29px}.story>p{font-size:12px}.pathRail{left:17px}.pathCard{padding:15px 13px}.pathCardMain{grid-template-columns:34px minmax(0,1fr) 12px;gap:10px}.stageGlyph{width:33px;height:33px}.pathCard h4{font-size:12px}.pathCard p{font-size:9px}.secondaryCard{margin-left:14px}.demoFoot{flex-wrap:wrap;gap:9px 15px;padding:12px 15px;font-size:8px}.demoFoot>a{width:100%;margin-left:0}.frameworkTabs button{gap:5px;min-height:51px}.frameworkGlyph{width:22px;height:22px;font-size:8px}.frameworkLabel{font-size:8px}.codeHeading{padding:17px 14px 12px}.codeHeading h3{font-size:12px}.install{align-items:flex-start;flex-direction:column;padding-inline:14px}.install code{width:100%}.code{min-height:225px;padding:16px;font-size:9px}.codeFoot{align-items:flex-start;flex-direction:column;padding-inline:14px}.integration{padding-top:58px}}
 @media(prefers-reduced-motion:reduce){.demoTabs button,.pathCard,.frameworkTabs button{transition:none}}
+
+.frameworkGlyph{display:grid;width:36px;height:36px;flex:none;place-items:center;border:0;border-radius:10px;background:transparent;color:inherit;overflow:hidden}
+.frameworkGlyph svg{display:block;width:34px;height:34px;overflow:visible}
+.markTypescript rect{fill:#3178c6;stroke:#6ca8e8;stroke-width:.7}
+.markTypescript path{fill:#fff}
+.markPython .pythonBlue{fill:#3776ab}
+.markPython .pythonYellow{fill:#ffd343}
+.markRest rect{fill:#102b26;stroke:#58cda5;stroke-width:1}
+.markRest path{fill:none;stroke:#a6f4d0;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.6}
+.markRest circle{fill:#62d6ad;stroke:#0e2823;stroke-width:1}
+.markMcp path{fill:none;stroke:#a6f4d0;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.6}
+.markMcp circle{fill:#62d6ad;stroke:#14372e;stroke-width:1.5}
+@media(max-width:560px){.frameworkGlyph{width:31px;height:31px}.frameworkGlyph svg{width:30px;height:30px}.frameworkTabs button{min-height:57px}.frameworkLabel{font-size:9px}}
