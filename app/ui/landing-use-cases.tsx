@@ -81,21 +81,56 @@ export default function LandingUseCases() {
     window.addEventListener("tidelight:reveal-use-cases", revealAllUseCases);
     return () => window.removeEventListener("tidelight:reveal-use-cases", revealAllUseCases);
   }, []);
+  useEffect(() => {
+    const revealCategory = (event: Event) => {
+      const targetId = (event as CustomEvent<{ targetId?: string }>).detail?.targetId;
+      if (!targetId || !/^use-case-group-[0-3]$/.test(targetId)) return;
+      setCategory("All use cases");
+      setQuery("");
+      window.setTimeout(() => {
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        document.getElementById(targetId)?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
+      }, 0);
+    };
+    const revealHashTarget = () => {
+      const match = window.location.hash.match(/^#use-case-group-(\d+)$/);
+      if (!match) return;
+      const targetId = `use-case-group-${match[1]}`;
+      if (Number(match[1]) > 3) return;
+      setCategory("All use cases");
+      setQuery("");
+      window.setTimeout(() => {
+        const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        document.getElementById(targetId)?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
+      }, 0);
+    };
+    revealHashTarget();
+    window.addEventListener("tidelight:reveal-use-case-category", revealCategory);
+    window.addEventListener("hashchange", revealHashTarget);
+    return () => {
+      window.removeEventListener("tidelight:reveal-use-case-category", revealCategory);
+      window.removeEventListener("hashchange", revealHashTarget);
+    };
+  }, []);
   const visibleUseCases = useCases.filter((item) => {
     const matchesCategory = category === "All use cases" || item.category === category;
     const searchable = [item.title, item.category, item.description, item.question].map(translate).join(" ").toLocaleLowerCase();
     return matchesCategory && searchable.includes(query.trim().toLocaleLowerCase());
   });
 
-  return <section className={styles.section} id="use-cases" aria-labelledby="landing-use-cases-title">
+  return <section className={styles.section} id="use-cases-directory" aria-labelledby="landing-use-cases-title">
     <aside className={styles.directoryRail} aria-label={translate("Use case categories")}>
       <span>{translate("USE CASES")}</span>
       {categoryGroups.map((group, index) => <a key={group} href={`#use-case-group-${index}`} onClick={(event) => {
         event.preventDefault();
         setCategory("All use cases");
         setQuery("");
-        window.history.replaceState(null, "", `#use-case-group-${index}`);
-        window.setTimeout(() => document.getElementById(`use-case-group-${index}`)?.scrollIntoView({ behavior: "smooth", block: "center" }), 0);
+        const targetId = `use-case-group-${index}`;
+        window.history.replaceState(null, "", `#${targetId}`);
+        window.setTimeout(() => {
+          const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+          document.getElementById(targetId)?.scrollIntoView({ behavior: reduceMotion ? "auto" : "smooth", block: "center" });
+        }, 0);
       }}><i aria-hidden="true"><UseCaseIcon name={["pulse", "market", "globe", "shield"][index]} /></i><span>{translate(group)}</span><b aria-hidden="true">↗</b></a>)}
     </aside>
     <div className={styles.heading}>
