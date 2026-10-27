@@ -1,13 +1,11 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { automaticTheme } from "../lib/automatic-theme.mjs";
+import { readFile } from "node:fs/promises";
 
-test("automatic palette follows the visitor's local day and evening hours", () => {
-  const localHour = hour => new Date(2026, 0, 2, hour, 0, 0, 0);
-  assert.equal(automaticTheme(localHour(6)), "night");
-  assert.equal(automaticTheme(localHour(7)), "daylight");
-  assert.equal(automaticTheme(localHour(16)), "daylight");
-  assert.equal(automaticTheme(localHour(17)), "blue");
-  assert.equal(automaticTheme(localHour(20)), "blue");
-  assert.equal(automaticTheme(localHour(21)), "night");
+test("new visits use Dark rather than resolving a palette from the local clock", async () => {
+  const provider = await readFile(new URL("../app/ui/theme-provider.tsx", import.meta.url), "utf8");
+  const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
+  assert.match(provider, /const DEFAULT_THEME: Theme = "dark"/);
+  assert.doesNotMatch(provider, /automaticTheme|"auto"|daylight|Night Tide|Blue Hour/);
+  assert.match(layout, /: "dark";/);
 });
