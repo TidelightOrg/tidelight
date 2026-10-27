@@ -20,9 +20,9 @@ test("landing links use cases to the dedicated directory and localizes its menu 
   const page = await read("../app/ui/landing-page.tsx");
   assert.match(page, /<UseCasesPortalLink\s*\/>/);
   assert.match(menu, /useLanguage\(\)/);
-  assert.match(menu, /#use-case-group-\$\{index\}/);
+  assert.match(menu, /use-case-group-\\$\\{index\\}/);
   assert.match(menu, /tidelight:reveal-use-case-category/);
-  assert.match(menu, /window\\.dispatchEvent/);
+  assert.match(menu, /window\.dispatchEvent/);
   assert.match(menu, /公司事件/);
   assert.match(menu, /决策流程/);
   assert.match(menu, /aria-label=\{t\("Use case categories"/);
