@@ -17,6 +17,35 @@ const integrations = [
   { id: "mcp", label: "MCP", title: "Use Tidelight with MCP", install: "npm install --global @tidelight/mcp@0.1.2", code: `export TIDELIGHT_API_KEY='YOUR_SCOPED_PROJECT_KEY'\n\ntidelight-mcp`, href: "https://tidelight.app/developers/packages/mcp" },
 ] as const;
 
+const codeKeywords = new Set([
+  "import", "from", "const", "let", "var", "await", "for", "of", "in", "return", "export", "default", "function", "async", "new", "class", "if", "else", "try", "catch", "throw", "as", "true", "false", "null", "None", "def", "with", "print", "curl",
+]);
+
+function highlightCode(source: string): React.ReactNode[] {
+  const tokens = /(#.*$|\/\/.*$|--[\w-]+|"(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|`(?:\\.|[^`\\])*`|\b\d+(?:\.\d+)?\b|\b[A-Za-z_$][\w$]*\b|=>|===?|!==?|<=?|>=?|[{}()[\].,:;!+*/=%-])/gm;
+  const rendered: React.ReactNode[] = [];
+  let cursor = 0;
+  let index = 0;
+  for (const match of source.matchAll(tokens)) {
+    const value = match[0];
+    const start = match.index ?? 0;
+    if (start > cursor) rendered.push(source.slice(cursor, start));
+    let tokenClass = "";
+    if (value.startsWith("#") || value.startsWith("//")) tokenClass = styles.codeComment;
+    else if (value.startsWith("\"") || value.startsWith("'") || value.startsWith("`")) tokenClass = styles.codeString;
+    else if (/^\d/.test(value)) tokenClass = styles.codeNumber;
+    else if (value.startsWith("--")) tokenClass = styles.codeFlag;
+    else if (codeKeywords.has(value)) tokenClass = styles.codeKeyword;
+    else if (/^[A-Z][A-Z0-9_]*$/.test(value)) tokenClass = styles.codeConstant;
+    else if (/^[A-Za-z_$][\w$]*$/.test(value) && /^\s*\(/.test(source.slice(start + value.length))) tokenClass = styles.codeFunction;
+    else if (/^(?:=>|===?|!==?|<=?|>=?|[{}()[\].,:;!+*/=%-])$/.test(value)) tokenClass = styles.codePunctuation;
+    rendered.push(tokenClass ? <span className={tokenClass} key={`token-${index++}`}>{value}</span> : value);
+    cursor = start + value.length;
+  }
+  if (cursor < source.length) rendered.push(source.slice(cursor));
+  return rendered;
+}
+
 function IntegrationMark({ id }: { id: (typeof integrations)[number]["id"] }) {
   if (id === "typescript") return <svg className={styles.markTypescript} viewBox="0 0 36 36" aria-hidden="true"><rect x="2" y="2" width="32" height="32" rx="8"/><path d="M8 14h13v3.1h-4.8V28h-3.5V17.1H8V14Zm14.1 9.8c1 .8 2.1 1.3 3.5 1.3 1.2 0 1.9-.5 1.9-1.2 0-.8-.6-1.1-2.3-1.8l-.9-.4c-2.6-1.1-4.3-2.4-4.3-5.1 0-2.5 1.9-4.4 5-4.4 2.2 0 3.8.7 5 2.5l-2.7 1.8c-.6-1-1.2-1.4-2.3-1.4-.9 0-1.5.5-1.5 1.2 0 .8.5 1.1 1.8 1.7l.9.4c3.1 1.3 4.8 2.6 4.8 5.4 0 3.1-2.5 4.8-5.7 4.8-3.2 0-5.2-1.4-6.2-3.3l3-1.5Z"/></svg>;
   if (id === "python") return <svg className={styles.markPython} viewBox="0 0 36 36" aria-hidden="true"><path className={styles.pythonBlue} d="M17.7 4c-6.8 0-6.4 2.9-6.4 2.9v4.3h6.5v1.3H8.7S4 12 4 18.2s4.1 5.9 4.1 5.9h2.5v-3.5s-.1-4.2 4.2-4.2h7.1s4 .1 4-3.9V7.6S26.5 4 17.7 4Zm-3.5 3.1a1.3 1.3 0 1 1 0 2.6 1.3 1.3 0 0 1 0-2.6Z"/><path className={styles.pythonYellow} d="M18.3 32c6.8 0 6.4-2.9 6.4-2.9v-4.3h-6.5v-1.3h9.1s4.7.5 4.7-5.7-4.1-5.9-4.1-5.9h-2.5v3.5s.1 4.2-4.2 4.2h-7.1s-4-.1-4 3.9v4.9S9.5 32 18.3 32Zm3.5-3.1a1.3 1.3 0 1 1 0-2.6 1.3 1.3 0 0 1 0 2.6Z"/></svg>;
@@ -90,7 +119,7 @@ export default function LandingResearchShowcase() {
         </div>
         <div className={styles.codeHeading} id="integration-code-panel" role="tabpanel" aria-labelledby={`integration-tab-${integration.id}`}><div><span className={styles.codeDot}/><h3>{integration.title}</h3></div><button type="button" onClick={copyExample} aria-label="Copy integration example">{copied ? "Copied" : "Copy"}</button></div>
         <div className={styles.install}><span>GET STARTED</span><code>{integration.install}</code></div>
-        <pre className={styles.code}><code>{integration.code}</code></pre>
+        <pre className={styles.code} aria-label={`${integration.label} code example`}><code>{highlightCode(integration.code)}</code></pre>
         <div className={styles.codeFoot}><span>SERVER-SIDE EXAMPLE</span><a href={integration.href} target="_blank" rel="noreferrer">Read the {integration.label} guide <b aria-hidden="true">↗</b></a></div>
       </div>
     </div>

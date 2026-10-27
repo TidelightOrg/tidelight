@@ -29,3 +29,26 @@
 .markMcp path{fill:none;stroke:#a6f4d0;stroke-linecap:round;stroke-linejoin:round;stroke-width:1.6}
 .markMcp circle{fill:#62d6ad;stroke:#14372e;stroke-width:1.5}
 @media(max-width:560px){.frameworkGlyph{width:31px;height:31px}.frameworkGlyph svg{width:30px;height:30px}.frameworkTabs button{min-height:57px}.frameworkLabel{font-size:9px}}
+
+.install{font-size:9px}
+.install code{padding:8px 10px;font-size:10px}
+.code{min-height:360px;padding:30px 32px;font-size:13px;line-height:2.05;letter-spacing:-.015em}
+.code code{color:var(--text);font:inherit;white-space:pre}
+.codeKeyword{color:#c6a3ff}
+.codeString{color:#f1bd91}
+.codeNumber{color:#f4c56f}
+.codeFunction{color:#7ed0ef}
+.codeConstant{color:#76e0bf}
+.codeFlag{color:#91ddc1}
+.codePunctuation{color:#9aaca7}
+.codeComment{color:#748a83;font-style:italic}
+:global(:root:is([data-theme="daylight"],[data-theme="white"])) .codeKeyword{color:#7948ae}
+:global(:root:is([data-theme="daylight"],[data-theme="white"])) .codeString{color:#a45220}
+:global(:root:is([data-theme="daylight"],[data-theme="white"])) .codeNumber{color:#97600c}
+:global(:root:is([data-theme="daylight"],[data-theme="white"])) .codeFunction{color:#176a8d}
+:global(:root:is([data-theme="daylight"],[data-theme="white"])) .codeConstant{color:#16734d}
+:global(:root:is([data-theme="daylight"],[data-theme="white"])) .codeFlag{color:#26775c}
+:global(:root:is([data-theme="daylight"],[data-theme="white"])) .codePunctuation{color:#64736b}
+:global(:root:is([data-theme="daylight"],[data-theme="white"])) .codeComment{color:#75847b}
+@media(max-width:820px){.code{min-height:330px;padding:25px 24px;font-size:12.5px}}
+@media(max-width:560px){.install code{font-size:10px}.code{min-height:310px;padding:21px 17px;font-size:11.5px;line-height:1.95}}
