@@ -37,7 +37,7 @@ export default function TidelightDotWordmark({ className, lines, mobileLines, de
       if (!box.width || !box.height) return;
       width = box.width;
       height = box.height;
-      displayLines = width <= 600 && mobileLinesKey ? mobileLinesKey.split("\\n") : linesKey.split("\\n");
+      displayLines = width <= 600 && mobileLinesKey ? mobileLinesKey.split("\n") : linesKey.split("\n");
       ratio = Math.min(window.devicePixelRatio || 1, 2);
       spacing = emphasis ? Math.max(5.5, Math.min(8.5, width / 112)) : Math.max(6.5, Math.min(10, width / 112));
       canvas.width = Math.round(width * ratio);
