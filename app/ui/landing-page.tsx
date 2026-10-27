@@ -2,11 +2,10 @@ import Link from "next/link";
 import Image from "next/image";
 import LandingDocsEmbed from "@/app/ui/landing-docs-embed";
 import { NavigationTrail } from "@/app/ui/navigation-icon";
-import { ThemeQuickSwitch } from "@/app/ui/theme-provider";
-import { LanguageToggle } from "@/app/ui/language-provider";
-import LandingUseCases from "@/app/ui/landing-use-cases";
+import LandingResearchShowcase from "@/app/ui/landing-research-showcase";
 import { TidelightSignatureFooter } from "@/app/ui/tidelight-signature-footer";
-import { LandingUseCaseMenuLinks } from "@/app/ui/landing-use-case-menu-links";
+import { LandingNavigation } from "@/app/ui/landing-navigation";
+import { UseCasesPortalLink } from "@/app/ui/use-cases-portal-link";
 
 const capabilities = [
   ["Research", "Turn a plain-language question into a source-led market brief."],
@@ -24,29 +23,9 @@ const workflows = [
 
 export default function LandingPage() {
   return <main className="landing-page">
-    <nav className="landing-nav" aria-label="Tidelight landing navigation">
-      <Link className="landing-brand" href="/"><Image className="landing-mark" src="/tidelight-mark.svg" alt="" width={30} height={30} priority /><span>tide<span>light</span></span></Link>
-      <div className="landing-nav-actions">
-        <div className="landing-nav-links"><a href="#use-cases">Use cases</a><a href="#method">The method</a><a href="#handbook">Docs <NavigationTrail className="landing-arrow" /></a><Link href="/developers">Developers</Link><Link href="/judge">Judge Mode</Link><Link href="/status">Status</Link><Link href="https://blogs.tidelight.app">Field Notes</Link></div>
-        <details className="landing-mobile-menu">
-          <summary aria-label="Open site navigation"><span className="landing-menu-glyph" aria-hidden="true"><i /><i /><i /></span><span>Menu</span></summary>
-          <div className="landing-mobile-menu-panel" aria-label="Site navigation">
-            <LandingUseCaseMenuLinks />
-            <a href="#method">The method <NavigationTrail className="landing-arrow" /></a>
-            <a href="#handbook">Handbook <NavigationTrail className="landing-arrow" /></a>
-            <Link href="/developers">Developers <NavigationTrail className="landing-arrow" /></Link>
-            <Link href="/judge">Judge Mode <NavigationTrail className="landing-arrow" /></Link>
-            <Link href="/status">System status <NavigationTrail className="landing-arrow" /></Link>
-            <Link href="https://blogs.tidelight.app">Field Notes <NavigationTrail className="landing-arrow" /></Link>
-          </div>
-        </details>
-        <ThemeQuickSwitch />
-        <LanguageToggle className="landing-language-toggle" />
-        <Link className="landing-nav-workspace" href="/overview">Open workspace</Link>
-      </div>
-    </nav>
+    <LandingNavigation />
     <section className="landing-hero">
-      <div className="landing-hero-copy"><span className="landing-kicker"><i /> THE INTELLIGENCE LAYER FOR MARKETS THAT NEVER SLEEP</span><h1>The market moves.<br /><em>Tidelight makes sense of it.</em></h1><p>Ask what you actually want to know. Tidelight connects live market context, evidence, exposure, and scenarios into one calm decision surface—for curious beginners and serious operators alike.</p><div className="landing-actions"><Link className="landing-primary" href="/research">Ask Tidelight a question <NavigationTrail className="landing-arrow" /></Link><Link className="landing-secondary" href="#use-cases">Explore use cases <NavigationTrail className="landing-arrow" /></Link></div><div className="landing-trust"><span><i /> Live public market context</span><span><i /> Agent-assisted research</span><span><i /> Paper-first controls</span></div></div>
+      <div className="landing-hero-copy"><span className="landing-kicker"><i /> THE INTELLIGENCE LAYER FOR MARKETS THAT NEVER SLEEP</span><h1>The market moves.<br /><em>Tidelight makes sense of it.</em></h1><p>Ask what you actually want to know. Tidelight connects live market context, evidence, exposure, and scenarios into one calm decision surface—for curious beginners and serious operators alike.</p><div className="landing-actions"><Link className="landing-primary" href="/research">Ask Tidelight a question <NavigationTrail className="landing-arrow" /></Link><Link className="landing-secondary" href="/use-cases">Explore use cases <NavigationTrail className="landing-arrow" /></Link></div><div className="landing-trust"><span><i /> Live public market context</span><span><i /> Agent-assisted research</span><span><i /> Paper-first controls</span></div></div>
       <div className="landing-hero-stage" aria-label="Tidelight live signal interface">
         <div className="landing-stage-glow" />
         <p className="landing-dyor"><span>THE TIDELIGHT STANDARD</span><strong>DYOR</strong><small>Do your own research.</small></p>
@@ -60,7 +39,8 @@ export default function LandingPage() {
         <div className="landing-stage-readout"><span><i /> SIGNAL DESK</span><b>Following the ripple</b><small>Event → Evidence → Exposure → Scenario</small></div>
       </div>
     </section>
-    <LandingUseCases />
+    <UseCasesPortalLink />
+    <LandingResearchShowcase />
     <section className="landing-proof" id="method"><div className="landing-section-heading"><span className="landing-kicker">ONE CONNECTED ECOSYSTEM</span><h2>Everything you need<br /><em>before you make a move.</em></h2><p className="landing-section-lede">Research, markets, paper trading, and decision history—connected in one clear market research workflow.</p></div><div className="landing-capabilities">{capabilities.map(([title, body], index) => <article key={title}><span>0{index + 1}</span><h3>{title}</h3><p>{body}</p></article>)}</div></section>
     <section className="landing-workflows" id="workflows" aria-labelledby="landing-workflows-title"><div className="landing-section-heading"><span className="landing-kicker">START WITH THE JOB YOU HAVE</span><h2 id="landing-workflows-title">One platform.<br/><em>Five clear ways in.</em></h2><p className="landing-section-lede">Choose a workflow to see what Tidelight can do, how it works, and where to inspect the evidence.</p></div><div className="landing-workflow-grid">{workflows.map(item => <article key={item.number}><div className="landing-workflow-meta"><span>{item.number}</span><small>{item.label}</small></div><h3>{item.title}</h3><p>{item.body}</p><Link href={item.href}>{item.action}<NavigationTrail className="landing-arrow"/></Link></article>)}</div><Link className="landing-guide-link" href="/guide">Read the complete getting-started guide <NavigationTrail className="landing-arrow"/></Link></section>
     <LandingDocsEmbed />

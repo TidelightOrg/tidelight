@@ -87,7 +87,7 @@ export default function LandingUseCases() {
     return matchesCategory && searchable.includes(query.trim().toLocaleLowerCase());
   });
 
-  return <section className={styles.section} id="use-cases" aria-labelledby="landing-use-cases-title">
+  return <section className={styles.section} id="use-cases-directory" aria-labelledby="landing-use-cases-title">
     <aside className={styles.directoryRail} aria-label={translate("Use case categories")}>
       <span>{translate("USE CASES")}</span>
       {categoryGroups.map((group, index) => <a key={group} href={`#use-case-group-${index}`} onClick={(event) => {
