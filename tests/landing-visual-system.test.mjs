@@ -38,7 +38,7 @@ test("shared signature footer exposes real research, developer, package, and tru
     assert.ok(footer.includes(href), `missing direct footer destination: ${href}`);
   }
   assert.match(footer, /<svg viewBox="0 0 520 210"/);
-  assert.match(styles, /data-theme="daylight"/);
+  assert.match(styles, /data-theme="white"/);
   assert.match(styles, /data-theme="blue"/);
   assert.match(styles, /prefers-reduced-motion:reduce/);
   assert.match(styles, /@media\(max-width:700px\)/);
