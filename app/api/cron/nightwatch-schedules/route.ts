@@ -1,5 +1,6 @@
 import { timingSafeEqual } from 'node:crypto';
 import { after, NextResponse } from 'next/server';
+import { withStatusWorkerHeartbeat } from '@/lib/tic/worker-health';
 import { createAdminClient } from '@/lib/supabase/admin';
 import { getBitgetAsset, getBitgetCandles } from '@/lib/bitget-market';
 import { prepareBacktestCandles, ALPHA_STRATEGIES, type StrategyKey } from '@/lib/backtest';
@@ -20,7 +21,7 @@ function authorized(request: Request) {
     return supplied.length === expected.length && timingSafeEqual(supplied, expected);
   });
 }
-export async function POST(request: Request) {
+async function handleStatusCheck(request: Request) {
   if (!authorized(request)) return NextResponse.json({ error: 'Unauthorized schedule worker.' }, { status: 401, headers });
   const deadline = Date.now() + 44000;
   let admin: ReturnType<typeof createAdminClient>;
@@ -80,4 +81,5 @@ export async function POST(request: Request) {
     return NextResponse.json({claimed:true,status:failure.error?'failure_state_unavailable':failure.data?.status ?? 'failed',paperOnly:true},{status:503,headers});
   }
 }
+export const POST = (request: Request) => withStatusWorkerHeartbeat("scheduled_paper_analysis", () => handleStatusCheck(request));
 export const GET = POST;
