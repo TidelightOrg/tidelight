@@ -206,3 +206,35 @@ body:has(.tic-status-page) .tide-guide-launcher, body:has(.tic-status-page) .pro
 .tic-status-history-empty{margin:22px 0;padding:18px;border:1px solid var(--status-line);border-radius:8px;background:var(--status-card);color:var(--status-muted);font-size:13px;line-height:1.65}
 .tic-status-history-empty strong{display:block;margin-bottom:5px;color:var(--status-ink)}
 @media(max-width:700px){.tic-status-history-page{padding:30px 0 48px}.tic-status-history-toolbar{flex-wrap:wrap;gap:12px}.tic-status-history-toolbar h1{font-size:21px}.tic-status-period{margin-left:auto}.tic-status-filter{margin-left:auto}.tic-status-history-day{grid-template-columns:48px minmax(0,1fr);gap:9px;padding:14px 0}.tic-status-history-date{gap:3px;font-size:11px}.tic-status-history-date small{font-size:10px}.tic-status-history-event{gap:10px}.tic-status-history-event-copy a{font-size:12px}.tic-status-history-event-copy p{font-size:11px}.tic-status-history-event time{font-size:10px}}
+
+/* Status report and subscription actions */
+.tic-status-header{position:relative;flex-wrap:wrap}
+.tic-status-actions{display:flex;align-items:center;gap:9px;margin-left:auto}
+.tic-status-report,.tic-status-subscribe{display:inline-flex;align-items:center;justify-content:center;min-height:36px;padding:8px 12px;border:1px solid var(--status-line);border-radius:7px;background:color-mix(in srgb,var(--status-card) 94%,transparent);color:var(--status-ink);font:600 11px var(--font);text-decoration:none;cursor:pointer;white-space:nowrap}
+.tic-status-subscribe{border-color:var(--status-good);background:var(--status-good);color:#10201a}
+.tic-status-modal-backdrop{position:fixed;z-index:1000;inset:0;display:grid;place-items:center;padding:20px;background:#020808a8;backdrop-filter:blur(8px)}
+.tic-status-modal{width:min(680px,100%);max-height:min(86svh,760px);overflow:auto;border:1px solid var(--status-line);border-radius:14px;background:var(--status-bg);color:var(--status-ink);box-shadow:0 30px 100px #0008}
+.tic-status-modal>header{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:20px 24px;border-bottom:1px solid var(--status-line);background:var(--status-bg)}
+.tic-status-modal>header h2{margin:0;font-size:20px;letter-spacing:-.03em}
+.tic-status-modal>header button{border:0;background:transparent;color:var(--status-muted);font-size:26px;cursor:pointer}
+.tic-status-tabs{display:flex;gap:24px;padding:0 24px;border-bottom:1px solid var(--status-line)}
+.tic-status-tabs button{padding:14px 2px;border:0;border-bottom:2px solid transparent;background:transparent;color:var(--status-muted);font:500 13px var(--font);cursor:pointer}
+.tic-status-tabs button[aria-selected=true]{border-color:var(--status-good);color:var(--status-ink)}
+.tic-status-subscribe-form,.tic-status-feed-links{display:grid;gap:18px;padding:22px 24px}
+.tic-status-subscribe-form>label,.tic-status-feed-links>label{display:grid;gap:9px;color:var(--status-ink);font-size:13px;font-weight:550}
+.tic-status-subscribe-form input[type=email],.tic-status-feed-links input{width:100%;min-width:0;padding:13px 14px;border:1px solid var(--status-line);border-radius:8px;background:var(--status-card);color:var(--status-ink);font:14px var(--font)}
+.tic-status-component-picker{border:1px solid var(--status-line);border-radius:8px;padding:12px 14px}
+.tic-status-component-picker summary{font-size:13px;cursor:pointer}
+.tic-status-component-picker>div{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:13px 0}
+.tic-status-component-picker label{display:flex;gap:8px;align-items:center;min-width:0;color:var(--status-muted);font-size:12px;overflow-wrap:anywhere}
+.tic-status-component-picker input{accent-color:var(--status-good)}
+.tic-status-component-picker small,.tic-status-consent,.tic-status-feed-links p{color:var(--status-muted);font-size:12px;line-height:1.65}
+.tic-status-consent{margin:0;padding:13px 14px;border-radius:8px;background:var(--status-card)}
+.tic-status-subscribe-form footer{display:flex;justify-content:flex-end}
+.tic-status-subscribe-form footer button{padding:11px 17px;border:0;border-radius:8px;background:var(--status-good);color:#10201a;font:650 13px var(--font);cursor:pointer}
+.tic-status-subscribe-form footer button:disabled{opacity:.65;cursor:wait}
+.tic-status-form-success,.tic-status-form-error{margin:0;padding:11px 13px;border-radius:7px;font-size:12px}
+.tic-status-form-success{background:var(--status-good-bg);color:var(--status-good)}
+.tic-status-form-error{background:var(--status-warn-bg);color:var(--status-warn)}
+.tic-status-feed-links code{display:block;overflow-wrap:anywhere;padding:13px;border:1px solid var(--status-line);border-radius:7px;background:var(--status-card);color:var(--status-accent);font-size:12px}
+@media(max-width:700px){.tic-status-header{align-items:center;flex-direction:row;gap:10px;padding:17px 0}.tic-status-header nav{order:3;flex:1 0 100%;gap:8px 16px}.tic-status-header nav a{font-size:11px}.tic-status-actions{gap:6px}.tic-status-report,.tic-status-subscribe{min-height:34px;padding:7px 9px;font-size:10px}.tic-status-modal-backdrop{padding:10px}.tic-status-modal>header{padding:16px}.tic-status-tabs{gap:17px;padding:0 16px}.tic-status-subscribe-form,.tic-status-feed-links{padding:18px 16px}.tic-status-component-picker>div{grid-template-columns:1fr}}
