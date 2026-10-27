@@ -55,13 +55,13 @@ export function LandingMarketOrbit() {
         <span><b>TIDELIGHT</b></span>
       </span>
       <span className="landing-market-story" aria-hidden="true">
-        <span className="landing-market-story-step"><b>ASK ABOUT A STOCK OR rTOKEN</b><small>Start with the market question on your mind.</small></span>
-        <span className="landing-market-story-step"><b>RESEARCH THE STORY</b><small>Gather current, source-linked company context.</small></span>
-        <span className="landing-market-story-step"><b>FOLLOW THE EVIDENCE</b><small>Inspect claims, dates, and counterpoints.</small></span>
-        <span className="landing-market-story-step"><b>MAP TOKEN EXPOSURE</b><small>Explore supported rTokens and quote context.</small></span>
-        <span className="landing-market-story-step"><b>TEST A STRATEGY ON PAPER</b><small>Review historical results before you act.</small></span>
-        <span className="landing-market-story-step"><b>REVIEW THE RISKS</b><small>See what could change your decision.</small></span>
-        <span className="landing-market-story-step"><b>CHOOSE YOUR NEXT MOVE</b><small>You stay in control of every decision.</small></span>
+        <span className="landing-market-story-step"><b>ASK ABOUT A STOCK OR rTOKEN</b></span>
+        <span className="landing-market-story-step"><b>RESEARCH THE STORY</b></span>
+        <span className="landing-market-story-step"><b>FOLLOW THE EVIDENCE</b></span>
+        <span className="landing-market-story-step"><b>MAP TOKEN EXPOSURE</b></span>
+        <span className="landing-market-story-step"><b>TEST A STRATEGY ON PAPER</b></span>
+        <span className="landing-market-story-step"><b>REVIEW THE RISKS</b></span>
+        <span className="landing-market-story-step"><b>CHOOSE YOUR NEXT MOVE</b></span>
       </span>
       <span className="landing-market-signature-orbit" aria-hidden="true"><i /><i /><i /><i /></span>
     </div>
