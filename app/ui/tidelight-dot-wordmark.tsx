@@ -4,12 +4,13 @@ import { useEffect, useRef } from "react";
 
 type Point = { x: number; y: number; phase: number; weight: number };
 
-export default function TidelightDotWordmark({ className, lines, decorative = false, emphasis = false }: { className?: string; lines?: string[]; decorative?: boolean; emphasis?: boolean }) {
+export default function TidelightDotWordmark({ className, lines, mobileLines, decorative = false, emphasis = false, showPointer = true }: { className?: string; lines?: string[]; mobileLines?: string[]; decorative?: boolean; emphasis?: boolean; showPointer?: boolean }) {
   const linesKey = lines?.length ? lines.join("\n") : "TIDELIGHT";
+  const mobileLinesKey = mobileLines?.length ? mobileLines.join("\n") : "";
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    const displayLines = linesKey.split("\n");
+    let displayLines = linesKey.split("\n");
     const canvas = canvasRef.current;
     const context = canvas?.getContext("2d", { alpha: true });
     if (!canvas || !context) return;
@@ -36,6 +37,7 @@ export default function TidelightDotWordmark({ className, lines, decorative = fa
       if (!box.width || !box.height) return;
       width = box.width;
       height = box.height;
+      displayLines = width <= 600 && mobileLinesKey ? mobileLinesKey.split("\\n") : linesKey.split("\\n");
       ratio = Math.min(window.devicePixelRatio || 1, 2);
       spacing = emphasis ? Math.max(5.5, Math.min(8.5, width / 112)) : Math.max(6.5, Math.min(10, width / 112));
       canvas.width = Math.round(width * ratio);
@@ -49,13 +51,16 @@ export default function TidelightDotWordmark({ className, lines, decorative = fa
       maskContext.textAlign = "center";
       maskContext.textBaseline = "alphabetic";
       const rowHeight = height / displayLines.length;
+      const fontWeight = emphasis ? 800 : 700;
+      const baseFontSize = displayLines.length === 1 ? height * 0.77 : rowHeight * (emphasis ? 0.9 : 0.75);
+      maskContext.font = `${fontWeight} ${baseFontSize}px ${emphasis ? '"Arial Black", ' : ""}Arial, Helvetica, sans-serif`;
+      const widestLine = Math.max(...displayLines.map(line => maskContext.measureText(line).width));
+      const sharedFontSize = emphasis ? baseFontSize * Math.min(1, (width - spacing * 2) / widestLine) : baseFontSize;
+      maskContext.font = `${fontWeight} ${sharedFontSize}px ${emphasis ? '"Arial Black", ' : ""}Arial, Helvetica, sans-serif`;
       displayLines.forEach((line, index) => {
-        const fontSize = displayLines.length === 1 ? height * 0.77 : rowHeight * (emphasis ? 0.9 : 0.75);
-        const fontWeight = emphasis ? 800 : 700;
-        maskContext.font = `${fontWeight} ${fontSize}px ${emphasis ? '"Arial Black", ' : ""}Arial, Helvetica, sans-serif`;
         const measuredWidth = maskContext.measureText(line).width;
-        const scaleX = Math.min(1.48, (width - spacing * 2) / measuredWidth);
-        const baseline = displayLines.length === 1 ? height * 0.82 : (index + 0.82) * rowHeight;
+        const scaleX = emphasis ? Math.min(1.04, (width - spacing * 2) / measuredWidth) : Math.min(1.48, (width - spacing * 2) / measuredWidth);
+        const baseline = displayLines.length === 1 ? height * 0.82 : (index + 0.78) * rowHeight;
         maskContext.save();
         maskContext.translate(width / 2, baseline);
         maskContext.scale(scaleX, 1);
@@ -109,6 +114,7 @@ export default function TidelightDotWordmark({ className, lines, decorative = fa
       context.globalAlpha = 1;
 
       // A small Tidelight blue signal cursor drifts over the final letters.
+      if (showPointer) {
       const cursorX = width * (0.815 + (reducedMotion.matches ? 0 : Math.sin(elapsed * 0.35) * 0.007));
       const cursorY = displayLines.length === 1
         ? height * (0.36 + (reducedMotion.matches ? 0 : Math.sin(elapsed * 0.48 + 1.2) * 0.018))
@@ -132,6 +138,7 @@ export default function TidelightDotWordmark({ className, lines, decorative = fa
       context.fill();
       context.stroke();
       context.restore();
+      }
     };
 
     const animate = (time: number) => {
@@ -166,7 +173,7 @@ export default function TidelightDotWordmark({ className, lines, decorative = fa
       themeObserver.disconnect();
       reducedMotion.removeEventListener("change", onMotionChange);
     };
-  }, [linesKey, emphasis]);
+  }, [linesKey, mobileLinesKey, emphasis, showPointer]);
 
   return <span className={className}>
     <canvas ref={canvasRef} role={decorative ? undefined : "img"} aria-hidden={decorative || undefined} aria-label={decorative ? undefined : "Tidelight written as a living field of signal dots"} />
