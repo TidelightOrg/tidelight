@@ -18,7 +18,7 @@ test("landing use-case directory keeps its four research disciplines and direct 
 test("landing links use cases to the dedicated directory and localizes its menu labels", async () => {
   const menu = await read("../app/ui/landing-use-case-menu-links.tsx");
   const page = await read("../app/ui/landing-page.tsx");
-  assert.match(page, /<LandingUseCaseMenuLinks\s*\/>/);
+  assert.match(page, /<UseCasesPortalLink\s*\/>/);
   assert.match(menu, /useLanguage\(\)/);
   assert.match(menu, /#use-case-group-\$\{index\}/);
   assert.match(menu, /tidelight:reveal-use-cases/);
