@@ -49,19 +49,21 @@ export function LandingMarketOrbit() {
         </div>
       </div>
     </div>
-    <div className="landing-market-signature" role="img" aria-label="Tidelight: question, evidence, exposure, decision">
+    <div className="landing-market-signature" role="img" aria-label="Tidelight market research journey: ask about a stock or rToken, research the story, follow evidence, map exposure, paper-test a strategy, review risk, and choose your next move">
       <span className="landing-market-signature-brand">
         <svg viewBox="0 0 28 28" aria-hidden="true"><path d="M3 17.5c4.1 0 4.1-7 8.2-7s4.1 7 8.2 7 4.1-7 8.2-7" /><circle cx="11.2" cy="10.5" r="1.6" /><circle cx="19.4" cy="17.5" r="1.6" /></svg>
-        <b>TIDELIGHT</b>
+        <span><b>TIDELIGHT</b><small>MARKET RESEARCH</small></span>
       </span>
-      <span className="landing-market-signature-window" aria-hidden="true">
-        <span className="landing-market-signature-track">
-          {[0, 1].map((copy) => <span className="landing-market-signature-run" key={copy}>
-            {["QUESTION", "EVIDENCE", "EXPOSURE", "DECISION"].map((word, index) => <span className="landing-market-signature-word" key={word}>{word}{index < 3 ? <i /> : null}</span>)}
-          </span>)}
-        </span>
+      <span className="landing-market-story" aria-hidden="true">
+        <span className="landing-market-story-step"><b>ASK ABOUT A STOCK OR rTOKEN</b><small>Start with the market question on your mind.</small></span>
+        <span className="landing-market-story-step"><b>RESEARCH THE STORY</b><small>Gather current, source-linked company context.</small></span>
+        <span className="landing-market-story-step"><b>FOLLOW THE EVIDENCE</b><small>Inspect claims, dates, and counterpoints.</small></span>
+        <span className="landing-market-story-step"><b>MAP TOKEN EXPOSURE</b><small>Explore supported rTokens and quote context.</small></span>
+        <span className="landing-market-story-step"><b>TEST A STRATEGY ON PAPER</b><small>Review historical results before you act.</small></span>
+        <span className="landing-market-story-step"><b>REVIEW THE RISKS</b><small>See what could change your decision.</small></span>
+        <span className="landing-market-story-step"><b>CHOOSE YOUR NEXT MOVE</b><small>You stay in control of every decision.</small></span>
       </span>
-      <span className="landing-market-signature-live"><i /> LIVE</span>
+      <span className="landing-market-signature-orbit" aria-hidden="true"><i /><i /><i /><i /></span>
     </div>
   </section>;
 }
