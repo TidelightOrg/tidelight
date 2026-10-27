@@ -139,6 +139,33 @@
 @media(max-width:800px){.landing-page .landing-hero-stage{min-height:470px}}
 @media(max-width:520px){.landing-page .landing-hero-stage{min-height:440px}}
 
+/* The market ribbon fills the narrow breathing space above the landing headline. */
+.landing-market-ribbon{position:relative;z-index:1;max-width:1240px;margin:0 auto;padding:8px clamp(22px,5vw,68px) 0}
+.landing-market-ribbon+.landing-hero{padding-top:clamp(28px,5vh,58px)}
+.landing-market-cylinder{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;height:58px;overflow:hidden;border:1px solid #256357;border-radius:999px;background:linear-gradient(180deg,#0d2422ed,#071615f5);box-shadow:inset 0 1px #a6f4d014,0 8px 34px #03100f52,0 0 34px #45c5a20b}
+.landing-market-cylinder::before,.landing-market-cylinder::after{position:absolute;z-index:2;top:0;bottom:0;width:clamp(30px,7vw,90px);content:"";pointer-events:none}
+.landing-market-cylinder::before{left:0;background:linear-gradient(90deg,#081514 5%,transparent)}
+.landing-market-cylinder::after{right:0;background:linear-gradient(270deg,#081514 5%,transparent)}
+.landing-market-cylinder-head{position:relative;z-index:3;display:grid;align-content:center;gap:3px;padding:0 16px;color:#7faaa0;font:7px/1.35 var(--mono);letter-spacing:.65px}
+.landing-market-cylinder-head>span{display:inline-flex;align-items:center;gap:7px;color:#9adcc8;white-space:nowrap}
+.landing-market-label-short{display:none}
+.landing-market-cylinder-head i{width:5px;height:5px;border-radius:50%;background:#74e4bc;box-shadow:0 0 12px #74e4bc;animation:landing-market-beacon 2s ease-in-out infinite}
+.landing-market-cylinder-head small{color:#77958d;font:6px/1.3 var(--mono);letter-spacing:.1px;white-space:nowrap}
+.landing-market-cylinder-head small b{padding:0 3px;color:#4e796d}
+.landing-market-viewport{position:relative;min-width:0;overflow:hidden;padding:6px 0}
+.landing-market-track{display:flex;width:max-content;align-items:center;gap:10px;animation:landing-market-roll 58s linear infinite;will-change:transform}
+.landing-market-cylinder:hover .landing-market-track{animation-play-state:paused}
+.landing-market-chip{display:flex;align-items:center;gap:7px;min-width:84px;height:38px;padding:4px 8px;border:1px solid #23443d;border-radius:12px;background:linear-gradient(135deg,#15312b99,#0b1c1bba);box-shadow:inset 0 1px #ffffff0a}
+.landing-market-logo.issuer-logo{position:relative;display:grid;place-items:center;width:26px;height:26px;flex:none;overflow:hidden;border:1px solid #75d9b34d;border-radius:8px;background:linear-gradient(145deg,#173b32,#0d201e);color:#c3f5dc;box-shadow:0 0 12px #55d6ae18}
+.landing-market-logo .issuer-logo-fallback{font:700 8px/1 var(--mono);letter-spacing:-.35px}
+.landing-market-logo img{position:absolute;inset:3px;width:18px;height:18px;object-fit:contain;border-radius:5px}
+.landing-market-chip>span:last-child{display:grid;gap:1px}
+.landing-market-chip b{color:#e3f4eb;font:650 9px var(--mono);letter-spacing:.2px}
+.landing-market-chip small{color:#77958c;font:6px var(--mono);letter-spacing:.55px;text-transform:uppercase}
+@keyframes landing-market-roll{from{transform:translateX(0)}to{transform:translateX(-50%)}}
+@keyframes landing-market-beacon{0%,100%{opacity:.62;transform:scale(.82)}50%{opacity:1;transform:scale(1.14)}}
+@media(max-width:800px){.landing-market-ribbon{padding:8px 20px 0}.landing-market-ribbon+.landing-hero{padding-top:26px}}
+
 /* The landing header shares the workspace theme controls without changing them there. */
 .landing-nav-actions{display:flex;align-items:center;gap:18px}
 .landing-nav-actions .landing-nav-links{gap:22px}
@@ -470,8 +497,7 @@
 .landing-workflow-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-top:1px solid #1a2a2d;border-left:1px solid #1a2a2d}
 .landing-workflow-grid article{display:flex;min-width:0;min-height:230px;flex-direction:column;padding:23px 24px;border-right:1px solid #1a2a2d;border-bottom:1px solid #1a2a2d;background:linear-gradient(145deg,#0d1919,#091112)}
 .landing-workflow-meta{display:flex;align-items:center;justify-content:space-between;color:#74d9b3;font:10px var(--mono);letter-spacing:.08em}
-.landing-workflow-meta small{color:#71847f;font-size:9px}
-.landing-workflow-grid h3{margin:30px 0 9px;font-size:19px;letter-spacing:-.035em}
+.landing-workflow-meta small{color:#71847f;font-size:9px}.landing-workflow-grid h3{margin:30px 0 9px;font-size:19px;letter-spacing:-.035em}
 .landing-workflow-grid p{flex:1;max-width:340px;margin:0;color:#849994;font-size:12px;line-height:1.7}
 .landing-workflow-grid a,.landing-guide-link{display:inline-flex;align-items:center;gap:9px;width:max-content;margin-top:22px;color:#a6f4d0;font-size:11px;font-weight:650;text-decoration:none}
 .landing-workflow-grid a .landing-arrow,.landing-guide-link .landing-arrow{width:14px;height:14px}
