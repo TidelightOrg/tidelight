@@ -49,5 +49,21 @@ export function LandingMarketOrbit() {
         </div>
       </div>
     </div>
+    <div className="landing-market-signature" role="img" aria-label="Tidelight market research journey: ask about a stock or rToken, research the story, follow evidence, map exposure, paper-test a strategy, review risk, and choose your next move">
+      <span className="landing-market-signature-brand">
+        <svg viewBox="0 0 28 28" aria-hidden="true"><path d="M3 17.5c4.1 0 4.1-7 8.2-7s4.1 7 8.2 7 4.1-7 8.2-7" /><circle cx="11.2" cy="10.5" r="1.6" /><circle cx="19.4" cy="17.5" r="1.6" /></svg>
+        <span><b>TIDELIGHT</b></span>
+      </span>
+      <span className="landing-market-story" aria-hidden="true">
+        <span className="landing-market-story-step"><b>ASK ABOUT A STOCK OR rTOKEN</b></span>
+        <span className="landing-market-story-step"><b>RESEARCH THE STORY</b></span>
+        <span className="landing-market-story-step"><b>FOLLOW THE EVIDENCE</b></span>
+        <span className="landing-market-story-step"><b>MAP TOKEN EXPOSURE</b></span>
+        <span className="landing-market-story-step"><b>TEST A STRATEGY ON PAPER</b></span>
+        <span className="landing-market-story-step"><b>REVIEW THE RISKS</b></span>
+        <span className="landing-market-story-step"><b>CHOOSE YOUR NEXT MOVE</b></span>
+      </span>
+      <span className="landing-market-signature-orbit" aria-hidden="true"><i /><i /><i /><i /></span>
+    </div>
   </section>;
 }
