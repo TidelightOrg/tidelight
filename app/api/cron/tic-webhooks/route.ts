@@ -70,5 +70,13 @@ async function handleStatusCheck(request: Request) {
   return NextResponse.json({ claimed: deliveries.length, outcomes: results }, { headers: { "Cache-Control": "no-store" } });
 }
 
-export const POST = (request: Request) => withStatusWorkerHeartbeat("webhook_delivery", () => handleStatusCheck(request));
+export const POST = (request: Request) => withStatusWorkerHeartbeat(
+  "webhook_delivery",
+  () => handleStatusCheck(request),
+  async (response) => {
+    if (!response.ok) return false;
+    const payload = await response.json() as { outcomes?: unknown };
+    return Array.isArray(payload.outcomes) && payload.outcomes.every((outcome) => outcome === "succeeded");
+  },
+);
 export const GET = POST;
