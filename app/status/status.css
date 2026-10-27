@@ -169,3 +169,40 @@ body:has(.tic-status-page) .tide-guide-launcher, body:has(.tic-status-page) .pro
 .tic-status-service-history-meta strong{color:var(--status-ink);font-size:10px;font-weight:650}
 .tic-status-service-history-bars{grid-template-columns:repeat(90,minmax(0,1fr));min-width:0;overflow:hidden;gap:1px;height:25px;margin-top:9px}
 @media(max-width:700px){.tic-status-service-history-meta{font-size:9px}.tic-status-service-history-bars{height:22px}}
+
+
+/* Incident history timeline */
+.tic-status-history-page{width:100%;max-width:860px;margin:0 auto;padding:48px 0 64px}
+.tic-status-breadcrumb{display:flex;gap:7px;align-items:center;margin:0 0 24px;color:var(--status-muted);font-size:12px}
+.tic-status-breadcrumb a{color:var(--status-muted);text-decoration:none}
+.tic-status-breadcrumb a:hover{color:var(--status-ink)}
+.tic-status-history-toolbar{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:0 0 17px;border-bottom:1px solid var(--status-line)}
+.tic-status-history-toolbar h1{margin:0;font-size:23px;font-weight:620;letter-spacing:-.035em}
+.tic-status-period{display:flex;align-items:center;gap:10px;color:var(--status-muted);font-size:12px;white-space:nowrap}
+.tic-status-period a{color:var(--status-accent);text-decoration:none}
+.tic-status-period a[aria-disabled="true"]{opacity:.4;pointer-events:none}
+.tic-status-filter{position:relative}
+.tic-status-filter summary{display:flex;align-items:center;gap:8px;padding:9px 12px;border:1px solid var(--status-line);border-radius:7px;color:var(--status-ink);font-size:12px;cursor:pointer;list-style:none}
+.tic-status-filter summary::-webkit-details-marker{display:none}
+.tic-status-filter-panel{position:absolute;z-index:3;right:0;top:calc(100% + 7px);width:min(280px,calc(100vw - 40px));max-height:330px;overflow:auto;padding:10px;border:1px solid var(--status-line);border-radius:9px;background:var(--status-card);box-shadow:0 12px 32px #0005}
+.tic-status-filter-panel label{display:flex;align-items:center;gap:9px;padding:8px;color:var(--status-muted);font-size:12px;cursor:pointer}
+.tic-status-filter-panel input{accent-color:#68c9a9}
+.tic-status-filter-panel button{width:100%;margin-top:7px;padding:8px;border:1px solid var(--status-line);border-radius:6px;background:transparent;color:var(--status-ink);font:inherit;cursor:pointer}
+.tic-status-history-month{margin:25px 0 0}
+.tic-status-history-month h2{margin:0 0 7px;color:var(--status-ink);font-size:15px;font-weight:620}
+.tic-status-history-day{display:grid;grid-template-columns:66px minmax(0,1fr);gap:16px;padding:17px 0;border-bottom:1px solid color-mix(in srgb,var(--status-line) 70%,transparent)}
+.tic-status-history-date{display:flex;align-items:baseline;gap:5px;color:var(--status-ink);font-size:12px;white-space:nowrap}
+.tic-status-history-date small{color:var(--status-muted);font-size:11px}
+.tic-status-history-events{display:grid;gap:14px;min-width:0}
+.tic-status-history-event{display:grid;grid-template-columns:3px minmax(0,1fr);gap:13px;min-width:0}
+.tic-status-history-event::before{content:"";grid-row:1 / span 2;width:3px;border-radius:2px;background:var(--status-good);grid-column:1}
+.tic-status-history-event.degraded::before{background:var(--status-warn)}
+.tic-status-history-event.maintenance::before{background:#79a9e8}
+.tic-status-history-event-copy{grid-column:2;grid-row:1;min-width:0}
+.tic-status-history-event-copy a{color:var(--status-ink);font-size:13px;font-weight:600;line-height:1.5;text-decoration:none}
+.tic-status-history-event-copy a:hover{text-decoration:underline}
+.tic-status-history-event-copy p{margin:4px 0 0;color:var(--status-muted);font-size:12px;line-height:1.6}
+.tic-status-history-event time{grid-column:2;grid-row:2;color:var(--status-muted);font-size:10px}
+.tic-status-history-empty{margin:22px 0;padding:18px;border:1px solid var(--status-line);border-radius:8px;background:var(--status-card);color:var(--status-muted);font-size:13px;line-height:1.65}
+.tic-status-history-empty strong{display:block;margin-bottom:5px;color:var(--status-ink)}
+@media(max-width:700px){.tic-status-history-page{padding:30px 0 48px}.tic-status-history-toolbar{flex-wrap:wrap;gap:12px}.tic-status-history-toolbar h1{font-size:21px}.tic-status-period{margin-left:auto}.tic-status-filter{margin-left:auto}.tic-status-history-day{grid-template-columns:48px minmax(0,1fr);gap:9px;padding:14px 0}.tic-status-history-date{gap:3px;font-size:11px}.tic-status-history-date small{font-size:10px}.tic-status-history-event{gap:10px}.tic-status-history-event-copy a{font-size:12px}.tic-status-history-event-copy p{font-size:11px}.tic-status-history-event time{font-size:10px}}
