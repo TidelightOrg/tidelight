@@ -120,7 +120,7 @@ test("rendered status preserves degraded database and native disclosure semantic
 
 test("scheduled 90-day history uses the research worker bearer and accepts Supabase POST", async () => {
   const route = await readFile(new URL("../app/api/cron/status-history/route.ts", import.meta.url), "utf8");
-  const migration = await readFile(new URL("../supabase/migrations/20261025120000_status_history.sql", import.meta.url), "utf8");
+  const migration = await readFile(new URL("../supabase/migrations/20261027205032_tic_status_history.sql", import.meta.url), "utf8");
   assert.match(route, /TIC_RESEARCH_CRON_SECRET/);
   assert.match(route, /timingSafeEqual/);
   assert.match(route, /export const POST = GET/);
