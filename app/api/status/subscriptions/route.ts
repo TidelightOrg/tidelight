@@ -23,8 +23,8 @@ export async function POST(request: Request) {
   const token = randomBytes(32).toString("base64url");
   const tokenHash = createHash("sha256").update(token).digest("hex");
   const admin = createAdminClient();
-  const { error } = await admin.from("tic_status_subscriptions").upsert({
-    email, token_hash: tokenHash, components, confirmed_at: null, unsubscribed_at: null, created_at: new Date().toISOString(),
+  const { error } = await admin.from("tic_status_subscription_pending").upsert({
+    email, token_hash: tokenHash, components, created_at: new Date().toISOString(),
   }, { onConflict: "email" });
   if (error) return json({ error: "Subscriptions are temporarily unavailable. Please try again later." }, 503);
   const origin = new URL(request.url).origin;
