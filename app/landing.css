@@ -713,3 +713,61 @@
  .landing-market-signature-window{mask-image:none;-webkit-mask-image:none}
  .landing-market-signature-word i,.landing-market-signature-live i{animation:none}
 }
+
+/* Animated product story: an explicit path from market question to an informed next move. */
+.landing-market-signature{width:min(100%,480px);height:50px;margin:7px auto 0;padding:6px 13px;gap:11px;border-color:color-mix(in srgb,var(--market-accent) 42%,var(--market-border));border-radius:16px;background:radial-gradient(ellipse at 62% 50%,color-mix(in srgb,var(--market-accent) 18%,transparent),transparent 66%),linear-gradient(110deg,color-mix(in srgb,var(--market-bg) 94%,var(--market-accent)),var(--market-bg));box-shadow:inset 0 1px #ffffff1c,inset 0 0 18px color-mix(in srgb,var(--market-accent) 8%,transparent),0 8px 26px #03100f24}
+.landing-market-signature::after{inset:4px;border-color:color-mix(in srgb,var(--market-accent) 22%,transparent);border-radius:12px}
+.landing-market-signature-brand{position:relative;z-index:2;display:flex;align-items:center;gap:6px;flex:none;padding-right:10px;border-right:1px solid color-mix(in srgb,var(--market-accent) 35%,transparent)}
+.landing-market-signature-brand svg{display:block;width:23px;height:23px;overflow:visible;fill:none;stroke:var(--market-accent);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 6px color-mix(in srgb,var(--market-accent) 65%,transparent))}
+.landing-market-signature-brand>span{display:grid;gap:3px}
+.landing-market-signature-brand b{color:var(--market-text);font:750 7px/1 var(--display);letter-spacing:.1em;text-shadow:0 0 12px color-mix(in srgb,var(--market-accent) 52%,transparent)}
+.landing-market-signature-brand small{color:var(--market-muted);font:5px/1 var(--mono);letter-spacing:.07em;white-space:nowrap}
+.landing-market-story{position:relative;z-index:1;display:block;flex:1;min-width:0;height:30px;overflow:hidden}
+.landing-market-story-step{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;gap:4px;opacity:0;transform:translateY(7px);animation:landing-story-cycle 17.5s ease-in-out infinite both}
+.landing-market-story-step:nth-child(1){animation-delay:-1.25s}
+.landing-market-story-step:nth-child(2){animation-delay:1.25s}
+.landing-market-story-step:nth-child(3){animation-delay:3.75s}
+.landing-market-story-step:nth-child(4){animation-delay:6.25s}
+.landing-market-story-step:nth-child(5){animation-delay:8.75s}
+.landing-market-story-step:nth-child(6){animation-delay:11.25s}
+.landing-market-story-step:nth-child(7){animation-delay:13.75s}
+.landing-market-story-step b{overflow:hidden;color:var(--market-accent);background:linear-gradient(100deg,var(--market-text),var(--market-accent) 44%,var(--market-text));background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;font:750 8px/1.15 var(--mono);letter-spacing:.075em;text-overflow:ellipsis;white-space:nowrap;filter:drop-shadow(0 0 7px color-mix(in srgb,var(--market-accent) 40%,transparent))}
+.landing-market-story-step small{overflow:hidden;color:var(--market-muted);font:6.5px/1.2 var(--font);letter-spacing:.01em;text-overflow:ellipsis;white-space:nowrap}
+.landing-market-signature-orbit{position:relative;z-index:2;display:block;width:20px;height:20px;flex:none;border:1px solid color-mix(in srgb,var(--market-accent) 42%,transparent);border-radius:50%;box-shadow:inset 0 0 9px color-mix(in srgb,var(--market-accent) 18%,transparent),0 0 12px color-mix(in srgb,var(--market-accent) 14%,transparent)}
+.landing-market-signature-orbit::before,.landing-market-signature-orbit::after{position:absolute;inset:4px;border:1px solid color-mix(in srgb,var(--market-accent) 48%,transparent);border-radius:50%;content:"";transform:rotate(32deg) scaleX(.46)}
+.landing-market-signature-orbit::after{transform:rotate(-32deg) scaleX(.46)}
+.landing-market-signature-orbit i{position:absolute;z-index:1;top:8px;left:8px;width:4px;height:4px;border-radius:50%;background:var(--market-accent);box-shadow:0 0 7px var(--market-accent)}
+.landing-market-signature-orbit i:nth-child(1){animation:landing-orbit-point 4s linear infinite}
+.landing-market-signature-orbit i:nth-child(2){animation:landing-orbit-point 4s linear -1s infinite}
+.landing-market-signature-orbit i:nth-child(3){animation:landing-orbit-point 4s linear -2s infinite}
+.landing-market-signature-orbit i:nth-child(4){animation:landing-orbit-point 4s linear -3s infinite}
+@keyframes landing-story-cycle{0%,3%{opacity:0;transform:translateY(7px)}5%,13%{opacity:1;transform:translateY(0)}15%,100%{opacity:0;transform:translateY(-7px)}}
+@keyframes landing-orbit-point{0%{transform:rotate(0deg) translateX(6px)}100%{transform:rotate(360deg) translateX(6px)}}
+@media(max-width:800px){
+ .landing-market-signature{width:100%;height:46px;margin-top:5px;padding:5px 10px;gap:8px;border-radius:14px}
+ .landing-market-signature::after{inset:3px;border-radius:11px}
+ .landing-market-signature-brand{gap:5px;padding-right:8px}
+ .landing-market-signature-brand svg{width:21px;height:21px}
+ .landing-market-signature-brand b{font-size:6.5px}
+ .landing-market-signature-brand small{font-size:4.5px}
+ .landing-market-story{height:30px}
+ .landing-market-story-step{gap:4px}
+ .landing-market-story-step b{font-size:clamp(6px,1.9vw,7px);letter-spacing:.045em}
+ .landing-market-story-step small{font-size:clamp(5.5px,1.7vw,6.2px)}
+ .landing-market-signature-orbit{width:18px;height:18px}
+}
+@media(max-width:380px){
+ .landing-market-signature{padding-inline:8px;gap:6px}
+ .landing-market-signature-brand{gap:4px;padding-right:6px}
+ .landing-market-signature-brand svg{width:18px;height:18px}
+ .landing-market-signature-brand b{font-size:5.8px}
+ .landing-market-signature-brand small{font-size:4px}
+ .landing-market-story-step b{font-size:5.7px;letter-spacing:.025em}
+ .landing-market-story-step small{font-size:5.1px}
+ .landing-market-signature-orbit{width:16px;height:16px}
+}
+@media(prefers-reduced-motion:reduce){
+ .landing-market-story-step{display:none;animation:none}
+ .landing-market-story-step:first-child{display:flex;opacity:1;transform:none}
+ .landing-market-signature-orbit i{animation:none}
+}
