@@ -659,3 +659,57 @@
  .landing-market-signature-path>i{width:7px}
  .landing-market-signature-live{display:none}
 }
+
+/* Give issuer marks a contained, high contrast tile and turn the signature into a deliberate moving wordmark. */
+.landing-market-chip .landing-market-logo.issuer-logo img{position:absolute!important;inset:2px!important;width:20px!important;height:20px!important;max-width:20px!important;max-height:20px!important;box-sizing:border-box!important;padding:3px!important;border:1px solid #ffffffb8!important;border-radius:6px!important;background:#f7f9f7!important;object-fit:contain!important;object-position:center!important;transform:none!important;translate:none!important}
+.landing-market-signature{width:min(100%,440px);height:46px;margin:6px auto 0;padding:5px 12px;display:flex;align-items:center;justify-content:space-between;gap:10px;border-color:color-mix(in srgb,var(--market-accent) 34%,var(--market-border));background:radial-gradient(ellipse at 52% 50%,color-mix(in srgb,var(--market-accent) 13%,transparent),transparent 72%),var(--market-bg);box-shadow:inset 0 1px #ffffff14,0 8px 24px #03100f24,0 0 18px color-mix(in srgb,var(--market-accent) 8%,transparent)}
+.landing-market-signature-brand{position:relative;z-index:2;display:flex;align-items:center;gap:5px;flex:none;padding-right:9px;border-right:1px solid color-mix(in srgb,var(--market-accent) 24%,transparent)}
+.landing-market-signature-brand svg{display:block;width:22px;height:22px;overflow:visible;fill:none;stroke:var(--market-accent);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;filter:drop-shadow(0 0 5px color-mix(in srgb,var(--market-accent) 48%,transparent))}
+.landing-market-signature-brand b{color:var(--market-text);font:750 7px/1 var(--display);letter-spacing:.08em;text-shadow:0 0 10px color-mix(in srgb,var(--market-accent) 42%,transparent)}
+.landing-market-signature-window{position:relative;display:block;flex:1;min-width:0;overflow:hidden;mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent);-webkit-mask-image:linear-gradient(90deg,transparent,#000 8%,#000 92%,transparent)}
+.landing-market-signature-track{display:flex;width:max-content;align-items:center;animation:landing-signature-words 18s linear infinite;will-change:transform}
+.landing-market-signature-run{display:flex;align-items:center;gap:12px;padding-right:12px;white-space:nowrap}
+.landing-market-signature-word{display:inline-flex;align-items:center;gap:10px;color:var(--market-accent);background:linear-gradient(100deg,var(--market-text),var(--market-accent) 55%,var(--market-text));background-clip:text;-webkit-background-clip:text;-webkit-text-fill-color:transparent;font:750 7px/1 var(--mono);letter-spacing:.11em;filter:drop-shadow(0 0 5px color-mix(in srgb,var(--market-accent) 34%,transparent))}
+.landing-market-signature-word i{display:block;width:3px;height:3px;flex:none;border-radius:50%;background:var(--market-accent);box-shadow:0 0 7px var(--market-accent);animation:landing-market-beacon 2s ease-in-out infinite}
+.landing-market-signature-live{position:relative;z-index:2;display:flex;align-items:center;gap:4px;flex:none;padding:5px 6px;border:1px solid color-mix(in srgb,var(--market-accent) 25%,transparent);border-radius:999px;background:color-mix(in srgb,var(--market-bg) 75%,transparent);color:var(--market-accent);font:600 5px/1 var(--mono);letter-spacing:.08em}
+.landing-market-signature-live i{width:4px;height:4px;border-radius:50%;background:var(--market-accent);box-shadow:0 0 7px var(--market-accent);animation:landing-market-beacon 2s ease-in-out infinite}
+.landing-market-signature-label{display:none}
+@keyframes landing-signature-words{to{transform:translateX(-50%)}}
+@media(max-width:800px){
+ .landing-market-ribbon{padding:6px 20px 0}
+ .landing-market-ribbon+.landing-hero{padding-top:14px}
+ .landing-market-cylinder{height:42px}
+ .landing-market-cylinder-head{display:grid;grid-template-columns:auto;align-content:center;gap:2px;padding:0 8px}
+ .landing-market-cylinder-head small{max-width:106px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:5px}
+ .landing-market-chip{min-width:72px;height:30px;gap:5px;padding:3px 5px;border-radius:10px}
+ .landing-market-chip .landing-market-logo.issuer-logo{width:22px;height:22px;flex-basis:22px;border-radius:7px}
+ .landing-market-chip .landing-market-logo.issuer-logo img{inset:2px!important;width:16px!important;height:16px!important;max-width:16px!important;max-height:16px!important;padding:2px!important}
+ .landing-market-logo .issuer-logo-fallback{font-size:7px}
+ .landing-market-track{gap:6px}
+ .landing-market-signature{width:min(100%,360px);height:42px;margin-top:5px;padding:4px 9px;gap:7px}
+ .landing-market-signature-brand{gap:4px;padding-right:7px}
+ .landing-market-signature-brand svg{width:19px;height:19px}
+ .landing-market-signature-brand b{font-size:6.5px}
+ .landing-market-signature-run{gap:9px;padding-right:9px}
+ .landing-market-signature-word{gap:7px;font-size:6px;letter-spacing:.08em}
+ .landing-market-signature-live{padding:4px 5px;font-size:4.5px}
+}
+@media(max-width:380px){
+ .landing-market-cylinder-head{padding-inline:6px}
+ .landing-market-cylinder-head small{max-width:82px;font-size:4.5px}
+ .landing-market-chip{min-width:68px;padding-inline:4px}
+ .landing-market-signature{width:min(100%,320px);padding-inline:7px;gap:5px}
+ .landing-market-signature-brand{gap:3px;padding-right:5px}
+ .landing-market-signature-brand svg{width:17px;height:17px}
+ .landing-market-signature-brand b{font-size:5.8px}
+ .landing-market-signature-run{gap:7px;padding-right:7px}
+ .landing-market-signature-word{gap:5px;font-size:5.2px;letter-spacing:.055em}
+ .landing-market-signature-word i{width:2.5px;height:2.5px}
+ .landing-market-signature-live{padding:3px 4px;font-size:4px}
+}
+@media(prefers-reduced-motion:reduce){
+ .landing-market-signature-track{animation:none;transform:none}
+ .landing-market-signature-run:nth-child(2){display:none}
+ .landing-market-signature-window{mask-image:none;-webkit-mask-image:none}
+ .landing-market-signature-word i,.landing-market-signature-live i{animation:none}
+}
