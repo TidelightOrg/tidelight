@@ -19,7 +19,7 @@ export async function withStatusWorkerHeartbeat(
         p_worker_name: worker,
         p_healthy: healthy,
         p_detail: detail,
-      });
+      }).abortSignal(AbortSignal.timeout(5_000));
     } catch {
       // Availability checks must never prevent the underlying worker response.
     }
