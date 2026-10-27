@@ -19,3 +19,13 @@ alter table public.tic_status_subscriptions enable row level security;
 alter table public.tic_status_subscription_deliveries enable row level security;
 revoke all on public.tic_status_subscriptions,public.tic_status_subscription_deliveries from public,anon,authenticated;
 grant select,insert,update,delete on public.tic_status_subscriptions,public.tic_status_subscription_deliveries to service_role;
+
+create table if not exists public.tic_status_subscription_pending (
+  email text primary key,
+  token_hash text not null unique,
+  components text[] not null default '{}',
+  created_at timestamptz not null default now()
+);
+alter table public.tic_status_subscription_pending enable row level security;
+revoke all on public.tic_status_subscription_pending from public,anon,authenticated;
+grant select,insert,update,delete on public.tic_status_subscription_pending to service_role;
