@@ -11,10 +11,10 @@ const stages = [
 ] as const;
 
 const integrations = [
-  { id: "typescript", label: "TypeScript", glyph: "TS", title: "Use Tidelight with TypeScript", install: "npm install @tidelight/sdk@0.1.2", code: `import { TidelightClient } from "@tidelight/sdk";\n\nconst client = new TidelightClient({\n  apiKey: process.env.TIDELIGHT_API_KEY!,\n});\n\nconst page = await client.listTokenizedEquities({\n  limit: 20,\n  underlyingTicker: "AAPL",\n});\n\nfor (const instrument of page.data) {\n  console.log(instrument.symbol, instrument.underlying_ticker);\n}`, href: "https://dev.tidelight.app/typescript" },
-  { id: "python", label: "Python", glyph: "Py", title: "Use Tidelight with Python", install: "python -m pip install tidelight", code: `import os\nfrom tidelight import Client\n\nclient = Client(os.environ["TIDELIGHT_API_KEY"])\n\npage = client.list_tokenized_equities(\n    limit=20,\n    underlying_ticker="AAPL",\n)\n\nfor instrument in page.data:\n    print(instrument.symbol, instrument.underlying_ticker)`, href: "https://dev.tidelight.app/python" },
-  { id: "rest", label: "REST API", glyph: "API", title: "Use Tidelight with REST", install: "GET /v1/market/instruments", code: `curl --request GET \\\n  --url 'https://api.tidelight.app/v1/market/instruments?kind=rtoken&underlying_ticker=AAPL&limit=10' \\\n  --header "Authorization: Bearer $TIDELIGHT_API_KEY" \\\n  --header 'Accept: application/json'`, href: "https://dev.tidelight.app/api" },
-  { id: "mcp", label: "MCP", glyph: "◈", title: "Use Tidelight with MCP", install: "npm install --global @tidelight/mcp@0.1.2", code: `export TIDELIGHT_API_KEY='YOUR_SCOPED_PROJECT_KEY'\n\nnpx --yes @tidelight/mcp@0.1.2`, href: "https://dev.tidelight.app/mcp" },
+  { id: "typescript", label: "TypeScript", glyph: "TS", title: "Use Tidelight with TypeScript", install: "npm install @tidelight/sdk@0.1.2", code: `import { TidelightClient } from "@tidelight/sdk";\n\nconst client = new TidelightClient({\n  apiKey: process.env.TIDELIGHT_API_KEY!,\n});\n\nconst page = await client.listTokenizedEquities({\n  limit: 20,\n  underlyingTicker: "AAPL",\n});\n\nfor (const instrument of page.data) {\n  console.log(instrument.symbol, instrument.underlying_ticker);\n}`, href: "https://tidelight.app/developers/packages/sdk" },
+  { id: "python", label: "Python", glyph: "Py", title: "Use Tidelight with Python", install: "python -m pip install tidelight", code: `import os\nfrom tidelight import Client\n\nclient = Client(os.environ["TIDELIGHT_API_KEY"])\n\npage = client.list_tokenized_equities(\n    limit=20,\n    underlying_ticker="AAPL",\n)\n\nfor instrument in page.data:\n    print(instrument.symbol, instrument.underlying_ticker)`, href: "https://tidelight.app/developers/packages/python" },
+  { id: "rest", label: "REST API", glyph: "API", title: "Use Tidelight with REST", install: "GET /v1/market/instruments", code: `curl --request GET \\\n  --url 'https://api.tidelight.app/v1/market/instruments?kind=rtoken&underlying_ticker=AAPL&limit=10' \\\n  --header "Authorization: Bearer $TIDELIGHT_API_KEY" \\\n  --header 'Accept: application/json'`, href: "https://dev.tidelight.app/#reference" },
+  { id: "mcp", label: "MCP", glyph: "◈", title: "Use Tidelight with MCP", install: "npm install --global @tidelight/mcp@0.1.2", code: `export TIDELIGHT_API_KEY='YOUR_SCOPED_PROJECT_KEY'\n\ntidelight-mcp`, href: "https://tidelight.app/developers/packages/mcp" },
 ] as const;
 
 function StageGlyph({ kind }: { kind: (typeof stages)[number]["kind"] }) {
@@ -33,6 +33,20 @@ export default function LandingResearchShowcase() {
   const stage = stages.find((item) => item.id === stageId) ?? stages[0];
   const integration = integrations.find((item) => item.id === integrationId) ?? integrations[0];
 
+  function handleTabKey(event: React.KeyboardEvent<HTMLDivElement>, tabs: readonly { id: string }[], selectedId: string, select: (id: string) => void, prefix: string) {
+    const currentIndex = tabs.findIndex((tab) => tab.id === selectedId);
+    const nextIndex = event.key === "ArrowRight" ? (currentIndex + 1) % tabs.length
+      : event.key === "ArrowLeft" ? (currentIndex - 1 + tabs.length) % tabs.length
+      : event.key === "Home" ? 0
+      : event.key === "End" ? tabs.length - 1
+      : -1;
+    if (nextIndex < 0) return;
+    event.preventDefault();
+    const next = tabs[nextIndex];
+    select(next.id);
+    document.getElementById(`${prefix}-${next.id}`)?.focus();
+  }
+
   async function copyExample() {
     try {
       await navigator.clipboard.writeText(integration.code);
@@ -47,7 +61,7 @@ export default function LandingResearchShowcase() {
     <div className={styles.showcaseHead}><span className="landing-kicker"><i /> A SIGNAL, FOLLOWED THROUGH</span><h2>Follow the thread.<br/><em>Keep the evidence in view.</em></h2><p>Move from a market question to its sources, context, and decision risks in one connected research path.</p></div>
     <div className={styles.demo}>
       <div className={styles.demoBar}><span className={styles.live}><i/> TIDELIGHT RESEARCH / LIVE SHAPE</span><span className={styles.disclaimer}>ILLUSTRATIVE UI <b>·</b> NO LIVE DATA</span></div>
-      <div className={styles.demoTabs} role="tablist" aria-label="Research path stages">
+      <div className={styles.demoTabs} role="tablist" aria-label="Research path stages" onKeyDown={(event) => handleTabKey(event, stages, stageId, (id) => setStageId(id as typeof stageId), "research-tab")}>
         <span className={styles.demoMark} aria-hidden="true">≈</span>
         {stages.map((item) => <button type="button" key={item.id} role="tab" id={`research-tab-${item.id}`} aria-selected={stageId === item.id} aria-controls="research-stage-panel" tabIndex={stageId === item.id ? 0 : -1} onClick={() => setStageId(item.id)}><span>{item.label}</span></button>)}
       </div>
@@ -64,7 +78,7 @@ export default function LandingResearchShowcase() {
     <div className={styles.integration}>
       <div className={styles.integrationIntro}><span className="landing-kicker">BUILT TO FIT YOUR STACK</span><h2>Use Tidelight<br/><em>with your tools.</em></h2><p>Bring source-linked market context into your product through the framework, language, or agent workflow you already use.</p><span className={styles.keyNote}><i/> Keep project keys in trusted server code.</span></div>
       <div className={styles.codePanel}>
-        <div className={styles.frameworkTabs} role="tablist" aria-label="Choose a Tidelight integration">
+        <div className={styles.frameworkTabs} role="tablist" aria-label="Choose a Tidelight integration" onKeyDown={(event) => handleTabKey(event, integrations, integrationId, (id) => setIntegrationId(id as typeof integrationId), "integration-tab")}>
           {integrations.map((item) => <button key={item.id} type="button" role="tab" id={`integration-tab-${item.id}`} aria-selected={integrationId === item.id} aria-controls="integration-code-panel" tabIndex={integrationId === item.id ? 0 : -1} onClick={() => { setIntegrationId(item.id); setCopied(false); }}><span className={styles.frameworkGlyph}>{item.glyph}</span><span className={styles.frameworkLabel}>{item.label}</span></button>)}
         </div>
         <div className={styles.codeHeading} id="integration-code-panel" role="tabpanel" aria-labelledby={`integration-tab-${integration.id}`}><div><span className={styles.codeDot}/><h3>{integration.title}</h3></div><button type="button" onClick={copyExample} aria-label="Copy integration example">{copied ? "Copied" : "Copy"}</button></div>

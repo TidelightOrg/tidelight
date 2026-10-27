@@ -81,6 +81,20 @@ export default function LandingUseCases() {
     window.addEventListener("tidelight:reveal-use-cases", revealAllUseCases);
     return () => window.removeEventListener("tidelight:reveal-use-cases", revealAllUseCases);
   }, []);
+  useEffect(() => {
+    const revealHashTarget = () => {
+      const match = window.location.hash.match(/^#use-case-group-(\d+)$/);
+      if (!match) return;
+      const targetId = `use-case-group-${match[1]}`;
+      if (Number(match[1]) > 3) return;
+      setCategory("All use cases");
+      setQuery("");
+      window.requestAnimationFrame(() => document.getElementById(targetId)?.scrollIntoView({ behavior: "smooth", block: "center" }));
+    };
+    revealHashTarget();
+    window.addEventListener("hashchange", revealHashTarget);
+    return () => window.removeEventListener("hashchange", revealHashTarget);
+  }, []);
   const visibleUseCases = useCases.filter((item) => {
     const matchesCategory = category === "All use cases" || item.category === category;
     const searchable = [item.title, item.category, item.description, item.question].map(translate).join(" ").toLocaleLowerCase();
