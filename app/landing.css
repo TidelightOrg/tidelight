@@ -757,3 +757,34 @@
  .landing-market-story-step:first-child{display:flex;opacity:1;transform:none}
  .landing-market-signature-orbit i:nth-child(n),.landing-market-signature-live i{animation:none}
 }
+
+/* Compact, legible market journey capsule with the official Tidelight mark. */
+.landing-market-signature{width:min(100%,420px);height:44px;margin:6px auto 0;padding:5px 11px;gap:9px;border-radius:14px}
+.landing-market-signature-brand{gap:6px;padding-right:9px}
+.landing-market-signature-logo{display:block;width:24px;height:24px;flex:none;object-fit:contain;border-radius:7px}
+.landing-market-signature-brand b{font:700 8px/1 var(--display);letter-spacing:.015em;text-transform:lowercase;text-shadow:none}
+.landing-market-story{height:26px}
+.landing-market-story-step{display:flex;align-items:center;animation-name:landing-story-cycle;animation-duration:17.5s;animation-timing-function:ease-in-out;animation-iteration-count:infinite;animation-fill-mode:both}
+.landing-market-story-step b{display:block;max-width:100%;overflow:hidden;color:var(--market-text);background:none;background-clip:border-box;-webkit-background-clip:border-box;-webkit-text-fill-color:var(--market-text);font:700 7.5px/1.2 var(--mono);letter-spacing:.025em;text-overflow:ellipsis;white-space:nowrap;filter:none}
+@media(max-width:800px){
+  .landing-market-signature{width:min(100%,340px);height:42px;padding:4px 9px;gap:7px;border-radius:13px}
+  .landing-market-signature::after{inset:3px;border-radius:10px}
+  .landing-market-signature-brand{gap:5px;padding-right:7px}
+  .landing-market-signature-logo{width:22px;height:22px}
+  .landing-market-signature-brand b{font-size:7px}
+  .landing-market-story{height:24px}
+  .landing-market-story-step b{font-size:clamp(6px,1.75vw,7px);letter-spacing:.01em}
+  .landing-market-signature-orbit{width:17px;height:17px}
+}
+@media(max-width:380px){
+  .landing-market-signature{width:min(100%,320px);gap:5px;padding-inline:7px}
+  .landing-market-signature-brand{gap:4px;padding-right:5px}
+  .landing-market-signature-logo{width:20px;height:20px}
+  .landing-market-signature-brand b{font-size:6.5px}
+  .landing-market-story-step b{font-size:5.8px;letter-spacing:0}
+  .landing-market-signature-orbit{width:15px;height:15px}
+}
+@media(prefers-reduced-motion:reduce){
+  .landing-market-story-step{animation:none;display:none;opacity:0;transform:none}
+  .landing-market-story-step:first-child{display:flex;opacity:1}
+}
