@@ -73,7 +73,7 @@ export default function LandingDocsEmbed() {
 
   function initializeEmbed() {
     if (!window.GitBook) return;
-    const theme = document.documentElement.dataset.theme === "daylight" || document.documentElement.dataset.theme === "white" ? "light" : "dark";
+    const theme = document.documentElement.dataset.theme === "white" ? "light" : "dark";
     if (!document.getElementById("tidelight-gitbook-layout")) {
       const style = document.createElement("style");
       style.id = "tidelight-gitbook-layout";
@@ -103,7 +103,7 @@ export default function LandingDocsEmbed() {
   useEffect(() => {
     if (!ready || !window.GitBook) return;
     if (initializedSite.current !== docsSite) {
-      const theme = document.documentElement.dataset.theme === "daylight" || document.documentElement.dataset.theme === "white" ? "light" : "dark";
+      const theme = document.documentElement.dataset.theme === "white" ? "light" : "dark";
       window.GitBook("init", { siteURL: docsSite }, { colorScheme: theme });
       initializedSite.current = docsSite;
       if (isOpen) {
