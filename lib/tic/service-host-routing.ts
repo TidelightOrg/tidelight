@@ -49,7 +49,9 @@ export function resolveServiceHostRoute(hostname: string, pathname: string): Ser
     if (pathname === "/") return { kind: "rewrite", pathname: "/status" };
     if (pathname === "/health") return { kind: "rewrite", pathname: "/api/health" };
     if (pathname === "/incidents" || pathname === "/maintenance") return { kind: "rewrite", pathname: `/status${pathname}` };
-    if (pathname === "/status" || pathname === "/api/health") return { kind: "rewrite", pathname };
+    if (pathname === "/status" || pathname === "/status/history" || pathname === "/status/incidents" || pathname === "/status/maintenance" || pathname === "/api/health") return { kind: "rewrite", pathname };
+    if (pathname === "/feed.rss" || pathname === "/feed.atom") return null;
+    if (pathname === "/api/status/subscriptions" || pathname.startsWith("/api/status/subscriptions/")) return null;
     return { kind: "not-found" };
   }
   if (host === "dev.tidelight.app") {
