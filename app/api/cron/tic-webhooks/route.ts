@@ -1,5 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
+import { withStatusWorkerHeartbeat } from "@/lib/tic/worker-health";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendSignedWebhook } from "@/lib/tic/webhook-security";
 
@@ -26,7 +27,7 @@ function safeErrorCode(error: unknown) {
   return "network_error";
 }
 
-export async function POST(request: Request) {
+async function handleStatusCheck(request: Request) {
   if (!authorize(request)) return NextResponse.json({ error: "Unauthorized webhook worker." }, { status: 401, headers: { "Cache-Control": "no-store" } });
   let admin: ReturnType<typeof createAdminClient>;
   try { admin = createAdminClient(); }
@@ -69,4 +70,5 @@ export async function POST(request: Request) {
   return NextResponse.json({ claimed: deliveries.length, outcomes: results }, { headers: { "Cache-Control": "no-store" } });
 }
 
+export const POST = (request: Request) => withStatusWorkerHeartbeat("webhook_delivery", () => handleStatusCheck(request));
 export const GET = POST;
