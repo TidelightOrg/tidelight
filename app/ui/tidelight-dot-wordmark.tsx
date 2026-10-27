@@ -4,7 +4,8 @@ import { useEffect, useRef } from "react";
 
 type Point = { x: number; y: number; phase: number; weight: number };
 
-export default function TidelightDotWordmark({ className }: { className?: string }) {
+export default function TidelightDotWordmark({ className, lines, decorative = false }: { className?: string; lines?: string[]; decorative?: boolean }) {
+  const displayLines = lines?.length ? lines : ["TIDELIGHT"];
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -42,19 +43,24 @@ export default function TidelightDotWordmark({ className }: { className?: string
       mask.height = canvas.height;
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
 
-      const fontSize = height * 0.77;
       maskContext.setTransform(ratio, 0, 0, ratio, 0, 0);
       maskContext.clearRect(0, 0, width, height);
-      maskContext.font = `700 ${fontSize}px Arial, Helvetica, sans-serif`;
       maskContext.textAlign = "center";
       maskContext.textBaseline = "alphabetic";
-      const measuredWidth = maskContext.measureText("TIDELIGHT").width;
-      const scaleX = Math.min(1.48, (width - spacing * 2) / measuredWidth);
-      const baseline = height * 0.82;
-      maskContext.translate(width / 2, baseline);
-      maskContext.scale(scaleX, 1);
-      maskContext.fillStyle = "#fff";
-      maskContext.fillText("TIDELIGHT", 0, 0);
+      const rowHeight = height / displayLines.length;
+      displayLines.forEach((line, index) => {
+        const fontSize = displayLines.length === 1 ? height * 0.77 : rowHeight * 0.75;
+        maskContext.font = `700 ${fontSize}px Arial, Helvetica, sans-serif`;
+        const measuredWidth = maskContext.measureText(line).width;
+        const scaleX = Math.min(1.48, (width - spacing * 2) / measuredWidth);
+        const baseline = displayLines.length === 1 ? height * 0.82 : (index + 0.82) * rowHeight;
+        maskContext.save();
+        maskContext.translate(width / 2, baseline);
+        maskContext.scale(scaleX, 1);
+        maskContext.fillStyle = "#fff";
+        maskContext.fillText(line, 0, 0);
+        maskContext.restore();
+      });
 
       const image = maskContext.getImageData(0, 0, canvas.width, canvas.height);
       const data = image.data;
@@ -100,7 +106,9 @@ export default function TidelightDotWordmark({ className }: { className?: string
 
       // A small Tidelight blue signal cursor drifts over the final letters.
       const cursorX = width * (0.815 + (reducedMotion.matches ? 0 : Math.sin(elapsed * 0.35) * 0.007));
-      const cursorY = height * (0.36 + (reducedMotion.matches ? 0 : Math.sin(elapsed * 0.48 + 1.2) * 0.018));
+      const cursorY = displayLines.length === 1
+        ? height * (0.36 + (reducedMotion.matches ? 0 : Math.sin(elapsed * 0.48 + 1.2) * 0.018))
+        : height * (0.5 + (reducedMotion.matches ? 0 : Math.sin(elapsed * 0.48 + 1.2) * 0.07));
       context.save();
       context.translate(cursorX, cursorY);
       context.shadowColor = blueColor;
@@ -156,8 +164,8 @@ export default function TidelightDotWordmark({ className }: { className?: string
     };
   }, []);
 
-  return <div className={className}>
-    <canvas ref={canvasRef} role="img" aria-label="Tidelight written as a living field of signal dots" />
-    <span className="sr-only">Tidelight</span>
-  </div>;
+  return <span className={className}>
+    <canvas ref={canvasRef} role={decorative ? undefined : "img"} aria-hidden={decorative || undefined} aria-label={decorative ? undefined : "Tidelight written as a living field of signal dots"} />
+    {!decorative ? <span className="sr-only">Tidelight</span> : null}
+  </span>;
 }
