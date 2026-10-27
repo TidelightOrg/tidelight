@@ -10,6 +10,7 @@ export type StatusWorkerName =
 export async function withStatusWorkerHeartbeat(
   worker: StatusWorkerName,
   run: () => Promise<Response>,
+  isHealthy: (response: Response) => Promise<boolean> = async (response) => response.ok,
 ): Promise<Response> {
   const record = async (healthy: boolean, detail: string) => {
     try {
@@ -27,10 +28,12 @@ export async function withStatusWorkerHeartbeat(
   try {
     const response = await run();
     if (response.status === 401 || response.status === 403) return response;
-    await record(response.ok, response.ok ? `Worker completed with HTTP ${response.status}.` : `Worker returned HTTP ${response.status}.`);
+    let healthy = false;
+    try { healthy = await isHealthy(response.clone()); } catch { healthy = false; }
+    await record(healthy, healthy ? `Worker completed with HTTP ${response.status}.` : `Worker reported an unsuccessful outcome with HTTP ${response.status}.`);
     return response;
-  } catch {
+  } catch (error) {
     await record(false, "Worker request failed before completion.");
-    throw new Error("Status worker invocation failed.");
+    throw error;
   }
 }
