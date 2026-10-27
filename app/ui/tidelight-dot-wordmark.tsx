@@ -5,10 +5,11 @@ import { useEffect, useRef } from "react";
 type Point = { x: number; y: number; phase: number; weight: number };
 
 export default function TidelightDotWordmark({ className, lines, decorative = false }: { className?: string; lines?: string[]; decorative?: boolean }) {
-  const displayLines = lines?.length ? lines : ["TIDELIGHT"];
+  const linesKey = lines?.length ? lines.join("\n") : "TIDELIGHT";
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
+    const displayLines = linesKey.split("\n");
     const canvas = canvasRef.current;
     const context = canvas?.getContext("2d", { alpha: true });
     if (!canvas || !context) return;
@@ -162,7 +163,7 @@ export default function TidelightDotWordmark({ className, lines, decorative = fa
       themeObserver.disconnect();
       reducedMotion.removeEventListener("change", onMotionChange);
     };
-  }, []);
+  }, [linesKey]);
 
   return <span className={className}>
     <canvas ref={canvasRef} role={decorative ? undefined : "img"} aria-hidden={decorative || undefined} aria-label={decorative ? undefined : "Tidelight written as a living field of signal dots"} />
