@@ -114,7 +114,7 @@ test("rendered status preserves degraded database and native disclosure semantic
   assert.equal((html.match(/ open=""/g) ?? []).length, 1);
   assert.equal((html.match(/<summary>/g) ?? []).length, 3);
   assert.match(html, /href="\/maintenance"/);
-  assert.match(html, /href="\/incidents"/);
+  assert.match(html, /href="\/history"/);
   assert.doesNotMatch(html, /All monitored services operational|role="progressbar"/);
 });
 
