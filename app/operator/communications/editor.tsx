@@ -70,21 +70,25 @@ export function CommunicationsEditor({ initialMaintenance, initialPosts }: { ini
   }
 
   async function refreshList(kind: "maintenance" | "blog") {
-    const response = await fetch(`/api/operator/communications?kind=${kind}&offset=0`);
-    const result = await response.json() as { items?: Array<MaintenanceNotice | EditorialPost>; hasMore?: boolean };
-    if (!response.ok || !result.items) return false;
-    if (kind === "maintenance") {
-      setMaintenance(result.items as MaintenanceNotice[]);
-      setMaintenanceOffset(result.items.length);
-      setMaintenanceHasMore(Boolean(result.hasMore));
-      setMaintenanceVisible(12);
-    } else {
-      setPosts(result.items as EditorialPost[]);
-      setPostsOffset(result.items.length);
-      setPostsHaveMore(Boolean(result.hasMore));
-      setPostsVisible(12);
+    try {
+      const response = await fetch(`/api/operator/communications?kind=${kind}&offset=0`);
+      const result = await response.json() as { items?: Array<MaintenanceNotice | EditorialPost>; hasMore?: boolean };
+      if (!response.ok || !result.items) return false;
+      if (kind === "maintenance") {
+        setMaintenance(result.items as MaintenanceNotice[]);
+        setMaintenanceOffset(result.items.length);
+        setMaintenanceHasMore(Boolean(result.hasMore));
+        setMaintenanceVisible(12);
+      } else {
+        setPosts(result.items as EditorialPost[]);
+        setPostsOffset(result.items.length);
+        setPostsHaveMore(Boolean(result.hasMore));
+        setPostsVisible(12);
+      }
+      return true;
+    } catch {
+      return false;
     }
-    return true;
   }
 
   async function submit(event: FormEvent<HTMLFormElement>, kind: "maintenance" | "blog") {
