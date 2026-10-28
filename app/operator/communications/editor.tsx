@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import type { EditorialPost, MaintenanceNotice } from "@/lib/tic/editorial-content";
 
 function localDateTime(value: string | null | undefined) {
@@ -29,6 +29,7 @@ export function CommunicationsEditor({ initialMaintenance, initialPosts }: { ini
   const [maintenanceVisible, setMaintenanceVisible] = useState(12);
   const [postsVisible, setPostsVisible] = useState(12);
   const [loadingMore, setLoadingMore] = useState<"maintenance" | "blog" | null>(null);
+  const paginationGeneration = useRef({ maintenance: 0, blog: 0 });
   const [editingMaintenance, setEditingMaintenance] = useState<MaintenanceNotice | null>(null);
   const [editingPost, setEditingPost] = useState<EditorialPost | null>(null);
   const [maintenanceMessage, setMaintenanceMessage] = useState("");
@@ -45,11 +46,13 @@ export function CommunicationsEditor({ initialMaintenance, initialPosts }: { ini
     }
     const hasMore = kind === "maintenance" ? maintenanceHasMore : postsHaveMore;
     if (!hasMore) return;
+    const generation = paginationGeneration.current[kind];
     setLoadingMore(kind);
     try {
       const response = await fetch(`/api/operator/communications?kind=${kind}&offset=${offset}`);
       const result = await response.json() as { items?: Array<MaintenanceNotice | EditorialPost>; hasMore?: boolean; error?: string };
       if (!response.ok || !result.items) throw new Error(result.error ?? "Older entries could not be loaded.");
+      if (generation !== paginationGeneration.current[kind]) return;
       if (kind === "maintenance") {
         setMaintenance(current => [...current, ...(result.items as MaintenanceNotice[])]);
         setMaintenanceOffset(offset + result.items.length);
@@ -62,14 +65,18 @@ export function CommunicationsEditor({ initialMaintenance, initialPosts }: { ini
         setPostsVisible(visible + result.items.length);
       }
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Older entries could not be loaded.";
-      kind === "maintenance" ? setMaintenanceMessage(message) : setPostMessage(message);
+      if (generation === paginationGeneration.current[kind]) {
+        const message = error instanceof Error ? error.message : "Older entries could not be loaded.";
+        kind === "maintenance" ? setMaintenanceMessage(message) : setPostMessage(message);
+      }
     } finally {
-      setLoadingMore(null);
+      if (generation === paginationGeneration.current[kind]) setLoadingMore(null);
     }
   }
 
   async function refreshList(kind: "maintenance" | "blog") {
+    paginationGeneration.current[kind] += 1;
+    setLoadingMore(current => current === kind ? null : current);
     try {
       const response = await fetch(`/api/operator/communications?kind=${kind}&offset=0`);
       const result = await response.json() as { items?: Array<MaintenanceNotice | EditorialPost>; hasMore?: boolean };
