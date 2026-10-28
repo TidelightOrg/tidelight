@@ -32,12 +32,17 @@ const admin = () => createAdminClient();
 
 export async function getMaintenanceNotices(): Promise<MaintenanceNotice[]> {
   const recentResolutionCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
-  const { data, error } = await admin().from("tic_status_maintenance")
-    .select("id,title,subtitle,message,affected_services,status,starts_at,ends_at,created_at,updated_at")
-    .or(`status.neq.completed,ends_at.gte.${recentResolutionCutoff}`)
-    .order("starts_at", { ascending: false }).order("id", { ascending: true }).limit(50);
-  if (error) throw new Error("Maintenance notices could not be loaded.");
-  return (data ?? []) as MaintenanceNotice[];
+  const columns = "id,title,subtitle,message,affected_services,status,starts_at,ends_at,created_at,updated_at";
+  const [open, resolved] = await Promise.all([
+    admin().from("tic_status_maintenance").select(columns)
+      .neq("status", "completed")
+      .order("starts_at", { ascending: false }).order("id", { ascending: true }).limit(50),
+    admin().from("tic_status_maintenance").select(columns)
+      .eq("status", "completed").gte("ends_at", recentResolutionCutoff)
+      .order("starts_at", { ascending: false }).order("id", { ascending: true }).limit(50),
+  ]);
+  if (open.error || resolved.error) throw new Error("Maintenance notices could not be loaded.");
+  return [...(open.data ?? []), ...(resolved.data ?? [])] as MaintenanceNotice[];
 }
 
 export async function getCompletedMaintenanceHistory(from: string, before: string): Promise<MaintenanceNotice[]> {
