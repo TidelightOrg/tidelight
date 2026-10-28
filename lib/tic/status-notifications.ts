@@ -75,7 +75,7 @@ export async function notifyStatusSubscribers() {
           from: process.env.STATUS_EMAIL_FROM || process.env.EMAIL_FROM || "Tidelight Status <status@tidelight.app>",
           to: subscription.email,
           subject: `${event.kind === "new" ? "Service incident" : "Service restored"}: ${event.incident.component}`,
-          html: `<p><strong>${escapeHtml(event.incident.component)}</strong> — ${event.kind === "new" ? "is experiencing an issue" : "has been resolved"}.</p><p>${escapeHtml(event.incident.latest_detail)}</p><p><a href="${escapeHtml(incidentUrl)}">View status update</a></p><p><a href="${unsubscribe}">Unsubscribe from status emails</a></p>`,
+          html: `<p><strong>${escapeHtml(event.incident.component)}</strong> — ${event.kind === "new" ? "is experiencing an issue" : "has been resolved"}.</p><p>${escapeHtml(event.kind === "new" ? "Observed degraded during scheduled check" : event.incident.latest_detail)}</p><p><a href="${escapeHtml(incidentUrl)}">View status update</a></p><p><a href="${escapeHtml(unsubscribe)}">Unsubscribe from status emails</a></p>`,
           idempotencyKey: `status-${event.kind}:${event.incident.id}:${subscription.id}`,
         });
         const { error: markSentError } = await admin.from("tic_status_subscription_deliveries").update({ delivery_status: "sent", sent_at: new Date().toISOString() })
