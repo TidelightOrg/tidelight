@@ -48,6 +48,9 @@ export function CommunicationsEditor({ initialMaintenance, initialPosts }: { ini
       });
       const result = await response.json() as { item?: MaintenanceNotice; error?: string };
       if (!response.ok || !result.item) throw new Error(result.error ?? "Maintenance could not be marked resolved.");
+      // Drop any stale form for this notice so saving old fields cannot reopen it
+      // or replace the server-recorded resolution time.
+      setEditingMaintenance(current => current?.id === item.id ? null : current);
       const refreshed = await refreshList("maintenance");
       if (!refreshed) {
         setMaintenance(current => current.map(existing => existing.id === result.item!.id ? result.item! : existing));
