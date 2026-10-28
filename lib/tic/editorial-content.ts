@@ -44,9 +44,8 @@ export async function getCompletedMaintenanceHistory(from: string, before: strin
   const { data, error } = await admin().from("tic_status_maintenance")
     .select("id,title,subtitle,message,affected_services,status,starts_at,ends_at,created_at,updated_at")
     .eq("status", "completed")
-    .gte("starts_at", from)
-    .lt("starts_at", before)
-    .order("starts_at", { ascending: false }).order("id", { ascending: true }).limit(500);
+    .or(`and(ends_at.gte.${from},ends_at.lt.${before}),and(ends_at.is.null,starts_at.gte.${from},starts_at.lt.${before})`)
+    .order("ends_at", { ascending: false, nullsFirst: false }).order("starts_at", { ascending: false }).order("id", { ascending: true }).limit(500);
   if (error) throw new Error("Maintenance history could not be loaded.");
   return (data ?? []) as MaintenanceNotice[];
 }
