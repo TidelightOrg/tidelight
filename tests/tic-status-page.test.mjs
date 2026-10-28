@@ -103,7 +103,7 @@ test("rendered status preserves degraded database and native disclosure semantic
     return require(name);
   };
   new Function("require", "module", "exports", compiled)(load, renderedModule, renderedModule.exports);
-  const html = renderToStaticMarkup(await renderedModule.exports.default());
+  const html = renderToStaticMarkup(await renderedModule.exports.default({ searchParams: Promise.resolve({}) }));
   const expectedChecked = new Date(fixture.checkedAt).toLocaleString("zh-CN", { timeZone: "UTC", timeZoneName: "short" });
   assert.match(html, /A service is experiencing issues/);
   assert.ok(html.includes(expectedChecked));
