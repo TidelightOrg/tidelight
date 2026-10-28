@@ -21,7 +21,9 @@ function FormField({ label, children }: { label: string; children: ReactNode }) 
 
 export function CommunicationsEditor({ initialMaintenance, initialPosts }: { initialMaintenance: MaintenanceNotice[]; initialPosts: EditorialPost[] }) {
   const [maintenance, setMaintenance] = useState(initialMaintenance);
+  const [maintenanceOffset, setMaintenanceOffset] = useState(initialMaintenance.length);
   const [posts, setPosts] = useState(initialPosts);
+  const [postsOffset, setPostsOffset] = useState(initialPosts.length);
   const [maintenanceHasMore, setMaintenanceHasMore] = useState(initialMaintenance.length === 50);
   const [postsHaveMore, setPostsHaveMore] = useState(initialPosts.length === 50);
   const [maintenanceVisible, setMaintenanceVisible] = useState(12);
@@ -35,6 +37,7 @@ export function CommunicationsEditor({ initialMaintenance, initialPosts }: { ini
 
   async function showMore(kind: "maintenance" | "blog") {
     const items = kind === "maintenance" ? maintenance : posts;
+    const offset = kind === "maintenance" ? maintenanceOffset : postsOffset;
     const visible = kind === "maintenance" ? maintenanceVisible : postsVisible;
     if (visible < items.length) {
       kind === "maintenance" ? setMaintenanceVisible(visible + 12) : setPostsVisible(visible + 12);
@@ -44,15 +47,17 @@ export function CommunicationsEditor({ initialMaintenance, initialPosts }: { ini
     if (!hasMore) return;
     setLoadingMore(kind);
     try {
-      const response = await fetch(`/api/operator/communications?kind=${kind}&offset=${items.length}`);
+      const response = await fetch(`/api/operator/communications?kind=${kind}&offset=${offset}`);
       const result = await response.json() as { items?: Array<MaintenanceNotice | EditorialPost>; hasMore?: boolean; error?: string };
       if (!response.ok || !result.items) throw new Error(result.error ?? "Older entries could not be loaded.");
       if (kind === "maintenance") {
         setMaintenance(current => [...current, ...(result.items as MaintenanceNotice[])]);
+        setMaintenanceOffset(offset + result.items.length);
         setMaintenanceHasMore(Boolean(result.hasMore));
         setMaintenanceVisible(visible + result.items.length);
       } else {
         setPosts(current => [...current, ...(result.items as EditorialPost[])]);
+        setPostsOffset(offset + result.items.length);
         setPostsHaveMore(Boolean(result.hasMore));
         setPostsVisible(visible + result.items.length);
       }
