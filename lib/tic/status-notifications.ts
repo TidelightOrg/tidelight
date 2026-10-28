@@ -3,7 +3,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { sendWithResend } from "@/lib/email/resend";
 
 type Incident = { id: number; component: string; started_at: string; resolved_at: string | null; state: string; latest_detail: string };
-type Subscription = { id: string; email: string; components: string[]; token_hash: string };
+type Subscription = { id: string; email: string; components: string[]; token_hash: string; confirmed_at: string };
 
 function escapeHtml(value: string) { return value.replace(/[&<>"']/g, char => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" })[char]!); }
 function signingSecret() { return process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || ""; }
@@ -25,16 +25,22 @@ export async function notifyStatusSubscribers() {
   ];
   let sent = 0;
   for (let offset = 0; ; offset += 500) {
-    const { data: batch, error: subscribersError } = await admin.from("tic_status_subscriptions").select("id,email,components,token_hash").not("confirmed_at", "is", null).is("unsubscribed_at", null).order("id", { ascending: true }).range(offset, offset + 499);
+    const { data: batch, error: subscribersError } = await admin.from("tic_status_subscriptions").select("id,email,components,token_hash,confirmed_at").not("confirmed_at", "is", null).is("unsubscribed_at", null).order("id", { ascending: true }).range(offset, offset + 499);
     if (subscribersError) throw new Error("Status notification subscribers could not be loaded.");
     const subscriptions = (batch ?? []) as Subscription[];
     if (!subscriptions.length) break;
+    const subscriptionIds = subscriptions.map(subscription => subscription.id);
+    const incidentIds = [...new Set(events.map(event => event.incident.id))];
+    const { data: existingDeliveries, error: deliveryLookupError } = incidentIds.length
+      ? await admin.from("tic_status_subscription_deliveries").select("subscription_id,incident_id,event_kind").in("subscription_id", subscriptionIds).in("incident_id", incidentIds)
+      : { data: [], error: null };
+    if (deliveryLookupError) throw new Error("Status notification delivery history could not be loaded.");
+    const delivered = new Set((existingDeliveries ?? []).map(row => `${row.subscription_id}:${row.incident_id}:${row.event_kind}`));
     for (const event of events) {
       for (const subscription of subscriptions) {
+      if (Date.parse(event.at) < Date.parse(subscription.confirmed_at)) continue;
       if (subscription.components?.length && !subscription.components.includes(event.incident.component)) continue;
-      const alreadySent = await admin.from("tic_status_subscription_deliveries").select("subscription_id").eq("subscription_id", subscription.id).eq("incident_id", event.incident.id).eq("event_kind", event.kind).maybeSingle();
-      if (alreadySent.error) continue;
-      if (alreadySent.data) continue;
+      if (delivered.has(`${subscription.id}:${event.incident.id}:${event.kind}`)) continue;
       const { data: claimed, error: claimError } = await admin.from("tic_status_subscription_deliveries").insert({ subscription_id: subscription.id, incident_id: event.incident.id, event_kind: event.kind, sent_at: new Date().toISOString() }).select("subscription_id").maybeSingle();
       if (claimError || !claimed) continue;
       const signature = unsubscribeSignature(subscription.id);
