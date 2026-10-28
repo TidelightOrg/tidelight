@@ -77,10 +77,17 @@ async function save(request: Request, update: boolean) {
   if (input.kind === "maintenance") {
     if (update && input.action === "resolve") {
       const resolvedAt = new Date().toISOString();
+      const { data: current, error: currentError } = await admin.from("tic_status_maintenance")
+        .select("status,starts_at").eq("id", id).maybeSingle();
+      if (currentError) return json({ error: "Maintenance could not be loaded. Try again." }, 500);
+      if (current && ["scheduled", "ongoing"].includes(current.status) && Date.parse(current.starts_at) > Date.parse(resolvedAt)) {
+        return json({ error: "This maintenance is scheduled for the future and can be resolved after it starts." }, 409);
+      }
       const { data, error } = await admin.from("tic_status_maintenance")
         .update({ status: "completed", ends_at: resolvedAt, updated_at: resolvedAt })
         .eq("id", id)
         .in("status", ["scheduled", "ongoing"])
+        .lte("starts_at", resolvedAt)
         .select("id,title,subtitle,message,affected_services,status,starts_at,ends_at,created_at,updated_at")
         .maybeSingle();
       if (error) return json({ error: "Maintenance could not be marked resolved. Try again." }, 400);
