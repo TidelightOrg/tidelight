@@ -8,6 +8,6 @@ test("new visits follow local time and saved preferences can use device or manua
   assert.ok(provider.includes('export type ThemeMode = "auto" | "device" | "manual"'));
   assert.ok(provider.includes("automaticTheme(getTimeZone())"));
   assert.ok(provider.includes('window.matchMedia?.("(prefers-color-scheme: light)")'));
-  assert.ok(provider.includes("automaticTheme(getTimeZone())"));
   assert.ok(layout.includes("automaticTheme(timeZone)"));
+  assert.ok(layout.includes('themeMode === "manual" && validTheme(savedTheme)'));
 });
