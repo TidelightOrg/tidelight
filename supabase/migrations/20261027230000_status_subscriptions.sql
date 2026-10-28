@@ -12,7 +12,9 @@ create table if not exists public.tic_status_subscription_deliveries (
   subscription_id uuid not null references public.tic_status_subscriptions(id) on delete cascade,
   incident_id bigint not null references public.tic_status_incidents(id) on delete cascade,
   event_kind text not null check(event_kind in ('new','resolved')),
-  sent_at timestamptz not null default now(),
+  delivery_status text not null default 'pending' check(delivery_status in ('pending','sent')),
+  claimed_at timestamptz not null default now(),
+  sent_at timestamptz,
   primary key(subscription_id,incident_id,event_kind)
 );
 alter table public.tic_status_subscriptions enable row level security;
@@ -58,3 +60,7 @@ end;
 $$;
 revoke all on function public.consume_tic_status_subscription_limit(text, integer) from public,anon,authenticated;
 grant execute on function public.consume_tic_status_subscription_limit(text, integer) to service_role;
+
+alter table public.tic_status_subscription_deliveries add column if not exists delivery_status text not null default 'sent';
+alter table public.tic_status_subscription_deliveries add column if not exists claimed_at timestamptz not null default now();
+alter table public.tic_status_subscription_deliveries alter column sent_at drop not null;
