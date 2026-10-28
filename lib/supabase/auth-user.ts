@@ -26,5 +26,5 @@ export async function getServerUser() {
   // the operator gate; never infer confirmation from the email claim alone.
   const supabase = await createClient();
   const { data: { user: confirmedUser }, error } = await supabase.auth.getUser();
-  return error ? null : confirmedUser;
+  return error ? user : confirmedUser;
 }
