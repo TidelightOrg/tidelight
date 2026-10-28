@@ -188,3 +188,57 @@ body {
     color: #c4f4d7;
   }
 }
+
+
+/* Keep the light-theme landing links aligned with the shared contrast palette. */
+:root:is([data-theme="daylight"], [data-theme="white"]) .landing-page .landing-nav-links a:not(.landing-nav-judge):not(.landing-nav-field-notes) {
+  color: var(--muted);
+}
+
+/* Let the full desktop navigation reflow cleanly on narrow laptop and tablet widths. */
+@media (min-width: 801px) and (max-width: 1120px) {
+  .landing-nav {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 14px;
+  }
+
+  .landing-nav-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .landing-page .landing-nav-links {
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+}
+
+/* Context.dev's mobile body copy uses a comfortable 16px reading size. */
+@media (max-width: 800px) {
+  .landing-page :is(.landing-hero p, .landing-section-lede, .landing-method p,
+    .landing-capabilities p, .landing-docs-copy > p, .landing-workflow-card > p,
+    .landing-signal-heading p, .landing-signal-stage p) {
+    font-size: 16px;
+    line-height: 1.55;
+  }
+
+  .app-shell :is(p, .description, .subtitle, .helper-text, .empty-state-description,
+    [class*="description"], [class*="subtitle"], [class*="helper-text"]) {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  .tic :is(p, .description, .subtitle, .helper-text, [class*="description"],
+    [class*="subtitle"], [class*="helper-text"]) {
+    font-size: 16px;
+    line-height: 1.5;
+  }
+
+  .tl-blog :is(.tl-blog-intro, .tl-blog-card p,
+    .tl-blog-feature article > p:not(.tl-blog-eyebrow), .tl-article-body p) {
+    font-size: 16px;
+    line-height: 1.55;
+  }
+}
