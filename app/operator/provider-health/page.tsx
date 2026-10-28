@@ -46,9 +46,9 @@ export default async function ProviderHealthPage() {
     </section>
     {error ? <div className="action-error" role="status">Provider health data is not available. Confirm the latest Supabase migration has been applied.</div> : null}
     <section className="settings-layout" aria-label="Provider health summary">
-      <article className="settings-card"><div className="eyebrow small-eyebrow">RECORDED ATTEMPTS · 30 DAYS</div><h2>{total.toLocaleString()}</h2><p>New measurements start when the provider health migration is deployed.</p></article>
+      <article className="settings-card"><div className="eyebrow small-eyebrow">RECORDED ATTEMPTS · 30 DAYS</div><h2>{total.toLocaleString()}</h2><p>New measurements start when the application update is deployed.</p></article>
       <article className="settings-card"><div className="eyebrow small-eyebrow">VALID RESPONSES</div><h2>{percent(successes, total)}</h2><p>{successes.toLocaleString()} of {total.toLocaleString()} recorded provider attempts.</p></article>
-      <article className="settings-card"><div className="eyebrow small-eyebrow">ACTIVE PROVIDERS</div><h2>{providers.length}</h2><p>{providers.length ? providers.join(" · ") : "No provider attempts recorded yet."}</p></article>
+      <article className="settings-card"><div className="eyebrow small-eyebrow">PROVIDERS OBSERVED</div><h2>{providers.length}</h2><p>{providers.length ? providers.join(" · ") : "No provider attempts recorded yet."}</p></article>
     </section>
     <section className="settings-card" style={{ marginTop: 18 }}>
       <div className="eyebrow small-eyebrow">OUTCOME BREAKDOWN</div>
