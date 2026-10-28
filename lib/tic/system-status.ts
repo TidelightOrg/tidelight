@@ -89,6 +89,42 @@ async function checkBackgroundServices(): Promise<StatusService[]> {
   }
 }
 
+export type StatusFeedEvent = { id: number; component: string; kind: "new" | "resolved"; occurredAt: string; detail: string };
+type StatusFeedIncidentRow = { id: number; component: string; started_at: string; resolved_at: string | null; latest_detail: string };
+
+export async function getStatusFeedEvents(): Promise<{ events: StatusFeedEvent[]; available: boolean }> {
+  if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !(process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY)) {
+    return { events: [], available: false };
+  }
+  try {
+    const admin = createAdminClient();
+    const since = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+    const starts: StatusFeedIncidentRow[] = [];
+    for (let offset = 0; ; offset += 500) {
+      const { data, error } = await admin.from("tic_status_incidents").select("id,component,started_at,resolved_at,latest_detail")
+        .gte("started_at", since).order("started_at", { ascending: false }).order("id", { ascending: false }).range(offset, offset + 499);
+      if (error) throw error;
+      starts.push(...(data ?? []) as StatusFeedIncidentRow[]);
+      if (!data || data.length < 500) break;
+    }
+    const resolutions: StatusFeedIncidentRow[] = [];
+    for (let offset = 0; ; offset += 500) {
+      const { data, error } = await admin.from("tic_status_incidents").select("id,component,started_at,resolved_at,latest_detail")
+        .gte("resolved_at", since).not("resolved_at", "is", null).order("resolved_at", { ascending: false }).order("id", { ascending: false }).range(offset, offset + 499);
+      if (error) throw error;
+      resolutions.push(...(data ?? []) as StatusFeedIncidentRow[]);
+      if (!data || data.length < 500) break;
+    }
+    const events = [
+      ...starts.map(row => ({ id: row.id, component: row.component, kind: "new" as const, occurredAt: row.started_at, detail: "Observed degraded during scheduled check" })),
+      ...resolutions.filter(row => row.resolved_at).map(row => ({ id: row.id, component: row.component, kind: "resolved" as const, occurredAt: row.resolved_at!, detail: row.latest_detail })),
+    ].sort((a, b) => Date.parse(b.occurredAt) - Date.parse(a.occurredAt));
+    return { events, available: true };
+  } catch {
+    return { events: [], available: false };
+  }
+}
+
 export async function getSystemStatus(options: { includeHistory?: boolean } = {}): Promise<SystemStatus> {
   const [application, docs, packages, api, researchJobs, mcp, npm, python, database, backgroundServices] = await Promise.all([
     probe("Tidelight app", "https://tidelight.app/", { href: "https://tidelight.app" }),

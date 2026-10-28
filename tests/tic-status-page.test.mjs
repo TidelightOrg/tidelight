@@ -99,10 +99,11 @@ test("rendered status preserves degraded database and native disclosure semantic
     if (name === "@/lib/tic/system-status") return { getSystemStatus: async () => fixture };
     if (name === "@/lib/tic/status-links") return { resolveStatusPagePath };
     if (name === "./status.css") return {};
+    if (name === "./status-actions") return { StatusActions: () => null };
     return require(name);
   };
   new Function("require", "module", "exports", compiled)(load, renderedModule, renderedModule.exports);
-  const html = renderToStaticMarkup(await renderedModule.exports.default());
+  const html = renderToStaticMarkup(await renderedModule.exports.default({ searchParams: Promise.resolve({}) }));
   const expectedChecked = new Date(fixture.checkedAt).toLocaleString("zh-CN", { timeZone: "UTC", timeZoneName: "short" });
   assert.match(html, /A service is experiencing issues/);
   assert.ok(html.includes(expectedChecked));
@@ -113,7 +114,7 @@ test("rendered status preserves degraded database and native disclosure semantic
   assert.equal((html.match(/ open=""/g) ?? []).length, 1);
   assert.equal((html.match(/<summary>/g) ?? []).length, 3);
   assert.match(html, /href="\/maintenance"/);
-  assert.match(html, /href="\/incidents"/);
+  assert.match(html, /href="\/history"/);
   assert.doesNotMatch(html, /All monitored services operational|role="progressbar"/);
 });
 

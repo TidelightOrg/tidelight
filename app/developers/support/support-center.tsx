@@ -22,16 +22,16 @@ function formatDate(value: string) {
   return Number.isNaN(date.getTime()) ? "Just now" : new Intl.DateTimeFormat("en", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(date);
 }
 
-export function SupportCenter({ signedIn, email, initialEcosystem, initialTicket }: { signedIn: boolean; email: string | null; initialEcosystem?: string; initialTicket?: string }) {
+export function SupportCenter({ signedIn, email, initialEcosystem, initialTicket, initialCompose, reportIntent }: { signedIn: boolean; email: string | null; initialEcosystem?: string; initialTicket?: string; initialCompose?: boolean; reportIntent?: boolean }) {
   const ecosystemDefault: Ecosystem = initialEcosystem === "packages" || initialEcosystem === "tidelight" ? initialEcosystem : "intelligence";
   const ecosystemName = names[ecosystemDefault];
-  const [tab, setTab] = useState<"home" | "messages">(initialTicket ? "messages" : "home");
+  const [tab, setTab] = useState<"home" | "messages">(initialTicket || initialCompose ? "messages" : "home");
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [active, setActive] = useState<string | null>(initialTicket ?? null);
   const [thread, setThread] = useState<Thread | null>(null);
-  const [compose, setCompose] = useState(false);
+  const [compose, setCompose] = useState(Boolean(initialCompose));
   const [ecosystem, setEcosystem] = useState<Ecosystem>(ecosystemDefault);
-  const [subject, setSubject] = useState("");
+  const [subject, setSubject] = useState(initialCompose ? "Status page issue report" : "");
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(signedIn);
   const [busy, setBusy] = useState(false);
@@ -87,7 +87,7 @@ export function SupportCenter({ signedIn, email, initialEcosystem, initialTicket
       <aside className={`tic-support-home${tab === "messages" ? " is-active" : ""}`}>
         <div className="tic-support-greeting"><span className="tic-eyebrow">TIDELIGHT SUPPORT DESK</span><h2>Hi there<span aria-hidden="true"> ✦</span><br/>How can we help?</h2><p>Get a clear answer from our developer team.</p></div>
         <button className="tic-support-start" type="button" disabled={!signedIn} onClick={() => { setCompose(true); setActive(null); setTab("messages"); setError(""); }}><span><strong>Start a conversation</strong><small>Usually answered by a Tidelight developer</small></span><b aria-hidden="true">→</b></button>
-        {!signedIn ? <Link className="tic-support-signin" href={`/login?next=${encodeURIComponent(`/developers/support?ecosystem=${ecosystem}`)}`}>Sign in to contact support <span aria-hidden="true">→</span></Link> : null}
+        {!signedIn ? <Link className="tic-support-signin" href={`/login?next=${encodeURIComponent(`/developers/support?ecosystem=${ecosystem}${reportIntent ? "&new=incident" : ""}`)}`}>Sign in to contact support <span aria-hidden="true">→</span></Link> : null}
         <div className="tic-support-health"><span className="tic-support-check" aria-hidden="true">✓</span><div><strong>Support desk available</strong><small>Messages are delivered to the Tidelight team.</small></div></div>
         <div className="tic-support-home-foot"><span>ONE ACCOUNT · THREE SYSTEMS</span><Link href={ecosystemDefault === "tidelight" ? "https://tidelight.app/" : ecosystemDefault === "packages" ? "https://package.tidelight.app/" : "https://tidelight.app/developers"}>Open {ecosystemDefault === "tidelight" ? "Tidelight" : ecosystemDefault === "packages" ? "Packages" : "Intelligence Cloud"} →</Link></div>
       </aside>

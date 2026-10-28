@@ -14,11 +14,15 @@ test("the MCP hostname maps only its public Streamable HTTP path", () => {
   assert.deepEqual(resolveServiceHostRoute("mcp.tidelight.app", "/developers"), { kind: "not-found" });
 });
 
-test("the status hostname serves the page and live health check only", () => {
+test("the status hostname serves public status pages, subscriptions, feeds, and live health", () => {
   assert.deepEqual(resolveServiceHostRoute("status.tidelight.app", "/"), { kind: "rewrite", pathname: "/status" });
   assert.deepEqual(resolveServiceHostRoute("status.tidelight.app", "/health"), { kind: "rewrite", pathname: "/api/health" });
+  assert.deepEqual(resolveServiceHostRoute("status.tidelight.app", "/history"), { kind: "rewrite", pathname: "/status/history" });
   assert.deepEqual(resolveServiceHostRoute("status.tidelight.app", "/incidents"), { kind: "rewrite", pathname: "/status/incidents" });
   assert.deepEqual(resolveServiceHostRoute("status.tidelight.app", "/maintenance"), { kind: "rewrite", pathname: "/status/maintenance" });
+  assert.equal(resolveServiceHostRoute("status.tidelight.app", "/feed.rss"), null);
+  assert.equal(resolveServiceHostRoute("status.tidelight.app", "/feed.atom"), null);
+  for (const path of ["/api/status/subscriptions", "/api/status/subscriptions/confirm", "/api/status/subscriptions/unsubscribe"]) assert.equal(resolveServiceHostRoute("status.tidelight.app", path), null);
   assert.deepEqual(resolveServiceHostRoute("status.tidelight.app", "/admin"), { kind: "not-found" });
   for (const path of ["/icon.svg", "/tidelight-mark.svg", "/manifest.webmanifest"]) {
     assert.equal(resolveServiceHostRoute("status.tidelight.app", path), null);

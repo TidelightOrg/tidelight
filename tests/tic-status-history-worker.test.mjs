@@ -6,6 +6,7 @@ import { registerHooks } from "node:module";
 const modules = {
   "@/lib/supabase/admin": 'export const createAdminClient=()=>globalThis.statusTest.admin;',
   "@/lib/tic/system-status": 'export const getSystemStatus=async()=>globalThis.statusTest.status;',
+  "@/lib/tic/status-notifications": 'export const notifyStatusSubscribers=async()=>({sent:0,skipped:true});',
 };
 const hook = registerHooks({ resolve(specifier, context, next) {
   if (specifier === "next/server") return { url: `data:text/javascript,${encodeURIComponent('export const NextResponse={json:(body,init={})=>new Response(JSON.stringify(body),init)};')}`, shortCircuit: true };

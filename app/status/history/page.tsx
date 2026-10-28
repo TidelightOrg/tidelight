@@ -4,6 +4,7 @@ import Link from "next/link";
 import { getStatusHistory } from "@/lib/tic/system-status";
 import { resolveStatusPagePath } from "@/lib/tic/status-links";
 import "../status.css";
+import { StatusActions } from "../status-actions";
 
 export const metadata: Metadata = {
   title: "History · Tidelight status",
@@ -72,6 +73,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
         <Link aria-current="page" href={historyPath}>History</Link>
         <a href="https://tidelight.app/contact">Get in touch</a>
       </nav>
+      <StatusActions />
     </header>
     <section className="tic-status-history-page" aria-labelledby="history-title">
       <p className="tic-status-breadcrumb"><Link href={statusPath}>Tidelight</Link><span>/</span><span>History</span></p>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { getSystemStatus } from "@/lib/tic/system-status";
 import { resolveStatusPagePath } from "@/lib/tic/status-links";
 import "./status.css";
+import { StatusActions } from "./status-actions";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -11,8 +12,8 @@ export const metadata: Metadata = {
   description: "Live status for Tidelight products, developer services, APIs, and package registries.",
 };
 
-export default async function StatusPage() {
-  const [status, requestHeaders, cookieStore] = await Promise.all([getSystemStatus(), headers(), cookies()]);
+export default async function StatusPage({ searchParams }: { searchParams: Promise<{ subscription?: string }> }) {
+  const [status, requestHeaders, cookieStore, params] = await Promise.all([getSystemStatus(), headers(), cookies(), searchParams]);
   const statusPath = resolveStatusPagePath(requestHeaders.get("host"), "/status");
   const maintenancePath = resolveStatusPagePath(requestHeaders.get("host"), "/status/maintenance");
   const incidentsPath = resolveStatusPagePath(requestHeaders.get("host"), "/status/history");
@@ -64,10 +65,12 @@ export default async function StatusPage() {
       <nav aria-label="Status navigation">
         <Link aria-current="page" href={statusPath}>Status</Link>
         <Link href={maintenancePath}>Maintenance</Link>
-        <Link href={incidentsPath}>History</Link>
+        <Link href={resolveStatusPagePath(requestHeaders.get("host"), "/status/history")}>History</Link>
         <a href="https://tidelight.app/contact">Get in touch</a>
       </nav>
+      <StatusActions />
     </header>
+    {params.subscription ? <p className="tic-status-subscription-result" role="status">{params.subscription === "confirmed" ? "Your email subscription is confirmed." : params.subscription === "unsubscribed" ? "You have been unsubscribed from status email." : "Subscription could not be completed. Please try again."}</p> : null}
     <div className={`tic-status-summary ${status.status}`} role="status">
       <span className="tic-status-summary-icon" aria-hidden="true">{status.status === "operational" ? "✓" : "!"}</span>
       <strong>{label}</strong>
