@@ -1,10 +1,23 @@
 "use client";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 const componentOptions = ["Tidelight app","Developer docs","Package directory","REST API","Research job API","MCP server metadata","npm registry","Python package registry","Application database","Research job processing","Scheduled paper analysis","Webhook delivery","Email delivery"];
 
 export function StatusActions() {
   const [open, setOpen] = useState(false);
+  const triggerRef = useRef<HTMLButtonElement>(null);
+  const closeRef = useRef<HTMLButtonElement>(null);
+  const wasOpen = useRef(false);
+  useEffect(() => {
+    if (open) {
+      wasOpen.current = true;
+      closeRef.current?.focus();
+      const dismiss = (event: KeyboardEvent) => { if (event.key === "Escape") setOpen(false); };
+      window.addEventListener("keydown", dismiss);
+      return () => window.removeEventListener("keydown", dismiss);
+    }
+    if (wasOpen.current) { wasOpen.current = false; triggerRef.current?.focus(); }
+  }, [open]);
   const [tab, setTab] = useState<"email"|"feeds"|"slack">("email");
   const [email, setEmail] = useState("");
   const [selected, setSelected] = useState<string[]>([]);
@@ -27,12 +40,12 @@ export function StatusActions() {
   const atom = typeof window !== "undefined" ? window.location.origin + "/feed.atom" : "/feed.atom";
   if (!open) return <div className="tic-status-actions">
     <a href="https://tidelight.app/developers/support?ecosystem=tidelight" className="tic-status-report">Report a problem</a>
-    <button type="button" className="tic-status-subscribe" onClick={() => setOpen(true)}>Subscribe to updates</button>
+    <button ref={triggerRef} type="button" className="tic-status-subscribe" onClick={() => setOpen(true)}>Subscribe to updates</button>
   </div>;
 
   return <div className="tic-status-modal-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setOpen(false); }}>
     <section className="tic-status-modal" role="dialog" aria-modal="true" aria-labelledby="status-subscribe-title">
-      <header><h2 id="status-subscribe-title">Subscribe to updates</h2><button type="button" aria-label="Close" onClick={() => setOpen(false)}>×</button></header>
+      <header><h2 id="status-subscribe-title">Subscribe to updates</h2><button ref={closeRef} type="button" aria-label="Close" onClick={() => setOpen(false)}>×</button></header>
       <div className="tic-status-tabs" role="tablist" aria-label="Notification method">
         <button type="button" role="tab" aria-selected={tab==="email"} onClick={() => setTab("email")}>Email</button>
         <button type="button" role="tab" aria-selected={tab==="feeds"} onClick={() => setTab("feeds")}>RSS / Atom</button>
