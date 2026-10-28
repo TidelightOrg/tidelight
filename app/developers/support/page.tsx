@@ -21,6 +21,6 @@ export default async function DeveloperSupportPage({ searchParams }: { searchPar
   const user = await getServerUser();
   return <main className="tic tic-landing tic-support-page">
     <PlatformNav active="support" ecosystem={ecosystem} />
-    <SupportCenter signedIn={Boolean(user)} email={user?.email ?? null} initialEcosystem={params.ecosystem} initialTicket={params.ticket} initialCompose={params.new === "incident" && Boolean(user)} />
+    <SupportCenter signedIn={Boolean(user)} email={user?.email ?? null} initialEcosystem={params.ecosystem} initialTicket={params.ticket} initialCompose={params.new === "incident" && Boolean(user)} reportIntent={params.new === "incident"} />
   </main>;
 }
