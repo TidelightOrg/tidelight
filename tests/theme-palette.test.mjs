@@ -12,11 +12,11 @@ test("Light and Dark palettes support automatic and device preferences", async (
   assert.match(provider, /id: "white", name: "White"/);
   assert.match(provider, /id: "auto", label: "Automatic"/);
   assert.match(provider, /id: "device", label: "Device"/);
-  assert.match(provider, /name: "sun"/);
-  assert.match(provider, /name: "device"/);
-  assert.match(provider, /name: "moon"/);
+  assert.ok(provider.includes('icon: "sun"'));
+  assert.ok(provider.includes('icon: "device"'));
+  assert.ok(provider.includes('icon: "moon"'));
   assert.match(provider, /value === "white" \|\| value === "dark"/);
-  assert.match(layout, /themeMode === "manual" && validTheme\\(savedTheme\\)/);
+  assert.ok(layout.includes("themeMode === \"manual\" && validTheme(savedTheme)"));
   assert.match(css, /\.theme-picker\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(css, /:root\[data-theme="white"\]\{color-scheme:light/);
   assert.match(css, /:root\[data-theme="dark"\]\{color-scheme:dark/);
