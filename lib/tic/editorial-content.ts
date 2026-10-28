@@ -57,7 +57,7 @@ export async function getOperatorEditorialContent(): Promise<{ maintenance: Main
 
 function toArticle(post: EditorialPost): BlogArticle {
   const publishedAt = post.published_at ?? post.created_at;
-  const words = post.body.trim().split(/\\s+/).filter(Boolean).length;
+  const words = post.body.trim().split(/\s+/).filter(Boolean).length;
   return {
     slug: post.slug,
     category: post.category,
@@ -65,7 +65,7 @@ function toArticle(post: EditorialPost): BlogArticle {
     readTime: `${Math.max(1, Math.ceil(words / 220))} min read`,
     title: post.title,
     dek: post.subtitle,
-    sections: [{ heading: "The update", paragraphs: post.body.split(/\\n{2,}/).map(part => part.trim()).filter(Boolean) }],
+    sections: [{ heading: "The update", paragraphs: post.body.split(/\n{2,}/).map(part => part.trim()).filter(Boolean) }],
   };
 }
 
