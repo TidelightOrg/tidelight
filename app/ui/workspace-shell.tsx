@@ -56,11 +56,11 @@ export default function WorkspaceShell({ children, email, avatarUrl, displayName
   const profileInitial = profileLabel.slice(0, 1).toUpperCase() || "T";
   const [mobileMenuPath, setMobileMenuPath] = useState<string | null>(null);
   const mobileMenuOpen = mobileMenuPath === pathname;
-  const active = visibleNavigation.find((item) => item.href === pathname) ?? navigation[0];
+  const active = visibleNavigation.find((item) => item.href === pathname) ?? visibleNavigation[0];
 
   useEffect(() => {
     if (mode !== "mini") return;
-    const isTechnicalRoute = navigationGroups.flatMap((group) => group.items).some((item) => item.technical && (pathname === item.href || pathname.startsWith(`${item.href}/`)));
+    const isTechnicalRoute = miniModeBlockedRoutes.some((route) => pathname === route || pathname.startsWith(`${route}/`));
     if (isTechnicalRoute) router.replace("/");
   }, [mode, pathname, router]);
 
