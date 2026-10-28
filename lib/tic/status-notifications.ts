@@ -32,16 +32,29 @@ export async function notifyStatusSubscribers() {
     const subscriptionIds = subscriptions.map(subscription => subscription.id);
     const incidentIds = [...new Set(events.map(event => event.incident.id))];
     const { data: existingDeliveries, error: deliveryLookupError } = incidentIds.length
-      ? await admin.from("tic_status_subscription_deliveries").select("subscription_id,incident_id,event_kind").in("subscription_id", subscriptionIds).in("incident_id", incidentIds)
+      ? await admin.from("tic_status_subscription_deliveries").select("subscription_id,incident_id,event_kind,delivery_status,claimed_at").in("subscription_id", subscriptionIds).in("incident_id", incidentIds)
       : { data: [], error: null };
     if (deliveryLookupError) throw new Error("Status notification delivery history could not be loaded.");
-    const delivered = new Set((existingDeliveries ?? []).map(row => `${row.subscription_id}:${row.incident_id}:${row.event_kind}`));
+    const deliveryState = new Map((existingDeliveries ?? []).map(row => [`${row.subscription_id}:${row.incident_id}:${row.event_kind}`, row]));
+    const staleClaimBefore = new Date(Date.now() - 10 * 60 * 1000).toISOString();
     for (const event of events) {
       for (const subscription of subscriptions) {
       if (Date.parse(event.at) < Date.parse(subscription.confirmed_at)) continue;
       if (subscription.components?.length && !subscription.components.includes(event.incident.component)) continue;
-      if (delivered.has(`${subscription.id}:${event.incident.id}:${event.kind}`)) continue;
-      const { data: claimed, error: claimError } = await admin.from("tic_status_subscription_deliveries").insert({ subscription_id: subscription.id, incident_id: event.incident.id, event_kind: event.kind, sent_at: new Date().toISOString() }).select("subscription_id").maybeSingle();
+      const deliveryKey = `${subscription.id}:${event.incident.id}:${event.kind}`;
+      const prior = deliveryState.get(deliveryKey);
+      if (prior?.delivery_status === "sent") continue;
+      if (prior?.delivery_status === "pending") {
+        if (prior.claimed_at >= staleClaimBefore) continue;
+        const { error: releaseError } = await admin.from("tic_status_subscription_deliveries").delete()
+          .eq("subscription_id", subscription.id).eq("incident_id", event.incident.id).eq("event_kind", event.kind)
+          .eq("delivery_status", "pending").lt("claimed_at", staleClaimBefore);
+        if (releaseError) continue;
+      }
+      const { data: claimed, error: claimError } = await admin.from("tic_status_subscription_deliveries").insert({
+        subscription_id: subscription.id, incident_id: event.incident.id, event_kind: event.kind,
+        delivery_status: "pending", claimed_at: new Date().toISOString(), sent_at: null,
+      }).select("subscription_id").maybeSingle();
       if (claimError || !claimed) continue;
       const signature = unsubscribeSignature(subscription.id);
       const unsubscribe = `${process.env.NEXT_PUBLIC_APP_URL || "https://status.tidelight.app"}/api/status/subscriptions/unsubscribe?id=${encodeURIComponent(subscription.id)}&signature=${encodeURIComponent(signature)}`;
@@ -53,9 +66,12 @@ export async function notifyStatusSubscribers() {
           html: `<p><strong>${escapeHtml(event.incident.component)}</strong> — ${event.kind === "new" ? "is experiencing an issue" : "has been resolved"}.</p><p>${escapeHtml(event.incident.latest_detail)}</p><p><a href="${process.env.NEXT_PUBLIC_APP_URL || "https://status.tidelight.app"}/incidents#${event.incident.id}">View status update</a></p><p><a href="${unsubscribe}">Unsubscribe from status emails</a></p>`,
           idempotencyKey: `status-${event.kind}:${event.incident.id}:${subscription.id}`,
         });
+        const { error: markSentError } = await admin.from("tic_status_subscription_deliveries").update({ delivery_status: "sent", sent_at: new Date().toISOString() })
+          .eq("subscription_id", subscription.id).eq("incident_id", event.incident.id).eq("event_kind", event.kind).eq("delivery_status", "pending");
+        if (markSentError) throw markSentError;
         sent++;
       } catch {
-        await admin.from("tic_status_subscription_deliveries").delete().eq("subscription_id", subscription.id).eq("incident_id", event.incident.id).eq("event_kind", event.kind);
+        await admin.from("tic_status_subscription_deliveries").delete().eq("subscription_id", subscription.id).eq("incident_id", event.incident.id).eq("event_kind", event.kind).eq("delivery_status", "pending");
       }
       }
     }
