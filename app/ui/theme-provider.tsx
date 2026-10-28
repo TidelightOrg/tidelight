@@ -69,9 +69,9 @@ const subscribe = (callback: () => void) => {
   };
 };
 
-export function ThemeProvider({ children, initialTheme = DEFAULT_THEME }: { children: ReactNode; initialTheme?: Theme }) {
+export function ThemeProvider({ children, initialTheme = DEFAULT_THEME, initialMode = "auto" }: { children: ReactNode; initialTheme?: Theme; initialMode?: ThemeMode }) {
   const theme = useSyncExternalStore(subscribe, getTheme, (): Theme => initialTheme);
-  const mode = useSyncExternalStore(subscribe, getThemeMode, (): ThemeMode => "auto");
+  const mode = useSyncExternalStore(subscribe, getThemeMode, (): ThemeMode => initialMode);
   const experienceMode = useSyncExternalStore(
     callback => {
       window.addEventListener("storage", callback);
