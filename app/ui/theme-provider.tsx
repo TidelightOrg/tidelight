@@ -49,7 +49,7 @@ const getTheme = (): Theme => {
     const selected = cookieValue("tidelight-theme");
     if (validTheme(selected)) return selected;
   }
-  return automaticTheme(cookieValue("tidelight-timezone") || getTimeZone());
+  return automaticTheme(getTimeZone());
 };
 const syncTheme = (theme: Theme) => {
   writeCookie("tidelight-timezone", getTimeZone());
