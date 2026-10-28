@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
 import { articles } from "./articles";
+import { getPublishedBlogArticles } from "@/lib/tic/editorial-content";
 import "./blog.css";
 
 export const metadata: Metadata = {
@@ -11,8 +12,14 @@ export const metadata: Metadata = {
   openGraph: { title: "Field Notes — Tidelight", description: "Product notes, developer guides, and ideas from across the Tidelight ecosystem.", url: "https://blogs.tidelight.app", siteName: "Tidelight", type: "website" },
 };
 
-export default function BlogHome() {
-  const [featured, ...latest] = articles;
+export const dynamic = "force-dynamic";
+
+export default async function BlogHome() {
+  let published: typeof articles = [];
+  try { published = await getPublishedBlogArticles(); } catch { /* Built-in articles remain available if the editorial store is unavailable. */ }
+  const allArticles = [...published, ...articles.filter(article => !published.some(item => item.slug === article.slug))];
+  const [featured, ...latest] = allArticles;
+  if (!featured) return <main className="tl-blog"><nav className="tl-blog-nav" aria-label="Main navigation"><Link href="https://tidelight.app" className="tl-blog-brand"><Image src="/tidelight-mark.svg" alt="" width={30} height={30}/><span>Tidelight</span><i/>Field Notes</Link></nav><section className="tl-blog-hero"><div className="tl-blog-hero-copy"><p className="tl-blog-eyebrow"><span/> NOTES FROM THE ECOSYSTEM</p><h1>Ideas for a clearer<br/><em>view of the signal.</em></h1><p className="tl-blog-intro">New stories are on the way.</p></div></section></main>;
   return <main className="tl-blog">
     <nav className="tl-blog-nav" aria-label="Main navigation"><Link href="https://tidelight.app" className="tl-blog-brand"><Image src="/tidelight-mark.svg" alt="" width={30} height={30}/><span>Tidelight</span><i/>Field Notes</Link><div><Link href="#latest">Stories</Link><Link href="https://tidelight.app/developers">Developers</Link><Link className="tl-blog-social" href="https://x.com/TidelightOrg" target="_blank" rel="noreferrer">Follow on X <span aria-hidden="true">↗</span></Link></div></nav>
     <section className="tl-blog-hero"><div className="tl-blog-hero-copy"><p className="tl-blog-eyebrow"><span/> NOTES FROM THE ECOSYSTEM</p><h1>Ideas for a clearer<br/><em>view of the signal.</em></h1><p className="tl-blog-intro">Product notes, developer guides, and thoughtful perspectives from Tidelight. Made for curious builders and careful market observers.</p><a className="tl-blog-scroll" href="#latest">Explore the journal <span>↓</span></a></div><aside className="tl-blog-hero-art" aria-label="Tidelight editorial mark"><div className="tl-blog-orbit tl-blog-orbit-a"/><div className="tl-blog-orbit tl-blog-orbit-b"/><span className="tl-blog-art-kicker">TIDELIGHT / FIELD NOTES</span><div className="tl-blog-art-core"><Image src="/tidelight-mark.svg" alt="" width={46} height={46}/><span>Clarity<br/>in context.</span></div><span className="tl-blog-art-caption">MARKETS · METHODS · MAKING</span></aside></section>
