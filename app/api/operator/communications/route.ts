@@ -118,9 +118,11 @@ async function save(request: Request, update: boolean) {
         ? existingMaintenance.ends_at
         : new Date().toISOString()
       : endsAt;
-    if (completedAt && Date.parse(completedAt) < Date.parse(startsAt)) return json({ error: "The resolution time must be after the start time." }, 400);
     if (status === "completed" && completedAt && Date.parse(startsAt) > Date.parse(completedAt)) {
       return json({ error: "A future maintenance cannot be marked completed before it starts." }, 409);
+    }
+    if (status !== "completed" && endsAt && Date.parse(endsAt) < Date.parse(startsAt)) {
+      return json({ error: "The end time must be after the start time." }, 400);
     }
     const values = {
       title, subtitle, message, affected_services: affectedServices, status,
