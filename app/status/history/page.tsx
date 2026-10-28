@@ -53,7 +53,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
   const [host, history, params] = await Promise.all([headers().then(value => value.get("host")), getStatusHistory(), searchParams]);
   const statusPath = resolveStatusPagePath(host, "/status");
   const historyPath = resolveStatusPagePath(host, "/status/history");
-  const selectedMonth = /^\d{4}-\d{2}$/.test(params.month ?? "") ? monthStart(params.month!) : monthStart(new Date());
+  const selectedMonth = /^\d{4}-\d{2}$/.test(params.month ?? "") ? monthStart(params.month!) : monthStart(monthKey(new Date()));
   const selectedKey = monthKey(selectedMonth);
   const previousMonth = new Date(Date.UTC(selectedMonth.getUTCFullYear(), selectedMonth.getUTCMonth() - 1, 1));
   const nextMonth = new Date(Date.UTC(selectedMonth.getUTCFullYear(), selectedMonth.getUTCMonth() + 1, 1));
