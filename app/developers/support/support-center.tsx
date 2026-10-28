@@ -22,16 +22,16 @@ function formatDate(value: string) {
   return Number.isNaN(date.getTime()) ? "Just now" : new Intl.DateTimeFormat("en", { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" }).format(date);
 }
 
-export function SupportCenter({ signedIn, email, initialEcosystem, initialTicket }: { signedIn: boolean; email: string | null; initialEcosystem?: string; initialTicket?: string }) {
+export function SupportCenter({ signedIn, email, initialEcosystem, initialTicket, initialCompose }: { signedIn: boolean; email: string | null; initialEcosystem?: string; initialTicket?: string; initialCompose?: boolean }) {
   const ecosystemDefault: Ecosystem = initialEcosystem === "packages" || initialEcosystem === "tidelight" ? initialEcosystem : "intelligence";
   const ecosystemName = names[ecosystemDefault];
-  const [tab, setTab] = useState<"home" | "messages">(initialTicket ? "messages" : "home");
+  const [tab, setTab] = useState<"home" | "messages">(initialTicket || initialCompose ? "messages" : "home");
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [active, setActive] = useState<string | null>(initialTicket ?? null);
   const [thread, setThread] = useState<Thread | null>(null);
-  const [compose, setCompose] = useState(false);
+  const [compose, setCompose] = useState(Boolean(initialCompose));
   const [ecosystem, setEcosystem] = useState<Ecosystem>(ecosystemDefault);
-  const [subject, setSubject] = useState("");
+  const [subject, setSubject] = useState(initialCompose ? "Status page issue report" : "");
   const [draft, setDraft] = useState("");
   const [loading, setLoading] = useState(signedIn);
   const [busy, setBusy] = useState(false);
