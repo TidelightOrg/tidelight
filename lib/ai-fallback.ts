@@ -37,7 +37,22 @@ export type AiRequestOptions = {
   deadlineAt?: number;
   provider?: Provider["label"];
   onSuccess?: (provider: { label: Provider["label"]; model: string }) => void;
+  /** Sanitized provider-call telemetry. Callback errors never affect research. */
+  onAttempt?: (attempt: ProviderAttempt) => void;
 };
+
+export type ProviderAttempt = {
+  provider: Provider["label"];
+  model: string;
+  attempt: number;
+  outcome: "success" | "http_error" | "invalid_response" | "timeout" | "network_error";
+  durationMs: number;
+  httpStatus?: number;
+};
+
+function reportAttempt(callback: AiRequestOptions["onAttempt"], attempt: ProviderAttempt) {
+  try { callback?.(attempt); } catch { /* Telemetry must not change the research result. */ }
+}
 
 type AiPayload = {
   choices?: Array<{ finish_reason?: string; message?: { content?: string | null } }>;
@@ -75,9 +90,16 @@ export async function aiJsonWithFallback(messages: Message[], valid: (value: Rec
       ? Math.min(deadlineAt, Date.now() + (remaining >= 30000 ? Math.min(16000, remaining - 22000) : Math.min(12000, Math.floor(remaining / 3))))
       : deadlineAt;
     for (let attempt = 0; attempt < 2; attempt++) {
+      const attemptStartedAt = Date.now();
+      let reported = false;
+      const report = (outcome: ProviderAttempt["outcome"], httpStatus?: number) => {
+        if (reported) return;
+        reported = true;
+        reportAttempt(options.onAttempt, { provider: provider.label, model: provider.model, attempt: attempt + 1, outcome, durationMs: Math.max(0, Date.now() - attemptStartedAt), ...(httpStatus === undefined ? {} : { httpStatus }) });
+      };
       const nativeGemini = provider.label === "gemini";
       const timeoutMs = Math.min(providerDeadline - Date.now(), attempt === 0 ? (nativeGemini ? 22000 : 16000) : 9000);
-      if (timeoutMs <= 0) break;
+      if (timeoutMs <= 0) { report("timeout"); break; }
       const controller = new AbortController();
       let timer: ReturnType<typeof setTimeout> | undefined;
       try {
@@ -121,13 +143,15 @@ export async function aiJsonWithFallback(messages: Message[], valid: (value: Rec
         const { response, payload } = await Promise.race([request(), timedOut]);
         if (Date.now() >= providerDeadline) throw new DOMException("AI request timed out", "TimeoutError");
         if (!response.ok) {
+          report("http_error", response.status);
           failures.push(`${provider.label}-http-${response.status}`);
           if (attempt === 0 && [429, 500, 502, 503, 504].includes(response.status)) continue;
           break;
         }
         const output = payload ? responseText(payload, nativeGemini) : "";
         const parsed = jsonObject(output);
-        if (parsed && valid(parsed)) { options.onSuccess?.({ label: provider.label, model: provider.model }); return parsed; }
+        if (parsed && valid(parsed)) { report("success"); options.onSuccess?.({ label: provider.label, model: provider.model }); return parsed; }
+        report("invalid_response");
         // Only shape and finish metadata are logged; supplied evidence and
         // provider output may contain private research questions.
         console.warn("ai-provider-invalid", {
@@ -143,10 +167,13 @@ export async function aiJsonWithFallback(messages: Message[], valid: (value: Rec
         if (attempt === 0 && timeoutMs > 9000) continue;
         break;
       } catch (error) {
-        failures.push(`${provider.label}-${error instanceof Error && error.name === "TimeoutError" ? "timeout" : "network-error"}`);
+        const timedOut = error instanceof Error && error.name === "TimeoutError";
+        report(timedOut ? "timeout" : "network_error");
+        failures.push(`${provider.label}-${timedOut ? "timeout" : "network-error"}`);
         // A timed-out provider should yield to the next provider immediately.
         break;
       } finally {
+        if (!reported) report("network_error");
         clearTimeout(timer);
       }
     }

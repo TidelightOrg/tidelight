@@ -47,6 +47,39 @@ test("Qwen receives JSON instructions and a valid result avoids fallback", async
   assert.equal(fetch.mock.callCount(), 1);
 });
 
+test("provider attempts report successful calls with bounded metadata", async t => {
+  configure(t, false);
+  t.mock.method(globalThis, "fetch", async () => gemini([{ text: JSON.stringify(answer) }]));
+  const attempts = [];
+  await aiJsonWithFallback(messages, valid, { onAttempt: attempt => attempts.push(attempt) });
+  assert.equal(attempts.length, 1);
+  assert.deepEqual({ ...attempts[0], durationMs: 0 }, { provider: "gemini", model: "gemini-test", attempt: 1, outcome: "success", durationMs: 0 });
+  assert.ok(attempts[0].durationMs >= 0);
+  assert.equal(JSON.stringify(attempts).includes("Grounded result"), false);
+  assert.equal(JSON.stringify(attempts).includes("test-gemini-key"), false);
+});
+
+test("provider attempt diagnostics record retry failures and success in order", async t => {
+  configure(t);
+  let qwenCalls = 0;
+  t.mock.method(globalThis, "fetch", async url => {
+    if (url.includes("bitgetops")) return ++qwenCalls === 1 ? new Response("Unavailable", { status: 503 }) : qwen(JSON.stringify(answer));
+    return gemini([{ text: JSON.stringify(answer) }]);
+  });
+  const attempts = [];
+  await aiJsonWithFallback(messages, valid, { onAttempt: attempt => attempts.push(attempt) });
+  assert.deepEqual(attempts.map(({ provider, attempt, outcome, httpStatus }) => ({ provider, attempt, outcome, httpStatus })), [
+    { provider: "qwen", attempt: 1, outcome: "http_error", httpStatus: 503 },
+    { provider: "qwen", attempt: 2, outcome: "success", httpStatus: undefined },
+  ]);
+});
+
+test("provider attempt callback exceptions never break a valid research response", async t => {
+  configure(t, false);
+  t.mock.method(globalThis, "fetch", async () => gemini([{ text: JSON.stringify(answer) }]));
+  assert.deepEqual(await aiJsonWithFallback(messages, valid, { onAttempt: () => { throw new Error("telemetry unavailable"); } }), answer);
+});
+
 test("native Gemini excludes thought text and joins only final answer parts", async t => {
   configure(t);
   const fetch = t.mock.method(globalThis, "fetch", async (url, init) => {
