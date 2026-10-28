@@ -106,10 +106,25 @@ async function save(request: Request, update: boolean) {
     if (!title || !subtitle || !message || !startsAt || endsAt === undefined || !maintenanceStates.has(status)) {
       return json({ error: "Add a heading, subheading, message, valid start time, and maintenance state." }, 400);
     }
-    if (endsAt && Date.parse(endsAt) < Date.parse(startsAt)) return json({ error: "The end time must be after the start time." }, 400);
+    let existingMaintenance: { status: string; ends_at: string | null } | null = null;
+    if (update && status === "completed") {
+      const { data, error } = await admin.from("tic_status_maintenance")
+        .select("status,ends_at").eq("id", id).maybeSingle();
+      if (error) return json({ error: "Maintenance could not be loaded. Try again." }, 500);
+      existingMaintenance = data;
+    }
+    const completedAt = status === "completed"
+      ? existingMaintenance?.status === "completed" && existingMaintenance.ends_at
+        ? existingMaintenance.ends_at
+        : new Date().toISOString()
+      : endsAt;
+    if (completedAt && Date.parse(completedAt) < Date.parse(startsAt)) return json({ error: "The resolution time must be after the start time." }, 400);
+    if (status === "completed" && completedAt && Date.parse(startsAt) > Date.parse(completedAt)) {
+      return json({ error: "A future maintenance cannot be marked completed before it starts." }, 409);
+    }
     const values = {
       title, subtitle, message, affected_services: affectedServices, status,
-      starts_at: startsAt, ends_at: endsAt, updated_at: new Date().toISOString(),
+      starts_at: startsAt, ends_at: completedAt, updated_at: new Date().toISOString(),
       ...(update ? {} : { created_by_email: user.email ?? null }),
     };
     const query = update
