@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 
-test("Dark and White are the only themes, with Dark as the default", async () => {
+test("Light and Dark palettes support automatic and device preferences", async () => {
   const provider = await readFile(new URL("../app/ui/theme-provider.tsx", import.meta.url), "utf8");
   const layout = await readFile(new URL("../app/layout.tsx", import.meta.url), "utf8");
   const css = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
@@ -10,7 +10,11 @@ test("Dark and White are the only themes, with Dark as the default", async () =>
   assert.match(provider, /const DEFAULT_THEME: Theme = "dark"/);
   assert.match(provider, /id: "dark", name: "Dark"/);
   assert.match(provider, /id: "white", name: "White"/);
-  assert.doesNotMatch(provider, /id: "(?:daylight|night|blue)"|automaticTheme|"auto"/);
+  assert.match(provider, /id: "auto", label: "Automatic"/);
+  assert.match(provider, /id: "device", label: "Device"/);
+  assert.match(provider, /name: "sun"/);
+  assert.match(provider, /name: "device"/);
+  assert.match(provider, /name: "moon"/);
   assert.match(provider, /value === "white" \|\| value === "dark"/);
   assert.match(layout, /savedTheme === "white" \|\| savedTheme === "dark"\) \? savedTheme : "dark"/);
   assert.match(css, /\.theme-picker\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
