@@ -11,6 +11,12 @@ const OPERATOR_EMAILS = new Set([
   "tesseraagent.bg@gmail.com",
 ]);
 
+export function isTidelightOperatorEmail(value: string | null | undefined): boolean {
+  if (!value) return false;
+  const email = value.trim().toLowerCase();
+  return OPERATOR_EMAILS.has(email) || email.endsWith("@tidelight.app");
+}
+
 /** Use only a Supabase Auth user returned by getUser() on the server. */
 export function isTidelightOperator(user: OperatorIdentity | null | undefined): boolean {
   if (!user) return false;
@@ -22,6 +28,5 @@ export function isTidelightOperator(user: OperatorIdentity | null | undefined): 
   if (assignedRole) return true;
 
   if (!user.email || !user.email_confirmed_at) return false;
-  const email = user.email.trim().toLowerCase();
-  return OPERATOR_EMAILS.has(email) || email.endsWith("@tidelight.app");
+  return isTidelightOperatorEmail(user.email);
 }
