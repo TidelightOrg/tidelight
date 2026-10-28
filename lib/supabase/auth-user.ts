@@ -2,6 +2,7 @@ import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { decodeVerifiedAuthUser } from "@/lib/supabase/verified-auth-claims";
 import { isTidelightOperatorEmail } from "@/lib/auth/operator-access";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 /** Read the verified user identity forwarded by Proxy, or verify cookies directly. */
 export async function getServerAuthState() {
@@ -24,7 +25,7 @@ export async function getServerUser() {
   // The signed access token does not always include email_confirmed_at.
   // Re-read only allowlisted operator identities from Auth before applying
   // the operator gate; never infer confirmation from the email claim alone.
-  const supabase = await createClient();
-  const { data: { user: confirmedUser }, error } = await supabase.auth.getUser();
+  const admin = createAdminClient();
+  const { data: { user: confirmedUser }, error } = await admin.auth.admin.getUserById(user.id);
   return error ? user : confirmedUser;
 }
