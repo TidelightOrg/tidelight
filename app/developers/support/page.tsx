@@ -14,13 +14,13 @@ export const metadata: Metadata = {
   description: "Get human help with the Tidelight developer platform, APIs, MCP, and official packages.",
 };
 
-export default async function DeveloperSupportPage({ searchParams }: { searchParams: Promise<{ ecosystem?: string; ticket?: string }> }) {
+export default async function DeveloperSupportPage({ searchParams }: { searchParams: Promise<{ ecosystem?: string; ticket?: string; new?: string }> }) {
   const params = await searchParams;
   const ecosystem = params.ecosystem === "tidelight" || params.ecosystem === "packages" ? params.ecosystem : "intelligence";
   const supabase = await createClient();
   const user = await getServerUser();
   return <main className="tic tic-landing tic-support-page">
     <PlatformNav active="support" ecosystem={ecosystem} />
-    <SupportCenter signedIn={Boolean(user)} email={user?.email ?? null} initialEcosystem={params.ecosystem} initialTicket={params.ticket} />
+    <SupportCenter signedIn={Boolean(user)} email={user?.email ?? null} initialEcosystem={params.ecosystem} initialTicket={params.ticket} initialCompose={params.new === "incident" && Boolean(user)} />
   </main>;
 }
