@@ -3,12 +3,14 @@ import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getBitgetCredentials, bitgetPrivateRequest } from "@/lib/bitget-private";
 import { STOCK_PERP_UNIVERSE } from "@/lib/bitget-market";
+import { isLiveOrderExecutionEnabled, LIVE_ORDER_DISABLED_MESSAGE } from "@/lib/live-order-policy";
 
 export const dynamic = "force-dynamic";
 export async function GET(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Sign in to view your live futures account." }, { status: 401 });
+  if (!isLiveOrderExecutionEnabled()) return NextResponse.json({ error: LIVE_ORDER_DISABLED_MESSAGE }, { status: 403, headers: { "Cache-Control": "no-store" } });
   const symbol = new URL(request.url).searchParams.get("symbol")?.toUpperCase() ?? "";
   if (!STOCK_PERP_UNIVERSE.some(item => item === symbol)) return NextResponse.json({ error: "Choose a supported futures contract." }, { status: 400 });
   try {

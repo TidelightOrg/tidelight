@@ -4,6 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { BitgetRequestError, bitgetPrivateRequest, getBitgetCredentials } from "@/lib/bitget-private";
 import { enqueueFuturesAccessEmail } from "@/lib/email/futures-access";
 import { drainEmailQueue } from "@/lib/email/delivery";
+import { isLiveOrderExecutionEnabled, LIVE_ORDER_DISABLED_MESSAGE } from "@/lib/live-order-policy";
 
 export const dynamic = "force-dynamic";
 const TERMS_VERSION = "2026-10-13";
@@ -20,7 +21,7 @@ export async function GET() {
       getBitgetCredentials(user.id),
     ]);
     if (error) throw error;
-    return NextResponse.json({ status: access?.status ?? "not_requested", requestedAt: access?.requested_at ?? null, reviewedAt: access?.reviewed_at ?? null, reviewNote: access?.review_note ?? null, liveKeyConfigured: credentials?.mode === "live" }, { headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json({ status: access?.status ?? "not_requested", requestedAt: access?.requested_at ?? null, reviewedAt: access?.reviewed_at ?? null, reviewNote: access?.review_note ?? null, liveKeyConfigured: credentials?.mode === "live", liveExecutionEnabled: isLiveOrderExecutionEnabled() }, { headers: { "Cache-Control": "no-store" } });
   } catch { return NextResponse.json({ error: "Live access status is unavailable." }, { status: 503, headers: { "Cache-Control": "no-store" } }); }
 }
 
@@ -28,6 +29,7 @@ export async function POST(request: Request) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: "Sign in to request live futures access." }, { status: 401 });
+  if (!isLiveOrderExecutionEnabled()) return NextResponse.json({ error: LIVE_ORDER_DISABLED_MESSAGE }, { status: 403, headers: { "Cache-Control": "no-store" } });
   let body: { termsVersion?: unknown; accepted?: Record<string, unknown> };
   try { body = await request.json(); } catch { return NextResponse.json({ error: "Review the live trading terms and try again." }, { status: 400 }); }
   if (body.termsVersion !== TERMS_VERSION || !body.accepted || REQUIRED.some(key => body.accepted?.[key] !== true)) return NextResponse.json({ error: "All five live trading acknowledgements are required." }, { status: 400 });

@@ -4,13 +4,14 @@ import { useEffect, useState } from "react";
 import MfaChallenge from "@/app/ui/mfa-challenge";
 import { NavigationIcon } from "@/app/ui/navigation-icon";
 import AssetSearchPicker, { type PickableAsset } from "@/app/ui/asset-search-picker";
+import "./trading-live-gate.css";
 import "./trading-brand.css";
 
 type Asset = PickableAsset & { lastPrice: number };
 type Connection = { label: string; mode: "paper" | "demo" | "live"; live_enabled: boolean; last_validated_at: string } | null;
-export default function TradingWorkspace({ signedIn, assets, initialSymbol, initialIntent }: { signedIn: boolean; assets: Asset[]; initialSymbol?: string; initialIntent?: "demo" | "live" }) {
+export default function TradingWorkspace({ signedIn, assets, initialSymbol, initialIntent, liveOrdersEnabled }: { signedIn: boolean; assets: Asset[]; initialSymbol?: string; initialIntent?: "demo" | "live"; liveOrdersEnabled: boolean }) {
   const [connection, setConnection] = useState<Connection>(null);
-  const [mode, setMode] = useState<"demo" | "live">(initialIntent ?? "demo");
+  const [mode, setMode] = useState<"demo" | "live">(initialIntent === "live" && !liveOrdersEnabled ? "demo" : initialIntent ?? "demo");
   const [apiKey, setApiKey] = useState(""); const [apiSecret, setApiSecret] = useState(""); const [passphrase, setPassphrase] = useState("");
   const [busy, setBusy] = useState(false); const [error, setError] = useState(""); const [notice, setNotice] = useState("");
   const [symbol, setSymbol] = useState(initialSymbol ?? assets[0]?.symbol ?? ""); const [side, setSide] = useState<"buy" | "sell">("buy");
@@ -22,9 +23,9 @@ export default function TradingWorkspace({ signedIn, assets, initialSymbol, init
     fetch("/api/bitget/connection").then((response) => response.json().then((data) => ({ response, data }))).then(({ response, data }) => {
       if (!response.ok) return;
       setConnection(data.connection ?? null);
-      if (!initialIntent && (data.connection?.mode === "live" || data.connection?.mode === "demo")) setMode(data.connection.mode);
+      if (!initialIntent && (data.connection?.mode === "demo" || (data.connection?.mode === "live" && liveOrdersEnabled))) setMode(data.connection.mode);
     }).catch(() => {});
-  }, [signedIn, initialIntent]);
+  }, [signedIn, initialIntent, liveOrdersEnabled]);
   async function connect(event: React.FormEvent) {
     event.preventDefault(); setBusy(true); setError(""); setNotice("");
     try {
@@ -44,19 +45,21 @@ export default function TradingWorkspace({ signedIn, assets, initialSymbol, init
       setNotice(`${data.mode === "live" ? "Live" : "Demo"} ${side} order accepted for ${symbol}. Order ID: ${data.order?.orderId ?? "check Bitget order history"}.`); setConfirming(false);
     } catch (cause) { setError(cause instanceof Error ? cause.message : "Bitget did not accept this order."); } finally { setBusy(false); }
   }
-  const connectedMode = (connection?.mode === "demo" || connection?.mode === "live") && (!initialIntent || connection.mode === initialIntent);
+  const connectedMode = connection?.mode === mode && (mode !== "live" || liveOrdersEnabled) && (!initialIntent || connection.mode === initialIntent);
   return <div className="tw-grid">
     {needsMfa ? <MfaChallenge context="live_bitget_order" onVerified={() => { setNeedsMfa(false); void placeOrder(connection?.mode === "live" ? "PLACE LIVE ORDER" : "PLACE DEMO ORDER"); }} /> : null}
     {!signedIn ? <section className="settings-card"><h2>Sign in to connect an account</h2><p>Bitget keys are private to your Tidelight account.</p><a className="primary-link" href="/login">Sign in</a></section> : <>
       <section className="settings-card tw-card"><div className="settings-card-head"><span className="settings-icon mint tw-brand-icon"><NavigationIcon name="trading" className="tw-bitget-mark" /></span><div><span className="eyebrow small-eyebrow">PRIVATE BITGET CONNECTION</span><h2>{connection ? "Account verified" : "Connect your Bitget account"}</h2></div></div>
         <p>Use a dedicated {mode} API key with spot trade read and write permissions. Tidelight verifies trade read access without placing an order; Bitget checks write access when you confirm an order. Keep withdrawals disabled. Keys are encrypted on the server and never returned to this page.</p>
+        {!liveOrdersEnabled ? <p className="tw-live-disabled" role="status">Live exchange orders are disabled across this deployment. You can still connect a Bitget demo account and use the paper desks. No live credentials are accepted while this control is off.</p> : null}
         {connection ? <div className="tw-connected"><span><i/> {connection.label}</span><b>{connection.mode.toUpperCase()} · VERIFIED</b><small>Checked {new Date(connection.last_validated_at).toLocaleString()}</small><button type="button" className="nw-secondary-button" onClick={() => void disconnect()} disabled={busy}>Remove keys</button></div> : null}
-        <form className="tw-form" onSubmit={connect}><label>ACCOUNT MODE<select value={mode} onChange={(event) => setMode(event.target.value as "demo" | "live")}><option value="demo">Bitget demo · virtual funds</option><option value="live">Bitget live · real funds</option></select></label><label>API KEY<input type="password" autoComplete="off" value={apiKey} onChange={(event) => setApiKey(event.target.value)} required/></label><label>API SECRET<input type="password" autoComplete="new-password" value={apiSecret} onChange={(event) => setApiSecret(event.target.value)} required/></label><label>API PASSPHRASE<input type="password" autoComplete="new-password" value={passphrase} onChange={(event) => setPassphrase(event.target.value)} required/></label><button type="submit" className="primary-link" disabled={busy}>{busy ? "Verifying securely…" : `Verify ${mode} key`}</button></form>
+        {connection?.mode === "live" && !liveOrdersEnabled ? <p className="tw-footnote">A previously saved live connection remains encrypted and cannot place orders while the deployment control is off. Remove it here or revoke the key in Bitget.</p> : null}
+        <form className="tw-form" onSubmit={connect}><label>ACCOUNT MODE<select value={mode} onChange={(event) => setMode(event.target.value as "demo" | "live")}><option value="demo">Bitget demo · virtual funds</option><option value="live" disabled={!liveOrdersEnabled}>Bitget live · {liveOrdersEnabled ? "real funds" : "disabled"}</option></select></label><label>API KEY<input type="password" autoComplete="off" value={apiKey} onChange={(event) => setApiKey(event.target.value)} required/></label><label>API SECRET<input type="password" autoComplete="new-password" value={apiSecret} onChange={(event) => setApiSecret(event.target.value)} required/></label><label>API PASSPHRASE<input type="password" autoComplete="new-password" value={passphrase} onChange={(event) => setPassphrase(event.target.value)} required/></label><button type="submit" className="primary-link" disabled={busy}>{busy ? "Verifying securely…" : `Verify ${mode} key`}</button></form>
         <p className="tw-footnote">The Bitget API key must match the selected account mode. Tidelight can’t recover your secret; remove it here and replace it in Bitget if compromised.</p>
       </section>
       <section className="settings-card tw-card"><div className="settings-card-head"><span className="settings-icon mint tw-brand-icon"><NavigationIcon name="markets" /></span><div><span className="eyebrow small-eyebrow">CONFIRM BEFORE SENDING</span><h2>Place a spot order.</h2></div></div>
         <p>Only verified Bitget Reality stock tokens are available. This desk places one order after your confirmation; it does not turn Nightwatch signals into automatic live trades.</p>
-        {initialIntent && connection?.mode !== initialIntent ? <p className="tw-footnote" role="status">This handoff requested a {initialIntent} review. Connect a matching {initialIntent} Bitget key before continuing; the current account mode cannot be substituted.</p> : null}
+        {initialIntent === "live" && !liveOrdersEnabled ? <p className="tw-footnote" role="status">This handoff requested live execution, which is disabled across this deployment. Use the demo account or paper desk instead.</p> : initialIntent && connection?.mode !== initialIntent ? <p className="tw-footnote" role="status">This handoff requested a {initialIntent} review. Connect a matching {initialIntent} Bitget key before continuing; the current account mode cannot be substituted.</p> : null}
         <div className="tw-form tw-order-form"><AssetSearchPicker label="REALITY TOKEN" assets={assets} value={symbol} onChange={setSymbol} /><div className="tw-two"><label>SIDE<select value={side} onChange={(event) => setSide(event.target.value as "buy" | "sell")}><option value="buy">Buy</option><option value="sell">Sell</option></select></label><label>ORDER TYPE<select value={orderType} onChange={(event) => setOrderType(event.target.value as "market" | "limit")}><option value="market">Market</option><option value="limit">Limit</option></select></label></div><label>{side === "buy" && orderType === "market" ? "AMOUNT · USDT" : "QUANTITY · TOKEN"}<input inputMode="decimal" type="number" min="0" step="any" value={quantity} onChange={(event) => setQuantity(event.target.value)} placeholder={side === "buy" && orderType === "market" ? "e.g. 25" : "e.g. 0.1"}/></label>{orderType === "limit" ? <label>LIMIT PRICE · USDT<input inputMode="decimal" type="number" min="0" step="any" value={limitPrice} onChange={(event) => setLimitPrice(event.target.value)}/></label> : null}<div className="tw-order-note"><b>Reference</b><span>{selected ? `${selected.name} · ${selected.lastPrice} USDT` : "No eligible Reality token is currently available."}</span><small>Maximum estimated order value: 250 USDT. Orders may execute immediately.</small></div><button type="button" className="primary-link" disabled={!connectedMode || busy || !symbol || !quantity || assets.length === 0} onClick={() => setConfirming(true)}>Review {connection?.mode === "live" ? "live" : "demo"} order</button></div>
       </section>
       {error ? <p className="action-error" role="alert">{error}</p> : null}{notice ? <p className="action-notice" role="status">{notice}</p> : null}

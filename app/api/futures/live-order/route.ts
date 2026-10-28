@@ -5,6 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { bitgetPrivateRequest, getBitgetCredentials, BitgetRequestError } from "@/lib/bitget-private";
 import { getBitgetStockPerp, STOCK_PERP_UNIVERSE } from "@/lib/bitget-market";
 import { MAX_ORDER_ATTEMPTS_PER_HOUR } from "@/lib/bitget-order-policy";
+import { isLiveOrderExecutionEnabled, LIVE_ORDER_DISABLED_MESSAGE } from "@/lib/live-order-policy";
 
 export const dynamic = "force-dynamic";
 const MAX_MARGIN = 250;
@@ -20,6 +21,7 @@ export async function POST(request:Request) {
   const supabase=await createClient();
   const {data:{user}}=await supabase.auth.getUser();
   if(!user)return NextResponse.json({error:"Sign in to send a live futures order."},{status:401});
+  if(!isLiveOrderExecutionEnabled())return NextResponse.json({error:LIVE_ORDER_DISABLED_MESSAGE},{status:403,headers:{"Cache-Control":"no-store"}});
   let body:{symbol?:unknown;action?:unknown;margin?:unknown;leverage?:unknown;confirmation?:unknown};
   try{body=await request.json();}catch{return NextResponse.json({error:"Review the order and try again."},{status:400});}
   const symbol=typeof body.symbol==="string"?body.symbol.toUpperCase():"";
