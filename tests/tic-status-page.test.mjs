@@ -25,7 +25,9 @@ test("status navigation exposes current status, maintenance, and incident histor
   assert.match(page, /href=\{maintenancePath\}/);
   assert.match(page, /href=\{incidentsPath\}/);
   assert.match(incidents, /history\.incidents\.map/);
-  assert.match(maintenance, /no connected maintenance calendar/i);
+  assert.match(maintenance, /getMaintenanceNotices/);
+  assert.match(maintenance, /Maintenance updates are temporarily unavailable/);
+  assert.match(maintenance, /No scheduled maintenance/);
 });
 
 test("status navigation resolves both the dedicated hostname and preview paths", () => {
