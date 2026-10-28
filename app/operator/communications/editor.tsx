@@ -9,6 +9,12 @@ function localDateTime(value: string | null | undefined) {
   return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
 }
 
+function toIsoTimestamp(value: FormDataEntryValue | undefined) {
+  if (typeof value !== "string" || !value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
 function FormField({ label, children }: { label: string; children: ReactNode }) {
   return <label style={{ display: "grid", gap: 7, margin: "12px 0", fontWeight: 600 }}>{label}{children}</label>;
 }
@@ -29,7 +35,7 @@ export function CommunicationsEditor({ initialMaintenance, initialPosts }: { ini
     const editing = kind === "maintenance" ? editingMaintenance : editingPost;
     const publishedAt = editingPost?.published_at;
     const payload = kind === "maintenance"
-      ? { kind, id: editing?.id, title: raw.title, subtitle: raw.subtitle, message: raw.message, startsAt: raw.startsAt, endsAt: raw.endsAt || null, status: raw.status, affectedServices: String(raw.affectedServices ?? "").split(",").map(value => value.trim()).filter(Boolean) }
+      ? { kind, id: editing?.id, title: raw.title, subtitle: raw.subtitle, message: raw.message, startsAt: toIsoTimestamp(raw.startsAt), endsAt: toIsoTimestamp(raw.endsAt), status: raw.status, affectedServices: String(raw.affectedServices ?? "").split(",").map(value => value.trim()).filter(Boolean) }
       : { kind, id: editing?.id, title: raw.title, subtitle: raw.subtitle, category: raw.category, slug: raw.slug, body: raw.body, status: raw.status, publishedAt };
     setBusy(true);
     kind === "maintenance" ? setMaintenanceMessage("") : setPostMessage("");
