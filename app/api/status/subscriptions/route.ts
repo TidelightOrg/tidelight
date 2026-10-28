@@ -32,8 +32,6 @@ export async function POST(request: Request) {
     if (limitError) return json({ error: "Subscriptions are temporarily unavailable. Please try again later." }, 503);
     if (!allowed) return json({ error: "Please wait a minute before requesting another confirmation email." }, 429);
   }
-  const { data: existingPending, error: pendingError } = await admin.from("tic_status_subscription_pending").select("email").eq("email", email).maybeSingle();
-  if (pendingError) return json({ error: "Subscriptions are temporarily unavailable. Please try again later." }, 503);
   const { error } = await admin.from("tic_status_subscription_pending").upsert({
     email, token_hash: tokenHash, components, created_at: new Date().toISOString(),
   }, { onConflict: "email" });
