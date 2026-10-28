@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from "node:crypto";
+import { createHash, createHmac, randomBytes } from "node:crypto";
 import { NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendWithResend } from "@/lib/email/resend";
@@ -23,6 +23,17 @@ export async function POST(request: Request) {
   const token = randomBytes(32).toString("base64url");
   const tokenHash = createHash("sha256").update(token).digest("hex");
   const admin = createAdminClient();
+  const rateSecret = process.env.SUPABASE_SECRET_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+  if (!rateSecret) return json({ error: "Subscriptions are temporarily unavailable. Please try again later." }, 503);
+  const ip = request.headers.get("x-real-ip") || request.headers.get("x-forwarded-for")?.split(",").at(-1)?.trim() || "unknown";
+  const rateKeys = [`ip:${ip}`, `email:${email}`].map(key => createHmac("sha256", rateSecret).update("status-subscription-rate:" + key).digest("hex"));
+  for (const keyHash of rateKeys) {
+    const { data: allowed, error: limitError } = await admin.rpc("consume_tic_status_subscription_limit", { p_key_hash: keyHash, p_cooldown_seconds: 60 });
+    if (limitError) return json({ error: "Subscriptions are temporarily unavailable. Please try again later." }, 503);
+    if (!allowed) return json({ error: "Please wait a minute before requesting another confirmation email." }, 429);
+  }
+  const { data: existingPending, error: pendingError } = await admin.from("tic_status_subscription_pending").select("email").eq("email", email).maybeSingle();
+  if (pendingError) return json({ error: "Subscriptions are temporarily unavailable. Please try again later." }, 503);
   const { error } = await admin.from("tic_status_subscription_pending").upsert({
     email, token_hash: tokenHash, components, created_at: new Date().toISOString(),
   }, { onConflict: "email" });
