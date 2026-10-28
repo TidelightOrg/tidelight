@@ -39,6 +39,7 @@ const navigationGroups: { label: string; items: { href: string; label: string; i
   ] },
 ];
 const resourceLinks = [{ href: "/help", label: "Help", glyph: "?" }, { href: "/developers", label: "Documentation", glyph: "</>" }];
+const miniModeBlockedRoutes = ["/strategies", "/nightwatch", "/futures", "/trading", "/briefs", "/demo", "/systems", "/judge"];
 const mobilePrimaryNavigation = [
   { href: "/overview", label: "Overview", icon: "overview" as NavigationIconName },
   { href: "/flow", label: "Research", icon: "flow" as NavigationIconName },
