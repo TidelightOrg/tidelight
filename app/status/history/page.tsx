@@ -77,7 +77,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
     .sort((a, b) => Date.parse(b.startedAt) - Date.parse(a.startedAt));
   const filteredMaintenance = completedMaintenance
     .filter(notice => !params.component || params.component === "all" || params.component === "Maintenance")
-    .sort((a, b) => Date.parse(b.starts_at) - Date.parse(a.starts_at));
+    .sort((a, b) => Date.parse(b.ends_at ?? b.starts_at) - Date.parse(a.ends_at ?? a.starts_at));
   const grouped = new Map<string, typeof filteredIncidents>();
   for (const incident of filteredIncidents) {
     const key = new Date(incident.startedAt).toISOString().slice(0, 10);
@@ -85,7 +85,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
   }
   const maintenanceByDay = new Map<string, MaintenanceNotice[]>();
   for (const notice of filteredMaintenance) {
-    const key = new Date(notice.starts_at).toISOString().slice(0, 10);
+    const key = new Date(notice.ends_at ?? notice.starts_at).toISOString().slice(0, 10);
     maintenanceByDay.set(key, [...(maintenanceByDay.get(key) ?? []), notice]);
   }
   const days = [...new Set([...grouped.keys(), ...maintenanceByDay.keys()])].sort((a, b) => b.localeCompare(a));
@@ -119,9 +119,9 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
           </form>
         </details>
       </div>
-      {!history.available ? <div className="tic-status-history-empty"><strong>History is temporarily unavailable</strong>The incident archive could not be loaded. Current live checks remain available on the status page.</div>
-        : <>{!maintenanceAvailable ? <div className="tic-status-history-empty"><strong>Maintenance history is temporarily unavailable</strong>Service incident history remains available on this page.</div> : null}
-          {days.length === 0 ? <div className="tic-status-history-empty"><strong>No recorded incidents or resolved maintenance for {monthLabel(selectedMonth, locale)}</strong>Only events recorded by Tidelight appear here. Earlier periods may not have records.</div>
+      {!history.available ? <div className="tic-status-history-empty"><strong>Incident history is temporarily unavailable</strong>The incident archive could not be loaded. Current live checks remain available on the status page.</div> : null}
+      {!maintenanceAvailable ? <div className="tic-status-history-empty"><strong>Maintenance history is temporarily unavailable</strong>Service incident history remains available on this page.</div> : null}
+      {(history.available || maintenanceAvailable) && (days.length === 0 ? <div className="tic-status-history-empty"><strong>No recorded incidents or resolved maintenance for {monthLabel(selectedMonth, locale)}</strong>Only events recorded by Tidelight appear here. Earlier periods may not have records.</div>
             : <div>{days.map(key => {
               const day = new Date(key + "T00:00:00Z");
               const incidents = grouped.get(key) ?? [];
@@ -150,7 +150,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
                   </div>
                 </div>
               </section>;
-            })}</div>}</>}
+            })}</div>)}
     </section>
     <footer className="tic-status-footer"><span>One status page for the Tidelight ecosystem</span><Link href={statusPath}>Current status ↗</Link></footer>
   </main>;
