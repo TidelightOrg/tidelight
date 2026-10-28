@@ -16,7 +16,7 @@ test("Light and Dark palettes support automatic and device preferences", async (
   assert.match(provider, /name: "device"/);
   assert.match(provider, /name: "moon"/);
   assert.match(provider, /value === "white" \|\| value === "dark"/);
-  assert.match(layout, /savedTheme === "white" \|\| savedTheme === "dark"\) \? savedTheme : "dark"/);
+  assert.match(layout, /themeMode === "manual" && validTheme\\(savedTheme\\)/);
   assert.match(css, /\.theme-picker\{display:grid;grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
   assert.match(css, /:root\[data-theme="white"\]\{color-scheme:light/);
   assert.match(css, /:root\[data-theme="dark"\]\{color-scheme:dark/);
