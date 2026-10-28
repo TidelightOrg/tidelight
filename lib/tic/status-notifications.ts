@@ -15,15 +15,41 @@ export async function notifyStatusSubscribers() {
   if (!secret || !process.env.RESEND_API_KEY) return { sent: 0, skipped: true };
   const admin = createAdminClient();
   const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const [created, resolved] = await Promise.all([
-    admin.from("tic_status_incidents").select("id,component,started_at,resolved_at,state,latest_detail").gte("started_at", cutoff).order("started_at", { ascending: false }).limit(250),
-    admin.from("tic_status_incidents").select("id,component,started_at,resolved_at,state,latest_detail").gte("resolved_at", cutoff).not("resolved_at", "is", null).order("resolved_at", { ascending: false }).limit(250),
-  ]);
-  if (created.error || resolved.error) throw new Error("Status notification events could not be loaded.");
+  const pageSize = 250;
+  const createdIncidents: Incident[] = [];
+  const resolvedIncidents: Incident[] = [];
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await admin.from("tic_status_incidents")
+      .select("id,component,started_at,resolved_at,state,latest_detail")
+      .gte("started_at", cutoff)
+      .order("started_at", { ascending: true })
+      .order("id", { ascending: true })
+      .range(offset, offset + pageSize - 1);
+    if (error) throw new Error("Status notification events could not be loaded.");
+    createdIncidents.push(...(data ?? []) as Incident[]);
+    if ((data ?? []).length < pageSize) break;
+  }
+  for (let offset = 0; ; offset += pageSize) {
+    const { data, error } = await admin.from("tic_status_incidents")
+      .select("id,component,started_at,resolved_at,state,latest_detail")
+      .gte("resolved_at", cutoff)
+      .not("resolved_at", "is", null)
+      .order("resolved_at", { ascending: true })
+      .order("id", { ascending: true })
+      .range(offset, offset + pageSize - 1);
+    if (error) throw new Error("Status notification events could not be loaded.");
+    resolvedIncidents.push(...(data ?? []) as Incident[]);
+    if ((data ?? []).length < pageSize) break;
+  }
   const events = [
-    ...(created.data ?? []).map(incident => ({ incident: incident as Incident, kind: "new" as const, at: incident.started_at })),
-    ...(resolved.data ?? []).map(incident => ({ incident: incident as Incident, kind: "resolved" as const, at: incident.resolved_at! })),
-  ];
+    ...createdIncidents.map(incident => ({ incident, kind: "new" as const, at: incident.started_at })),
+    ...resolvedIncidents.map(incident => ({ incident, kind: "resolved" as const, at: incident.resolved_at! })),
+  ].sort((a, b) => {
+    const byTime = Date.parse(a.at) - Date.parse(b.at);
+    if (byTime !== 0) return byTime;
+    if (a.kind !== b.kind) return a.kind === "new" ? -1 : 1;
+    return a.incident.id - b.incident.id;
+  });
   let sent = 0;
   for (let offset = 0; ; offset += 500) {
     const { data: batch, error: subscribersError } = await admin.from("tic_status_subscriptions").select("id,email,components,token_hash,confirmed_at").not("confirmed_at", "is", null).is("unsubscribed_at", null).order("id", { ascending: true }).range(offset, offset + 499);
