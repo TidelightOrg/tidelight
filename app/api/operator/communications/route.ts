@@ -43,7 +43,7 @@ export async function GET(request: Request) {
     : "id,slug,title,subtitle,category,body,status,published_at,created_at,updated_at";
   const orderColumn = kind === "maintenance" ? "starts_at" : "updated_at";
   const { data, count, error } = await client.from(table).select(columns, { count: "exact" })
-    .order(orderColumn, { ascending: false }).range(offset, offset + 49);
+    .order(orderColumn, { ascending: false }).order("id", { ascending: true }).range(offset, offset + 49);
   if (error) return json({ error: "The content list could not be loaded." }, 500);
   return json({ items: data ?? [], hasMore: offset + (data?.length ?? 0) < (count ?? 0) });
 }
