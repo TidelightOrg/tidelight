@@ -75,6 +75,18 @@ async function save(request: Request, update: boolean) {
   const admin = createAdminClient();
 
   if (input.kind === "maintenance") {
+    if (update && input.action === "resolve") {
+      const resolvedAt = new Date().toISOString();
+      const { data, error } = await admin.from("tic_status_maintenance")
+        .update({ status: "completed", ends_at: resolvedAt, updated_at: resolvedAt })
+        .eq("id", id)
+        .in("status", ["scheduled", "ongoing"])
+        .select("id,title,subtitle,message,affected_services,status,starts_at,ends_at,created_at,updated_at")
+        .maybeSingle();
+      if (error) return json({ error: "Maintenance could not be marked resolved. Try again." }, 400);
+      if (!data) return json({ error: "This maintenance notice is already resolved or is no longer active." }, 409);
+      return json({ item: data });
+    }
     const title = text(input.title, 140);
     const subtitle = text(input.subtitle, 240);
     const message = text(input.message, 12000);
