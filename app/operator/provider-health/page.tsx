@@ -25,10 +25,12 @@ const outcomeLabels: Record<string, string> = {
   network_error: "Network error",
 };
 
+/** Formats successful provider attempts as a share of all recorded attempts. */
 function percent(value: number, total: number) {
   return total ? `${Math.round(value / total * 100)}%` : "—";
 }
 
+/** Displays aggregate provider reliability metrics to verified Tidelight operators. */
 export default async function ProviderHealthPage() {
   const user = await getServerUser();
   if (!user || !isTidelightOperator(user)) redirect("/overview");

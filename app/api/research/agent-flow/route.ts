@@ -50,6 +50,7 @@ export async function GET(request: Request) {
   return NextResponse.json({ summary: data.summary }, { headers: { "Cache-Control": "private, no-store" } });
 }
 
+/** Starts an authenticated research run and streams progress until its private result is saved. */
 export async function POST(request: Request) {
   // Reserve time for the final gates and private record commit under maxDuration.
   const analysisDeadline = Date.now() + 108_000;

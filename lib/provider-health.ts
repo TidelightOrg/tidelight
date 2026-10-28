@@ -1,7 +1,7 @@
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { ProviderAttempt } from "@/lib/ai-fallback";
 
-/** Persist only provider health fields; never attach a user, run, question, or output. */
+/** Persist at most six metadata-only attempts; abort the write after 1.5 seconds to protect research saves. */
 export async function recordProviderHealth(attempts: ProviderAttempt[]) {
   if (!attempts.length) return;
   try {
