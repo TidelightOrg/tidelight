@@ -11,8 +11,9 @@ type Job = { id: string; user_id: string; event_key: string; category: string; p
 export async function drainEmailQueue(admin: SupabaseClient) {
   if (!process.env.RESEND_API_KEY) throw new Error("Resend is not configured.");
   let delivered = 0, suppressed = 0, retried = 0, failed = 0, persistenceFailures = 0;
-  const { error: exhaustedUpdateError } = await admin.from("email_delivery_queue").update({ state: "failed", last_error_code: "attempts_exhausted" }).eq("state", "sending").gte("attempts", EMAIL_MAX_ATTEMPTS).lte("next_attempt_at", new Date().toISOString());
+  const { data: exhaustedJobs, error: exhaustedUpdateError } = await admin.from("email_delivery_queue").update({ state: "failed", last_error_code: "attempts_exhausted" }).eq("state", "sending").gte("attempts", EMAIL_MAX_ATTEMPTS).lte("next_attempt_at", new Date().toISOString()).select("id");
   if (exhaustedUpdateError) persistenceFailures++;
+  failed += exhaustedJobs?.length ?? 0;
   const { data: jobs, error } = await admin.rpc("claim_email_delivery_jobs", { p_limit: 20 });
   if (error) throw new Error("Could not claim the email delivery queue.");
   for (const job of (jobs ?? []) as Job[]) {
