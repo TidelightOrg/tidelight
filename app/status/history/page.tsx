@@ -121,8 +121,11 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
       </div>
       {!history.available ? <div className="tic-status-history-empty"><strong>Incident history is temporarily unavailable</strong>The incident archive could not be loaded. Current live checks remain available on the status page.</div> : null}
       {!maintenanceAvailable ? <div className="tic-status-history-empty"><strong>Maintenance history is temporarily unavailable</strong>Service incident history remains available on this page.</div> : null}
-      {history.available && maintenanceAvailable && days.length === 0 ? <div className="tic-status-history-empty"><strong>No recorded incidents or resolved maintenance for {monthLabel(selectedMonth, locale)}</strong>Only events recorded by Tidelight appear here. Earlier periods may not have records.</div>
-            : <div>{days.map(key => {
+      {days.length === 0
+        ? history.available && maintenanceAvailable
+          ? <div className="tic-status-history-empty"><strong>No recorded incidents or resolved maintenance for {monthLabel(selectedMonth, locale)}</strong>Only events recorded by Tidelight appear here. Earlier periods may not have records.</div>
+          : null
+        : <div>{days.map(key => {
               const day = new Date(key + "T00:00:00Z");
               const incidents = grouped.get(key) ?? [];
               const notices = maintenanceByDay.get(key) ?? [];
