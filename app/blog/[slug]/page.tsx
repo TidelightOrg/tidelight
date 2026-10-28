@@ -3,15 +3,15 @@ import Link from "next/link";
 import Image from "next/image";
 import { notFound } from "next/navigation";
 import { articleBySlug, articles } from "../articles";
+import { getBlogArticleBySlug, getPublishedBlogArticles } from "@/lib/tic/editorial-content";
 import "../blog.css";
 
-export function generateStaticParams() {
-  return articles.map(({ slug }) => ({ slug }));
-}
+export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const article = articleBySlug(slug);
+  let article = articleBySlug(slug);
+  if (!article) { try { article = await getBlogArticleBySlug(slug) ?? null; } catch { article = null; } }
   if (!article) return { title: "Story not found — Tidelight" };
   const url = `https://blogs.tidelight.app/blog/${article.slug}`;
   return {
@@ -24,9 +24,13 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function BlogArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  const article = articleBySlug(slug);
+  let article = articleBySlug(slug);
+  if (!article) { try { article = await getBlogArticleBySlug(slug) ?? null; } catch { article = null; } }
   if (!article) notFound();
-  const relatedArticles = articles.filter((item) => item.slug !== article.slug).slice(0, 2);
+  let published: typeof articles = [];
+  try { published = await getPublishedBlogArticles(); } catch { /* Keep built-in related stories available if the store is unavailable. */ }
+  const allArticles = [...published, ...articles.filter(item => !published.some(post => post.slug === item.slug))];
+  const relatedArticles = allArticles.filter((item) => item.slug !== article.slug).slice(0, 2);
   return <main className="tl-blog tl-blog-reading">
     <nav className="tl-blog-nav" aria-label="Main navigation"><Link href="https://blogs.tidelight.app" className="tl-blog-brand"><Image src="/tidelight-mark.svg" alt="" width={30} height={30}/><span>Tidelight</span><i/>Field Notes</Link><div><Link href="https://blogs.tidelight.app/#latest">Stories</Link><Link href="https://tidelight.app/developers">Developers</Link><Link className="tl-blog-social" href="https://x.com/TidelightOrg" target="_blank" rel="noreferrer">Follow on X <span aria-hidden="true">↗</span></Link></div></nav>
     <header className="tl-article-hero"><Link href="https://blogs.tidelight.app" className="tl-article-back">← Field Notes</Link><p className="tl-blog-eyebrow">{article.category} <i/> {article.readTime}</p><h1>{article.title}</h1><p>{article.dek}</p><time>{article.date}</time></header>
