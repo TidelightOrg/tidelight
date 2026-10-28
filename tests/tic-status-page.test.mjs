@@ -99,6 +99,7 @@ test("rendered status preserves degraded database and native disclosure semantic
     if (name === "@/lib/tic/system-status") return { getSystemStatus: async () => fixture };
     if (name === "@/lib/tic/status-links") return { resolveStatusPagePath };
     if (name === "./status.css") return {};
+    if (name === "./status-actions") return { StatusActions: () => null };
     return require(name);
   };
   new Function("require", "module", "exports", compiled)(load, renderedModule, renderedModule.exports);
