@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useRef, useState, type FormEvent, type ReactNode } from "react";
 import type { EditorialPost, MaintenanceNotice } from "@/lib/tic/editorial-content";
 
 function localDateTime(value: string | null | undefined) {
@@ -9,18 +9,94 @@ function localDateTime(value: string | null | undefined) {
   return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
 }
 
+function toIsoTimestamp(value: FormDataEntryValue | undefined) {
+  if (typeof value !== "string" || !value) return null;
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? null : date.toISOString();
+}
+
 function FormField({ label, children }: { label: string; children: ReactNode }) {
   return <label style={{ display: "grid", gap: 7, margin: "12px 0", fontWeight: 600 }}>{label}{children}</label>;
 }
 
 export function CommunicationsEditor({ initialMaintenance, initialPosts }: { initialMaintenance: MaintenanceNotice[]; initialPosts: EditorialPost[] }) {
   const [maintenance, setMaintenance] = useState(initialMaintenance);
+  const [maintenanceOffset, setMaintenanceOffset] = useState(initialMaintenance.length);
   const [posts, setPosts] = useState(initialPosts);
+  const [postsOffset, setPostsOffset] = useState(initialPosts.length);
+  const [maintenanceHasMore, setMaintenanceHasMore] = useState(initialMaintenance.length === 50);
+  const [postsHaveMore, setPostsHaveMore] = useState(initialPosts.length === 50);
+  const [maintenanceVisible, setMaintenanceVisible] = useState(12);
+  const [postsVisible, setPostsVisible] = useState(12);
+  const [loadingMore, setLoadingMore] = useState<"maintenance" | "blog" | null>(null);
+  const paginationGeneration = useRef({ maintenance: 0, blog: 0 });
   const [editingMaintenance, setEditingMaintenance] = useState<MaintenanceNotice | null>(null);
   const [editingPost, setEditingPost] = useState<EditorialPost | null>(null);
   const [maintenanceMessage, setMaintenanceMessage] = useState("");
   const [postMessage, setPostMessage] = useState("");
   const [busy, setBusy] = useState(false);
+
+  async function showMore(kind: "maintenance" | "blog") {
+    const items = kind === "maintenance" ? maintenance : posts;
+    const offset = kind === "maintenance" ? maintenanceOffset : postsOffset;
+    const visible = kind === "maintenance" ? maintenanceVisible : postsVisible;
+    if (visible < items.length) {
+      kind === "maintenance" ? setMaintenanceVisible(visible + 12) : setPostsVisible(visible + 12);
+      return;
+    }
+    const hasMore = kind === "maintenance" ? maintenanceHasMore : postsHaveMore;
+    if (!hasMore) return;
+    const generation = paginationGeneration.current[kind];
+    setLoadingMore(kind);
+    try {
+      const response = await fetch(`/api/operator/communications?kind=${kind}&offset=${offset}`);
+      const result = await response.json() as { items?: Array<MaintenanceNotice | EditorialPost>; hasMore?: boolean; error?: string };
+      if (!response.ok || !result.items) throw new Error(result.error ?? "Older entries could not be loaded.");
+      if (generation !== paginationGeneration.current[kind]) return;
+      if (kind === "maintenance") {
+        setMaintenance(current => [...current, ...(result.items as MaintenanceNotice[])]);
+        setMaintenanceOffset(offset + result.items.length);
+        setMaintenanceHasMore(Boolean(result.hasMore));
+        setMaintenanceVisible(visible + result.items.length);
+      } else {
+        setPosts(current => [...current, ...(result.items as EditorialPost[])]);
+        setPostsOffset(offset + result.items.length);
+        setPostsHaveMore(Boolean(result.hasMore));
+        setPostsVisible(visible + result.items.length);
+      }
+    } catch (error) {
+      if (generation === paginationGeneration.current[kind]) {
+        const message = error instanceof Error ? error.message : "Older entries could not be loaded.";
+        kind === "maintenance" ? setMaintenanceMessage(message) : setPostMessage(message);
+      }
+    } finally {
+      if (generation === paginationGeneration.current[kind]) setLoadingMore(null);
+    }
+  }
+
+  async function refreshList(kind: "maintenance" | "blog") {
+    paginationGeneration.current[kind] += 1;
+    setLoadingMore(current => current === kind ? null : current);
+    try {
+      const response = await fetch(`/api/operator/communications?kind=${kind}&offset=0`);
+      const result = await response.json() as { items?: Array<MaintenanceNotice | EditorialPost>; hasMore?: boolean };
+      if (!response.ok || !result.items) return false;
+      if (kind === "maintenance") {
+        setMaintenance(result.items as MaintenanceNotice[]);
+        setMaintenanceOffset(result.items.length);
+        setMaintenanceHasMore(Boolean(result.hasMore));
+        setMaintenanceVisible(12);
+      } else {
+        setPosts(result.items as EditorialPost[]);
+        setPostsOffset(result.items.length);
+        setPostsHaveMore(Boolean(result.hasMore));
+        setPostsVisible(12);
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>, kind: "maintenance" | "blog") {
     event.preventDefault();
@@ -29,7 +105,7 @@ export function CommunicationsEditor({ initialMaintenance, initialPosts }: { ini
     const editing = kind === "maintenance" ? editingMaintenance : editingPost;
     const publishedAt = editingPost?.published_at;
     const payload = kind === "maintenance"
-      ? { kind, id: editing?.id, title: raw.title, subtitle: raw.subtitle, message: raw.message, startsAt: raw.startsAt, endsAt: raw.endsAt || null, status: raw.status, affectedServices: String(raw.affectedServices ?? "").split(",").map(value => value.trim()).filter(Boolean) }
+      ? { kind, id: editing?.id, title: raw.title, subtitle: raw.subtitle, message: raw.message, startsAt: toIsoTimestamp(raw.startsAt), endsAt: toIsoTimestamp(raw.endsAt), status: raw.status, affectedServices: String(raw.affectedServices ?? "").split(",").map(value => value.trim()).filter(Boolean) }
       : { kind, id: editing?.id, title: raw.title, subtitle: raw.subtitle, category: raw.category, slug: raw.slug, body: raw.body, status: raw.status, publishedAt };
     setBusy(true);
     kind === "maintenance" ? setMaintenanceMessage("") : setPostMessage("");
@@ -37,16 +113,27 @@ export function CommunicationsEditor({ initialMaintenance, initialPosts }: { ini
       const response = await fetch("/api/operator/communications", { method: editing ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const result = await response.json() as { item?: MaintenanceNotice | EditorialPost; error?: string };
       if (!response.ok || !result.item) throw new Error(result.error ?? "The update could not be saved.");
+      const refreshed = await refreshList(kind);
       if (kind === "maintenance") {
-        const item = result.item as MaintenanceNotice;
-        setMaintenance(current => [item, ...current.filter(existing => existing.id !== item.id)].sort((a, b) => Date.parse(b.starts_at) - Date.parse(a.starts_at)));
+        if (!refreshed) {
+          const item = result.item as MaintenanceNotice;
+          setMaintenance(current => [item, ...current.filter(existing => existing.id !== item.id)].sort((a, b) => Date.parse(b.starts_at) - Date.parse(a.starts_at)));
+          setMaintenanceHasMore(false);
+        }
         setEditingMaintenance(null);
-        setMaintenanceMessage(editing ? "Maintenance notice updated." : "Maintenance notice published.");
+        setMaintenanceMessage(refreshed
+          ? (editing ? "Maintenance notice updated." : "Maintenance notice published.")
+          : "Saved, but the list could not refresh. Reload this page before loading older notices.");
       } else {
         const item = result.item as EditorialPost;
-        setPosts(current => [item, ...current.filter(existing => existing.id !== item.id)].sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at)));
+        if (!refreshed) {
+          setPosts(current => [item, ...current.filter(existing => existing.id !== item.id)].sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at)));
+          setPostsHaveMore(false);
+        }
         setEditingPost(null);
-        setPostMessage(item.status === "published" ? "Field Notes article published." : "Draft saved.");
+        setPostMessage(refreshed
+          ? (item.status === "published" ? "Field Notes article published." : "Draft saved.")
+          : "Saved, but the list could not refresh. Reload this page before loading older articles.");
       }
       form.reset();
     } catch (error) {
@@ -77,7 +164,7 @@ export function CommunicationsEditor({ initialMaintenance, initialPosts }: { ini
         <p role="status" aria-live="polite">{maintenanceMessage}</p>
       </form>
       <h3>Recent notices</h3>
-      {maintenance.length ? <ul>{maintenance.slice(0, 12).map(item => <li key={item.id} style={{ margin: "12px 0" }}><strong>{item.title}</strong> · {item.status} · {new Date(item.starts_at).toLocaleString()} <button type="button" onClick={() => setEditingMaintenance(item)}>Edit</button></li>)}</ul> : <p>No notices yet.</p>}
+      {maintenance.length ? <ul>{maintenance.slice(0, maintenanceVisible).map(item => <li key={item.id} style={{ margin: "12px 0" }}><strong>{item.title}</strong> · {item.status} · {new Date(item.starts_at).toLocaleString()} <button type="button" onClick={() => setEditingMaintenance(item)}>Edit</button></li>)}</ul> : <p>No notices yet.</p>}{maintenance.length > maintenanceVisible || maintenanceHasMore ? <button type="button" disabled={loadingMore !== null} onClick={() => void showMore("maintenance")}>{loadingMore === "maintenance" ? "Loading…" : maintenanceVisible < maintenance.length ? "Show more notices" : "Load older notices"}</button> : null}
     </section>
 
     <section className="settings-card">
@@ -98,7 +185,7 @@ export function CommunicationsEditor({ initialMaintenance, initialPosts }: { ini
         <p role="status" aria-live="polite">{postMessage}</p>
       </form>
       <h3>Recent articles</h3>
-      {posts.length ? <ul>{posts.slice(0, 12).map(item => <li key={item.id} style={{ margin: "12px 0" }}><strong>{item.title}</strong> · {item.status} <button type="button" onClick={() => setEditingPost(item)}>Edit</button></li>)}</ul> : <p>No articles yet.</p>}
+      {posts.length ? <ul>{posts.slice(0, postsVisible).map(item => <li key={item.id} style={{ margin: "12px 0" }}><strong>{item.title}</strong> · {item.status} <button type="button" onClick={() => setEditingPost(item)}>Edit</button></li>)}</ul> : <p>No articles yet.</p>}{posts.length > postsVisible || postsHaveMore ? <button type="button" disabled={loadingMore !== null} onClick={() => void showMore("blog")}>{loadingMore === "blog" ? "Loading…" : postsVisible < posts.length ? "Show more articles" : "Load older articles"}</button> : null}
     </section>
   </div>;
 }

@@ -458,3 +458,38 @@
   .app-shell .station-panel-head { align-items:flex-start; }
   .app-shell .station-history .station-panel-head > .station-subtle { max-width:100%; white-space:normal; }
 }
+
+
+/* Match the reference's recognizable sun, device, and moon controls. */
+.theme-quick-option .theme-quick-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--muted);
+  transition: color .16s ease, transform .16s ease;
+}
+.theme-quick-option:hover .theme-quick-icon,
+.theme-quick-option.selected .theme-quick-icon {
+  color: var(--brand-aqua);
+}
+.theme-quick-option:hover .theme-quick-icon { transform: scale(1.08); }
+:root[data-theme="white"] .theme-quick-option.selected .theme-quick-icon { color: #286a4d; }
+.theme-option-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  color: var(--brand-teal);
+  background: color-mix(in srgb, var(--brand-teal) 8%, var(--panel));
+}
+.theme-option-icon svg { width: 19px; height: 19px; }
+.theme-option.selected .theme-option-icon {
+  border-color: color-mix(in srgb, var(--brand-teal) 55%, var(--line));
+  background: color-mix(in srgb, var(--brand-teal) 15%, var(--panel));
+}
+.theme-option-copy small { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; }
+@media (max-width: 780px) {
+  .mobile-utility-controls .theme-quick-icon { width: 12px; height: 12px; }
+}
