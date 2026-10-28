@@ -23,6 +23,16 @@ import "./account-center.css";
 import "./notifications/notifications.css";
 import { getServerUser } from "@/lib/supabase/auth-user";
 
+const validTheme = (value: string | undefined): value is "dark" | "white" => value === "dark" || value === "white";
+function automaticTheme(timeZone: string) {
+  try {
+    const hour = Number(new Intl.DateTimeFormat("en-US", { hour: "2-digit", hourCycle: "h23", timeZone }).format(new Date()));
+    return hour >= 7 && hour < 19 ? "white" : "dark";
+  } catch {
+    return "dark";
+  }
+}
+
 const baseMetadata: Metadata = {
   metadataBase: new URL("https://tidelight.app"),
   alternates: { canonical: "https://tidelight.app" },
@@ -66,8 +76,11 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const cookieStore = await cookies();
   const savedTheme = cookieStore.get("tidelight-theme")?.value;
-  const themeMode = cookieStore.get("tidelight-theme-mode")?.value;
-  const theme = themeMode === "manual" && (savedTheme === "white" || savedTheme === "dark") ? savedTheme : "dark";
+  const themeMode = cookieStore.get("tidelight-theme-mode")?.value ?? "auto";
+  const timeZone = cookieStore.get("tidelight-timezone")?.value ?? "UTC";
+  const theme = themeMode === "manual" && validTheme(savedTheme)
+    ? savedTheme
+    : themeMode === "auto" ? automaticTheme(timeZone) : validTheme(savedTheme) ? savedTheme : automaticTheme(timeZone);
   const requestHeaders = await headers();
   const requestHost = (requestHeaders.get("x-forwarded-host") ?? requestHeaders.get("host") ?? "").split(",")[0].trim().toLowerCase().replace(/:\d+$/, "");
   const isPublicPackageHost = requestHost === "package.tidelight.app";
@@ -90,6 +103,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     || user?.email?.split("@")[0]
     || null;
 
-  return <html lang={language} data-language={language} data-theme={theme} suppressHydrationWarning><body><ThemeProvider initialTheme={theme}><LanguageProvider initialLanguage={language}><IntelligenceProvider>{isStandalonePublicHost ? children : <WorkspaceShell email={user?.email ?? null} avatarUrl={profile?.avatar_url ?? metadataAvatar} displayName={displayName} isOperator={isTidelightOperator(user)}>{children}</WorkspaceShell>}{isStandalonePublicHost ? null : <><SupportCompanion /><ProductQuickActions /></>}</IntelligenceProvider></LanguageProvider></ThemeProvider></body></html>;
+  return <html lang={language} data-language={language} data-theme={theme} data-theme-mode={themeMode} suppressHydrationWarning><body><ThemeProvider initialTheme={theme}><LanguageProvider initialLanguage={language}><IntelligenceProvider>{isStandalonePublicHost ? children : <WorkspaceShell email={user?.email ?? null} avatarUrl={profile?.avatar_url ?? metadataAvatar} displayName={displayName} isOperator={isTidelightOperator(user)}>{children}</WorkspaceShell>}{isStandalonePublicHost ? null : <><SupportCompanion /><ProductQuickActions /></>}</IntelligenceProvider></LanguageProvider></ThemeProvider></body></html>;
 }
 
