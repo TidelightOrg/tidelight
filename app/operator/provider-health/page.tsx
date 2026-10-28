@@ -33,7 +33,13 @@ export default async function ProviderHealthPage() {
   const user = await getServerUser();
   if (!user || !isTidelightOperator(user)) redirect("/overview");
 
-  const { data, error } = await createAdminClient().rpc("get_research_provider_health", { p_days: 30 });
+  let data: unknown = null;
+  let error: unknown = null;
+  try {
+    ({ data, error } = await createAdminClient().rpc("get_research_provider_health", { p_days: 30 }));
+  } catch (caught) {
+    error = caught;
+  }
   const rows = (error ? [] : (data ?? [])) as ProviderHealthRow[];
   const total = rows.reduce((sum, row) => sum + Number(row.attempt_count || 0), 0);
   const successes = rows.filter(row => row.outcome === "success").reduce((sum, row) => sum + Number(row.attempt_count || 0), 0);
@@ -53,9 +59,9 @@ export default async function ProviderHealthPage() {
     <section className="settings-card" style={{ marginTop: 18 }}>
       <div className="eyebrow small-eyebrow">OUTCOME BREAKDOWN</div>
       <h2>Response reliability</h2>
-      {rows.length ? <div className="coverage-table" role="table" aria-label="Provider attempt breakdown">
-        <div className="coverage-table-head" role="row"><span role="columnheader">Provider / model</span><span role="columnheader">Outcome</span><span role="columnheader">Attempts</span><span role="columnheader">Avg latency</span><span role="columnheader">p95</span></div>
-        {rows.map((row, index) => <div className="coverage-row" role="row" key={`${row.provider}-${row.model}-${row.outcome}-${index}`}>
+      {rows.length ? <div className="coverage-table provider-health-table" role="table" aria-label="Provider attempt breakdown">
+        <div className="coverage-table-head provider-health-table-head" role="row"><span role="columnheader">Provider / model</span><span role="columnheader">Outcome</span><span role="columnheader">Attempts</span><span role="columnheader">Avg latency</span><span role="columnheader">p95</span></div>
+        {rows.map((row, index) => <div className="coverage-row provider-health-row" key={`${row.provider}-${row.model}-${row.outcome}-${index}`}>
           <span role="cell"><strong>{row.provider}</strong><small>{row.model}</small></span>
           <span role="cell">{outcomeLabels[row.outcome] ?? row.outcome}</span>
           <span role="cell">{Number(row.attempt_count).toLocaleString()}</span>
