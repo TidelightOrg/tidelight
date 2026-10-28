@@ -28,8 +28,8 @@ export default async function IncidentsPage() {
           : <ol className="tic-status-incident-list">{history.incidents.map(incident => <li className="tic-status-incident" key={incident.id} id={String(incident.id)}>
             <div className="tic-status-incident-top"><strong>{incident.component}</strong><span className={incident.state}>{incident.state === "resolved" ? "Resolved" : "Investigating"}</span></div>
             <p>{incident.detail}</p>
-            <time dateTime={incident.startedAt}>{new Date(incident.startedAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC", timeZoneName: "short" })}</time>
-            {incident.resolvedAt && <small>Resolved {new Date(incident.resolvedAt).toLocaleString("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC", timeZoneName: "short" })}</small>}
+            <time dateTime={incident.startedAt}>{new Date(incident.startedAt).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", timeZone: "UTC", timeZoneName: "short" })}</time>
+            {incident.resolvedAt && <small>Resolved {new Date(incident.resolvedAt).toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", timeZone: "UTC", timeZoneName: "short" })}</small>}
           </li>)}</ol>}
       <Link href={statusPath}>← Back to current status</Link>
     </section>
