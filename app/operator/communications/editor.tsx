@@ -164,7 +164,7 @@ export function CommunicationsEditor({ initialMaintenance, initialPosts }: { ini
         <p role="status" aria-live="polite">{maintenanceMessage}</p>
       </form>
       <h3>Recent notices</h3>
-      {maintenance.length ? <ul>{maintenance.slice(0, maintenanceVisible).map(item => <li key={item.id} style={{ margin: "12px 0" }}><strong>{item.title}</strong> · {item.status} · {new Date(item.starts_at).toLocaleString()} <button type="button" onClick={() => setEditingMaintenance(item)}>Edit</button></li>)}</ul> : <p>No notices yet.</p>}{maintenance.length > maintenanceVisible || maintenanceHasMore ? <button type="button" disabled={loadingMore !== null} onClick={() => void showMore("maintenance")}>{loadingMore === "maintenance" ? "Loading…" : maintenanceVisible < maintenance.length ? "Show more notices" : "Load older notices"}</button> : null}
+      {maintenance.length ? <ul>{maintenance.slice(0, maintenanceVisible).map(item => <li key={item.id} style={{ margin: "12px 0" }}><strong>{item.title}</strong> · {item.status} · {new Date(item.starts_at).toLocaleString()} <button type="button" onClick={() => setEditingMaintenance(item)}>Edit</button></li>)}</ul> : <p>No notices yet.</p>}{maintenance.length > maintenanceVisible || maintenanceHasMore ? <button type="button" disabled={loadingMore !== null || busy} onClick={() => void showMore("maintenance")}>{loadingMore === "maintenance" ? "Loading…" : maintenanceVisible < maintenance.length ? "Show more notices" : "Load older notices"}</button> : null}
     </section>
 
     <section className="settings-card">
@@ -185,7 +185,7 @@ export function CommunicationsEditor({ initialMaintenance, initialPosts }: { ini
         <p role="status" aria-live="polite">{postMessage}</p>
       </form>
       <h3>Recent articles</h3>
-      {posts.length ? <ul>{posts.slice(0, postsVisible).map(item => <li key={item.id} style={{ margin: "12px 0" }}><strong>{item.title}</strong> · {item.status} <button type="button" onClick={() => setEditingPost(item)}>Edit</button></li>)}</ul> : <p>No articles yet.</p>}{posts.length > postsVisible || postsHaveMore ? <button type="button" disabled={loadingMore !== null} onClick={() => void showMore("blog")}>{loadingMore === "blog" ? "Loading…" : postsVisible < posts.length ? "Show more articles" : "Load older articles"}</button> : null}
+      {posts.length ? <ul>{posts.slice(0, postsVisible).map(item => <li key={item.id} style={{ margin: "12px 0" }}><strong>{item.title}</strong> · {item.status} <button type="button" onClick={() => setEditingPost(item)}>Edit</button></li>)}</ul> : <p>No articles yet.</p>}{posts.length > postsVisible || postsHaveMore ? <button type="button" disabled={loadingMore !== null || busy} onClick={() => void showMore("blog")}>{loadingMore === "blog" ? "Loading…" : postsVisible < posts.length ? "Show more articles" : "Load older articles"}</button> : null}
     </section>
   </div>;
 }
