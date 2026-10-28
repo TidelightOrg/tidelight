@@ -23,7 +23,29 @@ function validDate(value: unknown, optional = false): string | null | undefined 
 }
 
 function slugify(value: string) {
-  return value.normalize("NFKD").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 100);
+  return value.normalize("NFKD").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 100).replace(/-+$/g, "");
+}
+
+export async function GET(request: Request) {
+  const user = await getServerUser();
+  if (!user) return json({ error: "Sign in to continue." }, 401);
+  if (!isTidelightOperator(user)) return json({ error: "Operator access is required." }, 403);
+  const params = new URL(request.url).searchParams;
+  const kind = params.get("kind");
+  const offset = Number(params.get("offset") ?? "0");
+  if ((kind !== "maintenance" && kind !== "blog") || !Number.isInteger(offset) || offset < 0 || offset > 1000000) {
+    return json({ error: "Choose a valid content list and page offset." }, 400);
+  }
+  const client = createAdminClient();
+  const table = kind === "maintenance" ? "tic_status_maintenance" : "tic_blog_posts";
+  const columns = kind === "maintenance"
+    ? "id,title,subtitle,message,affected_services,status,starts_at,ends_at,created_at,updated_at"
+    : "id,slug,title,subtitle,category,body,status,published_at,created_at,updated_at";
+  const orderColumn = kind === "maintenance" ? "starts_at" : "updated_at";
+  const { data, count, error } = await client.from(table).select(columns, { count: "exact" })
+    .order(orderColumn, { ascending: false }).range(offset, offset + 49);
+  if (error) return json({ error: "The content list could not be loaded." }, 500);
+  return json({ items: data ?? [], hasMore: offset + (data?.length ?? 0) < (count ?? 0) });
 }
 
 export async function POST(request: Request) {
