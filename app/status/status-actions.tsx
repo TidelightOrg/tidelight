@@ -39,7 +39,7 @@ export function StatusActions() {
   const rss = typeof window !== "undefined" ? window.location.origin + "/feed.rss" : "/feed.rss";
   const atom = typeof window !== "undefined" ? window.location.origin + "/feed.atom" : "/feed.atom";
   if (!open) return <div className="tic-status-actions">
-    <a href="https://tidelight.app/developers/support?ecosystem=tidelight" className="tic-status-report">Report a problem</a>
+    <a href="https://tidelight.app/developers/support?ecosystem=tidelight%26new=incident" className="tic-status-report">Report a problem</a>
     <button ref={triggerRef} type="button" className="tic-status-subscribe" onClick={() => setOpen(true)}>Subscribe to updates</button>
   </div>;
 
