@@ -10,8 +10,8 @@ export const dynamic = "force-dynamic";
 
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  let article = articleBySlug(slug);
-  if (!article) { try { article = await getBlogArticleBySlug(slug) ?? null; } catch { article = null; } }
+  let article: Awaited<ReturnType<typeof getBlogArticleBySlug>>;
+  try { article = articleBySlug(slug) ?? await getBlogArticleBySlug(slug); } catch { article = undefined; }
   if (!article) return { title: "Story not found — Tidelight" };
   const url = `https://blogs.tidelight.app/blog/${article.slug}`;
   return {
