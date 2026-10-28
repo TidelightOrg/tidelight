@@ -10,10 +10,11 @@ type Job = { id: string; user_id: string; event_key: string; category: string; p
 
 export async function drainEmailQueue(admin: SupabaseClient) {
   if (!process.env.RESEND_API_KEY) throw new Error("Resend is not configured.");
-  await admin.from("email_delivery_queue").update({ state: "failed", last_error_code: "attempts_exhausted" }).eq("state", "sending").gte("attempts", EMAIL_MAX_ATTEMPTS).lte("next_attempt_at", new Date().toISOString());
+  let delivered = 0, suppressed = 0, retried = 0, failed = 0, persistenceFailures = 0;
+  const { error: exhaustedUpdateError } = await admin.from("email_delivery_queue").update({ state: "failed", last_error_code: "attempts_exhausted" }).eq("state", "sending").gte("attempts", EMAIL_MAX_ATTEMPTS).lte("next_attempt_at", new Date().toISOString());
+  if (exhaustedUpdateError) persistenceFailures++;
   const { data: jobs, error } = await admin.rpc("claim_email_delivery_jobs", { p_limit: 20 });
   if (error) throw new Error("Could not claim the email delivery queue.");
-  let delivered = 0, suppressed = 0, retried = 0, failed = 0, persistenceFailures = 0;
   for (const job of (jobs ?? []) as Job[]) {
     try {
       const { data: preferences } = await admin.from("email_notification_preferences").select("nightwatch_analysis,nightwatch_signals,nightwatch_fills,nightwatch_risks,nightwatch_research,nightwatch_daily_summary").eq("user_id", job.user_id).maybeSingle();
@@ -46,12 +47,14 @@ export async function drainEmailQueue(admin: SupabaseClient) {
       const attempts = Number(job.attempts ?? 1);
       const retryAt = nextEmailRetryAt(attempts);
       const terminal = retryAt === null;
-      await admin.from("email_delivery_queue").update({ state: "failed", ...(retryAt ? { next_attempt_at: retryAt } : {}), last_error_code: terminal ? `terminal_${code}` : code }).eq("id", job.id);
+      const { error: failureUpdateError } = await admin.from("email_delivery_queue").update({ state: "failed", ...(retryAt ? { next_attempt_at: retryAt } : {}), last_error_code: terminal ? `terminal_${code}` : code }).eq("id", job.id);
+      if (failureUpdateError) persistenceFailures++;
       if (terminal) failed++; else retried++;
     }
   }
   const retentionCutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
-  await admin.from("email_delivery_queue").delete().in("state", ["sent", "suppressed", "failed"]).lt("created_at", retentionCutoff);
+  const { error: retentionError } = await admin.from("email_delivery_queue").delete().in("state", ["sent", "suppressed", "failed"]).lt("created_at", retentionCutoff);
+  if (retentionError) persistenceFailures++;
   return { state: "complete" as const, claimed: jobs?.length ?? 0, delivered, suppressed, retried, failed, persistenceFailures };
 }
 
