@@ -24,8 +24,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
 export default async function BlogArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
-  let article = articleBySlug(slug);
-  if (!article) { try { article = await getBlogArticleBySlug(slug) ?? null; } catch { article = null; } }
+  let article: Awaited<ReturnType<typeof getBlogArticleBySlug>>;
+  try { article = articleBySlug(slug) ?? await getBlogArticleBySlug(slug); } catch { article = undefined; }
   if (!article) notFound();
   let published: typeof articles = [];
   try { published = await getPublishedBlogArticles(); } catch { /* Keep built-in related stories available if the store is unavailable. */ }
