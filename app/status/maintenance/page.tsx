@@ -3,6 +3,7 @@ import { headers } from "next/headers";
 import Link from "next/link";
 import { resolveStatusPagePath } from "@/lib/tic/status-links";
 import "../status.css";
+import { StatusActions } from "../status-actions";
 
 export const metadata: Metadata = { title: "Maintenance · Tidelight status", description: "Scheduled maintenance notices for Tidelight services." };
 
@@ -15,6 +16,7 @@ export default async function MaintenancePage() {
     <header className="tic-status-header">
       <a className="tic-status-wordmark" href="https://tidelight.app" aria-label="Tidelight home">tide<span>light</span></a>
       <nav aria-label="Status navigation"><Link href={statusPath}>Status</Link><Link aria-current="page" href={maintenancePath}>Maintenance</Link><Link href={incidentsPath}>Previous incidents</Link><a href="https://tidelight.app/contact">Get in touch</a></nav>
+      <StatusActions />
     </header>
     <section className="tic-status-empty-page" aria-labelledby="maintenance-title">
       <p className="tic-status-eyebrow">TIDELIGHT STATUS</p>
