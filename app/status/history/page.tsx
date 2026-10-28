@@ -158,7 +158,7 @@ export default async function HistoryPage({ searchParams }: { searchParams: Prom
                   </div>
                 </div>
               </section>;
-            })}</div>)}
+            })}</div>}
     </section>
     <footer className="tic-status-footer"><span>One status page for the Tidelight ecosystem</span><Link href={statusPath}>Current status ↗</Link></footer>
   </main>;
