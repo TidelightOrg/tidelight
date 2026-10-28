@@ -35,6 +35,33 @@ export function CommunicationsEditor({ initialMaintenance, initialPosts }: { ini
   const [maintenanceMessage, setMaintenanceMessage] = useState("");
   const [postMessage, setPostMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [resolvingMaintenanceId, setResolvingMaintenanceId] = useState<string | null>(null);
+
+  async function resolveMaintenance(item: MaintenanceNotice) {
+    setResolvingMaintenanceId(item.id);
+    setMaintenanceMessage("");
+    try {
+      const response = await fetch("/api/operator/communications", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ kind: "maintenance", action: "resolve", id: item.id }),
+      });
+      const result = await response.json() as { item?: MaintenanceNotice; error?: string };
+      if (!response.ok || !result.item) throw new Error(result.error ?? "Maintenance could not be marked resolved.");
+      const refreshed = await refreshList("maintenance");
+      if (!refreshed) {
+        setMaintenance(current => current.map(existing => existing.id === result.item!.id ? result.item! : existing));
+        setMaintenanceHasMore(false);
+      }
+      setMaintenanceMessage(refreshed
+        ? "Maintenance marked resolved and moved to history."
+        : "Maintenance was resolved, but the list could not refresh. Reload this page to see the update.");
+    } catch (error) {
+      setMaintenanceMessage(error instanceof Error ? error.message : "Maintenance could not be marked resolved.");
+    } finally {
+      setResolvingMaintenanceId(null);
+    }
+  }
 
   async function showMore(kind: "maintenance" | "blog") {
     const items = kind === "maintenance" ? maintenance : posts;
@@ -164,7 +191,7 @@ export function CommunicationsEditor({ initialMaintenance, initialPosts }: { ini
         <p role="status" aria-live="polite">{maintenanceMessage}</p>
       </form>
       <h3>Recent notices</h3>
-      {maintenance.length ? <ul>{maintenance.slice(0, maintenanceVisible).map(item => <li key={item.id} style={{ margin: "12px 0" }}><strong>{item.title}</strong> · {item.status} · {new Date(item.starts_at).toLocaleString()} <button type="button" onClick={() => setEditingMaintenance(item)}>Edit</button></li>)}</ul> : <p>No notices yet.</p>}{maintenance.length > maintenanceVisible || maintenanceHasMore ? <button type="button" disabled={loadingMore !== null || busy} onClick={() => void showMore("maintenance")}>{loadingMore === "maintenance" ? "Loading…" : maintenanceVisible < maintenance.length ? "Show more notices" : "Load older notices"}</button> : null}
+      {maintenance.length ? <ul>{maintenance.slice(0, maintenanceVisible).map(item => <li key={item.id} style={{ margin: "12px 0" }}><strong>{item.title}</strong> · {item.status} · {new Date(item.starts_at).toLocaleString()} {item.status !== "completed" ? <button type="button" disabled={busy || resolvingMaintenanceId !== null} aria-label={`Mark ${item.title} resolved`} onClick={() => void resolveMaintenance(item)}>{resolvingMaintenanceId === item.id ? "Resolving…" : "✓ Resolve"}</button> : <span> · Resolved {item.ends_at ? new Date(item.ends_at).toLocaleString() : "—"}</span>} <button type="button" onClick={() => setEditingMaintenance(item)}>Edit</button></li>)}</ul> : <p>No notices yet.</p>}{maintenance.length > maintenanceVisible || maintenanceHasMore ? <button type="button" disabled={loadingMore !== null || busy || resolvingMaintenanceId !== null} onClick={() => void showMore("maintenance")}>{loadingMore === "maintenance" ? "Loading…" : maintenanceVisible < maintenance.length ? "Show more notices" : "Load older notices"}</button> : null}
     </section>
 
     <section className="settings-card">
