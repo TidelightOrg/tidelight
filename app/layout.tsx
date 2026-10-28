@@ -76,7 +76,8 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   const cookieStore = await cookies();
   const savedTheme = cookieStore.get("tidelight-theme")?.value;
-  const themeMode = cookieStore.get("tidelight-theme-mode")?.value ?? "auto";
+  const savedThemeMode = cookieStore.get("tidelight-theme-mode")?.value;
+  const themeMode = savedThemeMode === "manual" || savedThemeMode === "device" ? savedThemeMode : "auto";
   const timeZone = cookieStore.get("tidelight-timezone")?.value ?? "UTC";
   const theme = themeMode === "manual" && validTheme(savedTheme)
     ? savedTheme
@@ -103,6 +104,6 @@ export default async function RootLayout({ children }: Readonly<{ children: Reac
     || user?.email?.split("@")[0]
     || null;
 
-  return <html lang={language} data-language={language} data-theme={theme} data-theme-mode={themeMode} suppressHydrationWarning><body><ThemeProvider initialTheme={theme}><LanguageProvider initialLanguage={language}><IntelligenceProvider>{isStandalonePublicHost ? children : <WorkspaceShell email={user?.email ?? null} avatarUrl={profile?.avatar_url ?? metadataAvatar} displayName={displayName} isOperator={isTidelightOperator(user)}>{children}</WorkspaceShell>}{isStandalonePublicHost ? null : <><SupportCompanion /><ProductQuickActions /></>}</IntelligenceProvider></LanguageProvider></ThemeProvider></body></html>;
+  return <html lang={language} data-language={language} data-theme={theme} data-theme-mode={themeMode} suppressHydrationWarning><body><ThemeProvider initialTheme={theme} initialMode={themeMode}><LanguageProvider initialLanguage={language}><IntelligenceProvider>{isStandalonePublicHost ? children : <WorkspaceShell email={user?.email ?? null} avatarUrl={profile?.avatar_url ?? metadataAvatar} displayName={displayName} isOperator={isTidelightOperator(user)}>{children}</WorkspaceShell>}{isStandalonePublicHost ? null : <><SupportCompanion /><ProductQuickActions /></>}</IntelligenceProvider></LanguageProvider></ThemeProvider></body></html>;
 }
 
