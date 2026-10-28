@@ -1,6 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { sendWithResend } from "@/lib/email/resend";
+import { resolveStatusPagePath } from "@/lib/tic/status-links";
 
 type Incident = { id: number; component: string; started_at: string; resolved_at: string | null; state: string; latest_detail: string };
 type Subscription = { id: string; email: string; components: string[]; token_hash: string; confirmed_at: string };
@@ -31,11 +32,19 @@ export async function notifyStatusSubscribers() {
     if (!subscriptions.length) break;
     const subscriptionIds = subscriptions.map(subscription => subscription.id);
     const incidentIds = [...new Set(events.map(event => event.incident.id))];
-    const { data: existingDeliveries, error: deliveryLookupError } = incidentIds.length
-      ? await admin.from("tic_status_subscription_deliveries").select("subscription_id,incident_id,event_kind,delivery_status,claimed_at").in("subscription_id", subscriptionIds).in("incident_id", incidentIds)
-      : { data: [], error: null };
-    if (deliveryLookupError) throw new Error("Status notification delivery history could not be loaded.");
-    const deliveryState = new Map((existingDeliveries ?? []).map(row => [`${row.subscription_id}:${row.incident_id}:${row.event_kind}`, row]));
+    const existingDeliveries: Array<{ subscription_id: string; incident_id: number; event_kind: string; delivery_status: string; claimed_at: string }> = [];
+    for (let subscriptionOffset = 0; subscriptionOffset < subscriptionIds.length; subscriptionOffset += 40) {
+      const subscriptionChunk = subscriptionIds.slice(subscriptionOffset, subscriptionOffset + 40);
+      for (let incidentOffset = 0; incidentOffset < incidentIds.length; incidentOffset += 10) {
+        const { data, error: deliveryLookupError } = await admin.from("tic_status_subscription_deliveries")
+          .select("subscription_id,incident_id,event_kind,delivery_status,claimed_at")
+          .in("subscription_id", subscriptionChunk)
+          .in("incident_id", incidentIds.slice(incidentOffset, incidentOffset + 10));
+        if (deliveryLookupError) throw new Error("Status notification delivery history could not be loaded.");
+        existingDeliveries.push(...(data ?? []) as typeof existingDeliveries);
+      }
+    }
+    const deliveryState = new Map(existingDeliveries.map(row => [`${row.subscription_id}:${row.incident_id}:${row.event_kind}`, row]));
     const staleClaimBefore = new Date(Date.now() - 10 * 60 * 1000).toISOString();
     for (const event of events) {
       for (const subscription of subscriptions) {
@@ -57,13 +66,16 @@ export async function notifyStatusSubscribers() {
       }).select("subscription_id").maybeSingle();
       if (claimError || !claimed) continue;
       const signature = unsubscribeSignature(subscription.id);
-      const unsubscribe = `${process.env.NEXT_PUBLIC_APP_URL || "https://status.tidelight.app"}/api/status/subscriptions/unsubscribe?id=${encodeURIComponent(subscription.id)}&signature=${encodeURIComponent(signature)}`;
+      const statusOrigin = process.env.STATUS_PAGE_URL || "https://status.tidelight.app";
+      const statusHost = new URL(statusOrigin).host;
+      const incidentUrl = new URL(resolveStatusPagePath(statusHost, "/status/incidents") + "#" + event.incident.id, statusOrigin).toString();
+      const unsubscribe = new URL("/api/status/subscriptions/unsubscribe?id=" + encodeURIComponent(subscription.id) + "&signature=" + encodeURIComponent(signature), statusOrigin).toString();
       try {
         await sendWithResend({
           from: process.env.STATUS_EMAIL_FROM || process.env.EMAIL_FROM || "Tidelight Status <status@tidelight.app>",
           to: subscription.email,
           subject: `${event.kind === "new" ? "Service incident" : "Service restored"}: ${event.incident.component}`,
-          html: `<p><strong>${escapeHtml(event.incident.component)}</strong> — ${event.kind === "new" ? "is experiencing an issue" : "has been resolved"}.</p><p>${escapeHtml(event.incident.latest_detail)}</p><p><a href="${process.env.NEXT_PUBLIC_APP_URL || "https://status.tidelight.app"}/incidents#${event.incident.id}">View status update</a></p><p><a href="${unsubscribe}">Unsubscribe from status emails</a></p>`,
+          html: `<p><strong>${escapeHtml(event.incident.component)}</strong> — ${event.kind === "new" ? "is experiencing an issue" : "has been resolved"}.</p><p>${escapeHtml(event.incident.latest_detail)}</p><p><a href="${escapeHtml(incidentUrl)}">View status update</a></p><p><a href="${unsubscribe}">Unsubscribe from status emails</a></p>`,
           idempotencyKey: `status-${event.kind}:${event.incident.id}:${subscription.id}`,
         });
         const { error: markSentError } = await admin.from("tic_status_subscription_deliveries").update({ delivery_status: "sent", sent_at: new Date().toISOString() })
