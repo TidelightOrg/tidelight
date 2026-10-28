@@ -7,12 +7,24 @@ export function StatusActions() {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
+  const dialogRef = useRef<HTMLElement>(null);
   const wasOpen = useRef(false);
   useEffect(() => {
     if (open) {
       wasOpen.current = true;
       closeRef.current?.focus();
-      const dismiss = (event: KeyboardEvent) => { if (event.key === "Escape") setOpen(false); };
+      const dismiss = (event: KeyboardEvent) => {
+        if (event.key === "Escape") { setOpen(false); return; }
+        if (event.key !== "Tab") return;
+        const focusable = dialogRef.current?.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex]:not([tabindex="-1"])');
+        if (!focusable?.length) { event.preventDefault(); return; }
+        const first = focusable[0], last = focusable[focusable.length - 1];
+        if (event.shiftKey && (document.activeElement === first || !dialogRef.current?.contains(document.activeElement))) {
+          event.preventDefault(); last.focus();
+        } else if (!event.shiftKey && (document.activeElement === last || !dialogRef.current?.contains(document.activeElement))) {
+          event.preventDefault(); first.focus();
+        }
+      };
       window.addEventListener("keydown", dismiss);
       return () => window.removeEventListener("keydown", dismiss);
     }
@@ -44,7 +56,7 @@ export function StatusActions() {
   </div>;
 
   return <div className="tic-status-modal-backdrop" role="presentation" onMouseDown={event => { if (event.target === event.currentTarget) setOpen(false); }}>
-    <section className="tic-status-modal" role="dialog" aria-modal="true" aria-labelledby="status-subscribe-title">
+    <section ref={dialogRef} className="tic-status-modal" role="dialog" aria-modal="true" aria-labelledby="status-subscribe-title">
       <header><h2 id="status-subscribe-title">Subscribe to updates</h2><button ref={closeRef} type="button" aria-label="Close" onClick={() => setOpen(false)}>×</button></header>
       <div className="tic-status-tabs" role="tablist" aria-label="Notification method">
         <button type="button" role="tab" aria-selected={tab==="email"} onClick={() => setTab("email")}>Email</button>
