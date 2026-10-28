@@ -31,10 +31,23 @@ export type EditorialPost = {
 const admin = () => createAdminClient();
 
 export async function getMaintenanceNotices(): Promise<MaintenanceNotice[]> {
+  const recentResolutionCutoff = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const { data, error } = await admin().from("tic_status_maintenance")
     .select("id,title,subtitle,message,affected_services,status,starts_at,ends_at,created_at,updated_at")
+    .or(`status.neq.completed,ends_at.gte.${recentResolutionCutoff}`)
     .order("starts_at", { ascending: false }).order("id", { ascending: true }).limit(50);
   if (error) throw new Error("Maintenance notices could not be loaded.");
+  return (data ?? []) as MaintenanceNotice[];
+}
+
+export async function getCompletedMaintenanceHistory(from: string, before: string): Promise<MaintenanceNotice[]> {
+  const { data, error } = await admin().from("tic_status_maintenance")
+    .select("id,title,subtitle,message,affected_services,status,starts_at,ends_at,created_at,updated_at")
+    .eq("status", "completed")
+    .gte("starts_at", from)
+    .lt("starts_at", before)
+    .order("starts_at", { ascending: false }).order("id", { ascending: true }).limit(500);
+  if (error) throw new Error("Maintenance history could not be loaded.");
   return (data ?? []) as MaintenanceNotice[];
 }
 
