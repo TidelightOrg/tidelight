@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useState, type FormEvent, type ReactNode } from "react";
 import type { EditorialPost, MaintenanceNotice } from "@/lib/tic/editorial-content";
 
 function localDateTime(value: string | null | undefined) {
@@ -9,7 +9,7 @@ function localDateTime(value: string | null | undefined) {
   return new Date(date.getTime() - date.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
 }
 
-function FormField({ label, children }: { label: string; children: React.ReactNode }) {
+function FormField({ label, children }: { label: string; children: ReactNode }) {
   return <label style={{ display: "grid", gap: 7, margin: "12px 0", fontWeight: 600 }}>{label}{children}</label>;
 }
 
