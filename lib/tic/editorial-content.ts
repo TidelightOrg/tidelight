@@ -33,7 +33,7 @@ const admin = () => createAdminClient();
 export async function getMaintenanceNotices(): Promise<MaintenanceNotice[]> {
   const { data, error } = await admin().from("tic_status_maintenance")
     .select("id,title,subtitle,message,affected_services,status,starts_at,ends_at,created_at,updated_at")
-    .order("starts_at", { ascending: false }).limit(50);
+    .order("starts_at", { ascending: false }).order("id", { ascending: true }).limit(50);
   if (error) throw new Error("Maintenance notices could not be loaded.");
   return (data ?? []) as MaintenanceNotice[];
 }
@@ -43,10 +43,10 @@ export async function getOperatorEditorialContent(): Promise<{ maintenance: Main
   const [maintenance, posts] = await Promise.all([
     client.from("tic_status_maintenance")
       .select("id,title,subtitle,message,affected_services,status,starts_at,ends_at,created_at,updated_at")
-      .order("starts_at", { ascending: false }).limit(50),
+      .order("starts_at", { ascending: false }).order("id", { ascending: true }).limit(50),
     client.from("tic_blog_posts")
       .select("id,slug,title,subtitle,category,body,status,published_at,created_at,updated_at")
-      .order("updated_at", { ascending: false }).limit(50),
+      .order("updated_at", { ascending: false }).order("id", { ascending: true }).limit(50),
   ]);
   if (maintenance.error || posts.error) throw new Error("Operator content could not be loaded.");
   return {
