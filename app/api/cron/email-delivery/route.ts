@@ -8,11 +8,13 @@ export const dynamic = "force-dynamic";
 export const maxDuration = 30;
 
 function authorized(request: Request) {
-  const expected = process.env.CRON_SECRET;
   const provided = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "") ?? "";
-  if (!expected || !provided) return false;
-  const left = Buffer.from(expected), right = Buffer.from(provided);
-  return left.length === right.length && timingSafeEqual(left, right);
+  if (!provided) return false;
+  const expectedSecrets = [...new Set([process.env.TIC_RESEARCH_CRON_SECRET, process.env.CRON_SECRET].filter((value): value is string => Boolean(value)))];
+  return expectedSecrets.some((expected) => {
+    const left = Buffer.from(expected), right = Buffer.from(provided);
+    return left.length === right.length && timingSafeEqual(left, right);
+  });
 }
 
 async function handleDelivery(request: Request) {
@@ -31,7 +33,7 @@ export const GET = (request: Request) => withStatusWorkerHeartbeat(
   () => handleDelivery(request),
   async (response) => {
     if (!response.ok) return false;
-    const result = await response.json() as { state?: unknown; retried?: unknown; failed?: unknown };
-    return result.state === "complete" && result.retried === 0 && result.failed === 0;
+    const result = await response.json() as { state?: unknown; retried?: unknown; failed?: unknown; persistenceFailures?: unknown };
+    return result.state === "complete" && result.retried === 0 && result.failed === 0 && result.persistenceFailures === 0;
   },
 );

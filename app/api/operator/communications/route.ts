@@ -75,6 +75,25 @@ async function save(request: Request, update: boolean) {
   const admin = createAdminClient();
 
   if (input.kind === "maintenance") {
+    if (update && input.action === "resolve") {
+      const resolvedAt = new Date().toISOString();
+      const { data: current, error: currentError } = await admin.from("tic_status_maintenance")
+        .select("status,starts_at").eq("id", id).maybeSingle();
+      if (currentError) return json({ error: "Maintenance could not be loaded. Try again." }, 500);
+      if (current && ["scheduled", "ongoing"].includes(current.status) && Date.parse(current.starts_at) > Date.parse(resolvedAt)) {
+        return json({ error: "This maintenance is scheduled for the future and can be resolved after it starts." }, 409);
+      }
+      const { data, error } = await admin.from("tic_status_maintenance")
+        .update({ status: "completed", ends_at: resolvedAt, updated_at: resolvedAt })
+        .eq("id", id)
+        .in("status", ["scheduled", "ongoing"])
+        .lte("starts_at", resolvedAt)
+        .select("id,title,subtitle,message,affected_services,status,starts_at,ends_at,created_at,updated_at")
+        .maybeSingle();
+      if (error) return json({ error: "Maintenance could not be marked resolved. Try again." }, 400);
+      if (!data) return json({ error: "This maintenance notice is already resolved or is no longer active." }, 409);
+      return json({ item: data });
+    }
     const title = text(input.title, 140);
     const subtitle = text(input.subtitle, 240);
     const message = text(input.message, 12000);
@@ -87,17 +106,36 @@ async function save(request: Request, update: boolean) {
     if (!title || !subtitle || !message || !startsAt || endsAt === undefined || !maintenanceStates.has(status)) {
       return json({ error: "Add a heading, subheading, message, valid start time, and maintenance state." }, 400);
     }
-    if (endsAt && Date.parse(endsAt) < Date.parse(startsAt)) return json({ error: "The end time must be after the start time." }, 400);
+    let existingMaintenance: { status: string; ends_at: string | null } | null = null;
+    if (update && status === "completed") {
+      const { data, error } = await admin.from("tic_status_maintenance")
+        .select("status,ends_at").eq("id", id).maybeSingle();
+      if (error) return json({ error: "Maintenance could not be loaded. Try again." }, 500);
+      existingMaintenance = data;
+    }
+    const completedAt = status === "completed"
+      ? existingMaintenance?.status === "completed" && existingMaintenance.ends_at
+        ? existingMaintenance.ends_at
+        : new Date().toISOString()
+      : endsAt;
+    if (status === "completed" && completedAt && Date.parse(startsAt) > Date.parse(completedAt)) {
+      return json({ error: "A future maintenance cannot be marked completed before it starts." }, 409);
+    }
+    if (status !== "completed" && endsAt && Date.parse(endsAt) < Date.parse(startsAt)) {
+      return json({ error: "The end time must be after the start time." }, 400);
+    }
     const values = {
       title, subtitle, message, affected_services: affectedServices, status,
-      starts_at: startsAt, ends_at: endsAt, updated_at: new Date().toISOString(),
+      starts_at: startsAt, ends_at: completedAt, updated_at: new Date().toISOString(),
       ...(update ? {} : { created_by_email: user.email ?? null }),
     };
-    const query = update
+    let query = update
       ? admin.from("tic_status_maintenance").update(values).eq("id", id)
       : admin.from("tic_status_maintenance").insert(values);
-    const { data, error } = await query.select("id,title,subtitle,message,affected_services,status,starts_at,ends_at,created_at,updated_at").single();
+    if (update && status === "completed" && existingMaintenance) query = query.eq("status", existingMaintenance.status);
+    const { data, error } = await query.select("id,title,subtitle,message,affected_services,status,starts_at,ends_at,created_at,updated_at").maybeSingle();
     if (error) return json({ error: error.code === "23503" ? "This notice could not be saved." : "Maintenance could not be saved. Check the schedule and try again." }, 400);
+    if (update && !data) return json({ error: "This maintenance changed while you were editing it. Reload and try again." }, 409);
     return json({ item: data });
   }
 
