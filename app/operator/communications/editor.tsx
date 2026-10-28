@@ -22,11 +22,47 @@ function FormField({ label, children }: { label: string; children: ReactNode }) 
 export function CommunicationsEditor({ initialMaintenance, initialPosts }: { initialMaintenance: MaintenanceNotice[]; initialPosts: EditorialPost[] }) {
   const [maintenance, setMaintenance] = useState(initialMaintenance);
   const [posts, setPosts] = useState(initialPosts);
+  const [maintenanceHasMore, setMaintenanceHasMore] = useState(initialMaintenance.length === 50);
+  const [postsHaveMore, setPostsHaveMore] = useState(initialPosts.length === 50);
+  const [maintenanceVisible, setMaintenanceVisible] = useState(12);
+  const [postsVisible, setPostsVisible] = useState(12);
+  const [loadingMore, setLoadingMore] = useState<"maintenance" | "blog" | null>(null);
   const [editingMaintenance, setEditingMaintenance] = useState<MaintenanceNotice | null>(null);
   const [editingPost, setEditingPost] = useState<EditorialPost | null>(null);
   const [maintenanceMessage, setMaintenanceMessage] = useState("");
   const [postMessage, setPostMessage] = useState("");
   const [busy, setBusy] = useState(false);
+
+  async function showMore(kind: "maintenance" | "blog") {
+    const items = kind === "maintenance" ? maintenance : posts;
+    const visible = kind === "maintenance" ? maintenanceVisible : postsVisible;
+    if (visible < items.length) {
+      kind === "maintenance" ? setMaintenanceVisible(visible + 12) : setPostsVisible(visible + 12);
+      return;
+    }
+    const hasMore = kind === "maintenance" ? maintenanceHasMore : postsHaveMore;
+    if (!hasMore) return;
+    setLoadingMore(kind);
+    try {
+      const response = await fetch(`/api/operator/communications?kind=${kind}&offset=${items.length}`);
+      const result = await response.json() as { items?: Array<MaintenanceNotice | EditorialPost>; hasMore?: boolean; error?: string };
+      if (!response.ok || !result.items) throw new Error(result.error ?? "Older entries could not be loaded.");
+      if (kind === "maintenance") {
+        setMaintenance(current => [...current, ...(result.items as MaintenanceNotice[])]);
+        setMaintenanceHasMore(Boolean(result.hasMore));
+        setMaintenanceVisible(visible + result.items.length);
+      } else {
+        setPosts(current => [...current, ...(result.items as EditorialPost[])]);
+        setPostsHaveMore(Boolean(result.hasMore));
+        setPostsVisible(visible + result.items.length);
+      }
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Older entries could not be loaded.";
+      kind === "maintenance" ? setMaintenanceMessage(message) : setPostMessage(message);
+    } finally {
+      setLoadingMore(null);
+    }
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>, kind: "maintenance" | "blog") {
     event.preventDefault();
@@ -83,7 +119,7 @@ export function CommunicationsEditor({ initialMaintenance, initialPosts }: { ini
         <p role="status" aria-live="polite">{maintenanceMessage}</p>
       </form>
       <h3>Recent notices</h3>
-      {maintenance.length ? <ul>{maintenance.slice(0, 12).map(item => <li key={item.id} style={{ margin: "12px 0" }}><strong>{item.title}</strong> · {item.status} · {new Date(item.starts_at).toLocaleString()} <button type="button" onClick={() => setEditingMaintenance(item)}>Edit</button></li>)}</ul> : <p>No notices yet.</p>}
+      {maintenance.length ? <ul>{maintenance.slice(0, maintenanceVisible).map(item => <li key={item.id} style={{ margin: "12px 0" }}><strong>{item.title}</strong> · {item.status} · {new Date(item.starts_at).toLocaleString()} <button type="button" onClick={() => setEditingMaintenance(item)}>Edit</button></li>)}</ul> : <p>No notices yet.</p>}{maintenance.length > maintenanceVisible || maintenanceHasMore ? <button type="button" disabled={loadingMore !== null} onClick={() => void showMore("maintenance")}>{loadingMore === "maintenance" ? "Loading…" : maintenanceVisible < maintenance.length ? "Show more notices" : "Load older notices"}</button> : null}
     </section>
 
     <section className="settings-card">
@@ -104,7 +140,7 @@ export function CommunicationsEditor({ initialMaintenance, initialPosts }: { ini
         <p role="status" aria-live="polite">{postMessage}</p>
       </form>
       <h3>Recent articles</h3>
-      {posts.length ? <ul>{posts.slice(0, 12).map(item => <li key={item.id} style={{ margin: "12px 0" }}><strong>{item.title}</strong> · {item.status} <button type="button" onClick={() => setEditingPost(item)}>Edit</button></li>)}</ul> : <p>No articles yet.</p>}
+      {posts.length ? <ul>{posts.slice(0, postsVisible).map(item => <li key={item.id} style={{ margin: "12px 0" }}><strong>{item.title}</strong> · {item.status} <button type="button" onClick={() => setEditingPost(item)}>Edit</button></li>)}</ul> : <p>No articles yet.</p>}{posts.length > postsVisible || postsHaveMore ? <button type="button" disabled={loadingMore !== null} onClick={() => void showMore("blog")}>{loadingMore === "blog" ? "Loading…" : postsVisible < posts.length ? "Show more articles" : "Load older articles"}</button> : null}
     </section>
   </div>;
 }
