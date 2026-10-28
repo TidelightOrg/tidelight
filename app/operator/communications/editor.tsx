@@ -27,9 +27,10 @@ export function CommunicationsEditor({ initialMaintenance, initialPosts }: { ini
     const form = event.currentTarget;
     const raw = Object.fromEntries(new FormData(form).entries());
     const editing = kind === "maintenance" ? editingMaintenance : editingPost;
+    const publishedAt = editingPost?.published_at;
     const payload = kind === "maintenance"
       ? { kind, id: editing?.id, title: raw.title, subtitle: raw.subtitle, message: raw.message, startsAt: raw.startsAt, endsAt: raw.endsAt || null, status: raw.status, affectedServices: String(raw.affectedServices ?? "").split(",").map(value => value.trim()).filter(Boolean) }
-      : { kind, id: editing?.id, title: raw.title, subtitle: raw.subtitle, category: raw.category, slug: raw.slug, body: raw.body, status: raw.status, publishedAt: editingPost?.published_at };
+      : { kind, id: editing?.id, title: raw.title, subtitle: raw.subtitle, category: raw.category, slug: raw.slug, body: raw.body, status: raw.status, publishedAt };
     setBusy(true);
     kind === "maintenance" ? setMaintenanceMessage("") : setPostMessage("");
     try {
