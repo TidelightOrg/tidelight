@@ -129,11 +129,13 @@ async function save(request: Request, update: boolean) {
       starts_at: startsAt, ends_at: completedAt, updated_at: new Date().toISOString(),
       ...(update ? {} : { created_by_email: user.email ?? null }),
     };
-    const query = update
+    let query = update
       ? admin.from("tic_status_maintenance").update(values).eq("id", id)
       : admin.from("tic_status_maintenance").insert(values);
-    const { data, error } = await query.select("id,title,subtitle,message,affected_services,status,starts_at,ends_at,created_at,updated_at").single();
+    if (update && status === "completed" && existingMaintenance) query = query.eq("status", existingMaintenance.status);
+    const { data, error } = await query.select("id,title,subtitle,message,affected_services,status,starts_at,ends_at,created_at,updated_at").maybeSingle();
     if (error) return json({ error: error.code === "23503" ? "This notice could not be saved." : "Maintenance could not be saved. Check the schedule and try again." }, 400);
+    if (update && !data) return json({ error: "This maintenance changed while you were editing it. Reload and try again." }, 409);
     return json({ item: data });
   }
 
