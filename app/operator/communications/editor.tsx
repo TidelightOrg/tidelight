@@ -69,6 +69,24 @@ export function CommunicationsEditor({ initialMaintenance, initialPosts }: { ini
     }
   }
 
+  async function refreshList(kind: "maintenance" | "blog") {
+    const response = await fetch(`/api/operator/communications?kind=${kind}&offset=0`);
+    const result = await response.json() as { items?: Array<MaintenanceNotice | EditorialPost>; hasMore?: boolean };
+    if (!response.ok || !result.items) return false;
+    if (kind === "maintenance") {
+      setMaintenance(result.items as MaintenanceNotice[]);
+      setMaintenanceOffset(result.items.length);
+      setMaintenanceHasMore(Boolean(result.hasMore));
+      setMaintenanceVisible(12);
+    } else {
+      setPosts(result.items as EditorialPost[]);
+      setPostsOffset(result.items.length);
+      setPostsHaveMore(Boolean(result.hasMore));
+      setPostsVisible(12);
+    }
+    return true;
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>, kind: "maintenance" | "blog") {
     event.preventDefault();
     const form = event.currentTarget;
@@ -84,16 +102,27 @@ export function CommunicationsEditor({ initialMaintenance, initialPosts }: { ini
       const response = await fetch("/api/operator/communications", { method: editing ? "PATCH" : "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const result = await response.json() as { item?: MaintenanceNotice | EditorialPost; error?: string };
       if (!response.ok || !result.item) throw new Error(result.error ?? "The update could not be saved.");
+      const refreshed = await refreshList(kind);
       if (kind === "maintenance") {
-        const item = result.item as MaintenanceNotice;
-        setMaintenance(current => [item, ...current.filter(existing => existing.id !== item.id)].sort((a, b) => Date.parse(b.starts_at) - Date.parse(a.starts_at)));
+        if (!refreshed) {
+          const item = result.item as MaintenanceNotice;
+          setMaintenance(current => [item, ...current.filter(existing => existing.id !== item.id)].sort((a, b) => Date.parse(b.starts_at) - Date.parse(a.starts_at)));
+          setMaintenanceHasMore(false);
+        }
         setEditingMaintenance(null);
-        setMaintenanceMessage(editing ? "Maintenance notice updated." : "Maintenance notice published.");
+        setMaintenanceMessage(refreshed
+          ? (editing ? "Maintenance notice updated." : "Maintenance notice published.")
+          : "Saved, but the list could not refresh. Reload this page before loading older notices.");
       } else {
         const item = result.item as EditorialPost;
-        setPosts(current => [item, ...current.filter(existing => existing.id !== item.id)].sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at)));
+        if (!refreshed) {
+          setPosts(current => [item, ...current.filter(existing => existing.id !== item.id)].sort((a, b) => Date.parse(b.updated_at) - Date.parse(a.updated_at)));
+          setPostsHaveMore(false);
+        }
         setEditingPost(null);
-        setPostMessage(item.status === "published" ? "Field Notes article published." : "Draft saved.");
+        setPostMessage(refreshed
+          ? (item.status === "published" ? "Field Notes article published." : "Draft saved.")
+          : "Saved, but the list could not refresh. Reload this page before loading older articles.");
       }
       form.reset();
     } catch (error) {
