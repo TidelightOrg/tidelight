@@ -85,7 +85,7 @@ test("active monitors are independent of paginated archived monitors", async () 
 test("Monitor appears in desktop and mobile navigation", async () => {
   const nav = await readFile(files.nav, "utf8");
   assert.ok(nav.includes('href: "/monitor", label: "Research Monitor"'));
-  assert.ok(nav.includes('className="mobile-drawer-links">{visibleNavigation.map'));
+  assert.ok(nav.includes('<nav className="mobile-drawer-links" aria-label="Workspace sections">{visibleGroups.map'));
   assert.ok(nav.includes('aria-label="Workspace navigation"'));
 });
 
