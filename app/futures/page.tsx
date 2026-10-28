@@ -4,6 +4,7 @@ import { STOCK_PERP_UNIVERSE } from "@/lib/bitget-market";
 import FuturesTradingStation from "@/app/ui/futures-trading-station";
 import "./paper.css";
 import { getServerUser } from "@/lib/supabase/auth-user";
+import { isLiveOrderExecutionEnabled } from "@/lib/live-order-policy";
 
 export const dynamic = "force-dynamic";
 
@@ -31,5 +32,5 @@ export default async function FuturesPage({ searchParams }: { searchParams: Prom
     const result = await admin.from("bitget_connections").select("mode,live_enabled,last_validated_at").eq("user_id", user.id).maybeSingle();
     connection = result.data;
   }
-  return <FuturesTradingStation signedIn={Boolean(user)} liveStatus={access.data?.status ?? "not_requested"} liveRequestedAt={access.data?.requested_at ?? null} liveReviewNote={access.data?.review_note ?? null} liveKeyConfigured={connection?.mode === "live" && Boolean(connection.live_enabled && connection.last_validated_at)} initialSymbol={STOCK_PERP_UNIVERSE.some(symbol => symbol === requestedSymbol) ? requestedSymbol : undefined} researchRunId={researchRunId} cash={Number(account.data?.cash_balance ?? 10000)} paused={Boolean(account.data?.paused)} position={open} decisions={(decisions.data ?? []) as never} fills={(fills.data ?? []) as never} />;
+  return <FuturesTradingStation signedIn={Boolean(user)} liveOrdersEnabled={isLiveOrderExecutionEnabled()} liveStatus={access.data?.status ?? "not_requested"} liveRequestedAt={access.data?.requested_at ?? null} liveReviewNote={access.data?.review_note ?? null} liveKeyConfigured={connection?.mode === "live" && Boolean(connection.live_enabled && connection.last_validated_at)} initialSymbol={STOCK_PERP_UNIVERSE.some(symbol => symbol === requestedSymbol) ? requestedSymbol : undefined} researchRunId={researchRunId} cash={Number(account.data?.cash_balance ?? 10000)} paused={Boolean(account.data?.paused)} position={open} decisions={(decisions.data ?? []) as never} fills={(fills.data ?? []) as never} />;
 }

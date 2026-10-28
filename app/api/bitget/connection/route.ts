@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { BitgetRequestError, bitgetPrivateRequest, encryptSecret, type Mode } from "@/lib/bitget-private";
+import { isLiveOrderExecutionEnabled, LIVE_ORDER_DISABLED_MESSAGE } from "@/lib/live-order-policy";
 
 export const runtime = "nodejs";
 export async function GET() {
@@ -12,7 +13,7 @@ export async function GET() {
     const admin = createAdminClient();
     const { data, error } = await admin.from("bitget_connections").select("id, label, mode, live_enabled, last_validated_at").eq("user_id", user.id).maybeSingle();
     if (error) throw error;
-    return NextResponse.json({ connected: Boolean(data?.last_validated_at), connection: data ? { label: data.label, mode: data.mode, live_enabled: data.live_enabled, last_validated_at: data.last_validated_at } : null });
+    return NextResponse.json({ connected: Boolean(data?.last_validated_at), liveExecutionEnabled: isLiveOrderExecutionEnabled(), connection: data ? { label: data.label, mode: data.mode, live_enabled: data.live_enabled, last_validated_at: data.last_validated_at } : null });
   } catch {
     return NextResponse.json({ error: "Connection status is unavailable." }, { status: 500 });
   }
@@ -27,6 +28,7 @@ export async function POST(request: Request) {
   const apiSecret = typeof body.apiSecret === "string" ? body.apiSecret.trim() : "";
   const passphrase = typeof body.passphrase === "string" ? body.passphrase.trim() : "";
   const mode: Mode = body.mode === "live" ? "live" : "demo";
+  if (mode === "live" && !isLiveOrderExecutionEnabled()) return NextResponse.json({ error: LIVE_ORDER_DISABLED_MESSAGE }, { status: 403, headers: { "Cache-Control": "no-store" } });
   if (apiKey.length < 8 || apiKey.length > 180 || apiSecret.length < 16 || apiSecret.length > 180 || passphrase.length < 1 || passphrase.length > 180) {
     return NextResponse.json({ error: "Check that all three Bitget API fields are filled in correctly." }, { status: 400 });
   }

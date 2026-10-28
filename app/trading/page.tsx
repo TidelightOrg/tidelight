@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import TradingWorkspace from "@/app/ui/trading-workspace";
 import { issuerLogoUrl } from "@/lib/issuer-logo";
 import { getServerUser } from "@/lib/supabase/auth-user";
+import { isLiveOrderExecutionEnabled } from "@/lib/live-order-policy";
 
 export const revalidate = 60;
 export default async function TradingPage({ searchParams }: { searchParams: Promise<{ symbol?: string; intent?: string }> }) {
@@ -14,8 +15,8 @@ export default async function TradingPage({ searchParams }: { searchParams: Prom
   const user = await getServerUser();
   const assets = (universe?.assets ?? []).filter((asset) => asset.isReality && asset.kind === "rtoken" && asset.quoteCoin === "USDT").map((asset) => ({ symbol: asset.symbol, name: asset.name, ticker: asset.underlyingTicker, logoUrl: asset.logoUrl ?? issuerLogoUrl(asset), lastPrice: asset.lastPrice }));
   return <div className="content-wrap inner-page">
-    <section className="page-heading compact-heading"><div><div className="eyebrow"><span className="eyebrow-line"/> TIDELIGHT / BITGET EXECUTION</div><h1>Trade with <span>clear limits.</span></h1><p>Connect a dedicated Bitget API key for demo or live spot orders on verified tokenized stocks.</p></div></section>
-    <TradingWorkspace signedIn={Boolean(user)} assets={assets} initialSymbol={assets.some((asset) => asset.symbol === requestedSymbol) ? requestedSymbol : undefined} initialIntent={intent}/>
-    <div className="route-footnote"><span>i</span> Live orders can lose money and may execute immediately. Start in demo mode. Nightwatch scheduled agent remains paper-only; live agent automation is not enabled by this order desk. <Link href="/nightwatch">Review Nightwatch controls</Link></div>
+    <section className="page-heading compact-heading"><div><div className="eyebrow"><span className="eyebrow-line"/> TIDELIGHT / BITGET EXECUTION</div><h1>Trade with <span>clear limits.</span></h1><p>Connect a dedicated Bitget API key for demo orders on verified tokenized stocks.{isLiveOrderExecutionEnabled() ? " Live execution follows a separate approval flow." : " Live exchange orders are disabled across this deployment."}</p></div></section>
+    <TradingWorkspace signedIn={Boolean(user)} assets={assets} initialSymbol={assets.some((asset) => asset.symbol === requestedSymbol) ? requestedSymbol : undefined} initialIntent={intent} liveOrdersEnabled={isLiveOrderExecutionEnabled()}/>
+    <div className="route-footnote"><span>i</span> {isLiveOrderExecutionEnabled() ? "Live orders can lose money and may execute immediately. Start in demo mode." : "Live exchange orders are disabled server-side. Demo and paper execution remain available."} Nightwatch scheduled agent remains paper-only; live agent automation is not enabled by this order desk. <Link href="/nightwatch">Review Nightwatch controls</Link></div>
   </div>;
 }

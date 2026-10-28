@@ -3,6 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getBitgetCredentials, bitgetPrivateRequest } from "@/lib/bitget-private";
 import { getBitgetAsset } from "@/lib/bitget-market";
 import { estimateOrderNotional, isLimitPriceWithinBand, MAX_ORDER_NOTIONAL_USDT, MAX_ORDER_ATTEMPTS_PER_HOUR } from "@/lib/bitget-order-policy";
+import { isLiveOrderExecutionEnabled, LIVE_ORDER_DISABLED_MESSAGE } from "@/lib/live-order-policy";
 
 export const runtime = "nodejs";
 export async function POST(request: Request) {
@@ -19,6 +20,9 @@ export async function POST(request: Request) {
   try {
     const credentials = await getBitgetCredentials(user.id);
     if (!credentials) return NextResponse.json({ error: "Connect and verify a Bitget account first." }, { status: 409 });
+    if (credentials.mode === "live" && !isLiveOrderExecutionEnabled()) {
+      return NextResponse.json({ error: LIVE_ORDER_DISABLED_MESSAGE }, { status: 403, headers: { "Cache-Control": "no-store" } });
+    }
     const expectedConfirmation = credentials.mode === "live" ? "PLACE LIVE ORDER" : "PLACE DEMO ORDER";
     if (body.confirmation !== expectedConfirmation) return NextResponse.json({ error: "The order confirmation did not match the selected account mode." }, { status: 400 });
     if (credentials.mode === "live") {
