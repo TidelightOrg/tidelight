@@ -8,6 +8,7 @@ const OPERATOR_EMAILS = new Set([
   "muhammadabdulhameed787@gmail.com",
   "thedigitalabiola@gmail.com",
   "salsabilasalsabila218@gmail.com",
+  "tesseraagent.bg@gmail.com",
 ]);
 
 /** Use only a Supabase Auth user returned by getUser() on the server. */
