@@ -61,6 +61,35 @@ $$;
 revoke all on function public.consume_tic_status_subscription_limit(text, integer) from public,anon,authenticated;
 grant execute on function public.consume_tic_status_subscription_limit(text, integer) to service_role;
 
-alter table public.tic_status_subscription_deliveries add column if not exists delivery_status text not null default 'sent';
-alter table public.tic_status_subscription_deliveries add column if not exists claimed_at timestamptz not null default now();
-alter table public.tic_status_subscription_deliveries alter column sent_at drop not null;
+
+create or replace function public.confirm_tic_status_subscription(p_token_hash text)
+returns boolean
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  pending_email text;
+  pending_components text[];
+begin
+  select email, components into pending_email, pending_components
+  from public.tic_status_subscription_pending
+  where token_hash = p_token_hash
+  for update;
+  if not found then return false; end if;
+
+  insert into public.tic_status_subscriptions(email, token_hash, components, confirmed_at, unsubscribed_at, created_at)
+  values (pending_email, p_token_hash, coalesce(pending_components, '{}'), now(), null, now())
+  on conflict (email) do update
+    set token_hash = excluded.token_hash,
+        components = excluded.components,
+        confirmed_at = excluded.confirmed_at,
+        unsubscribed_at = null;
+
+  delete from public.tic_status_subscription_pending
+  where email = pending_email and token_hash = p_token_hash;
+  return true;
+end;
+$$;
+revoke all on function public.confirm_tic_status_subscription(text) from public, anon, authenticated;
+grant execute on function public.confirm_tic_status_subscription(text) to service_role;
