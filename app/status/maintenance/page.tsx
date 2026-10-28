@@ -24,8 +24,8 @@ export default async function MaintenancePage() {
   let notices: MaintenanceNotice[] = [];
   let unavailable = false;
   try { notices = await getMaintenanceNotices(); } catch { unavailable = true; }
-  const currentTime = Date.now();
-  const currentNotices = notices.filter(item => item.status === "ongoing" || (item.status === "scheduled" && Date.parse(item.starts_at) >= currentTime));
+  const currentTime = (await headers()).get("x-status-render-time") ?? new Date().toISOString();
+  const currentNotices = notices.filter(item => item.status === "ongoing" || (item.status === "scheduled" && Date.parse(item.starts_at) >= Date.parse(currentTime)));
   const pastNotices = notices.filter(item => !currentNotices.includes(item));
 
   return <main className="tic-status-page">
