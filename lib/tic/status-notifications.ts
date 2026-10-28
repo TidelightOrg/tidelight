@@ -13,10 +13,10 @@ export async function notifyStatusSubscribers() {
   const secret = signingSecret();
   if (!secret || !process.env.RESEND_API_KEY) return { sent: 0, skipped: true };
   const admin = createAdminClient();
-  const cutoff = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+  const cutoff = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
   const [created, resolved] = await Promise.all([
-    admin.from("tic_status_incidents").select("id,component,started_at,resolved_at,state,latest_detail").gte("started_at", cutoff).order("started_at", { ascending: true }).limit(5000),
-    admin.from("tic_status_incidents").select("id,component,started_at,resolved_at,state,latest_detail").gte("resolved_at", cutoff).not("resolved_at", "is", null).order("resolved_at", { ascending: true }).limit(5000),
+    admin.from("tic_status_incidents").select("id,component,started_at,resolved_at,state,latest_detail").gte("started_at", cutoff).order("started_at", { ascending: false }).limit(250),
+    admin.from("tic_status_incidents").select("id,component,started_at,resolved_at,state,latest_detail").gte("resolved_at", cutoff).not("resolved_at", "is", null).order("resolved_at", { ascending: false }).limit(250),
   ]);
   if (created.error || resolved.error) throw new Error("Status notification events could not be loaded.");
   const events = [
