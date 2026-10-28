@@ -472,6 +472,7 @@
   color: var(--brand-aqua);
 }
 .theme-quick-option:hover .theme-quick-icon { transform: scale(1.08); }
+:root[data-theme="white"] .theme-quick-option.selected .theme-quick-icon { color: #286a4d; }
 .theme-option-icon {
   display: grid;
   place-items: center;
