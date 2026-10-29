@@ -281,7 +281,7 @@ export default function JudgePage() {
       <div className="judge-score-grid">
         <article><span>RUN CAPTURE</span><strong>10 / 10</strong><small>All frozen events have production observations.</small></article>
         <article><span>AI SYNTHESIS</span><strong>2 / 10</strong><small>Two runs returned model synthesis; eight were source-only or had no synthesis.</small></article>
-        <article><span>PROTOCOL CLAIM-QUALITY SCORE</span><strong>2.5 / 10</strong><small>Two independent claim reviews and adjudication are required before scoring.</small></article>
+        <article><span>PROTOCOL CLAIM-QUALITY SCORE</span><strong>Pending</strong><small>Two independent claim reviews and adjudication are required before scoring.</small></article>
       </div>
       <figure className="judge-benchmark-visual" aria-labelledby="benchmark-visual-title">
         <div className="judge-benchmark-visual-heading">
