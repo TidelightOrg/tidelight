@@ -82,7 +82,7 @@ test("Simplified Chinese covers the Judge evaluation path and public evidence di
     "Production captures are complete. The formal score requires two independent claim reviews and adjudication; task time remains unmeasured. A provisional single-reviewer assessment is linked below.",
     "PROTOCOL CLAIM-QUALITY SCORE", "Claim-quality score pending",
     "Two independent claim reviews and adjudication are required before scoring.",
-    "This measures capture availability, not factual accuracy. The provisional 2.5/10 single-reviewer product assessment is descriptive only; task time was not measured. The September CPI run included off-topic sources.",
+    "On this ten-run sample, only two outputs included model synthesis; both raised material evidence concerns. Eight were source-only or had no usable synthesis. This measures capture availability, not factual accuracy. The provisional 2.5/10 single-reviewer product assessment is descriptive only; task time was not measured. The September CPI run included off-topic sources.",
     "Provisional single-review assessment (2.5/10) ↗",
     "Pending",
     "How do AI investment and Azure demand change the risk picture?", "What should a long-term rAAPL review verify?",
