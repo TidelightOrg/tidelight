@@ -78,7 +78,12 @@ test("Simplified Chinese covers the Judge evaluation path and public evidence di
     "Open the full Gmail screenshot for the RNVDUSDT Nightwatch email", "Browse published paper replays", "Download JSON",
     "PUBLIC REPLAY", "after costs", "Holdout return trailed buy and hold (+2.12%) over 32 days. Historical simulation; costs estimated, no live orders.",
     "Evaluation path", "Evaluation stages", "Would you review the rTSLA market?",
-    "10 runs captured. Claim-quality score pending.",\n    "Production captures are complete. The formal score requires two independent claim reviews and adjudication; task time remains unmeasured. A provisional single-reviewer assessment is linked below.",\n    "PROTOCOL CLAIM-QUALITY SCORE",\n    "Two independent claim reviews and adjudication are required before scoring.",\n    "This measures capture availability, not factual accuracy. The provisional 2.5/10 single-reviewer product assessment is descriptive only; task time was not measured. The September CPI run included off-topic sources.",\n    "Provisional single-review assessment (2.5/10) ↗",
+    "10 runs captured. Claim-quality score pending.",
+    "Production captures are complete. The formal score requires two independent claim reviews and adjudication; task time remains unmeasured. A provisional single-reviewer assessment is linked below.",
+    "PROTOCOL CLAIM-QUALITY SCORE",
+    "Two independent claim reviews and adjudication are required before scoring.",
+    "This measures capture availability, not factual accuracy. The provisional 2.5/10 single-reviewer product assessment is descriptive only; task time was not measured. The September CPI run included off-topic sources.",
+    "Provisional single-review assessment (2.5/10) ↗",
     "How do AI investment and Azure demand change the risk picture?", "What should a long-term rAAPL review verify?",
     "How should antitrust remedies and AI-search competition be reviewed?", "How do AWS investment and retail economics shape the review?",
     "Compare the latest evidence and risks.", "Separate issuer assessments", "decision gates", "PUBLIC REPLAY · APPLE · 4H",
@@ -162,7 +167,9 @@ test("Simplified Chinese covers visible developer docs and package UI copy", asy
     visit(file);
   }
 
-  assert.deepEqual([...missing].sort(), [], `Missing Simplified Chinese entries:\n${[...missing].sort().join("\n")}`);
+  assert.deepEqual([...missing].sort(), [], `Missing Simplified Chinese entries:
+${[...missing].sort().join("
+")}`);
   for (const key of [
     "Build the source and authenticate.",
     "The endpoint is stateless and returns JSON responses. Use an MCP client that supports Streamable HTTP and custom Bearer authorization headers. Client interoperability is verified with the official TypeScript SDK; no named third party client is certified yet.",
@@ -217,7 +224,9 @@ test("Simplified Chinese covers account, settings, landing, and developer consol
     };
     visit(file);
   }
-  assert.deepEqual([...missing].sort(), [], `Missing Simplified Chinese entries:\n${[...missing].sort().join("\n")}`);
+  assert.deepEqual([...missing].sort(), [], `Missing Simplified Chinese entries:
+${[...missing].sort().join("
+")}`);
   for (const key of [
     "My info", "Security", "Preference", "General", "Manage", "Bitget only",
     "RESEARCH SYNTHESIS", "AgentKey data connection.", "DYOR", "Do your own research.",
@@ -253,7 +262,9 @@ test("Simplified Chinese covers fixed public research replay copy and preserves 
     ts.forEachChild(node, visit);
   };
   visit(file);
-  assert.deepEqual([...missing].sort(), [], `Missing public replay translations:\n${[...missing].sort().join("\n")}`);
+  assert.deepEqual([...missing].sort(), [], `Missing public replay translations:
+${[...missing].sort().join("
+")}`);
   for (const key of [
     "One research run, ready to inspect.", "Separate evidence. Separate gates.",
     "Model-reported score, not a calibrated probability.", "Sources attached to this assessment",
