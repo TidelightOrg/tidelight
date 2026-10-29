@@ -6,9 +6,11 @@
 
 ## Current verified continuation point · 29 October 2026
 
-PR #442, **Clarify pending benchmark claim-quality score**, remains open and unmerged on `codex/benchmark-status-hierarchy`. Latest verified head: `988b9cc276abe0b5b560f32c1d6fa65972918e35`. Its Vercel preview is READY at [tidelight-i7ii700ob-tidelight1.vercel.app](https://tidelight-i7ii700ob-tidelight1.vercel.app/). Do not merge this PR.
+PR #442, **Clarify pending benchmark claim-quality score**, remains open and unmerged on `codex/benchmark-status-hierarchy`. At this handoff update, the branch head is `505ce373bee7bd972a1c687d22bb183ab1e2519a`. Its Vercel preview is READY at [tidelight-b11biuj05-tidelight1.vercel.app](https://tidelight-b11biuj05-tidelight1.vercel.app/). Do not merge this PR.
 
-The Judge page now uses a Judge-specific pending-score label with a Simplified Chinese translation, and the full benchmark disclosure has an exact translation and a localization assertion. CodeRabbit and Codex findings were read and fixed; the inline Codex thread is resolved. On the latest preview, Chromium verified the Chinese score/disclosure at a 390 × 844 viewport with no horizontal overflow. Full app checks passed on this head: 327 tests, typecheck, and lint (14 existing warnings, no errors). Vercel completed the production build for the same head.
+The code changes were last verified at `988b9cc276abe0b5b560f32c1d6fa65972918e35`: 327 tests passed, typecheck passed, and lint passed with 14 existing warnings and no errors. Vercel completed the production build for `505ce373bee7bd972a1c687d22bb183ab1e2519a`; the later commit only updated handoff documentation. The 390 × 844 Chromium check of the Chinese pending score and full disclosure was on the preview for `988b9cc`; no browser check was performed on `505ce37`.
+
+The Judge page now uses a Judge-specific pending-score label with a Simplified Chinese translation, and the full benchmark disclosure has an exact translation and a localization assertion. CodeRabbit and Codex findings were read and fixed; the inline Codex thread is resolved.
 
 The package/developer narrow viewport pass is complete at 390 × 844 in White and Dark for package home, dashboard, all five package detail pages, developer docs, and the signed-out console: 18 route/theme captures, no horizontal overflow. Evidence is in [`PACKAGE_ECOSYSTEM_DESIGN_QA.md`](PACKAGE_ECOSYSTEM_DESIGN_QA.md). The private API Explorer was not visually inspected because the browser session is signed out. Detailed interaction and automated accessibility audits remain open.
 
