@@ -34,7 +34,7 @@ PR #348 (**Polish package workspace readability and navigation**) is merged. Its
 
 A live desktop browser pass opened the package home, dashboard, and TypeScript SDK detail route. The dashboard showed its workspace rail, package selector, workbench, registry details, and package catalog. The SDK page showed the lifecycle walkthrough, quickstart, API surface, compatibility, security, and live release sections. White and Dark were checked on the SDK page and dashboard. The registry release displayed v0.1.2. The privacy notice closed automatically after six seconds. No narrow-viewport pass or automated accessibility audit was performed in this review.
 
-The earlier preview-only status is superseded. Remaining visual verification: check the package home, dashboard, all five detail routes, developer docs, and API explorer at narrow widths and across both palettes, then correct any observed defects before closing the developer-experience milestone.
+The broad narrow-viewport pass is documented below. Remaining verification is the authenticated API Explorer, detailed interaction checks, and an automated accessibility audit; the private explorer requires a signed-in workspace session.
 
 
 ## Narrow viewport review · 29 October 2026
