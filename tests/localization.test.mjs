@@ -80,7 +80,7 @@ test("Simplified Chinese covers the Judge evaluation path and public evidence di
     "Evaluation path", "Evaluation stages", "Would you review the rTSLA market?",
     "10 runs captured. Claim-quality score pending.",
     "Production captures are complete. The formal score requires two independent claim reviews and adjudication; task time remains unmeasured. A provisional single-reviewer assessment is linked below.",
-    "PROTOCOL CLAIM-QUALITY SCORE",
+    "PROTOCOL CLAIM-QUALITY SCORE", "Claim-quality score pending",
     "Two independent claim reviews and adjudication are required before scoring.",
     "This measures capture availability, not factual accuracy. The provisional 2.5/10 single-reviewer product assessment is descriptive only; task time was not measured. The September CPI run included off-topic sources.",
     "Provisional single-review assessment (2.5/10) ↗",
