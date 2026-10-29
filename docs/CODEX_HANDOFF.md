@@ -4,6 +4,24 @@
 **Repository:** [`TidelightOrg/tidelight`](https://github.com/TidelightOrg/tidelight)
 **Purpose:** let a fresh session continue from current verified state without repeating completed work.
 
+## Current verified continuation point · 29 October 2026
+
+PR #442, **Clarify pending benchmark claim-quality score**, remains open and unmerged on `codex/benchmark-status-hierarchy`. Latest verified head: `988b9cc276abe0b5b560f32c1d6fa65972918e35`. Its Vercel preview is READY at [tidelight-i7ii700ob-tidelight1.vercel.app](https://tidelight-i7ii700ob-tidelight1.vercel.app/). Do not merge this PR.
+
+The Judge page now uses a Judge-specific pending-score label with a Simplified Chinese translation, and the full benchmark disclosure has an exact translation and a localization assertion. CodeRabbit and Codex findings were read and fixed; the inline Codex thread is resolved. On the latest preview, Chromium verified the Chinese score/disclosure at a 390 × 844 viewport with no horizontal overflow. Full app checks passed on this head: 327 tests, typecheck, and lint (14 existing warnings, no errors). Vercel completed the production build for the same head.
+
+The package/developer narrow viewport pass is complete at 390 × 844 in White and Dark for package home, dashboard, all five package detail pages, developer docs, and the signed-out console: 18 route/theme captures, no horizontal overflow. Evidence is in [`PACKAGE_ECOSYSTEM_DESIGN_QA.md`](PACKAGE_ECOSYSTEM_DESIGN_QA.md). The private API Explorer was not visually inspected because the browser session is signed out. Detailed interaction and automated accessibility audits remain open.
+
+### Next gates
+
+1. Obtain an authenticated workspace browser session to inspect the private API Explorer and finish the developer-console interaction/accessibility pass.
+2. Continue the frozen research benchmark only with saved displayed claims and source passages plus two independent reviewers and adjudication. Ten production runs are captured, but no protocol score is valid yet; task time was not measured.
+3. Observe a normal Nightwatch scheduled run and reconcile it read-only. Production now has four owners with enabled schedules, and the next aggregate due time was 30 October 2026 at 00:40 UTC. The current session cannot map the connected identity to one owner, so it did not inspect private schedule rows or run a worker.
+4. Complete authenticated third-party MCP compatibility one named client at a time; do not certify an unauthenticated or failed attempt.
+5. Resolve the Vercel production disable with the account owner before claiming public availability. The roadmap records project state `live: false` and public 402 `DEPLOYMENT_DISABLED`; do not move production aliases to a preview or bypass platform controls.
+
+Preserve the paper-only server guard and all research-evidence gates. Never manufacture a positive benchmark, Nightwatch result, market observation, or production availability.
+
 ## Current verified continuation point · 26 October 2026
 
 PR #390, **Add a public developer integration directory**, is merged and its production deployment is READY. The live developer integration page, developer landing page, package home, and package dashboard were opened in the connected browser at desktop width. The integration page rendered four integration cards; the package dashboard rendered the registry workbench and five integration entries. The visible status route, support route, and five theme controls were present. No desktop header or card overlap appeared in these views. The preview page also rendered, and its Simplified Chinese page heading and integration copy were verified.
