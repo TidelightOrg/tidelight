@@ -63,7 +63,7 @@ export default async function ProviderHealthPage() {
       <h2>Response reliability</h2>
       {rows.length ? <div className="coverage-table provider-health-table" role="table" aria-label="Provider attempt breakdown">
         <div className="coverage-table-head provider-health-table-head" role="row"><span role="columnheader">Provider / model</span><span role="columnheader">Outcome</span><span role="columnheader">Attempts</span><span role="columnheader">Avg latency</span><span role="columnheader">p95</span></div>
-        {rows.map((row, index) => <div className="coverage-row provider-health-row" key={`${row.provider}-${row.model}-${row.outcome}-${index}`}>
+        {rows.map((row, index) => <div className="coverage-row provider-health-row" role="row" key={`${row.provider}-${row.model}-${row.outcome}-${index}`}>
           <span role="cell"><strong>{row.provider}</strong><small>{row.model}</small></span>
           <span role="cell">{outcomeLabels[row.outcome] ?? row.outcome}</span>
           <span role="cell">{Number(row.attempt_count).toLocaleString()}</span>
