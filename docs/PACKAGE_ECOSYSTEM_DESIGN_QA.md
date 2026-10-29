@@ -35,3 +35,10 @@ PR #348 (**Polish package workspace readability and navigation**) is merged. Its
 A live desktop browser pass opened the package home, dashboard, and TypeScript SDK detail route. The dashboard showed its workspace rail, package selector, workbench, registry details, and package catalog. The SDK page showed the lifecycle walkthrough, quickstart, API surface, compatibility, security, and live release sections. White and Dark were checked on the SDK page and dashboard. The registry release displayed v0.1.2. The privacy notice closed automatically after six seconds. No narrow-viewport pass or automated accessibility audit was performed in this review.
 
 The earlier preview-only status is superseded. Remaining visual verification: check the package home, dashboard, all five detail routes, developer docs, and API explorer at narrow widths and across both palettes, then correct any observed defects before closing the developer-experience milestone.
+
+
+## Narrow viewport review · 29 October 2026
+
+The PR #442 Vercel preview was opened in headless Chromium at 390 × 844. Package home, dashboard, SDK, React, Python, MCP, CLI, developer docs, and the signed-out developer console were captured in both White and Dark themes. On all 18 route/theme combinations, document and body scroll widths matched the 390 px viewport; no horizontal page overflow was observed. The reviewed screens retained the Tidelight wordmark, palette, and responsive navigation.
+
+The console redirected to the signed-out workspace screen, so the private API Explorer itself could not be visually reviewed without an authenticated workspace session. This pass confirms layout and horizontal fit; it does not claim a full interaction or accessibility audit.
