@@ -8,6 +8,7 @@ import { extractFlowTickers, gateFlowTrade, isTokenizedMarketQuestion, normalize
 import { buildIssuerNewsQueries, gatherIssuerEvidence, issuerEvidenceLookbackDays, type FlowEvidence } from "@/lib/agent-flow-sources";
 import { agentKeyIssuerEvidence } from "@/lib/agentkey-flow-sources";
 import { buildMacroNewsQueries, classifyMacroQuestion, gatherMacroEvidence, macroResearchLookbackDays, type MacroEvidence, type MacroTopic } from "@/lib/macro-research-sources";
+import { recordProviderHealth } from "@/lib/provider-health";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -49,6 +50,7 @@ export async function GET(request: Request) {
   return NextResponse.json({ summary: data.summary }, { headers: { "Cache-Control": "private, no-store" } });
 }
 
+/** Starts an authenticated research run and streams progress until its private result is saved. */
 export async function POST(request: Request) {
   // Reserve time for the final gates and private record commit under maxDuration.
   const analysisDeadline = Date.now() + 108_000;
@@ -165,6 +167,7 @@ export async function POST(request: Request) {
           };
           stage("Coordinator", "complete", "Macro research ready", "The macro brief is saved privately. It contains no stock signal, quote, or trade handoff.");
           const result = { researchRunId: run.id, question, researchType: "macro" as const, macroTopic, synthesis: synthesisProvider ? { mode: "model" as const, provider: synthesisProvider } : { mode: "source_only" as const, provider: null }, ...(providerAttempts.length ? { operationalDiagnostics: { providerAttempts } } : {}), researchCoverage: { mode: "macro", lookbackDays: macroResearchLookbackDays(question), queriesPerTicker: buildMacroNewsQueries(question).length * 2, collectedItems: macroSources.length, publishers: new Set(macroSources.map(source => source.publisher)).size, sourceDomains: new Set(macroSources.map(source => source.publisherDomain)).size, collectedAt: new Date().toISOString(), limitations: ["Macro coverage is bounded to Federal Reserve/BLS sources and an allowlist of independent publishers.", "Market expectations are reporting context, not a policy outcome or forecast."] }, assets: [asset], tradeable: false, trace, contextRunId, ...(workspaceContext ? { workspaceContext } : {}) };
+          await recordProviderHealth(providerAttempts);
           const { error: saveError } = await supabase.from("research_runs").update({ status: "complete", completed_at: new Date().toISOString(), summary: result }).eq("id", run.id).eq("user_id", user.id);
           if (saveError) {
             stage("Coordinator", "blocked", "Private trace could not be saved", "No trading handoff was offered because the macro research record was not committed.");
@@ -266,6 +269,7 @@ export async function POST(request: Request) {
         });
         stage("Coordinator", "complete", "Review ready", assets.some(asset => asset.tradeable) ? "One or more scenarios may proceed to a separate trade review. Nothing was sent to Bitget or the paper ledger." : "Keep watching the evidence and market. No scenario passed every trade review gate.");
         const result = { researchRunId: run.id, question, synthesis: synthesisProvider ? { mode: "model" as const, provider: synthesisProvider } : { mode: "source_only" as const, provider: null }, ...(providerAttempts.length ? { operationalDiagnostics: { providerAttempts } } : {}), researchCoverage: { mode: "deep", lookbackDays, queriesPerTicker: buildIssuerNewsQueries(tickers[0], getIssuerName(tickers[0]), question).length * 2, collectedItems: snapshots.reduce((count, snap) => count + snap.sources.length, 0), publishers: [...new Set(snapshots.flatMap(snap => snap.sources.map(source => source.publisher)))].length, sourceDomains: [...new Set(snapshots.flatMap(snap => snap.sources.map(source => new URL(source.url).hostname)))].length, collectedAt: new Date().toISOString(), limitations: ["Primary issuer excerpts are bounded and partial; open the cited source for the complete release.", "Public-feed coverage is bounded and cannot represent the entire internet."] }, assets, tradeable: assets.some(asset => asset.tradeable), trace, contextRunId, ...(workspaceContext ? { workspaceContext } : {}) };
+        await recordProviderHealth(providerAttempts);
         const { error: saveError } = await supabase.from("research_runs").update({ status: "complete", completed_at: new Date().toISOString(), summary: result }).eq("id", run.id).eq("user_id", user.id);
         if (saveError) {
           stage("Coordinator", "blocked", "Private trace could not be saved", "No trade handoff was offered because the research record was not committed.");

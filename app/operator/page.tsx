@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { createClient } from "@/lib/supabase/server";
 import { isTidelightOperator } from "@/lib/auth/operator-access";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getServerUser } from "@/lib/supabase/auth-user";
@@ -11,13 +10,13 @@ export const metadata = { title: "Operator console | Tidelight" };
 const controls = [
   { eyebrow: "STATUS & PUBLISHING", title: "Status and Field Notes", detail: "Schedule maintenance, publish status updates, and write public Tidelight articles.", href: "/operator/communications", action: "Manage public updates" },
   { eyebrow: "CUSTOMER EXPERIENCE", title: "Ecosystem support", detail: "Review and reply to user conversations across Tidelight, Intelligence Cloud, and Packages.", href: "/operator/developer-support", action: "Open support inbox" },
+  { eyebrow: "RESEARCH OPERATIONS", title: "AI provider health", detail: "Inspect aggregate provider success, retry outcomes, and latency without accessing private research records.", href: "/operator/provider-health", action: "View provider health" },
   { eyebrow: "ACCESS GOVERNANCE", title: "Futures live access", detail: "Review requests, terms acceptance, and operator decisions.", href: "/settings/futures-access", action: "Open review queue" },
   { eyebrow: "PRODUCT OPERATIONS", title: "Core workspace controls", detail: "Manage the existing research, account, and execution settings.", href: "/settings", action: "Open settings" },
   { eyebrow: "EXECUTION OVERSIGHT", title: "Stocks perpetual desk", detail: "Inspect the stock perpetual workstation and current execution mode.", href: "/futures", action: "Open Stocks perpetual desk" },
 ];
 
 export default async function OperatorConsolePage() {
-  const supabase = await createClient();
   const user = await getServerUser();
   if (!user || !isTidelightOperator(user)) redirect("/overview");
 
