@@ -84,6 +84,7 @@ test("Simplified Chinese covers the Judge evaluation path and public evidence di
     "Two independent claim reviews and adjudication are required before scoring.",
     "This measures capture availability, not factual accuracy. The provisional 2.5/10 single-reviewer product assessment is descriptive only; task time was not measured. The September CPI run included off-topic sources.",
     "Provisional single-review assessment (2.5/10) ↗",
+    "Pending",
     "How do AI investment and Azure demand change the risk picture?", "What should a long-term rAAPL review verify?",
     "How should antitrust remedies and AI-search competition be reviewed?", "How do AWS investment and retail economics shape the review?",
     "Compare the latest evidence and risks.", "Separate issuer assessments", "decision gates", "PUBLIC REPLAY · APPLE · 4H",
