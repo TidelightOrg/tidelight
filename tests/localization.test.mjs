@@ -167,9 +167,7 @@ test("Simplified Chinese covers visible developer docs and package UI copy", asy
     visit(file);
   }
 
-  assert.deepEqual([...missing].sort(), [], `Missing Simplified Chinese entries:
-${[...missing].sort().join("
-")}`);
+  assert.deepEqual([...missing].sort(), [], `Missing Simplified Chinese entries:\n${[...missing].sort().join("\n")}`);
   for (const key of [
     "Build the source and authenticate.",
     "The endpoint is stateless and returns JSON responses. Use an MCP client that supports Streamable HTTP and custom Bearer authorization headers. Client interoperability is verified with the official TypeScript SDK; no named third party client is certified yet.",
@@ -224,9 +222,7 @@ test("Simplified Chinese covers account, settings, landing, and developer consol
     };
     visit(file);
   }
-  assert.deepEqual([...missing].sort(), [], `Missing Simplified Chinese entries:
-${[...missing].sort().join("
-")}`);
+  assert.deepEqual([...missing].sort(), [], `Missing Simplified Chinese entries:\n${[...missing].sort().join("\n")}`);
   for (const key of [
     "My info", "Security", "Preference", "General", "Manage", "Bitget only",
     "RESEARCH SYNTHESIS", "AgentKey data connection.", "DYOR", "Do your own research.",
@@ -262,9 +258,7 @@ test("Simplified Chinese covers fixed public research replay copy and preserves 
     ts.forEachChild(node, visit);
   };
   visit(file);
-  assert.deepEqual([...missing].sort(), [], `Missing public replay translations:
-${[...missing].sort().join("
-")}`);
+  assert.deepEqual([...missing].sort(), [], `Missing public replay translations:\n${[...missing].sort().join("\n")}`);
   for (const key of [
     "One research run, ready to inspect.", "Separate evidence. Separate gates.",
     "Model-reported score, not a calibrated probability.", "Sources attached to this assessment",
