@@ -4,27 +4,25 @@
 **Repository:** [`TidelightOrg/tidelight`](https://github.com/TidelightOrg/tidelight)
 **Purpose:** let a fresh session continue from current verified state without repeating completed work.
 
-## Current verified continuation point · 29 October 2026
+## Current verified continuation point · 30 October 2026
 
-PR #442, **Clarify pending benchmark claim-quality score**, remains open and unmerged on `codex/benchmark-status-hierarchy`. Current branch head: `78ec845832c77ddc451f61dd5b82e78417d2f4d6`. Its Vercel preview is READY at [tidelight-5gdkllzn4-tidelight1.vercel.app](https://tidelight-5gdkllzn4-tidelight1.vercel.app/). Do not merge this PR.
+PR #442, **Improve research evidence integrity and evaluation clarity**, remains open and unmerged on `codex/benchmark-status-hierarchy`. Current branch head: `0afcc3b260098d153b172ab66654cb0b1dd09797`. Its Vercel preview is READY at [tidelight-q7dquiirm-tidelight1.vercel.app](https://tidelight-q7dquiirm-tidelight1.vercel.app/). Continue on this PR only; do not merge it.
 
-The Judge page uses a Judge-specific pending-score label with Simplified Chinese translation; its full benchmark disclosure has an exact translation and localization coverage. The CODEX_HANDOFF verification commit attribution finding was fixed and resolved; prior Codex localization finding remains resolved. Latest Codex review completed on `78ec845` with no findings. CodeRabbit auto-paused its review during active commits and posted no new actionable finding.
+This work adds a deterministic `insufficient_evidence` result when source passages cannot support a claim, records quote-match and unverified-support statuses with Unicode codepoint spans, and includes a Supabase migration with safe defaults for legacy evidence. Public replay publishing rechecks every quote against the captured source excerpt before attaching matched status and spans. Public and private replay UIs show quote provenance; public replay market snapshots now show the provider timestamp in UTC or an unavailable state.
 
-Authenticated browser QA was resumed on 30 October. Tidelight magic-link sign-in succeeded, and `/api/auth/session` returned `authenticated: true`. The private `/developers/console` shell and API Explorer navigation rendered, but the workspace APIs for projects, keys, usage, jobs, and organizations returned HTTP 503. Vercel project environment inspection showed `SUPABASE_SECRET_KEY` and `SUPABASE_SERVICE_ROLE_KEY` are production-only; workspace routes call `createAdminClient`, so preview lacks the server credential. Do not copy the production database secret into preview. The signed-in API Explorer cannot be interaction-tested until an appropriately scoped preview backend credential is configured.
+Latest preview browser checks: Chromium opened `/flow` and saved public replay `/replay/91bb478a-7977-4b34-b32d-b1f558a8af75`. The Tidelight dark workspace styling rendered correctly, and the replay showed the recorded quote time as UTC. The browser was a guest session, so private research generation was not exercised.
 
-Benchmark scorer update: `null` `askedAt` and `taskTimeSeconds` are accepted only to represent values that were not recorded. The output explicitly labels absent task time `not_measured`; malformed values still fail. Measured task-time output preserves its prior shape. The frozen ten-run file continues to fail the completion gate because no displayed claim records, independent claim labels, counter-evidence judgments, or adjudications are supplied. No protocol score is claimed. The benchmark tests cover measured timing compatibility, explicitly unmeasured timing, and malformed values.
+Verification: 335 tests passed and lint passed with 14 existing warnings at head `b1eba8a`; the full local production build passed at the same feature head. The quote-time UI was added after that test run. Local execution became unavailable, but the latest `0afcc3b` Vercel production build completed successfully. The PR's Codex review is running on `0afcc3b`; all listed inline review threads are resolved.
 
-Verification at head `78ec845`: 329 tests passed, typecheck passed, and lint passed with 14 existing warnings and no errors. Vercel preview is READY for this head; Chromium opened the homepage and `/judge` and confirmed the pending claim-quality score and full disclosure. The 390 × 844 narrow-view checks for the package and public developer surfaces remain recorded in `PACKAGE_ECOSYSTEM_DESIGN_QA.md`; the current browser connector does not expose a viewport override for this latest docs and scorer update.
+The provenance migration has a static schema contract test, but it has not been applied to the hosted Supabase database. A disposable local Postgres could not start because Docker ran out of disk space, and no Supabase preview branch was available. Do not apply this migration directly to production.
 
 ### Next gates
 
-1. Obtain an authenticated workspace browser session to inspect the private API Explorer and finish the developer-console interaction/accessibility pass.
-2. Continue the frozen research benchmark only with saved displayed claims and source passages plus two independent reviewers and adjudication. Ten production runs are captured, but no protocol score is valid yet; task time was not measured.
-3. Observe a normal Nightwatch scheduled run and reconcile it read-only. Production has four owners with enabled schedules, and the next aggregate due time was 30 October 2026 at 00:40 UTC. The current session cannot map the connected identity to one owner, so it did not inspect private schedule rows or run a worker.
-4. Complete authenticated third-party MCP compatibility one named client at a time; do not certify an unauthenticated or failed attempt.
-5. Resolve the Vercel production disable with the account owner before claiming public availability. The roadmap records project state `live: false` and public 402 `DEPLOYMENT_DISABLED`; do not move production aliases to a preview or bypass platform controls.
-
-Preserve the paper-only server guard and all research-evidence gates. Never manufacture a positive benchmark, Nightwatch result, market observation, or production availability.
+1. Continue Phase 1/2 implementation, keeping the Tidelight design language and one-PR constraint.
+2. Complete the frozen benchmark only with actual displayed claims and passages, two independent reviewers, and adjudication. No quality score can be inferred from capture completion.
+3. Apply and verify the migration in an approved disposable/preview database before treating persisted provenance fields as live.
+4. Restore public Vercel service only through the account owner's supported controls; the roadmap reports production `live: false` and 402 `DEPLOYMENT_DISABLED`.
+5. Preserve the global server-side live-order block and keep paper and exchange ledgers separate.
 
 ## Current verified continuation point · 26 October 2026
 
