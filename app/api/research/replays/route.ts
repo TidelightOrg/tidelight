@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { findQuotePassageSpan } from "@/lib/evidence";
 
 export const dynamic = "force-dynamic";
 
@@ -65,7 +66,7 @@ export async function POST(request: Request) {
       // Evidence briefs use `sourceUrl`; older imported records used `source_url`.
       // Persist only links that are present in this run's source table.
       const url = typeof claim.sourceUrl === "string" ? claim.sourceUrl : typeof claim.source_url === "string" ? claim.source_url : "";
-      return [{ text: claim.claim.slice(0, 260), citedUrls: url ? [url] : [] }];
+      return [{ text: claim.claim.slice(0, 260), quote: claim.quote, citedUrls: url ? [url] : [] }];
     });
     const validUrls = new Set(sources.map(source => source.url));
     const points = claims.flatMap(point => point.citedUrls.every(url => validUrls.has(url)) ? [point] : []);
@@ -74,13 +75,13 @@ export async function POST(request: Request) {
   })() : [];
   if (!summary || rows.length < 1 || rows.length > 3) return NextResponse.json({ error: "This research run does not contain a shareable result." }, { status: 422 });
 
-  const { data: sourceRows, error: sourcesError } = await db.from("research_sources").select("url,title,publisher,published_at,retrieved_at").eq("research_run_id", runId).limit(90);
+  const { data: sourceRows, error: sourcesError } = await db.from("research_sources").select("url,title,publisher,published_at,retrieved_at,excerpt").eq("research_run_id", runId).limit(90);
   if (sourcesError) return NextResponse.json({ error: "Source lineage could not be loaded." }, { status: 503 });
   const sources = (sourceRows ?? []).flatMap((source) => {
     try {
       const url = new URL(source.url);
       if (url.protocol !== "https:" || url.username || url.password) return [];
-      return [{ url: url.toString(), title: String(source.title ?? "").slice(0, 300), publisher: String(source.publisher ?? "Unknown publisher").slice(0, 120), publishedAt: source.published_at, capturedAt: source.retrieved_at }];
+      return [{ url: url.toString(), title: String(source.title ?? "").slice(0, 300), publisher: String(source.publisher ?? "Unknown publisher").slice(0, 120), publishedAt: source.published_at, capturedAt: source.retrieved_at, excerpt: typeof source.excerpt === "string" ? source.excerpt : null }];
     } catch { return []; }
   });
   const assets = rows.flatMap((raw) => {
@@ -106,12 +107,19 @@ export async function POST(request: Request) {
       return url ? [url] : [];
     }) : [];
     const usedSourceSet = new Set(usedSources);
+    const sourceByUrl = new Map(sources.map(source => [source.url, source]));
     const balance = object(row.evidenceBalance) ?? {};
     const evidencePoints = (items: unknown) => Array.isArray(items) ? items.flatMap((rawPoint) => {
       const point = object(rawPoint);
       if (!point || typeof point.text !== "string") return [];
       const citedUrls = Array.isArray(point.citedUrls) ? [...new Set(point.citedUrls.filter((url): url is string => typeof url === "string" && usedSourceSet.has(url)))].slice(0, 3) : [];
-      return citedUrls.length ? [{ text: point.text.slice(0, 260), citedUrls }] : [];
+      if (!citedUrls.length) return [];
+      const quote = typeof point.quote === "string" ? point.quote.trim().slice(0, 600) : "";
+      const matchedSource = citedUrls.map(url => sourceByUrl.get(url)).find(source => source && typeof source.excerpt === "string" && quote && findQuotePassageSpan(source.excerpt, quote));
+      if (!matchedSource || typeof matchedSource.excerpt !== "string") return [{ text: point.text.slice(0, 260), citedUrls }];
+      const passageSpan = findQuotePassageSpan(matchedSource.excerpt, quote);
+      if (!passageSpan) return [{ text: point.text.slice(0, 260), citedUrls }];
+      return [{ text: point.text.slice(0, 260), citedUrls, quote, quoteMatchStatus: "matched_to_captured_text", claimSupportStatus: "not_independently_verified", passageSpan: { startCodepoint: passageSpan.start_codepoint, endCodepoint: passageSpan.end_codepoint } }];
     }).slice(0, 3) : [];
     return [{
       ticker,

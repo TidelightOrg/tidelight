@@ -59,7 +59,7 @@ function normalizeWithOffsets(value: string) {
   return { normalized, offsets };
 }
 
-function findPassageSpan(excerpt: string, quote: string) {
+export function findQuotePassageSpan(excerpt: string, quote: string) {
   const passage = normalizeWithOffsets(excerpt);
   const normalizedQuote = normalizeQuote(quote);
   const matchAt = passage.normalized.indexOf(normalizedQuote);
@@ -85,7 +85,7 @@ export function validateBrief(value: unknown, sources: EvidenceSource[]): QwenBr
     const sourceUrl = typeof claim.source_url === "string" && sources.some((source) => source.url === claim.source_url) ? claim.source_url : undefined;
     const matchingSource = sources.find((source) => normalizeQuote(source.excerpt).includes(quote));
     if (!matchingSource || (sourceUrl && matchingSource.url !== sourceUrl)) return [];
-    const passageSpan = findPassageSpan(matchingSource.excerpt, claim.quote);
+    const passageSpan = findQuotePassageSpan(matchingSource.excerpt, claim.quote);
     if (!passageSpan) return [];
     if (!(claim.stance === "supports" || claim.stance === "contradicts" || claim.stance === "context")) return [];
     const confidence = typeof claim.confidence === "number" && Number.isFinite(claim.confidence) ? Math.min(1, Math.max(0, claim.confidence)) : 0.5;
