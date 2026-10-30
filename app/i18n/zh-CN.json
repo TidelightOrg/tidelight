@@ -6191,5 +6191,10 @@
   "Claim-quality score pending": "待定",
   "Two independent claim reviews and adjudication are required before scoring.": "评分前须完成两次独立声明审阅和裁定。",
   "This measures capture availability, not factual accuracy. The provisional 2.5/10 single-reviewer product assessment is descriptive only; task time was not measured. The September CPI run included off-topic sources.": "此处衡量的是捕获可用性，而非事实准确性。暂定的单人产品评估 2.5/10 仅作描述；任务耗时未测量。9 月 CPI 运行包含无关来源。",
-  "Provisional single-review assessment (2.5/10) ↗": "暂定单人评估（2.5/10）↗"
+  "Provisional single-review assessment (2.5/10) ↗": "暂定单人评估（2.5/10）↗",
+  "Quotes are matched to captured text. Claim support and truth have not been independently verified.": "引文已与捕获文本匹配；声明是否得到支持及其真实性尚未经过独立核实。",
+  "{n}% QUOTES MATCHED": "{n}% 引文已匹配",
+  "model confidence": "模型置信度",
+  "QUOTE MATCHED": "引文已匹配",
+  "SUPPORT UNVERIFIED": "支持关系未核实"
 }
