@@ -6,23 +6,22 @@
 
 ## Current verified continuation point · 30 October 2026
 
-PR #442, **Improve research evidence integrity and evaluation clarity**, remains open and unmerged on `codex/benchmark-status-hierarchy`. Current branch head: `0afcc3b260098d153b172ab66654cb0b1dd09797`. Its Vercel preview is READY at [tidelight-q7dquiirm-tidelight1.vercel.app](https://tidelight-q7dquiirm-tidelight1.vercel.app/). Continue on this PR only; do not merge it.
+PR #442, **Improve research evidence integrity and evaluation clarity**, is open on `codex/benchmark-status-hierarchy`. The latest code commit is `2c496ecb5b77a2a2721436c9681e9fb48bbbe1c6`; its Vercel preview is READY at [tidelight-nhpvw9qzt-tidelight1.vercel.app](https://tidelight-nhpvw9qzt-tidelight1.vercel.app/). Keep all follow-up work on this PR.
 
-This work adds a deterministic `insufficient_evidence` result when source passages cannot support a claim, records quote-match and unverified-support statuses with Unicode codepoint spans, and includes a Supabase migration with safe defaults for legacy evidence. Public replay publishing rechecks every quote against the captured source excerpt before attaching matched status and spans. Public and private replay UIs show quote provenance; public replay market snapshots now show the provider timestamp in UTC or an unavailable state.
+This work adds a deterministic `insufficient_evidence` result when source passages cannot support a claim, records quote-match and unverified-support statuses with Unicode codepoint spans, and persists that provenance. Public replay publishing rechecks every quote against the captured source excerpt before attaching matched status and spans, then omits full excerpts from public payloads. Public and private replay UIs show quote provenance; public replay market snapshots now show the provider timestamp in UTC or an unavailable state.
 
-Latest preview browser checks: Chromium opened `/flow` and saved public replay `/replay/91bb478a-7977-4b34-b32d-b1f558a8af75`. The Tidelight dark workspace styling rendered correctly, and the replay showed the recorded quote time as UTC. The browser was a guest session, so private research generation was not exercised.
+Latest preview browser checks: Chromium opened `/flow` and saved public replay `/replay/91bb478a-7977-4b34-b32d-b1f558a8af75` on the `2c496ec` preview. Tidelight branding rendered correctly, and the replay showed its recorded quote time in UTC. The browser was a guest session, so private research generation was not exercised.
 
-Verification: 335 tests passed and lint passed with 14 existing warnings at head `b1eba8a`; the full local production build passed at the same feature head. The quote-time UI was added after that test run. Local execution became unavailable, but the latest `0afcc3b` Vercel production build completed successfully. The PR's Codex review is running on `0afcc3b`; all listed inline review threads are resolved.
+Verification at `2c496ec`: `npm test` passed all 335 tests; `npm run lint` reported 14 warnings and 0 errors; `npm run build` completed successfully; GitHub Actions `Application checks` succeeded. The Vercel preview is READY. Codex review is running on `2c496ec`; the source-excerpt finding was fixed in this commit and its thread awaits resolution.
 
-The provenance migration has a static schema contract test, but it has not been applied to the hosted Supabase database. A disposable local Postgres could not start because Docker ran out of disk space, and no Supabase preview branch was available. Do not apply this migration directly to production.
+Production Supabase project `plmdnzbmvgigkzfmfwov` has migration `20261030072558_persist_research_evidence_provenance` applied. The `research_evidence` table was inspected before applying it; the new columns, defaults, checks, and span comments were verified afterward. The migration file in this branch uses the same version so future `supabase db push` will not reapply it.
 
 ### Next gates
 
-1. Continue Phase 1/2 implementation, keeping the Tidelight design language and one-PR constraint.
+1. Finish the review on the latest PR head and keep any follow-up work in this PR only.
 2. Complete the frozen benchmark only with actual displayed claims and passages, two independent reviewers, and adjudication. No quality score can be inferred from capture completion.
-3. Apply and verify the migration in an approved disposable/preview database before treating persisted provenance fields as live.
-4. Restore public Vercel service only through the account owner's supported controls; the roadmap reports production `live: false` and 402 `DEPLOYMENT_DISABLED`.
-5. Preserve the global server-side live-order block and keep paper and exchange ledgers separate.
+3. After merge, confirm the production Vercel deployment serves the merged commit, then open the production research desk and public replay route in Chromium.
+4. Preserve the global server-side live-order block and keep paper and exchange ledgers separate.
 
 ## Current verified continuation point · 26 October 2026
 

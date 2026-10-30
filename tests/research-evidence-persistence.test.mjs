@@ -6,7 +6,7 @@ const root = new URL("../", import.meta.url);
 
 test("normalized research evidence records quote status and exclusive Unicode passage spans", async () => {
   const [migration, actions] = await Promise.all([
-    readFile(new URL("supabase/migrations/20261030020002_persist_research_evidence_provenance.sql", root), "utf8"),
+    readFile(new URL("supabase/migrations/20261030072558_persist_research_evidence_provenance.sql", root), "utf8"),
     readFile(new URL("app/actions.ts", root), "utf8"),
   ]);
 
