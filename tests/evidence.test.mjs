@@ -33,6 +33,19 @@ test("matches meaningful quotes across whitespace and attributes them to the rig
   assert.equal(result.citation_coverage, 100);
 });
 
+test("preserves Greek contextual casing and Unicode passage offsets", () => {
+  const source = { url: "https://issuer.example.com/release", excerpt: "🌊 The company ΑΤΛΑΣ reported higher revenue this year." };
+  const quote = "The company ΑΤΛΑΣ reported higher revenue this year.";
+  const result = validateBrief({ ...base, claims: [
+    { claim: "Revenue increased year over year.", quote, source_url: source.url, stance: "supports", confidence: 0.8 },
+  ] }, [source]);
+
+  assert.ok(result);
+  assert.equal(result.claims[0].quote, quote);
+  const start = Array.from(source.excerpt.slice(0, source.excerpt.indexOf("The"))).length;
+  assert.deepEqual(result.claims[0].passage_span, { start_codepoint: start, end_codepoint: start + Array.from(quote).length });
+});
+
 test("rejects short, altered, misattributed, and ungrounded quotes", () => {
   const result = validateBrief({ ...base, claims: [
     { claim: "A very short fragment is not adequate evidence.", quote: "invest $4 billion", stance: "supports" },
