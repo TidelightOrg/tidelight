@@ -22,6 +22,8 @@ test("Simplified Chinese preserves the Tidelight product name and covers package
   assert.equal(translations["model confidence"], "模型置信度");
   assert.equal(translations["QUOTE MATCHED"], "引文已匹配");
   assert.equal(translations["SUPPORT UNVERIFIED"], "支持关系未核实");
+  assert.equal(translations["CAPTURED EXCERPT · CODEPOINTS"], "捕获摘录 · 代码点");
+  assert.equal(translations["· END EXCLUSIVE"], "· 结束位置不包含");
   assert.equal(translations["INSUFFICIENT EVIDENCE"], "证据不足");
   assert.equal(translations["The answer remains unknown from the supplied passages; this does not establish either side."], "根据所提供的段落，答案仍然未知；这并不证明任何一方。");
   assert.equal(translations["No claim could be matched to captured text for this question. The answer remains unknown."], "没有找到与捕获文本匹配且能回答此问题的主张。答案仍然未知。");
