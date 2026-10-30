@@ -6,6 +6,7 @@ export type EvidenceClaim = {
   sourceUrl?: string;
   quote_match_status: "matched_to_captured_text";
   claim_support_status: "not_independently_verified";
+  passage_span: { start_codepoint: number; end_codepoint: number };
 };
 
 export type QwenBrief = {
@@ -21,7 +22,36 @@ export type QwenBrief = {
 type EvidenceSource = { url: string; excerpt: string };
 
 function normalizeQuote(value: string) {
-  return value.toLocaleLowerCase().replace(/\s+/g, " ").trim();
+  return value.toLowerCase().replace(/\s+/g, " ").trim();
+}
+
+function normalizeWithOffsets(value: string) {
+  let normalized = "";
+  const offsets: number[] = [];
+  let pendingSpace = false;
+  const codepoints = Array.from(value);
+  for (let index = 0; index < codepoints.length; index += 1) {
+    for (const character of codepoints[index].toLowerCase()) {
+      if (/\s/u.test(character)) {
+        pendingSpace = normalized.length > 0;
+        continue;
+      }
+      if (pendingSpace) { normalized += " "; offsets.push(index); pendingSpace = false; }
+      normalized += character;
+      for (let unit = 0; unit < character.length; unit += 1) offsets.push(index);
+    }
+  }
+  return { normalized, offsets };
+}
+
+function findPassageSpan(excerpt: string, quote: string) {
+  const passage = normalizeWithOffsets(excerpt);
+  const normalizedQuote = normalizeQuote(quote);
+  const matchAt = passage.normalized.indexOf(normalizedQuote);
+  if (matchAt < 0) return null;
+  const start = passage.offsets[matchAt];
+  const last = passage.offsets[matchAt + normalizedQuote.length - 1];
+  return start === undefined || last === undefined ? null : { start_codepoint: start, end_codepoint: last + 1 };
 }
 
 /** Keep only claims whose meaningful quote is present in the exact supplied passage. */
@@ -40,9 +70,11 @@ export function validateBrief(value: unknown, sources: EvidenceSource[]): QwenBr
     const sourceUrl = typeof claim.source_url === "string" && sources.some((source) => source.url === claim.source_url) ? claim.source_url : undefined;
     const matchingSource = sources.find((source) => normalizeQuote(source.excerpt).includes(quote));
     if (!matchingSource || (sourceUrl && matchingSource.url !== sourceUrl)) return [];
+    const passageSpan = findPassageSpan(matchingSource.excerpt, claim.quote);
+    if (!passageSpan) return [];
     if (!(claim.stance === "supports" || claim.stance === "contradicts" || claim.stance === "context")) return [];
     const confidence = typeof claim.confidence === "number" && Number.isFinite(claim.confidence) ? Math.min(1, Math.max(0, claim.confidence)) : 0.5;
-    return [{ claim: claim.claim.trim(), quote: claim.quote.trim(), stance: claim.stance, confidence, sourceUrl: sourceUrl ?? matchingSource.url, quote_match_status: "matched_to_captured_text", claim_support_status: "not_independently_verified" }];
+    return [{ claim: claim.claim.trim(), quote: claim.quote.trim(), stance: claim.stance, confidence, sourceUrl: sourceUrl ?? matchingSource.url, quote_match_status: "matched_to_captured_text", claim_support_status: "not_independently_verified", passage_span: passageSpan }];
   }).slice(0, 8);
   if (!claims.length) return null;
 
