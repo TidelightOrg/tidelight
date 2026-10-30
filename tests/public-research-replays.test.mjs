@@ -143,6 +143,12 @@ test("publishing requires the owning session and serializes only cited public ev
     assert.equal(legacyEvidencePayload.assets[0].evidenceBalance.supporting[0].quoteMatchStatus, "matched_to_captured_text");
     assert.equal(legacyEvidencePayload.assets[0].evidenceBalance.supporting[0].claimSupportStatus, "not_independently_verified");
     assert.deepEqual(legacyEvidencePayload.assets[0].evidenceBalance.supporting[0].passageSpan, { startCodepoint: 0, endCodepoint: 30 });
+    context.run.summary = { ...context.run.summary, claims: [{ claim: "A fabricated source-linked claim.", quote: "This quotation was not present in the captured source excerpt.", source_url: "https://news.example/story" }] };
+    const unmatchedEvidenceResponse = await route.POST(new Request("https://tidelight.app/api/research/replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ researchRunId: token }) }));
+    assert.equal(unmatchedEvidenceResponse.status, 200);
+    const unmatchedEvidencePayload = calls.filter(call => call.table === "public_research_replays").at(-1).values.payload;
+    assert.equal(unmatchedEvidencePayload.assets[0].evidenceBalance.supporting[0].quote, undefined);
+    assert.equal(unmatchedEvidencePayload.assets[0].evidenceBalance.supporting[0].quoteMatchStatus, undefined);
 
     context.run.summary = { assets: [{ ticker: "NVDA", issuer: "NVIDIA", summary: "A normalized market record.", sources: ["https://news.example/story"], market: { symbol: "NVDAUSDT", price: 140, timestamp: "2026-10-24T14:00:00Z" } }] };
     const normalizedMarketResponse = await route.POST(new Request("https://tidelight.app/api/research/replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ researchRunId: token }) }));
