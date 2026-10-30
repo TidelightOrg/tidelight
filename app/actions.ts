@@ -148,6 +148,10 @@ export async function createEvidenceBrief(input: { question: string; sourceTitle
         supporting_quote: claim.quote,
         stance: claim.stance,
         confidence: claim.confidence,
+        quote_match_status: claim.quote_match_status,
+        claim_support_status: claim.claim_support_status,
+        passage_start_codepoint: claim.passage_span.start_codepoint,
+        passage_end_codepoint: claim.passage_span.end_codepoint,
       })));
       if (evidenceError) throw new Error("evidence-save-failed");
     }
