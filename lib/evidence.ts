@@ -10,6 +10,7 @@ export type EvidenceClaim = {
 };
 
 export type QwenBrief = {
+  answer_status: "source_matched_claims" | "insufficient_evidence";
   summary: string;
   upside: string;
   downside: string;
@@ -90,13 +91,28 @@ export function validateBrief(value: unknown, sources: EvidenceSource[]): QwenBr
     const confidence = typeof claim.confidence === "number" && Number.isFinite(claim.confidence) ? Math.min(1, Math.max(0, claim.confidence)) : 0.5;
     return [{ claim: claim.claim.trim(), quote: claim.quote.trim(), stance: claim.stance, confidence, sourceUrl: sourceUrl ?? matchingSource.url, quote_match_status: "matched_to_captured_text", claim_support_status: "not_independently_verified", passage_span: passageSpan }];
   }).slice(0, 8);
-  if (!claims.length) return null;
+  if (!claims.length) {
+    return {
+      answer_status: "insufficient_evidence",
+      summary: "The supplied passages did not yield a source-matched claim that answers this question.",
+      upside: "Unknown from the supplied evidence.",
+      downside: "Unknown from the supplied evidence.",
+      catalysts: [],
+      what_would_change: [
+        "A relevant primary-source passage that addresses the question.",
+        "Independent evidence that clarifies or challenges the relevant facts.",
+      ],
+      claims: [],
+      citation_coverage: 0,
+    };
+  }
 
   const catalysts = candidate.catalysts.flatMap((item) => typeof item === "string" && item.trim() ? [item.trim().slice(0, 240)] : []).slice(0, 5);
   const whatWouldChange = Array.isArray(candidate.what_would_change)
     ? candidate.what_would_change.flatMap((item) => typeof item === "string" && item.trim() ? [item.trim().slice(0, 240)] : []).slice(0, 4)
     : [];
   return {
+    answer_status: "source_matched_claims",
     summary: (candidate.summary as string).trim(),
     upside: (candidate.upside as string).trim(),
     downside: (candidate.downside as string).trim(),

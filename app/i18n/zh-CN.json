@@ -6196,5 +6196,8 @@
   "{n}% QUOTES MATCHED": "{n}% 引文已匹配",
   "model confidence": "模型置信度",
   "QUOTE MATCHED": "引文已匹配",
-  "SUPPORT UNVERIFIED": "支持关系未核实"
+  "SUPPORT UNVERIFIED": "支持关系未核实",
+  "INSUFFICIENT EVIDENCE": "证据不足",
+  "The answer remains unknown from the supplied passages; this does not establish either side.": "根据所提供的段落，答案仍然未知；这并不证明任何一方。",
+  "No claim could be matched to captured text for this question. The answer remains unknown.": "没有找到与捕获文本匹配且能回答此问题的主张。答案仍然未知。"
 }

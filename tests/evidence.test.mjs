@@ -24,6 +24,7 @@ test("matches meaningful quotes across whitespace and attributes them to the rig
   ] }, [sourceOne, sourceTwo]);
 
   assert.ok(result);
+  assert.equal(result.answer_status, "source_matched_claims");
   assert.equal(result.claims.length, 2);
   assert.equal(result.claims[0].sourceUrl, sourceOne.url);
   assert.equal(result.claims[1].sourceUrl, sourceTwo.url);
@@ -52,7 +53,25 @@ test("rejects short, altered, misattributed, and ungrounded quotes", () => {
     { claim: "An altered quote is not accepted.", quote: "The company plans to invest $4 billion in a new facility.", stance: "supports" },
     { claim: "A quote cannot be pinned to the wrong source.", quote: "The company said it would invest $4 billion in a new research facility over the next five years.", source_url: sourceTwo.url, stance: "supports" },
   ] }, [sourceOne, sourceTwo]);
-  assert.equal(result, null);
+  assert.equal(result?.answer_status, "insufficient_evidence");
+  assert.deepEqual(result?.claims, []);
+  assert.equal(result?.citation_coverage, 0);
+});
+
+test("represents empty source evidence as an explicit unknown without model-written claims", () => {
+  const result = validateBrief({ ...base,
+    summary: "The company is certain to double profits.",
+    upside: "A fabricated outcome.",
+    downside: "A fabricated risk.",
+    claims: [],
+  }, [sourceOne]);
+
+  assert.equal(result?.answer_status, "insufficient_evidence");
+  assert.equal(result?.summary, "The supplied passages did not yield a source-matched claim that answers this question.");
+  assert.equal(result?.upside, "Unknown from the supplied evidence.");
+  assert.equal(result?.downside, "Unknown from the supplied evidence.");
+  assert.deepEqual(result?.claims, []);
+  assert.equal(result?.citation_coverage, 0);
 });
 
 test("reports coverage against all model claims when unsupported claims are dropped", () => {
@@ -62,6 +81,7 @@ test("reports coverage against all model claims when unsupported claims are drop
   ] }, [sourceOne]);
 
   assert.ok(result);
+  assert.equal(result.answer_status, "source_matched_claims");
   assert.equal(result.claims.length, 1);
   assert.equal(result.citation_coverage, 50);
   assert.equal(result.claims[0].confidence, 1);
