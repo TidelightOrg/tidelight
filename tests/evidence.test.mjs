@@ -27,6 +27,8 @@ test("matches meaningful quotes across whitespace and attributes them to the rig
   assert.equal(result.claims.length, 2);
   assert.equal(result.claims[0].sourceUrl, sourceOne.url);
   assert.equal(result.claims[1].sourceUrl, sourceTwo.url);
+  assert.equal(result.claims[0].quote_match_status, "matched_to_captured_text");
+  assert.equal(result.claims[0].claim_support_status, "not_independently_verified");
   assert.equal(result.citation_coverage, 100);
 });
 
