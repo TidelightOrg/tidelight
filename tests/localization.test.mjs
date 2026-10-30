@@ -84,6 +84,7 @@ test("Simplified Chinese covers the Judge evaluation path and public evidence di
     "Two independent claim reviews and adjudication are required before scoring.",
     "On this ten-run sample, only two outputs included model synthesis; both raised material evidence concerns. Eight were source-only or had no usable synthesis. This measures capture availability, not factual accuracy. The provisional 2.5/10 single-reviewer product assessment is descriptive only; task time was not measured. The September CPI run included off-topic sources.",
     "Provisional single-review assessment (2.5/10) ↗", "Pending",
+    "Quotes are matched to captured text. Claim support and truth have not been independently verified.", "{n}% QUOTES MATCHED", "model confidence", "QUOTE MATCHED", "SUPPORT UNVERIFIED",
     "Pending",
     "How do AI investment and Azure demand change the risk picture?", "What should a long-term rAAPL review verify?",
     "How should antitrust remedies and AI-search competition be reviewed?", "How do AWS investment and retail economics shape the review?",
