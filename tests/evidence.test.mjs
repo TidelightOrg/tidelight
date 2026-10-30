@@ -4,7 +4,7 @@ import { validateBrief } from "../lib/evidence.ts";
 
 const sourceOne = {
   url: "https://www.sec.gov/news/example",
-  excerpt: "The company said it would invest $4 billion in a new research facility over the next five years.",
+  excerpt: "🌊  The company said it would invest $4 billion in a new research facility over the next five years.",
 };
 const sourceTwo = {
   url: "https://investor.example.com/release",
@@ -29,6 +29,7 @@ test("matches meaningful quotes across whitespace and attributes them to the rig
   assert.equal(result.claims[1].sourceUrl, sourceTwo.url);
   assert.equal(result.claims[0].quote_match_status, "matched_to_captured_text");
   assert.equal(result.claims[0].claim_support_status, "not_independently_verified");
+  assert.deepEqual(result.claims[0].passage_span, { start_codepoint: 3, end_codepoint: 99 });
   assert.equal(result.citation_coverage, 100);
 });
 
