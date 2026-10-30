@@ -26,20 +26,34 @@ function normalizeQuote(value: string) {
 }
 
 function normalizeWithOffsets(value: string) {
-  let normalized = "";
-  const offsets: number[] = [];
-  let pendingSpace = false;
   const codepoints = Array.from(value);
+  const sourceOffsets: number[] = [];
+  let collapsed = "";
+  let pendingSpace: number | null = null;
   for (let index = 0; index < codepoints.length; index += 1) {
-    for (const character of codepoints[index].toLowerCase()) {
-      if (/\s/u.test(character)) {
-        pendingSpace = normalized.length > 0;
-        continue;
-      }
-      if (pendingSpace) { normalized += " "; offsets.push(index); pendingSpace = false; }
-      normalized += character;
-      for (let unit = 0; unit < character.length; unit += 1) offsets.push(index);
+    const character = codepoints[index];
+    if (/\s/u.test(character)) {
+      if (collapsed && pendingSpace === null) pendingSpace = index;
+      continue;
     }
+    if (pendingSpace !== null) {
+      collapsed += " ";
+      sourceOffsets.push(pendingSpace);
+      pendingSpace = null;
+    }
+    collapsed += character;
+    sourceOffsets.push(index);
+  }
+
+  const normalized = collapsed.toLowerCase();
+  const offsets: number[] = [];
+  let consumedCodeUnits = 0;
+  let previousLowerLength = 0;
+  for (const [index, character] of Array.from(collapsed).entries()) {
+    consumedCodeUnits += character.length;
+    const lowerLength = collapsed.slice(0, consumedCodeUnits).toLowerCase().length;
+    for (let unit = previousLowerLength; unit < lowerLength; unit += 1) offsets.push(sourceOffsets[index]);
+    previousLowerLength = lowerLength;
   }
   return { normalized, offsets };
 }
