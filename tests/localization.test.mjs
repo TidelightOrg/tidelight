@@ -17,6 +17,11 @@ test("Simplified Chinese preserves the Tidelight product name and covers package
   assert.equal(translations["and a"], "响应和一个");
   assert.equal(translations[". Poll"], "。请通过");
   assert.equal(translations["Only"], "仅");
+  assert.equal(translations["Quotes are matched to captured text. Claim support and truth have not been independently verified."], "引文已与捕获文本匹配；声明是否得到支持及其真实性尚未经过独立核实。");
+  assert.equal(translations["{n}% QUOTES MATCHED"], "{n}% 引文已匹配");
+  assert.equal(translations["model confidence"], "模型置信度");
+  assert.equal(translations["QUOTE MATCHED"], "引文已匹配");
+  assert.equal(translations["SUPPORT UNVERIFIED"], "支持关系未核实");
   for (const key of [
     "OFFICIAL DEVELOPER PACKAGES", "Available packages", "OFFICIAL PACKAGE / TYPESCRIPT · JAVASCRIPT",
     "Research job lifecycle", "Supported operations", "Bounded behavior, protected credentials.",
