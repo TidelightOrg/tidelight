@@ -69,7 +69,8 @@ export async function POST(request: Request) {
     });
     const validUrls = new Set(sources.map(source => source.url));
     const points = claims.flatMap(point => point.citedUrls.every(url => validUrls.has(url)) ? [point] : []);
-    return [{ ticker, issuer, summary: String(summary.summary).slice(0, 700), stance: "unclear", confidence: 0, confidenceCapped: true, gateReasons: ["Evidence brief; no trading handoff was assessed."], sources: sources.map(source => source.url), evidenceBalance: { supporting: points.slice(0, 3), counter: [] }, market: { perpSymbol: null, spotSymbol: null, lastPrice: null, providerTimestamp: null }, risks: [], nextCheck: null }];
+    const answerStatus = summary.answer_status === "insufficient_evidence" || summary.answer_status === "source_matched_claims" ? summary.answer_status : undefined;
+    return [{ ticker, issuer, summary: String(summary.summary).slice(0, 700), ...(answerStatus ? { answerStatus } : {}), stance: "unclear", confidence: 0, confidenceCapped: true, gateReasons: ["Evidence brief; no trading handoff was assessed."], sources: sources.map(source => source.url), evidenceBalance: { supporting: points.slice(0, 3), counter: [] }, market: { perpSymbol: null, spotSymbol: null, lastPrice: null, providerTimestamp: null }, risks: [], nextCheck: null }];
   })() : [];
   if (!summary || rows.length < 1 || rows.length > 3) return NextResponse.json({ error: "This research run does not contain a shareable result." }, { status: 422 });
 
@@ -98,6 +99,7 @@ export async function POST(request: Request) {
     const marketTimestamp = market.providerTimestamp ?? market.timestamp;
     const stance = ["bullish", "bearish", "mixed", "unclear"].includes(String(row.stance)) ? row.stance : "unclear";
     const confidence = typeof row.confidence === "number" && Number.isFinite(row.confidence) ? Math.max(0, Math.min(1, row.confidence)) : 0;
+    const answerStatus = row.answerStatus === "insufficient_evidence" || row.answerStatus === "source_matched_claims" ? row.answerStatus : undefined;
     const allowedSources = new Set(sources.map(source => source.url));
     const usedSources = Array.isArray(row.sources) ? row.sources.flatMap((rawSource) => {
       const url = publicSourceUrl(rawSource, allowedSources);
@@ -115,6 +117,7 @@ export async function POST(request: Request) {
       ticker,
       issuer: issuer.slice(0, 160),
       summary: summaryText.slice(0, 700),
+      ...(answerStatus ? { answerStatus } : {}),
       stance,
       confidence: Boolean(row.confidenceCapped) ? Math.min(confidence, 0.4) : confidence,
       confidenceCapped: Boolean(row.confidenceCapped),
