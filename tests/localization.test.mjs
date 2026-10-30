@@ -21,6 +21,7 @@ test("Simplified Chinese preserves the Tidelight product name and covers package
   assert.equal(translations["{n}% QUOTES MATCHED"], "{n}% 引文已匹配");
   assert.equal(translations["model confidence"], "模型置信度");
   assert.equal(translations["QUOTE MATCHED"], "引文已匹配");
+  assert.equal(translations["QUOTE TIME · UTC"], "报价时间 · UTC");
   assert.equal(translations["SUPPORT UNVERIFIED"], "支持关系未核实");
   assert.equal(translations["CAPTURED EXCERPT · CODEPOINTS"], "捕获摘录 · 代码点");
   assert.equal(translations["· END EXCLUSIVE"], "· 结束位置不包含");

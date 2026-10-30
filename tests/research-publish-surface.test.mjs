@@ -22,6 +22,8 @@ test("public evidence replays preserve the explicit unknown answer state", async
   assert.match(route, /answerStatus/);
   assert.match(page, /asset\.answerStatus === "insufficient_evidence"/);
   assert.match(page, /INSUFFICIENT EVIDENCE/);
+  assert.match(page, /asset\.market\.providerTimestamp/);
+  assert.match(page, /QUOTE TIME · UTC/);
   assert.match(css, /\.shared-replay-unknown/);
 });
 
