@@ -4,6 +4,8 @@ export type EvidenceClaim = {
   stance: "supports" | "contradicts" | "context";
   confidence: number;
   sourceUrl?: string;
+  quote_match_status: "matched_to_captured_text";
+  claim_support_status: "not_independently_verified";
 };
 
 export type QwenBrief = {
@@ -40,7 +42,7 @@ export function validateBrief(value: unknown, sources: EvidenceSource[]): QwenBr
     if (!matchingSource || (sourceUrl && matchingSource.url !== sourceUrl)) return [];
     if (!(claim.stance === "supports" || claim.stance === "contradicts" || claim.stance === "context")) return [];
     const confidence = typeof claim.confidence === "number" && Number.isFinite(claim.confidence) ? Math.min(1, Math.max(0, claim.confidence)) : 0.5;
-    return [{ claim: claim.claim.trim(), quote: claim.quote.trim(), stance: claim.stance, confidence, sourceUrl: sourceUrl ?? matchingSource.url }];
+    return [{ claim: claim.claim.trim(), quote: claim.quote.trim(), stance: claim.stance, confidence, sourceUrl: sourceUrl ?? matchingSource.url, quote_match_status: "matched_to_captured_text", claim_support_status: "not_independently_verified" }];
   }).slice(0, 8);
   if (!claims.length) return null;
 
