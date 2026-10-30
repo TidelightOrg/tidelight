@@ -87,6 +87,8 @@ test("publishing requires the owning session and serializes only cited public ev
     const payload = calls.find(call => call.table === "public_research_replays").values.payload;
     assert.equal(payload.sources.length, 1);
     assert.equal(payload.sources[0].url, "https://news.example/story");
+    assert.equal(payload.sources[0].excerpt, undefined);
+    assert.equal(JSON.stringify(payload).includes("A matching archived quotation. A legacy source-linked claim."), false);
     assert.equal(payload.assets[0].market.symbol, "NVDAUSDT");
     assert.deepEqual(payload.assets[0].evidenceBalance.supporting[0].citedUrls, ["https://news.example/story"]);
     assert.equal("accountId" in payload.assets[0].market, false);

@@ -144,7 +144,15 @@ export async function POST(request: Request) {
     return [{ agent: stage.agent.slice(0, 80), status: ["complete", "blocked", "running"].includes(String(stage.status)) ? stage.status : "blocked", title: stage.title.slice(0, 160), at: typeof stage.at === "string" ? stage.at : null, asset: typeof stage.asset === "string" ? stage.asset.slice(0, 12) : null }];
   }).slice(0, 40) : evidenceBrief ? [{ agent: "Evidence brief", status: "complete", title: "Source-bounded research saved", at: typeof run.completed_at === "string" ? run.completed_at : null, asset: null }] : [];
   const citedUrlSet = new Set(assets.flatMap(asset => asset.sources));
-  const publicSources = sources.filter(source => citedUrlSet.has(source.url));
+  // Excerpts are used above only to validate quoted passages. A public replay
+  // shares source metadata and cited quotations, never the full captured text.
+  const publicSources = sources.filter(source => citedUrlSet.has(source.url)).map(source => ({
+    url: source.url,
+    title: source.title,
+    publisher: source.publisher,
+    publishedAt: source.publishedAt,
+    capturedAt: source.capturedAt,
+  }));
   const payload = { schemaVersion: 1, question: String(run.question).slice(0, 500), capturedAt: typeof run.completed_at === "string" ? run.completed_at : new Date().toISOString(), assets, sources: publicSources, trace, notice: "Public research replay. Market values are snapshots, AI summaries are interpretations, and this is not investment advice or audited performance." };
   const expiresAt = new Date(Date.now() + 30 * 86_400_000).toISOString();
   const admin = createAdminClient();
