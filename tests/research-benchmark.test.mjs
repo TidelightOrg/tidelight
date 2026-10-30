@@ -42,7 +42,26 @@ test("scores rates with raw counts and leaves empty counter-evidence denominator
   assert.deepEqual(result.metrics.citationCoverage, { status: "measured", numerator: 10, denominator: 10, ratePct: 100 });
   assert.deepEqual(result.metrics.counterEvidenceCoverage, { status: "measured", numerator: 0, denominator: 1, ratePct: 0 });
   assert.equal(result.metrics.sourceDiversity.meanDistinctDomainsPerEvent, 2);
-  assert.equal(result.metrics.taskTimeSeconds.count, 10);
+  assert.deepEqual(result.metrics.taskTimeSeconds, { count: 10, median: 44.5, minimum: 40, maximum: 49 });
+});
+
+test("allows protocol task time to remain explicitly unmeasured", () => {
+  const benchmark = completeBenchmark();
+  benchmark.events.forEach((item) => {
+    item.askedAt = null;
+    item.taskTimeSeconds = null;
+  });
+  const result = scoreBenchmark(benchmark);
+  assert.equal(result.complete, true);
+  assert.deepEqual(result.metrics.taskTimeSeconds, { status: "not_measured", count: 0, median: null, minimum: null, maximum: null });
+});
+
+test("rejects malformed task-time values instead of treating them as missing", () => {
+  const benchmark = completeBenchmark();
+  benchmark.events[0].taskTimeSeconds = "40 seconds";
+  const result = scoreBenchmark(benchmark);
+  assert.equal(result.complete, false);
+  assert.ok(result.errors.some((error) => error.includes("taskTimeSeconds must be a positive number or null")));
 });
 
 test("does not turn an empty evidence denominator into a zero-percent score", () => {

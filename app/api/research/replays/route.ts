@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { findQuotePassageSpan } from "@/lib/evidence";
 
 export const dynamic = "force-dynamic";
 
@@ -65,21 +66,22 @@ export async function POST(request: Request) {
       // Evidence briefs use `sourceUrl`; older imported records used `source_url`.
       // Persist only links that are present in this run's source table.
       const url = typeof claim.sourceUrl === "string" ? claim.sourceUrl : typeof claim.source_url === "string" ? claim.source_url : "";
-      return [{ text: claim.claim.slice(0, 260), citedUrls: url ? [url] : [] }];
+      return [{ text: claim.claim.slice(0, 260), quote: claim.quote, citedUrls: url ? [url] : [] }];
     });
     const validUrls = new Set(sources.map(source => source.url));
     const points = claims.flatMap(point => point.citedUrls.every(url => validUrls.has(url)) ? [point] : []);
-    return [{ ticker, issuer, summary: String(summary.summary).slice(0, 700), stance: "unclear", confidence: 0, confidenceCapped: true, gateReasons: ["Evidence brief; no trading handoff was assessed."], sources: sources.map(source => source.url), evidenceBalance: { supporting: points.slice(0, 3), counter: [] }, market: { perpSymbol: null, spotSymbol: null, lastPrice: null, providerTimestamp: null }, risks: [], nextCheck: null }];
+    const answerStatus = summary.answer_status === "insufficient_evidence" || summary.answer_status === "source_matched_claims" ? summary.answer_status : undefined;
+    return [{ ticker, issuer, summary: String(summary.summary).slice(0, 700), ...(answerStatus ? { answerStatus } : {}), stance: "unclear", confidence: 0, confidenceCapped: true, gateReasons: ["Evidence brief; no trading handoff was assessed."], sources: sources.map(source => source.url), evidenceBalance: { supporting: points.slice(0, 3), counter: [] }, market: { perpSymbol: null, spotSymbol: null, lastPrice: null, providerTimestamp: null }, risks: [], nextCheck: null }];
   })() : [];
   if (!summary || rows.length < 1 || rows.length > 3) return NextResponse.json({ error: "This research run does not contain a shareable result." }, { status: 422 });
 
-  const { data: sourceRows, error: sourcesError } = await db.from("research_sources").select("url,title,publisher,published_at,retrieved_at").eq("research_run_id", runId).limit(90);
+  const { data: sourceRows, error: sourcesError } = await db.from("research_sources").select("url,title,publisher,published_at,retrieved_at,excerpt").eq("research_run_id", runId).limit(90);
   if (sourcesError) return NextResponse.json({ error: "Source lineage could not be loaded." }, { status: 503 });
   const sources = (sourceRows ?? []).flatMap((source) => {
     try {
       const url = new URL(source.url);
       if (url.protocol !== "https:" || url.username || url.password) return [];
-      return [{ url: url.toString(), title: String(source.title ?? "").slice(0, 300), publisher: String(source.publisher ?? "Unknown publisher").slice(0, 120), publishedAt: source.published_at, capturedAt: source.retrieved_at }];
+      return [{ url: url.toString(), title: String(source.title ?? "").slice(0, 300), publisher: String(source.publisher ?? "Unknown publisher").slice(0, 120), publishedAt: source.published_at, capturedAt: source.retrieved_at, excerpt: typeof source.excerpt === "string" ? source.excerpt : null }];
     } catch { return []; }
   });
   const assets = rows.flatMap((raw) => {
@@ -98,23 +100,32 @@ export async function POST(request: Request) {
     const marketTimestamp = market.providerTimestamp ?? market.timestamp;
     const stance = ["bullish", "bearish", "mixed", "unclear"].includes(String(row.stance)) ? row.stance : "unclear";
     const confidence = typeof row.confidence === "number" && Number.isFinite(row.confidence) ? Math.max(0, Math.min(1, row.confidence)) : 0;
+    const answerStatus = row.answerStatus === "insufficient_evidence" || row.answerStatus === "source_matched_claims" ? row.answerStatus : undefined;
     const allowedSources = new Set(sources.map(source => source.url));
     const usedSources = Array.isArray(row.sources) ? row.sources.flatMap((rawSource) => {
       const url = publicSourceUrl(rawSource, allowedSources);
       return url ? [url] : [];
     }) : [];
     const usedSourceSet = new Set(usedSources);
+    const sourceByUrl = new Map(sources.map(source => [source.url, source]));
     const balance = object(row.evidenceBalance) ?? {};
     const evidencePoints = (items: unknown) => Array.isArray(items) ? items.flatMap((rawPoint) => {
       const point = object(rawPoint);
       if (!point || typeof point.text !== "string") return [];
       const citedUrls = Array.isArray(point.citedUrls) ? [...new Set(point.citedUrls.filter((url): url is string => typeof url === "string" && usedSourceSet.has(url)))].slice(0, 3) : [];
-      return citedUrls.length ? [{ text: point.text.slice(0, 260), citedUrls }] : [];
+      if (!citedUrls.length) return [];
+      const quote = typeof point.quote === "string" ? point.quote.trim().slice(0, 600) : "";
+      const matchedSource = citedUrls.map(url => sourceByUrl.get(url)).find(source => source && typeof source.excerpt === "string" && quote && findQuotePassageSpan(source.excerpt, quote));
+      if (!matchedSource || typeof matchedSource.excerpt !== "string") return [{ text: point.text.slice(0, 260), citedUrls }];
+      const passageSpan = findQuotePassageSpan(matchedSource.excerpt, quote);
+      if (!passageSpan) return [{ text: point.text.slice(0, 260), citedUrls }];
+      return [{ text: point.text.slice(0, 260), citedUrls, quote, quoteMatchStatus: "matched_to_captured_text", claimSupportStatus: "not_independently_verified", passageSpan: { startCodepoint: passageSpan.start_codepoint, endCodepoint: passageSpan.end_codepoint } }];
     }).slice(0, 3) : [];
     return [{
       ticker,
       issuer: issuer.slice(0, 160),
       summary: summaryText.slice(0, 700),
+      ...(answerStatus ? { answerStatus } : {}),
       stance,
       confidence: Boolean(row.confidenceCapped) ? Math.min(confidence, 0.4) : confidence,
       confidenceCapped: Boolean(row.confidenceCapped),
@@ -133,7 +144,15 @@ export async function POST(request: Request) {
     return [{ agent: stage.agent.slice(0, 80), status: ["complete", "blocked", "running"].includes(String(stage.status)) ? stage.status : "blocked", title: stage.title.slice(0, 160), at: typeof stage.at === "string" ? stage.at : null, asset: typeof stage.asset === "string" ? stage.asset.slice(0, 12) : null }];
   }).slice(0, 40) : evidenceBrief ? [{ agent: "Evidence brief", status: "complete", title: "Source-bounded research saved", at: typeof run.completed_at === "string" ? run.completed_at : null, asset: null }] : [];
   const citedUrlSet = new Set(assets.flatMap(asset => asset.sources));
-  const publicSources = sources.filter(source => citedUrlSet.has(source.url));
+  // Excerpts are used above only to validate quoted passages. A public replay
+  // shares source metadata and cited quotations, never the full captured text.
+  const publicSources = sources.filter(source => citedUrlSet.has(source.url)).map(source => ({
+    url: source.url,
+    title: source.title,
+    publisher: source.publisher,
+    publishedAt: source.publishedAt,
+    capturedAt: source.capturedAt,
+  }));
   const payload = { schemaVersion: 1, question: String(run.question).slice(0, 500), capturedAt: typeof run.completed_at === "string" ? run.completed_at : new Date().toISOString(), assets, sources: publicSources, trace, notice: "Public research replay. Market values are snapshots, AI summaries are interpretations, and this is not investment advice or audited performance." };
   const expiresAt = new Date(Date.now() + 30 * 86_400_000).toISOString();
   const admin = createAdminClient();

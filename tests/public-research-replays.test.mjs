@@ -65,13 +65,14 @@ test("publishing requires the owning session and serializes only cited public ev
     maybeSingle() { const owned = this.filters.some(([column, value]) => column === "user_id" && value === context.user.id); return Promise.resolve({ data: table === "research_runs" && owned ? context.run : null, error: null }); },
     insert(values) { this.values = values; calls.push({ table, values }); return this; },
     single() { return Promise.resolve({ data: { public_id: token, expires_at: this.values.expires_at }, error: null }); },
-    then(resolve, reject) { return Promise.resolve({ data: table === "research_sources" ? [{ url: "https://news.example/story", title: "Story", publisher: "News", published_at: null, retrieved_at: new Date().toISOString() }, { url: "http://unsafe.example/story", title: "Unsafe", publisher: "Unsafe", published_at: null, retrieved_at: new Date().toISOString() }, { url: "https://not-cited.example/story", title: "Not cited", publisher: "Other", published_at: null, retrieved_at: new Date().toISOString() }] : [], error: null }).then(resolve, reject); },
+    then(resolve, reject) { return Promise.resolve({ data: table === "research_sources" ? [{ url: "https://news.example/story", title: "Story", publisher: "News", published_at: null, retrieved_at: new Date().toISOString(), excerpt: "A matching archived quotation. A legacy source-linked claim." }, { url: "http://unsafe.example/story", title: "Unsafe", publisher: "Unsafe", published_at: null, retrieved_at: new Date().toISOString(), excerpt: "Unsafe source text." }, { url: "https://not-cited.example/story", title: "Not cited", publisher: "Other", published_at: null, retrieved_at: new Date().toISOString(), excerpt: "Other source text." }] : [], error: null }).then(resolve, reject); },
   });
   globalThis.replayTest = { context, calls, db: { auth: { getUser: async () => ({ data: { user: context.user } }) }, from: query } };
   const mocks = {
     "next/server": "export const NextResponse=class extends Response { static json(data,init={}) { return Response.json(data,init); } };",
     "@/lib/supabase/server": "export const createClient=async()=>globalThis.replayTest.db;",
     "@/lib/supabase/admin": "export const createAdminClient=()=>globalThis.replayTest.db;",
+    "@/lib/evidence": "export const findQuotePassageSpan=(excerpt,quote)=>{const start=excerpt.toLowerCase().indexOf(quote.toLowerCase());return start<0?null:{start_codepoint:start,end_codepoint:start+quote.length};};",
   };
   const hooks = registerHooks({ resolve(specifier, resolutionContext, nextResolve) {
     if (mocks[specifier]) return { url: `data:text/javascript,${encodeURIComponent(mocks[specifier])}`, shortCircuit: true };
@@ -86,6 +87,8 @@ test("publishing requires the owning session and serializes only cited public ev
     const payload = calls.find(call => call.table === "public_research_replays").values.payload;
     assert.equal(payload.sources.length, 1);
     assert.equal(payload.sources[0].url, "https://news.example/story");
+    assert.equal(payload.sources[0].excerpt, undefined);
+    assert.equal(JSON.stringify(payload).includes("A matching archived quotation. A legacy source-linked claim."), false);
     assert.equal(payload.assets[0].market.symbol, "NVDAUSDT");
     assert.deepEqual(payload.assets[0].evidenceBalance.supporting[0].citedUrls, ["https://news.example/story"]);
     assert.equal("accountId" in payload.assets[0].market, false);
@@ -139,6 +142,15 @@ test("publishing requires the owning session and serializes only cited public ev
     assert.equal(legacyEvidenceBriefResponse.status, 200);
     const legacyEvidencePayload = calls.filter(call => call.table === "public_research_replays").at(-1).values.payload;
     assert.deepEqual(legacyEvidencePayload.assets[0].evidenceBalance.supporting[0].citedUrls, ["https://news.example/story"]);
+    assert.equal(legacyEvidencePayload.assets[0].evidenceBalance.supporting[0].quoteMatchStatus, "matched_to_captured_text");
+    assert.equal(legacyEvidencePayload.assets[0].evidenceBalance.supporting[0].claimSupportStatus, "not_independently_verified");
+    assert.deepEqual(legacyEvidencePayload.assets[0].evidenceBalance.supporting[0].passageSpan, { startCodepoint: 0, endCodepoint: 30 });
+    context.run.summary = { ...context.run.summary, claims: [{ claim: "A fabricated source-linked claim.", quote: "This quotation was not present in the captured source excerpt.", source_url: "https://news.example/story" }] };
+    const unmatchedEvidenceResponse = await route.POST(new Request("https://tidelight.app/api/research/replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ researchRunId: token }) }));
+    assert.equal(unmatchedEvidenceResponse.status, 200);
+    const unmatchedEvidencePayload = calls.filter(call => call.table === "public_research_replays").at(-1).values.payload;
+    assert.equal(unmatchedEvidencePayload.assets[0].evidenceBalance.supporting[0].quote, undefined);
+    assert.equal(unmatchedEvidencePayload.assets[0].evidenceBalance.supporting[0].quoteMatchStatus, undefined);
 
     context.run.summary = { assets: [{ ticker: "NVDA", issuer: "NVIDIA", summary: "A normalized market record.", sources: ["https://news.example/story"], market: { symbol: "NVDAUSDT", price: 140, timestamp: "2026-10-24T14:00:00Z" } }] };
     const normalizedMarketResponse = await route.POST(new Request("https://tidelight.app/api/research/replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ researchRunId: token }) }));

@@ -4,6 +4,25 @@
 **Repository:** [`TidelightOrg/tidelight`](https://github.com/TidelightOrg/tidelight)
 **Purpose:** let a fresh session continue from current verified state without repeating completed work.
 
+## Current verified continuation point · 30 October 2026
+
+PR #442, **Improve research evidence integrity and evaluation clarity**, is open on `codex/benchmark-status-hierarchy`. The latest code commit is `2c496ecb5b77a2a2721436c9681e9fb48bbbe1c6`; its Vercel preview is READY at [tidelight-nhpvw9qzt-tidelight1.vercel.app](https://tidelight-nhpvw9qzt-tidelight1.vercel.app/). Keep all follow-up work on this PR.
+
+This work adds a deterministic `insufficient_evidence` result when source passages cannot support a claim, records quote-match and unverified-support statuses with Unicode codepoint spans, and persists that provenance. Public replay publishing rechecks every quote against the captured source excerpt before attaching matched status and spans, then omits full excerpts from public payloads. Public and private replay UIs show quote provenance; public replay market snapshots now show the provider timestamp in UTC or an unavailable state.
+
+Latest preview browser checks: Chromium opened `/flow` and saved public replay `/replay/91bb478a-7977-4b34-b32d-b1f558a8af75` on the `2c496ec` preview. Tidelight branding rendered correctly, and the replay showed its recorded quote time in UTC. The browser was a guest session, so private research generation was not exercised.
+
+Verification at `2c496ec`: `npm test` passed all 335 tests; `npm run lint` reported 14 warnings and 0 errors; `npm run build` completed successfully; GitHub Actions `Application checks` succeeded. The Vercel preview is READY. Codex review is running on `2c496ec`; the source-excerpt finding was fixed in this commit and its thread awaits resolution.
+
+Production Supabase project `plmdnzbmvgigkzfmfwov` has migration `20261030072558_persist_research_evidence_provenance` applied. The `research_evidence` table was inspected before applying it; the new columns, defaults, checks, and span comments were verified afterward. The migration file in this branch uses the same version so future `supabase db push` will not reapply it.
+
+### Next gates
+
+1. Finish the review on the latest PR head and keep any follow-up work in this PR only.
+2. Complete the frozen benchmark only with actual displayed claims and passages, two independent reviewers, and adjudication. No quality score can be inferred from capture completion.
+3. After merge, confirm the production Vercel deployment serves the merged commit, then open the production research desk and public replay route in Chromium.
+4. Preserve the global server-side live-order block and keep paper and exchange ledgers separate.
+
 ## Current verified continuation point · 26 October 2026
 
 PR #390, **Add a public developer integration directory**, is merged and its production deployment is READY. The live developer integration page, developer landing page, package home, and package dashboard were opened in the connected browser at desktop width. The integration page rendered four integration cards; the package dashboard rendered the registry workbench and five integration entries. The visible status route, support route, and five theme controls were present. No desktop header or card overlap appeared in these views. The preview page also rendered, and its Simplified Chinese page heading and integration copy were verified.

@@ -56,7 +56,7 @@ export function scoreBenchmark(benchmark) {
     if (typeof event.category !== "string" || !event.category.trim()) errors.push(`${label}.category is required.`);
     else categories.add(event.category.trim());
     if (typeof event.question !== "string" || !event.question.trim()) errors.push(`${label}.question is required.`);
-    if (!event.askedAt || Number.isNaN(Date.parse(event.askedAt))) errors.push(`${label}.askedAt must be an ISO timestamp.`);
+    if (event.askedAt !== null && (typeof event.askedAt !== "string" || Number.isNaN(Date.parse(event.askedAt)))) errors.push(`${label}.askedAt must be an ISO timestamp or null when not recorded.`);
 
     const sources = Array.isArray(event.sources) ? event.sources : [];
     if (!Array.isArray(event.sources) || !sources.length) errors.push(`${label}.sources must contain at least one captured source.`);
@@ -97,8 +97,10 @@ export function scoreBenchmark(benchmark) {
       counterEvidenceExpected += 1;
       if (brief?.counterEvidencePresent === true) counterEvidenceCaptured += 1;
     }
-    if (!Number.isFinite(event.taskTimeSeconds) || event.taskTimeSeconds <= 0) errors.push(`${label}.taskTimeSeconds must be a positive number.`);
-    else taskTimes.push(event.taskTimeSeconds);
+    if (event.taskTimeSeconds !== null) {
+      if (!Number.isFinite(event.taskTimeSeconds) || event.taskTimeSeconds <= 0) errors.push(`${label}.taskTimeSeconds must be a positive number or null when not measured.`);
+      else taskTimes.push(event.taskTimeSeconds);
+    }
 
     const claims = Array.isArray(event.claims) ? event.claims : [];
     if (!Array.isArray(event.claims)) errors.push(`${label}.claims must be an array.`);
@@ -153,7 +155,7 @@ export function scoreBenchmark(benchmark) {
       meanSourceClassesPerEvent: mean(totalSourceClasses, diversityEvents),
       interpretation: "Domain diversity is not evidence of editorial independence.",
     },
-    taskTimeSeconds: taskTimes.length ? { count: taskTimes.length, median: median(taskTimes), minimum: Math.min(...taskTimes), maximum: Math.max(...taskTimes) } : { count: 0, median: null, minimum: null, maximum: null },
+    taskTimeSeconds: taskTimes.length ? { count: taskTimes.length, median: median(taskTimes), minimum: Math.min(...taskTimes), maximum: Math.max(...taskTimes) } : { status: "not_measured", count: 0, median: null, minimum: null, maximum: null },
     sourceClasses: sourceClassTotals,
   };
   return { complete, errors, metadata: benchmark.metadata ?? {}, metrics: complete ? metrics : null };

@@ -17,6 +17,17 @@ test("Simplified Chinese preserves the Tidelight product name and covers package
   assert.equal(translations["and a"], "响应和一个");
   assert.equal(translations[". Poll"], "。请通过");
   assert.equal(translations["Only"], "仅");
+  assert.equal(translations["Quotes are matched to captured text. Claim support and truth have not been independently verified."], "引文已与捕获文本匹配；声明是否得到支持及其真实性尚未经过独立核实。");
+  assert.equal(translations["{n}% QUOTES MATCHED"], "{n}% 引文已匹配");
+  assert.equal(translations["model confidence"], "模型置信度");
+  assert.equal(translations["QUOTE MATCHED"], "引文已匹配");
+  assert.equal(translations["QUOTE TIME · UTC"], "报价时间 · UTC");
+  assert.equal(translations["SUPPORT UNVERIFIED"], "支持关系未核实");
+  assert.equal(translations["CAPTURED EXCERPT · CODEPOINTS"], "捕获摘录 · 代码点");
+  assert.equal(translations["· END EXCLUSIVE"], "· 结束位置不包含");
+  assert.equal(translations["INSUFFICIENT EVIDENCE"], "证据不足");
+  assert.equal(translations["The answer remains unknown from the supplied passages; this does not establish either side."], "根据所提供的段落，答案仍然未知；这并不证明任何一方。");
+  assert.equal(translations["No claim could be matched to captured text for this question. The answer remains unknown."], "没有找到与捕获文本匹配且能回答此问题的主张。答案仍然未知。");
   for (const key of [
     "OFFICIAL DEVELOPER PACKAGES", "Available packages", "OFFICIAL PACKAGE / TYPESCRIPT · JAVASCRIPT",
     "Research job lifecycle", "Supported operations", "Bounded behavior, protected credentials.",
@@ -78,7 +89,14 @@ test("Simplified Chinese covers the Judge evaluation path and public evidence di
     "Open the full Gmail screenshot for the RNVDUSDT Nightwatch email", "Browse published paper replays", "Download JSON",
     "PUBLIC REPLAY", "after costs", "Holdout return trailed buy and hold (+2.12%) over 32 days. Historical simulation; costs estimated, no live orders.",
     "Evaluation path", "Evaluation stages", "Would you review the rTSLA market?",
-    "On this ten-run sample, only two outputs included model synthesis; both raised material evidence concerns. Eight were source-only or had no usable synthesis. The 2.5/10 figure is a provisional single-reviewer product assessment, not a factual-accuracy rate. Formal claim-quality scoring is pending independent labels and adjudication; task time was not measured. The September CPI run included off-topic sources.",
+    "10 runs captured. Claim-quality score pending.",
+    "Production captures are complete. The formal score requires two independent claim reviews and adjudication; task time remains unmeasured. A provisional single-reviewer assessment is linked below.",
+    "PROTOCOL CLAIM-QUALITY SCORE", "Claim-quality score pending",
+    "Two independent claim reviews and adjudication are required before scoring.",
+    "On this ten-run sample, only two outputs included model synthesis; both raised material evidence concerns. Eight were source-only or had no usable synthesis. This measures capture availability, not factual accuracy. The provisional 2.5/10 single-reviewer product assessment is descriptive only; task time was not measured. The September CPI run included off-topic sources.",
+    "Provisional single-review assessment (2.5/10) ↗", "Pending",
+    "Quotes are matched to captured text. Claim support and truth have not been independently verified.", "{n}% QUOTES MATCHED", "model confidence", "QUOTE MATCHED", "SUPPORT UNVERIFIED",
+    "Pending",
     "How do AI investment and Azure demand change the risk picture?", "What should a long-term rAAPL review verify?",
     "How should antitrust remedies and AI-search competition be reviewed?", "How do AWS investment and retail economics shape the review?",
     "Compare the latest evidence and risks.", "Separate issuer assessments", "decision gates", "PUBLIC REPLAY · APPLE · 4H",

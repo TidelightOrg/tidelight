@@ -275,13 +275,13 @@ export default function JudgePage() {
 
     <section className="judge-section judge-evidence-score" id="research-benchmark" aria-labelledby="benchmark-title">
       <div className="judge-section-heading">
-        <div><span className="judge-kicker">RESEARCH · FROZEN TEN EVENT SET</span><h2 id="benchmark-title">Ten runs captured. Internal score 2.5/10.</h2></div>
-        <p>All ten frozen questions have production captures. The internal single-reviewer product score is 2.5/10. The formal claim-quality score still requires two independent reviews and adjudication; task time remains unmeasured.</p>
+        <div><span className="judge-kicker">RESEARCH · FROZEN TEN EVENT SET</span><h2 id="benchmark-title">10 runs captured. Claim-quality score pending.</h2></div>
+        <p>Production captures are complete. The formal score requires two independent claim reviews and adjudication; task time remains unmeasured. A provisional single-reviewer assessment is linked below.</p>
       </div>
       <div className="judge-score-grid">
         <article><span>RUN CAPTURE</span><strong>10 / 10</strong><small>All frozen events have production observations.</small></article>
         <article><span>AI SYNTHESIS</span><strong>2 / 10</strong><small>Two runs returned model synthesis; eight were source-only or had no synthesis.</small></article>
-        <article><span>INTERNAL REVIEW</span><strong>2.5 / 10</strong><small>Single-reviewer descriptive score; protocol claim-quality score remains pending.</small></article>
+        <article><span>PROTOCOL CLAIM-QUALITY SCORE</span><strong>Claim-quality score pending</strong><small>Two independent claim reviews and adjudication are required before scoring.</small></article>
       </div>
       <figure className="judge-benchmark-visual" aria-labelledby="benchmark-visual-title">
         <div className="judge-benchmark-visual-heading">
@@ -293,7 +293,7 @@ export default function JudgePage() {
         </div>
         <figcaption><span><i className="judge-benchmark-key judge-benchmark-key-synthesis" />Synthesis returned <strong>2 / 10</strong></span><span><i className="judge-benchmark-key judge-benchmark-key-fallback" />Source-only or no synthesis <strong>8 / 10</strong></span></figcaption>
       </figure>
-      <p className="judge-section-note">On this ten-run sample, only two outputs included model synthesis; both raised material evidence concerns. Eight were source-only or had no usable synthesis. The 2.5/10 figure is a provisional single-reviewer product assessment, not a factual-accuracy rate. Formal claim-quality scoring is pending independent labels and adjudication; task time was not measured. The September CPI run included off-topic sources.</p>
+      <p className="judge-section-note">On this ten-run sample, only two outputs included model synthesis; both raised material evidence concerns. Eight were source-only or had no usable synthesis. This measures capture availability, not factual accuracy. The provisional 2.5/10 single-reviewer product assessment is descriptive only; task time was not measured. The September CPI run included off-topic sources.</p>
       <details className="judge-benchmark-run-table" open>
         <summary>Run-by-run production captures</summary>
         <div className="judge-benchmark-table-scroll"><table>
@@ -314,7 +314,7 @@ export default function JudgePage() {
         </table></div>
       </details>
       <div className="judge-inline-actions">
-        <a href="/evidence/research-benchmark-review-20261024.json">Single-review assessment ↗</a>
+        <a href="/evidence/research-benchmark-review-20261024.json">Provisional single-review assessment (2.5/10) ↗</a>
         <a href="/evidence/research-benchmark-summary-20261024.json">Capture summary ↗</a>
         <a href="https://github.com/TidelightOrg/tidelight/blob/main/docs/benchmarks/research-benchmark-frozen-2026-10-24.json">Frozen event set ↗</a>
         <a href="https://github.com/TidelightOrg/tidelight/blob/main/docs/benchmarks/research-benchmark-capture-log-2026-10-24.md">Run-by-run capture log ↗</a>
