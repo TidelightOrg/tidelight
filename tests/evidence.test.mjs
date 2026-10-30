@@ -74,6 +74,21 @@ test("represents empty source evidence as an explicit unknown without model-writ
   assert.equal(result?.citation_coverage, 0);
 });
 
+test("honors an explicit insufficient-evidence status even when the model includes a matched quote", () => {
+  const result = validateBrief({ ...base,
+    answer_status: "insufficient_evidence",
+    summary: "The company is certain to double profits.",
+    claims: [
+      { claim: "The company announced a multiyear investment.", quote: "The company said it would invest $4 billion in a new research facility over the next five years.", source_url: sourceOne.url, stance: "supports", confidence: 0.9 },
+    ],
+  }, [sourceOne]);
+
+  assert.equal(result?.answer_status, "insufficient_evidence");
+  assert.equal(result?.summary, "The supplied passages did not yield a source-matched claim that answers this question.");
+  assert.deepEqual(result?.claims, []);
+  assert.equal(result?.citation_coverage, 0);
+});
+
 test("reports coverage against all model claims when unsupported claims are dropped", () => {
   const result = validateBrief({ ...base, claims: [
     { claim: "The company announced a multiyear investment.", quote: "The company said it would invest $4 billion in a new research facility over the next five years.", source_url: sourceOne.url, stance: "supports", confidence: 1.4 },
