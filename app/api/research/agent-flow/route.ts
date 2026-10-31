@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createHmac } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getServerAuthState } from "@/lib/supabase/auth-user";
 import { aiJsonWithFallback, configuredAiProviders, type ProviderAttempt } from "@/lib/ai-fallback";
@@ -58,16 +59,34 @@ export async function POST(request: Request) {
   const auth = await getServerAuthState();
   const { user } = auth;
   if (auth.errorCode) return NextResponse.json({ error: "Tidelight could not verify your sign-in just now. Please retry shortly." }, { status: 503 });
-  if (!user) return NextResponse.json({ error: "Sign in to start a private research flow." }, { status: 401 });
+  const guest = !user;
+  if (guest) {
+    try {
+      const origin = request.headers.get("origin");
+      if (!origin || new URL(origin).origin !== new URL(request.url).origin) return NextResponse.json({ error: "Open public research from Tidelight." }, { status: 403 });
+    } catch { return NextResponse.json({ error: "Open public research from Tidelight." }, { status: 403 }); }
+  }
   const supabase = createAdminClient();
-  let body: { question?: unknown; contextRunId?: unknown; workspaceContext?: unknown; researchMonitorId?: unknown; researchMonitorRevision?: unknown };
-  try { body = await request.json(); } catch { return NextResponse.json({ error: "Send a valid question." }, { status: 400 }); }
+  let body: { question?: unknown; judgeMode?: unknown; contextRunId?: unknown; workspaceContext?: unknown; researchMonitorId?: unknown; researchMonitorRevision?: unknown };
+  if (Number(request.headers.get("content-length") ?? 0) > 6_000) return NextResponse.json({ error: "Keep the research request under 6 KB." }, { status: 413 });
+  try { const raw = await request.text(); if (raw.length > 6_000) return NextResponse.json({ error: "Keep the research request under 6 KB." }, { status: 413 }); const parsed: unknown = JSON.parse(raw); if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return NextResponse.json({ error: "Send a valid question." }, { status: 400 }); body = parsed as typeof body; } catch { return NextResponse.json({ error: "Send a valid question." }, { status: 400 }); }
   const question = typeof body.question === "string" ? body.question.trim().replace(/\s+/g, " ") : "";
   if (question.length < 5 || question.length > 500) return NextResponse.json({ error: "Ask a market question in 5 to 500 characters." }, { status: 400 });
+  if (guest && body.judgeMode !== true) return NextResponse.json({ error: "Use the public Judge Mode research desk to start guest research." }, { status: 401 });
+  if (guest && (body.contextRunId !== undefined || body.researchMonitorId !== undefined || body.researchMonitorRevision !== undefined || body.workspaceContext !== undefined)) return NextResponse.json({ error: "Guest research cannot access saved account context." }, { status: 403 });
+  if (guest) {
+    const secret = process.env.CRON_SECRET;
+    if (!secret) return NextResponse.json({ error: "Public research is temporarily unavailable." }, { status: 503 });
+    const ip = request.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "unknown";
+    const fingerprint = createHmac("sha256", secret).update(`guest-research:${ip}`).digest("hex");
+    const { data: allowed, error } = await supabase.rpc("reserve_guest_research", { p_fingerprint: fingerprint });
+    if (error) return NextResponse.json({ error: "Public research capacity could not be checked. Retry shortly." }, { status: 503 });
+    if (allowed !== true) return NextResponse.json({ error: "Public research is at its hourly limit for this connection. Sign in for your private research workspace." }, { status: 429 });
+  }
   const workspaceContext = typeof body.workspaceContext === "string" && body.workspaceContext.length <= 240 && /^\/(?!\/)[a-zA-Z0-9/_?=&.%+-]*$/.test(body.workspaceContext) ? body.workspaceContext : null;
   const contextRunId = typeof body.contextRunId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.contextRunId) ? body.contextRunId : null;
   let priorContext: { question: string; assets: Array<{ ticker: string; summary: string; stance: string; confidence: number; risks: string[] }> } | null = null;
-  if (contextRunId) {
+  if (contextRunId && user) {
     const { data: priorRun } = await supabase.from("research_runs").select("question, summary, status").eq("id", contextRunId).eq("user_id", user.id).eq("status", "complete").maybeSingle();
     if (!priorRun) return NextResponse.json({ error: "That saved research context is unavailable." }, { status: 404 });
     const summary = priorRun.summary && typeof priorRun.summary === "object" ? priorRun.summary as Record<string, unknown> : {};
@@ -82,7 +101,7 @@ export async function POST(request: Request) {
   const monitorId = typeof body.researchMonitorId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.researchMonitorId) ? body.researchMonitorId : null;
   let monitor: { id: string; ticker: string; thesis_revision: number } | null = null;
   if (body.researchMonitorId !== undefined && !monitorId) return NextResponse.json({ error: "That Research Monitor link is invalid." }, { status: 400 });
-  if (monitorId) {
+  if (monitorId && user) {
     if (!Number.isSafeInteger(body.researchMonitorRevision) || Number(body.researchMonitorRevision) < 1) return NextResponse.json({ error: "A valid thesis revision is required for this monitor review." }, { status: 400 });
     const { data: owned } = await supabase.from("research_monitors").select("id,ticker").eq("id", monitorId).eq("user_id", user.id).eq("status", "active").maybeSingle();
     if (!owned) return NextResponse.json({ error: "That active Research Monitor is unavailable." }, { status: 404 });
@@ -96,12 +115,16 @@ export async function POST(request: Request) {
   const macroTopic: MacroTopic | null = tickers.length ? null : classifyMacroQuestion(question);
   if (monitor && (!tickers.includes(monitor.ticker) || macroTopic)) return NextResponse.json({ error: `Name ${monitor.ticker} in the company research question for this monitor.` }, { status: 422 });
   if (!tickers.length && !macroTopic) return NextResponse.json({ error: "Name a supported US stock, or ask about a dated FOMC, CPI, or employment release." }, { status: 422 });
-  const hourAgo = new Date(Date.now() - 3_600_000).toISOString();
-  const { count, error: limitError } = await supabase.from("research_runs").select("id", { count: "exact", head: true }).eq("user_id", user.id).gte("created_at", hourAgo);
-  if (limitError) return NextResponse.json({ error: "Research capacity could not be checked. Retry shortly." }, { status: 503 });
-  if ((count ?? 0) >= 10) return NextResponse.json({ error: "You’ve reached the hourly research limit. Try again later." }, { status: 429 });
-  const { data: run, error: runError } = await supabase.from("research_runs").insert({ user_id: user.id, question, status: "collecting", event_type: "agent_flow" }).select("id").single();
-  if (runError || !run) return NextResponse.json({ error: "Could not start a private research record." }, { status: 503 });
+  let runId = crypto.randomUUID();
+  if (user) {
+    const hourAgo = new Date(Date.now() - 3_600_000).toISOString();
+    const { count, error: limitError } = await supabase.from("research_runs").select("id", { count: "exact", head: true }).eq("user_id", user.id).gte("created_at", hourAgo);
+    if (limitError) return NextResponse.json({ error: "Research capacity could not be checked. Retry shortly." }, { status: 503 });
+    if ((count ?? 0) >= 10) return NextResponse.json({ error: "You’ve reached the hourly research limit. Try again later." }, { status: 429 });
+    const { data: run, error: runError } = await supabase.from("research_runs").insert({ user_id: user.id, question, status: "collecting", event_type: "agent_flow" }).select("id").single();
+    if (runError || !run) return NextResponse.json({ error: "Could not start a private research record." }, { status: 503 });
+    runId = run.id;
+  }
 
   const encoder = new TextEncoder();
   const trace: Stage[] = [];
@@ -130,13 +153,12 @@ export async function POST(request: Request) {
           const officialCount = macroSources.filter(source => source.sourceKind === "official").length;
           const independentCount = macroSources.filter(source => source.sourceKind === "independent_reporting").length;
           stage("Macro evidence", macroSources.length ? "complete" : "blocked", `${macroSources.length} macro sources collected`, macroSources.length ? `${officialCount} official Fed/BLS source${officialCount === 1 ? "" : "s"} and ${independentCount} independent report${independentCount === 1 ? "" : "s"} matched the request. Each source remains linked below.` : "No attributable Federal Reserve/BLS or allowlisted independent coverage matched this dated question.");
-          const allSources = macroSources.map(source => ({ research_run_id: run.id, url: source.url, title: source.title.slice(0, 300), publisher: source.publisher.slice(0, 120), published_at: source.publishedAt, source_type: "web", excerpt: source.snippet.slice(0, 3_500) }));
+          const allSources = user ? macroSources.map(source => ({ research_run_id: runId, url: source.url, title: source.title.slice(0, 300), publisher: source.publisher.slice(0, 120), published_at: source.publishedAt, source_type: "web", excerpt: source.snippet.slice(0, 3_500) })) : [];
           if (allSources.length) {
             const { error } = await supabase.from("research_sources").upsert(allSources, { onConflict: "research_run_id,url", ignoreDuplicates: true });
             if (error) throw new Error(`source-record-failed:${error.code}`);
           }
-          const { error: analyzingError } = await supabase.from("research_runs").update({ status: "analyzing" }).eq("id", run.id).eq("user_id", user.id);
-          if (analyzingError) throw new Error(`research-status-failed:${analyzingError.code}`);
+          if (user) { const { error: analyzingError } = await supabase.from("research_runs").update({ status: "analyzing" }).eq("id", runId).eq("user_id", user.id); if (analyzingError) throw new Error(`research-status-failed:${analyzingError.code}`); }
           stage("Research analyst", "running", "Separating data from interpretation", "Summarizing official measurements and policy decisions separately from independent reporting and market expectations.");
           const assessments: Record<string, FlowAssessment> = {};
           let synthesisProvider: string | null = null;
@@ -167,14 +189,10 @@ export async function POST(request: Request) {
             market: { perpSymbol: null, perpLastPrice: null, perpProviderTimestamp: null, spotSymbol: null, spotLastPrice: null, spotProviderTimestamp: null, lastPrice: null, providerTimestamp: null, interval: null, candles: [] },
             handoff: null, evidenceBalance: { supporting: assessment.supportingEvidence, counter: assessment.counterEvidence }, risks: assessment.risks, nextCheck: assessment.nextCheck,
           };
-          stage("Coordinator", "complete", "Macro research ready", "The macro brief is saved privately. It contains no stock signal, quote, or trade handoff.");
-          const result = { researchRunId: run.id, question, researchType: "macro" as const, macroTopic, synthesis: synthesisProvider ? { mode: "model" as const, provider: synthesisProvider } : { mode: "source_only" as const, provider: null }, ...(providerAttempts.length || providerRouting ? { operationalDiagnostics: { providerAttempts, ...(providerRouting ? { providerRouting } : {}) } } : {}), researchCoverage: { mode: "macro", lookbackDays: macroResearchLookbackDays(question), queriesPerTicker: buildMacroNewsQueries(question).length * 2, collectedItems: macroSources.length, publishers: new Set(macroSources.map(source => source.publisher)).size, sourceDomains: new Set(macroSources.map(source => source.publisherDomain)).size, collectedAt: new Date().toISOString(), limitations: ["Macro coverage is bounded to Federal Reserve/BLS sources and an allowlist of independent publishers.", "Market expectations are reporting context, not a policy outcome or forecast."] }, assets: [asset], tradeable: false, trace, contextRunId, ...(workspaceContext ? { workspaceContext } : {}) };
+          stage("Coordinator", "complete", "Macro research ready", user ? "The macro brief is saved privately. It contains no stock signal, quote, or trade handoff." : "The macro brief is ready for this browser session. It contains no stock signal, quote, or trade handoff.");
+          const result = { ...(user ? { researchRunId: runId } : { guestSessionResult: true }), question, researchType: "macro" as const, macroTopic, synthesis: synthesisProvider ? { mode: "model" as const, provider: synthesisProvider } : { mode: "source_only" as const, provider: null }, ...(providerAttempts.length || providerRouting ? { operationalDiagnostics: { providerAttempts, ...(providerRouting ? { providerRouting } : {}) } } : {}), researchCoverage: { mode: "macro", lookbackDays: macroResearchLookbackDays(question), queriesPerTicker: buildMacroNewsQueries(question).length * 2, collectedItems: macroSources.length, publishers: new Set(macroSources.map(source => source.publisher)).size, sourceDomains: new Set(macroSources.map(source => source.publisherDomain)).size, collectedAt: new Date().toISOString(), limitations: ["Macro coverage is bounded to Federal Reserve/BLS sources and an allowlist of independent publishers.", "Market expectations are reporting context, not a policy outcome or forecast."] }, assets: [asset], tradeable: false, trace, ...(user && contextRunId ? { contextRunId } : {}), ...(user && workspaceContext ? { workspaceContext } : {}) };
           await recordProviderHealth(providerAttempts);
-          const { error: saveError } = await supabase.from("research_runs").update({ status: "complete", completed_at: new Date().toISOString(), summary: result }).eq("id", run.id).eq("user_id", user.id);
-          if (saveError) {
-            stage("Coordinator", "blocked", "Private trace could not be saved", "No trading handoff was offered because the macro research record was not committed.");
-            throw new Error(`research-save-failed:${saveError.code}`);
-          }
+          if (user) { const { error: saveError } = await supabase.from("research_runs").update({ status: "complete", completed_at: new Date().toISOString(), summary: result }).eq("id", runId).eq("user_id", user.id); if (saveError) { stage("Coordinator", "blocked", "Private trace could not be saved", "No trading handoff was offered because the macro research record was not committed."); throw new Error(`research-save-failed:${saveError.code}`); } }
           push("result", result);
           return;
         }
@@ -219,13 +237,12 @@ export async function POST(request: Request) {
         const lookbackDays = issuerEvidenceLookbackDays(question);
         for (const snap of snapshots) stage("Evidence scout", snap.sources.length ? "complete" : "blocked", `${snap.ticker}: ${snap.sources.length} source headlines`, snap.sources.length ? `Collected dated headlines from the last ${lookbackDays} days across ${new Set(snap.sources.map(source => source.publisher)).size} publishers; ${new Set(snap.sources.map(source => new URL(source.url).hostname)).size} source domains, original links attached below.` : `No attributable public coverage was reached within the ${lookbackDays}-day search window.`, snap.ticker);
         stage("Market scout", "complete", "Market and coverage map complete", `Checked ${snapshots.reduce((n, snap) => n + snap.sources.length, 0)} dated source items across ${snapshots.reduce((n, snap) => n + new Set(snap.sources.map(source => source.publisher)).size, 0)} ticker-publisher pairs. Verified ${snapshots.filter(snap => snap.perp).length} of ${snapshots.length} stock perpetual references${tokenizedMarketQuestion ? ` and ${snapshots.filter(snap => snap.spot).length} requested tokenized spot markets` : ""}.`);
-        const allSources = snapshots.flatMap(snap => snap.sources.map(source => ({ research_run_id: run.id, url: source.url, title: source.title.slice(0, 300), publisher: source.publisher.slice(0, 120), published_at: source.publishedAt, source_type: "web", excerpt: source.snippet.slice(0, 3_500) })));
+        const allSources = user ? snapshots.flatMap(snap => snap.sources.map(source => ({ research_run_id: runId, url: source.url, title: source.title.slice(0, 300), publisher: source.publisher.slice(0, 120), published_at: source.publishedAt, source_type: "web", excerpt: source.snippet.slice(0, 3_500) }))) : [];
         if (allSources.length) {
           const { error } = await supabase.from("research_sources").upsert(allSources, { onConflict: "research_run_id,url", ignoreDuplicates: true });
           if (error) throw new Error(`source-record-failed:${error.code}`);
         }
-        const { error: analyzingError } = await supabase.from("research_runs").update({ status: "analyzing" }).eq("id", run.id).eq("user_id", user.id);
-        if (analyzingError) throw new Error(`research-status-failed:${analyzingError.code}`);
+        if (user) { const { error: analyzingError } = await supabase.from("research_runs").update({ status: "analyzing" }).eq("id", runId).eq("user_id", user.id); if (analyzingError) throw new Error(`research-status-failed:${analyzingError.code}`); }
 
         stage("Research analyst", "running", "Cross-checking the evidence", "Reviewing primary issuer excerpts alongside headline coverage for corroboration, disagreement, timing, and exact source links. Excerpts remain partial and are not treated as complete filings.");
         const assessments: Record<string, FlowAssessment> = {};
@@ -256,12 +273,12 @@ export async function POST(request: Request) {
           const gate = gateFlowTrade({ assessment, sources: snap.sources, marketVerified: Boolean(snap.perp), marketTimestamp: snap.perp?.providerTimestamp ?? null,
             lastCompletedCandleEnd: latestEnd, completedCandles: completed.length, currentSignal: Boolean(signals.at(-1)), previousSignal: Boolean(signals.at(-2)), now });
           const gateReasons = assessments[snap.ticker] ? gate.reasons : ["No verified AI assessment was returned; headlines alone cannot unlock trade review.", ...gate.reasons];
-          const destinations = gate.tradeable ? [
-            { mode: "paper_futures" as const, label: "Review a paper futures check", href: `/futures?symbol=${encodeURIComponent(snap.ticker + "USDT")}&researchRunId=${encodeURIComponent(run.id)}` },
+          const destinations = gate.tradeable && user ? [
+            { mode: "paper_futures" as const, label: "Review a paper futures check", href: `/futures?symbol=${encodeURIComponent(snap.ticker + "USDT")}&researchRunId=${encodeURIComponent(runId)}` },
             ...(tokenizedMarketQuestion && gate.direction === "long" && snap.spot ? [{ mode: "live_spot" as const, label: "Review a live rToken spot order", href: `/trading?symbol=${encodeURIComponent(snap.spot.symbol)}` }] : []),
           ] : [];
           stage("Alpha Factory", signals.length ? "complete" : "blocked", `${snap.ticker}: completed-candle rule`, signals.length ? `SMA 20/50 checked on ${completed.length} completed 4H bars; ${signals.at(-1) !== signals.at(-2) ? "fresh transition" : "no fresh transition"}.` : "Too few completed candles to test the fixed rule.", snap.ticker);
-          stage("Trading agent", gate.tradeable ? "complete" : "blocked", `${snap.ticker}: ${gate.tradeable ? "eligible for order review" : "research only"}`, gate.tradeable ? "Source coverage, market freshness, confidence, and the fixed Alpha rule align. You must still choose and confirm any action." : gateReasons.join(" "), snap.ticker);
+          stage("Trading agent", gate.tradeable && user ? "complete" : "blocked", `${snap.ticker}: ${gate.tradeable && user ? "eligible for order review" : "research only"}`, gate.tradeable && user ? "Source coverage, market freshness, confidence, and the fixed Alpha rule align. You must still choose and confirm any action." : guest && gate.tradeable ? "Research gates passed, but public judge sessions are read-only. Sign in to continue to a separate paper review." : gateReasons.join(" "), snap.ticker);
           return { ticker: snap.ticker, issuer: snap.issuer, summary: assessment.summary, stance: assessment.stance, confidence: assessment.confidence, confidenceCapped: Boolean(assessment.confidenceCapped), ...(tokenizedMarketQuestion ? { tokenizedMarketReview: tokenizedMarketReview({ ticker: snap.ticker, spotSymbol: snap.spot?.symbol ?? null, spotPrice: snap.spot?.lastPrice ?? null, spotTimestamp: snap.spot?.providerTimestamp ?? null, now }) } : {}),
             tradeable: gate.tradeable, gateReasons, sources: snap.sources.slice(0, 20).map(({ title, url, publisher, publishedAt, via }): FlowSource => ({ title, url, publisher, publishedAt, via })),
             market: { perpSymbol: snap.perp?.symbol ?? null, perpLastPrice: snap.perp?.lastPrice ?? null, perpProviderTimestamp: snap.perp?.providerTimestamp ?? null, ...(tokenizedMarketQuestion ? { spotSymbol: snap.spot?.symbol ?? null, spotLastPrice: snap.spot?.lastPrice ?? null, spotProviderTimestamp: snap.spot?.providerTimestamp ?? null } : {}), lastPrice: snap.perp?.lastPrice ?? null, providerTimestamp: snap.perp?.providerTimestamp ?? null, interval: "4H", candles: completed.slice(-30).map(candle => ({ timestamp: candle.timestamp, close: candle.close })) },
@@ -269,24 +286,20 @@ export async function POST(request: Request) {
             evidenceBalance: { supporting: assessment.supportingEvidence, counter: assessment.counterEvidence },
             risks: assessment.risks, nextCheck: assessment.nextCheck };
         });
-        stage("Coordinator", "complete", "Review ready", assets.some(asset => asset.tradeable) ? "One or more scenarios may proceed to a separate trade review. Nothing was sent to Bitget or the paper ledger." : "Keep watching the evidence and market. No scenario passed every trade review gate.");
-        const result = { researchRunId: run.id, question, synthesis: synthesisProvider ? { mode: "model" as const, provider: synthesisProvider } : { mode: "source_only" as const, provider: null }, ...(providerAttempts.length || providerRouting ? { operationalDiagnostics: { providerAttempts, ...(providerRouting ? { providerRouting } : {}) } } : {}), researchCoverage: { mode: "deep", lookbackDays, queriesPerTicker: buildIssuerNewsQueries(tickers[0], getIssuerName(tickers[0]), question).length * 2, collectedItems: snapshots.reduce((count, snap) => count + snap.sources.length, 0), publishers: [...new Set(snapshots.flatMap(snap => snap.sources.map(source => source.publisher)))].length, sourceDomains: [...new Set(snapshots.flatMap(snap => snap.sources.map(source => new URL(source.url).hostname)))].length, collectedAt: new Date().toISOString(), limitations: ["Primary issuer excerpts are bounded and partial; open the cited source for the complete release.", "Public-feed coverage is bounded and cannot represent the entire internet."] }, assets, tradeable: assets.some(asset => asset.tradeable), trace, contextRunId, ...(workspaceContext ? { workspaceContext } : {}) };
+        stage("Coordinator", "complete", "Review ready", user && assets.some(asset => asset.tradeable) ? "One or more scenarios may proceed to a separate trade review. Nothing was sent to Bitget or the paper ledger." : guest && assets.some(asset => asset.tradeable) ? "The research gates passed, but guest judge mode is read-only. No paper or live action is available." : "Keep watching the evidence and market. No scenario passed every trade review gate.");
+        const result = { ...(user ? { researchRunId: runId } : { guestSessionResult: true }), question, synthesis: synthesisProvider ? { mode: "model" as const, provider: synthesisProvider } : { mode: "source_only" as const, provider: null }, ...(providerAttempts.length || providerRouting ? { operationalDiagnostics: { providerAttempts, ...(providerRouting ? { providerRouting } : {}) } } : {}), researchCoverage: { mode: "deep", lookbackDays, queriesPerTicker: buildIssuerNewsQueries(tickers[0], getIssuerName(tickers[0]), question).length * 2, collectedItems: snapshots.reduce((count, snap) => count + snap.sources.length, 0), publishers: [...new Set(snapshots.flatMap(snap => snap.sources.map(source => source.publisher)))].length, sourceDomains: [...new Set(snapshots.flatMap(snap => snap.sources.map(source => new URL(source.url).hostname)))].length, collectedAt: new Date().toISOString(), limitations: ["Primary issuer excerpts are bounded and partial; open the cited source for the complete release.", "Public-feed coverage is bounded and cannot represent the entire internet."] }, assets: user ? assets : assets.map(asset => ({ ...asset, tradeable: false, handoff: null, gateReasons: [...asset.gateReasons, "Guest research is read-only; sign in to review this decision in a paper workflow."] })), tradeable: user ? assets.some(asset => asset.tradeable) : false, trace, ...(user && contextRunId ? { contextRunId } : {}), ...(user && workspaceContext ? { workspaceContext } : {}) };
         await recordProviderHealth(providerAttempts);
-        const { error: saveError } = await supabase.from("research_runs").update({ status: "complete", completed_at: new Date().toISOString(), summary: result }).eq("id", run.id).eq("user_id", user.id);
-        if (saveError) {
-          stage("Coordinator", "blocked", "Private trace could not be saved", "No trade handoff was offered because the research record was not committed.");
-          throw new Error(`research-save-failed:${saveError.code}`);
-        }
+        if (user) { const { error: saveError } = await supabase.from("research_runs").update({ status: "complete", completed_at: new Date().toISOString(), summary: result }).eq("id", runId).eq("user_id", user.id); if (saveError) { stage("Coordinator", "blocked", "Private trace could not be saved", "No trade handoff was offered because the research record was not committed."); throw new Error(`research-save-failed:${saveError.code}`); } }
         let monitorObservationSaved = false;
-        if (monitor) {
-          const { error: observationError } = await supabase.from("research_monitor_observations").insert({ monitor_id: monitor.id, user_id: user.id, research_run_id: run.id, thesis_revision: monitor.thesis_revision });
+        if (monitor && user) {
+          const { error: observationError } = await supabase.from("research_monitor_observations").insert({ monitor_id: monitor.id, user_id: user.id, research_run_id: runId, thesis_revision: monitor.thesis_revision });
           monitorObservationSaved = !observationError;
           if (observationError) console.error("research-monitor-observation-save-failed", observationError.code);
         }
         push("result", { ...result, researchMonitorId: monitor?.id ?? null, ...(monitor ? { monitorObservationSaved } : {}) });
       } catch (cause) {
         console.error("agent-flow-failed", cause instanceof Error ? cause.message : "unknown");
-        await supabase.from("research_runs").update({ status: "failed", completed_at: new Date().toISOString(), summary: { trace, error: "The market or research workflow did not complete." } }).eq("id", run.id).eq("user_id", user.id);
+        if (user) await supabase.from("research_runs").update({ status: "failed", completed_at: new Date().toISOString(), summary: { trace, error: "The market or research workflow did not complete." } }).eq("id", runId).eq("user_id", user.id);
         push("error", { error: "The research workflow could not finish. No paper or live order was placed." });
       } finally {
         try { controller.close(); } catch {}

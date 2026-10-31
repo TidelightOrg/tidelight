@@ -47,6 +47,7 @@ globalThis.flowTest = {
     from: queryFor,
     rpc: async (name, args) => {
       captures.rpc.push({ name, args });
+      if (name === "reserve_guest_research") return { data: globalThis.flowTest.guestAllowed !== false, error: null };
       if (name === "futures_paper_apply") {
         captures.orders.push(args.p_action);
         return { data: { id: "synthetic-paper-decision", action: args.p_action, outcome: "no_action" }, error: null };
@@ -149,4 +150,42 @@ test("macro-only research saves a source-bound brief and bypasses stock provider
   assert.ok(!result.trace.some(stage => stage.agent === "Alpha Factory" || stage.agent === "Trading agent"));
   assert.ok(captures.research.some(call => call.table === "research_sources" && call.operation === "upsert"));
   assert.ok(captures.research.some(call => call.table === "research_runs" && call.operation === "update" && call.values?.status === "complete" && call.values?.summary?.researchType === "macro"));
+});
+
+test("anonymous judge research is same-origin, session-only, and cannot hand off to trading", async () => {
+  process.env.CRON_SECRET = "synthetic-test-only-rate-limit-key";
+  const previousUser = globalThis.flowTest.user;
+  globalThis.flowTest.user = null;
+  globalThis.flowTest.guestAllowed = true;
+  captures.research.length = 0;
+  const response = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
+    method: "POST", headers: { origin: "https://tidelight.app", "content-type": "application/json" }, body: JSON.stringify({ question: "Review NVDA with current public evidence", judgeMode: true }),
+  }));
+  assert.equal(response.status, 200);
+  const events = (await response.text()).split("\n\n").filter(Boolean).map(frame => JSON.parse(frame.split("\ndata: ")[1]));
+  const result = events.findLast(frame => frame.guestSessionResult === true);
+  assert.ok(result, "guest research emits an in-session result without an account record identifier");
+  assert.equal("researchRunId" in result, false);
+  assert.equal(result.tradeable, false);
+  assert.equal(result.assets[0].tradeable, false);
+  assert.equal(result.assets[0].handoff, null);
+  assert.equal(captures.research.length, 0, "guest prompts and research sources are not written to private account tables");
+  assert.ok(captures.rpc.some(call => call.name === "reserve_guest_research"));
+
+  const blockedOrigin = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
+    method: "POST", headers: { origin: "https://attacker.example", "content-type": "application/json" }, body: JSON.stringify({ question: "Review NVDA with current public evidence", judgeMode: true }),
+  }));
+  assert.equal(blockedOrigin.status, 403);
+
+  const blockedLimit = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
+    method: "POST", headers: { origin: "https://tidelight.app", "content-type": "application/json" }, body: JSON.stringify({ question: "Review NVDA with current public evidence", judgeMode: true, contextRunId: researchId }),
+  }));
+  assert.equal(blockedLimit.status, 403, "guest calls cannot read saved account research context");
+  globalThis.flowTest.guestAllowed = false;
+  const rateLimited = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
+    method: "POST", headers: { origin: "https://tidelight.app", "content-type": "application/json" }, body: JSON.stringify({ question: "Review NVDA with current public evidence", judgeMode: true }),
+  }));
+  assert.equal(rateLimited.status, 429, "database rate-limit denial prevents provider work");
+  globalThis.flowTest.user = previousUser;
+  globalThis.flowTest.guestAllowed = true;
 });
