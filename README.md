@@ -24,6 +24,26 @@
 
 ---
 
+---
+
+<details>
+<summary><strong>⚠️ IMPORTANT — Early Development Notice</strong></summary>
+
+<br>
+
+> [!CAUTION]
+> **Tidelight is an early-stage experimental project and is not yet ready for public or production use.**
+>
+> The platform remains under active development. Features, APIs, and research outputs may be incomplete, unstable, or subject to change.
+>
+> **Do not rely on Tidelight for live trading, investment decisions, or critical operations.**
+>
+> General availability will be announced following the necessary testing, security reviews, and validation.
+
+</details>
+
+---
+---
 
 ## Live Judge evidence
 
