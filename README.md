@@ -26,23 +26,39 @@
 
 ---
 
+> [!CAUTION]
+> ### 🚨 EARLY DEVELOPMENT — NOT READY FOR USE
+>
+> **Tidelight is an experimental, early-stage project and is not yet ready for public or production use.**
+
 <details>
-<summary><strong>⚠️ IMPORTANT — Early Development Notice</strong></summary>
+<summary><strong>⚠️ Development Status & Usage Notice — Read More</strong></summary>
 
 <br>
 
-> [!CAUTION]
-> **Tidelight is an early-stage experimental project and is not yet ready for public or production use.**
->
-> The platform remains under active development. Features, APIs, and research outputs may be incomplete, unstable, or subject to change.
->
-> **Do not rely on Tidelight for live trading, investment decisions, or critical operations.**
->
-> General availability will be announced following the necessary testing, security reviews, and validation.
+<p align="center">
+  <img src="https://img.shields.io/badge/STATUS-EARLY_DEVELOPMENT-DC2626?style=for-the-badge" alt="Early Development" />
+  <img src="https://img.shields.io/badge/PRODUCTION-NOT_READY-991B1B?style=for-the-badge" alt="Not Production Ready" />
+</p>
+
+<h3 align="center">⛔ NOT PRODUCTION READY</h3>
+
+<p>
+Tidelight remains under active development and validation. Features, APIs, and research outputs may be incomplete, unstable, or subject to change.
+</p>
+
+<p>
+<strong>⚠️ Do not rely on Tidelight for live trading, real-money investment decisions, or critical operations.</strong>
+</p>
+
+<p>
+General availability will be announced following the necessary security, reliability, and validation milestones.
+</p>
 
 </details>
 
 ---
+
 ---
 
 ## Live Judge evidence
