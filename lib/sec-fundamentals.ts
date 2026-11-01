@@ -74,8 +74,8 @@ function latestFact(facts: CompanyFacts, tags: string[], unit = "USD"): SecFact[
   return [];
 }
 
-function periodValues(facts: CompanyFacts, tags: string[], form: "10-Q" | "10-K", duration: "quarter" | "annual"): Map<string, SecFact> {
-  const valid = latestFact(facts, tags).filter((item) => item.form === form && item.start && item.end && item.filed);
+function periodValues(facts: CompanyFacts, tags: string[], form: "10-Q" | "10-K", duration: "quarter" | "annual", asOfDate = "9999-12-31"): Map<string, SecFact> {
+  const valid = latestFact(facts, tags).filter((item) => item.form === form && item.start && item.end && item.filed && item.filed <= asOfDate && item.end <= asOfDate);
   const lengthDays = (item: SecFact) => (Date.parse(`${item.end}T00:00:00Z`) - Date.parse(`${item.start}T00:00:00Z`)) / 86400000;
   const filtered = valid.filter((item) => duration === "quarter" ? lengthDays(item) >= 60 && lengthDays(item) <= 115 : lengthDays(item) >= 300 && lengthDays(item) <= 400);
   const byEnd = new Map<string, SecFact>();
@@ -83,8 +83,8 @@ function periodValues(facts: CompanyFacts, tags: string[], form: "10-Q" | "10-K"
   return byEnd;
 }
 
-function instantValue(facts: CompanyFacts, tags: string[], end: string, form: "10-Q" | "10-K"): SecFact | undefined {
-  return latestFact(facts, tags).filter((item) => item.end === end && item.form === form && !item.start).sort((a, b) => b.filed.localeCompare(a.filed))[0];
+function instantValue(facts: CompanyFacts, tags: string[], end: string, form: "10-Q" | "10-K", asOfDate = "9999-12-31"): SecFact | undefined {
+  return latestFact(facts, tags).filter((item) => item.end === end && item.form === form && !item.start && item.filed <= asOfDate && item.end <= asOfDate).sort((a, b) => b.filed.localeCompare(a.filed))[0];
 }
 
 function quarterLabel(end: string) {
@@ -94,14 +94,13 @@ function quarterLabel(end: string) {
 
 function buildPeriods(facts: CompanyFacts, duration: "quarter" | "annual", asOfDate = "9999-12-31") {
   const form = duration === "quarter" ? "10-Q" : "10-K";
-  const revenues = periodValues(facts, ["RevenueFromContractWithCustomerExcludingAssessedTax", "Revenues", "SalesRevenueNet"], form, duration);
-  const income = periodValues(facts, ["NetIncomeLoss"], form, duration);
-  const cash = periodValues(facts, ["NetCashProvidedByUsedInOperatingActivities"], form, duration);
-  const capex = periodValues(facts, ["PaymentsToAcquirePropertyPlantAndEquipment"], form, duration);
+  const revenues = periodValues(facts, ["RevenueFromContractWithCustomerExcludingAssessedTax", "Revenues", "SalesRevenueNet"], form, duration, asOfDate);
+  const income = periodValues(facts, ["NetIncomeLoss"], form, duration, asOfDate);
+  const cash = periodValues(facts, ["NetCashProvidedByUsedInOperatingActivities"], form, duration, asOfDate);
+  const capex = periodValues(facts, ["PaymentsToAcquirePropertyPlantAndEquipment"], form, duration, asOfDate);
   const ends = [...new Set([...revenues.keys(), ...income.keys(), ...cash.keys(), ...capex.keys()])].filter(end => [revenues, income, cash, capex].some(series => (series.get(end)?.filed ?? "9999-12-31") <= asOfDate)).sort().reverse().slice(0, duration === "quarter" ? 16 : 10);
   return ends.map((end) => {
-    const visible = (item: SecFact | undefined) => item && item.filed <= asOfDate && item.end <= asOfDate ? item : undefined;
-    const revenue = visible(revenues.get(end)), netIncome = visible(income.get(end)), operatingCashFlow = visible(cash.get(end)), capitalExpenditure = visible(capex.get(end));
+    const revenue = revenues.get(end), netIncome = income.get(end), operatingCashFlow = cash.get(end), capitalExpenditure = capex.get(end);
     const basis = revenue ?? netIncome ?? operatingCashFlow ?? capitalExpenditure;
     const formForInstant: "10-Q" | "10-K" = basis?.form === "10-K" ? "10-K" : basis?.form === "10-Q" ? "10-Q" : form;
     return {
@@ -111,8 +110,8 @@ function buildPeriods(facts: CompanyFacts, duration: "quarter" | "annual", asOfD
       form: formForInstant,
       revenue: revenue?.val ?? null,
       netIncome: netIncome?.val ?? null,
-      totalAssets: visible(instantValue(facts, ["Assets"], end, formForInstant))?.val ?? null,
-      totalLiabilities: visible(instantValue(facts, ["Liabilities"], end, formForInstant))?.val ?? null,
+      totalAssets: instantValue(facts, ["Assets"], end, formForInstant, asOfDate)?.val ?? null,
+      totalLiabilities: instantValue(facts, ["Liabilities"], end, formForInstant, asOfDate)?.val ?? null,
       operatingCashFlow: operatingCashFlow?.val ?? null,
       capitalExpenditure: capitalExpenditure?.val ?? null,
     };
