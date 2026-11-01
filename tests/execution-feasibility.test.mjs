@@ -6,7 +6,7 @@ const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
   if (specifier === "@/lib/execution-feasibility") return { url: new URL("../lib/execution-feasibility.ts", import.meta.url).href, shortCircuit: true };
   return nextResolve(specifier, context);
 } });
-const { estimateBookSweep, executionSidesForAction } = await import("@/lib/execution-feasibility");
+const { estimateBookSweep, executionSidesForAction, serverAnchoredSnapshotNow } = await import("@/lib/execution-feasibility");
 hooks.deregister();
 
 test("book sweep prices a buy across visible ask levels", () => {
@@ -44,6 +44,16 @@ test("near-future venue timestamps honor the five-second server-receipt skew all
   const base = { levels: [{ price: 100, size: 3 }], side: "buy", quantity: 1, referencePrice: 100, now: 20_000 };
   assert.equal(estimateBookSweep({ ...base, bookTimestamp: 25_000 }).status, "estimated");
   assert.equal(estimateBookSweep({ ...base, bookTimestamp: 25_001 }).status, "unavailable");
+});
+
+test("server-anchored book freshness advances after client receipt and fails closed on stale polling", () => {
+  const serverReceivedAt = 20_000;
+  const clientReceivedAt = 50_000;
+  const localNow = clientReceivedAt + 16_000;
+  const comparisonNow = serverAnchoredSnapshotNow(serverReceivedAt, clientReceivedAt, localNow);
+  assert.equal(comparisonNow, 36_000);
+  const estimate = estimateBookSweep({ levels: [{ price: 100, size: 2 }], side: "buy", quantity: 1, referencePrice: 100, bookTimestamp: serverReceivedAt, now: comparisonNow });
+  assert.equal(estimate.status, "unavailable", "the retained snapshot ages beyond 15 seconds when polling fails");
 });
 
 test("execution confirmation sides match open and close actions", () => {
