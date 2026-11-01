@@ -200,7 +200,7 @@ test("anonymous judge research is same-origin, session-only, and cannot hand off
   assert.equal(response.status, 200);
   const events = (await response.text()).split("\n\n").filter(Boolean).map(frame => JSON.parse(frame.split("\ndata: ")[1]));
   const result = events.findLast(frame => frame.guestSessionResult === true);
-  assert.ok(result, "guest research emits an in-session result without an account record identifier");
+  assert.ok(result, `guest research emits an in-session result without an account record identifier; events=${JSON.stringify(events.slice(-3))}`);
   assert.equal("researchRunId" in result, false);
   assert.equal(result.tradeable, false);
   assert.equal(result.assets[0].tradeable, false);
