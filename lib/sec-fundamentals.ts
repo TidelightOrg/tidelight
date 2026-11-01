@@ -75,16 +75,24 @@ function latestFact(facts: CompanyFacts, tags: string[], unit = "USD", eligible:
   return [];
 }
 
+// SEC Company Facts exposes an acceptance date here, not a timestamp. Treat
+// the as-of calendar day as unavailable because intraday ordering is unknown.
+function filedBeforeAsOfDay(filed: string, asOfDate: string) { return filed < asOfDate; }
+
 function periodValues(facts: CompanyFacts, tags: string[], form: "10-Q" | "10-K", duration: "quarter" | "annual", asOfDate = "9999-12-31"): Map<string, SecFact> {
   const lengthDays = (item: SecFact) => (Date.parse(`${item.end}T00:00:00Z`) - Date.parse(`${item.start}T00:00:00Z`)) / 86400000;
-  const filtered = latestFact(facts, tags, "USD", item => Boolean(item.form === form && item.start && item.end && item.filed) && item.filed <= asOfDate && item.end <= asOfDate && (duration === "quarter" ? lengthDays(item) >= 60 && lengthDays(item) <= 115 : lengthDays(item) >= 300 && lengthDays(item) <= 400));
+  const eligible = (item: SecFact) => Boolean(item.form === form && item.start && item.end && item.filed) && filedBeforeAsOfDay(item.filed, asOfDate) && item.end <= asOfDate && (duration === "quarter" ? lengthDays(item) >= 60 && lengthDays(item) <= 115 : lengthDays(item) >= 300 && lengthDays(item) <= 400);
   const byEnd = new Map<string, SecFact>();
-  for (const item of filtered.sort((a, b) => a.filed.localeCompare(b.filed))) byEnd.set(item.end, item);
+  for (const tag of tags) {
+    const latestByEnd = new Map<string, SecFact>();
+    for (const item of latestFact(facts, [tag], "USD", eligible).sort((a, b) => a.filed.localeCompare(b.filed))) latestByEnd.set(item.end, item);
+    for (const [end, item] of latestByEnd) if (!byEnd.has(end)) byEnd.set(end, item);
+  }
   return byEnd;
 }
 
 function instantValue(facts: CompanyFacts, tags: string[], end: string, form: "10-Q" | "10-K", asOfDate = "9999-12-31"): SecFact | undefined {
-  return latestFact(facts, tags, "USD", item => item.end === end && item.form === form && !item.start && Boolean(item.filed) && item.filed <= asOfDate && item.end <= asOfDate).sort((a, b) => b.filed.localeCompare(a.filed))[0];
+  return latestFact(facts, tags, "USD", item => item.end === end && item.form === form && !item.start && Boolean(item.filed) && filedBeforeAsOfDay(item.filed, asOfDate) && item.end <= asOfDate).sort((a, b) => b.filed.localeCompare(a.filed))[0];
 }
 
 function quarterLabel(end: string) {
@@ -137,9 +145,9 @@ export async function getSecCompanyResearch(ticker: string, website: string | nu
   const address = submissions.addresses?.business;
   const headquarters = address ? [address.street1, address.street2, [address.city, address.stateOrCountry, address.zipCode].filter(Boolean).join(" ")].filter(Boolean).join(", ") : null;
   const facts = companyfacts.facts["dei"]?.EntityNumberOfEmployees?.units?.pure ?? [];
-  const employeeCount = facts.filter(item => item.filed <= asOfDate && item.end <= asOfDate).sort((a, b) => b.end.localeCompare(a.end))[0]?.val ?? null;
+  const employeeCount = facts.filter(item => filedBeforeAsOfDay(item.filed, asOfDate) && item.end <= asOfDate).sort((a, b) => b.end.localeCompare(a.end))[0]?.val ?? null;
   const dividends = latestFact(companyfacts, ["CommonStockDividendsPerShareCashPaid", "CommonStockDividendsPerShareDeclared"], "USD / shares")
-    .filter((item) => ["10-Q", "10-K"].includes(item.form) && item.end && item.filed && item.filed <= asOfDate && item.end <= asOfDate)
+    .filter((item) => ["10-Q", "10-K"].includes(item.form) && item.end && item.filed && filedBeforeAsOfDay(item.filed, asOfDate) && item.end <= asOfDate)
     .sort((a, b) => b.end.localeCompare(a.end)).slice(0, 12)
     .map((item) => ({ periodEnd: item.end, filed: item.filed, amountPerShare: item.val, unit: "USD per share as reported" }));
   const quarterly = buildPeriods(companyfacts, "quarter", asOfDate);

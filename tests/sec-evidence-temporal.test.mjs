@@ -38,7 +38,9 @@ test("SEC period and instant facts select the latest values filed by the as-of d
   const companyfacts = {
     cik: 1, entityName: "Fixture Corp", facts: { "us-gaap": {
       RevenueFromContractWithCustomerExcludingAssessedTax: { units: { USD: [
+        { val: 900, start: "2025-01-01", end: "2025-03-31", filed: "2025-05-01", form: "10-Q" },
         { val: 900, start: "2025-01-01", end: "2025-03-31", filed: "2026-05-01", form: "10-Q" },
+        { val: 999, start: "2025-01-01", end: "2025-03-31", filed: "2025-06-01", form: "10-Q" },
         { val: 700, start: "2024-10-01", end: "2024-12-31", filed: "2026-05-01", form: "10-Q" },
       ] } },
       Revenues: { units: { USD: [
@@ -47,6 +49,7 @@ test("SEC period and instant facts select the latest values filed by the as-of d
       ] } },
       Assets: { units: { USD: [
         { val: 500, end: "2025-03-31", filed: "2025-05-01", form: "10-Q" },
+        { val: 700, end: "2025-03-31", filed: "2025-06-01", form: "10-Q" },
         { val: 900, end: "2025-03-31", filed: "2026-05-01", form: "10-Q" },
       ] } },
       NetIncomeLoss: { units: { USD: [
@@ -61,7 +64,7 @@ test("SEC period and instant facts select the latest values filed by the as-of d
     throw new Error(`unexpected fetch ${url}`);
   };
   const result = await getSecCompanyResearch("FIX", null, { asOf: "2025-06-01T12:00:00Z", includeAnalystTargets: false });
-  assert.equal(result.financials.quarterly[0].revenue, 100);
+  assert.equal(result.financials.quarterly[0].revenue, 900, "the priority tag wins when it reports this period");
   assert.equal(result.financials.quarterly[0].totalAssets, 500);
   assert.equal(result.financials.quarterly[0].filed, "2025-05-01");
   assert.deepEqual(result.financials.quarterly[0].filedByMetric, { revenue: "2025-05-01", netIncome: "2025-05-03", totalAssets: "2025-05-01", totalLiabilities: null, operatingCashFlow: null, capitalExpenditure: null });
