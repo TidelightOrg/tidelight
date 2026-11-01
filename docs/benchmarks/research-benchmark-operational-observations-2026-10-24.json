@@ -1,0 +1,78 @@
+{
+  "schemaVersion": 1,
+  "reportDate": "2026-11-01",
+  "status": "OPERATIONAL_OBSERVATIONS_ONLY",
+  "benchmark": "docs/benchmarks/research-benchmark-frozen-2026-10-24.json",
+  "setVersion": "2026-10-24-v1",
+  "captureLog": "docs/benchmarks/research-benchmark-capture-log-2026-10-24.md",
+  "claimQuality": {
+    "status": "not_measured",
+    "reason": "Independent claim review, source-fit adjudication, and outcome quality labels are not complete."
+  },
+  "operationalObservations": {
+    "capturedRuns": 10,
+    "captureCoverage": {
+      "status": "measured",
+      "numerator": 10,
+      "denominator": 10,
+      "ratePct": 100
+    },
+    "observedRunStatuses": {
+      "limited_model_response": 1,
+      "model_synthesis": 2,
+      "no_attributable_sources": 1,
+      "source_only": 6
+    },
+    "observedSynthesisStatuses": {
+      "Gemini": 2,
+      "Qwen": 1,
+      "not_attempted": 1,
+      "unavailable": 6
+    },
+    "uiElapsedSeconds": {
+      "count": 10,
+      "median": 33,
+      "minimum": 3,
+      "maximum": 42,
+      "interpretation": "Observed UI elapsed time; not protocol task time or provider latency."
+    },
+    "sourcesReturned": {
+      "count": 8,
+      "median": 8.5,
+      "minimum": 0,
+      "maximum": 18,
+      "capturesWithCount": 8,
+      "capturesWithoutCount": 2
+    },
+    "modelReportedConfidencePercent": {
+      "count": 3,
+      "median": 0,
+      "minimum": 0,
+      "maximum": 10,
+      "capturesWithValue": 3,
+      "capturesWithoutValue": 7,
+      "interpretation": "Model-reported confidence, not a calibrated probability or quality score."
+    },
+    "quoteFreshnessObservations": {
+      "available": 1,
+      "stale": 1
+    },
+    "marketOrTradingHandoff": {
+      "count": 0,
+      "noHandoff": 7,
+      "capturesWithObservation": 7,
+      "capturesWithoutObservation": 3
+    },
+    "claimsMarkedValidated": {
+      "count": 0,
+      "denominator": 0,
+      "status": "not_measured",
+      "capturesWithoutObservation": 10
+    },
+    "researchQuality": {
+      "status": "not_measured",
+      "reason": "Operational captures do not establish factual correctness, citation support, completeness, freshness, or calibrated decision quality. Independent claim review and adjudication are still required."
+    }
+  },
+  "interpretation": "These observations describe recorded production runs. They do not establish factual correctness, citation entailment, completeness, calibrated confidence, task time, or performance."
+}

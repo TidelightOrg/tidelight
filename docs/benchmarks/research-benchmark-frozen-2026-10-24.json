@@ -10,7 +10,7 @@
     "reviewProtocol": "docs/RESEARCH_EVALUATION_PROTOCOL.md",
     "status": "ALL_10_RUNS_CAPTURED_HUMAN_REVIEW_PENDING",
     "captureLog": "docs/benchmarks/research-benchmark-capture-log-2026-10-24.md",
-    "notes": "All ten frozen events now have actual production run observations. The two runs previously blocked by the hourly limit were captured on 2026-10-24; details are in each event's run_capture and supplementary capture log. Frozen source captures remain unchanged. Observed elapsed UI duration is recorded, but exact start timestamps and saved-note completion times were not captured, so taskTimeSeconds remains null and protocol task time was not measured. No reviewer labels, source-fit adjudications, claim validation, or benchmark score are supplied. Original source capture timestamps remain unchanged."
+    "notes": "All ten frozen events now have actual production run observations. The two runs previously blocked by the hourly limit were captured on 2026-10-24; details are in each event's run_capture and supplementary capture log. Frozen source captures remain unchanged. Observed elapsed UI duration is recorded, but exact start timestamps and saved-note completion times were not captured, so taskTimeSeconds remains null and protocol task time was not measured. No reviewer labels, source-fit adjudications, claim validation, or benchmark score are supplied. Original source capture timestamps remain unchanged. Structured run observations were normalized from the contemporaneous capture log; omitted fields were not recorded and remain unknown. UI elapsed seconds are descriptive only, not protocol task time or provider latency."
   },
   "events": [
     {
@@ -40,7 +40,21 @@
           "accessible": true,
           "capturedText": "Nvidia reported fourth-quarter revenue of $68.13 billion, beating analyst estimates. Its shares were up about 3% in extended trading."
         }
-      ]
+      ],
+      "run_capture": {
+        "capturedAt": "2026-10-24",
+        "environment": "Production Tidelight Market Research page, signed-in browser session",
+        "taskTimeMeasured": false,
+        "claimsValidated": null,
+        "reviewerLabels": null,
+        "adjudications": null,
+        "observedElapsedUiSeconds": 29,
+        "status": "model_synthesis",
+        "aiSynthesis": "Gemini",
+        "quoteFreshness": "available",
+        "marketOrTradingHandoff": false,
+        "observation": "Gemini synthesis reported 75% data-center revenue growth. Visible output remained headline/context level and did not include source-linked counter-evidence. Quote freshness was available; no trade handoff."
+      }
     },
     {
       "id": "aapl-fy26-q1-2026-01-29",
@@ -69,7 +83,20 @@
           "accessible": true,
           "capturedText": "For the quarter, Apple posted revenue of $143.8 billion and net quarterly profit of $42.1 billion, or $2.84 per diluted share."
         }
-      ]
+      ],
+      "run_capture": {
+        "capturedAt": "2026-10-24",
+        "environment": "Production Tidelight Market Research page, signed-in browser session",
+        "taskTimeMeasured": false,
+        "claimsValidated": null,
+        "reviewerLabels": null,
+        "adjudications": null,
+        "observedElapsedUiSeconds": 42,
+        "status": "source_only",
+        "sourcesReturned": 3,
+        "aiSynthesis": "unavailable",
+        "observation": "Source-only fallback with three public headlines. The latest listed item concerned Q1 FY2026 results. An earlier paraphrased run surfaced Q2 coverage, so the exact frozen question was rerun and retained."
+      }
     },
     {
       "id": "msft-fy26-q2-2026-01-28",
@@ -98,7 +125,21 @@
           "accessible": true,
           "capturedText": "Total revenue rose 17% to $81.3 billion in the second quarter, while analysts expected $80.27 billion, based on estimates compiled by LSEG."
         }
-      ]
+      ],
+      "run_capture": {
+        "capturedAt": "2026-10-24",
+        "environment": "Production Tidelight Market Research page, signed-in browser session",
+        "taskTimeMeasured": false,
+        "claimsValidated": null,
+        "reviewerLabels": null,
+        "adjudications": null,
+        "observedElapsedUiSeconds": 30,
+        "status": "model_synthesis",
+        "aiSynthesis": "Gemini",
+        "quoteFreshness": "stale",
+        "marketOrTradingHandoff": false,
+        "observation": "Gemini output included claims about a $678B backlog up 84% and institutional fund sales, with no counter-evidence. The quote was stale. An earlier paraphrased run returned FY Q4 coverage, so the exact frozen question was rerun and retained."
+      }
     },
     {
       "id": "amzn-fy25-q4-2026-02-05",
@@ -127,7 +168,20 @@
           "accessible": true,
           "capturedText": "Amazon projected a surge of more than 50% in capital expenditures this year, joining its peers in a spending spree to build out artificial-intelligence infrastructure, and sending its shares down 11.5% in after-hours trading."
         }
-      ]
+      ],
+      "run_capture": {
+        "capturedAt": "2026-10-24",
+        "environment": "Production Tidelight Market Research page, signed-in browser session",
+        "taskTimeMeasured": false,
+        "claimsValidated": null,
+        "reviewerLabels": null,
+        "adjudications": null,
+        "observedElapsedUiSeconds": 3,
+        "status": "no_attributable_sources",
+        "sourcesReturned": 0,
+        "aiSynthesis": "not_attempted",
+        "observation": "No attributable sources returned; synthesis was not attempted."
+      }
     },
     {
       "id": "tsla-fy25-q4-2026-01-28",
@@ -156,7 +210,20 @@
           "accessible": true,
           "capturedText": "Adjusted earnings per share of 50 cents in the fourth quarter topped Wall Street targets of 45 cents, according to LSEG data. Net income fell 61% to $840 million in the quarter."
         }
-      ]
+      ],
+      "run_capture": {
+        "capturedAt": "2026-10-24",
+        "environment": "Production Tidelight Market Research page, signed-in browser session",
+        "taskTimeMeasured": false,
+        "claimsValidated": null,
+        "reviewerLabels": null,
+        "adjudications": null,
+        "observedElapsedUiSeconds": 32,
+        "status": "source_only",
+        "sourcesReturned": 15,
+        "aiSynthesis": "unavailable",
+        "observation": "Source-only fallback with 15 headlines across 11 publishers; AI synthesis was unavailable."
+      }
     },
     {
       "id": "googl-fy25-q4-2026-02-04",
@@ -185,7 +252,22 @@
           "accessible": true,
           "capturedText": "Alphabet executives said that investments in AI computing power capacity were central to the company's plans to target capital expenditure of $175 billion to $185 billion this year."
         }
-      ]
+      ],
+      "run_capture": {
+        "capturedAt": "2026-10-24",
+        "environment": "Production Tidelight Market Research page, signed-in browser session",
+        "taskTimeMeasured": false,
+        "claimsValidated": null,
+        "reviewerLabels": null,
+        "adjudications": null,
+        "observedElapsedUiSeconds": 12,
+        "status": "limited_model_response",
+        "sourcesReturned": 1,
+        "aiSynthesis": "Qwen",
+        "confidencePercent": 10,
+        "marketOrTradingHandoff": false,
+        "observation": "Qwen response was based on one headline. The model reported no usable results and 10% confidence; no trade handoff."
+      }
     },
     {
       "id": "fed-fomc-2026-09-16",
@@ -214,7 +296,21 @@
           "accessible": true,
           "capturedText": "The Federal Reserve raised interest rates on Wednesday and flagged more hikes in the coming months."
         }
-      ]
+      ],
+      "run_capture": {
+        "capturedAt": "2026-10-24",
+        "environment": "Production Tidelight Market Research page, signed-in browser session",
+        "taskTimeMeasured": false,
+        "claimsValidated": null,
+        "reviewerLabels": null,
+        "adjudications": null,
+        "observedElapsedUiSeconds": 34,
+        "status": "source_only",
+        "sourcesReturned": 18,
+        "aiSynthesis": "unavailable",
+        "marketOrTradingHandoff": false,
+        "observation": "Eighteen macro sources were collected. AI synthesis was unavailable; output remained source-only without a factual summary or handoff."
+      }
     },
     {
       "id": "us-cpi-2026-08-release-2026-09-11",
@@ -243,7 +339,21 @@
           "accessible": true,
           "capturedText": "Excluding the volatile food and energy components, the CPI rose 0.3% last month, compared with an expected 0.2% increase."
         }
-      ]
+      ],
+      "run_capture": {
+        "capturedAt": "2026-10-24",
+        "environment": "Production Tidelight Market Research page, signed-in browser session",
+        "taskTimeMeasured": false,
+        "claimsValidated": null,
+        "reviewerLabels": null,
+        "adjudications": null,
+        "observedElapsedUiSeconds": 40,
+        "status": "source_only",
+        "sourcesReturned": 10,
+        "aiSynthesis": "unavailable",
+        "marketOrTradingHandoff": false,
+        "observation": "Ten macro sources were collected. AI synthesis was unavailable; output remained source-only."
+      }
     },
     {
       "id": "us-employment-2026-09-release-2026-10-02",
@@ -276,17 +386,17 @@
       "run_capture": {
         "capturedAt": "2026-10-24",
         "environment": "Production Tidelight Market Research page, signed-in browser session",
-        "observedElapsedUiSeconds": 42,
         "taskTimeMeasured": false,
+        "claimsValidated": null,
+        "reviewerLabels": null,
+        "adjudications": null,
+        "observedElapsedUiSeconds": 42,
         "status": "source_only",
         "sourcesReturned": 7,
         "aiSynthesis": "unavailable",
         "confidencePercent": 0,
-        "claimsValidated": false,
-        "reviewerLabels": null,
-        "adjudications": null,
         "marketOrTradingHandoff": false,
-        "observation": "Completed in 4 research steps. Source-based macro brief only; no verified AI assessment or factual macro conclusion established."
+        "observation": "Completed in four research steps. Source-only macro brief; no verified AI assessment or factual macro conclusion established."
       }
     },
     {
@@ -320,17 +430,17 @@
       "run_capture": {
         "capturedAt": "2026-10-24",
         "environment": "Production Tidelight Market Research page, signed-in browser session",
-        "observedElapsedUiSeconds": 41,
         "taskTimeMeasured": false,
+        "claimsValidated": null,
+        "reviewerLabels": null,
+        "adjudications": null,
+        "observedElapsedUiSeconds": 41,
         "status": "source_only",
         "sourcesReturned": 15,
         "aiSynthesis": "unavailable",
         "confidencePercent": 0,
-        "claimsValidated": false,
-        "reviewerLabels": null,
-        "adjudications": null,
         "marketOrTradingHandoff": false,
-        "observation": "Completed in 4 research steps. Source-based macro brief only; no verified AI assessment or factual macro conclusion established. Expanded source list included off-topic regional, PPI, Canada, and India items; retained as an unadjudicated relevance concern."
+        "observation": "Completed in four research steps. Source-only macro brief; expanded source list included off-topic regional, PPI, Canada, and India items. Relevance remains unadjudicated."
       }
     }
   ]

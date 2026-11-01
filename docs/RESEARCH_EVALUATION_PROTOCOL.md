@@ -41,6 +41,12 @@ Resolve disagreements before calculating the event score. Record both initial la
 
 Report raw numerator and denominator with every rate. Segment official, publisher, and user-pasted evidence. A blank counter-evidence denominator is “not measured,” not 0% or 100%.
 
+## Separate operational observations from quality scores
+
+Each event may include a `run_capture` object copied from a dated production or fixture record. The scorer reports capture coverage, observed synthesis status, known source counts, quote-freshness labels, handoff observations, and UI elapsed seconds under `operationalObservations`, even when human claim review is incomplete. It does not infer correctness, completeness, freshness, provider latency, or task time from these fields. Unknown values remain absent or `null`; source counts and handoff states include measured/unmeasured counts.
+
+The top-level `complete` flag means the benchmark has enough independently reviewed and adjudicated data to calculate claim-quality metrics. It does not mean Tidelight passed the benchmark. `metrics` remains `null` until that review gate is met. The 95% quality-gated completion objective is reported only after the quality gate has been explicitly adjudicated for each frozen run; provider availability or a completed UI stream alone cannot count as a quality pass. The reproducible operational-only snapshot at `docs/benchmarks/research-benchmark-operational-observations-2026-10-24.json` records the ten documented production captures while the claim-quality benchmark remains pending.
+
 ## Operating procedure
 
 1. Capture a baseline from the current production prompt and supported sources.
@@ -61,4 +67,4 @@ Run it with:
 node scripts/score-research-benchmark.mjs path/to/research-benchmark.json
 ```
 
-The JSON report includes raw counts, rates, source-class totals, distinct-domain/source-class averages, task-time median and range when measured, and a completion gate. Use `null` for `askedAt` or `taskTimeSeconds` only when the value was not recorded; the report labels task time `not_measured` when no valid measurements are present. A complete claim-quality score requires at least 10 events from three categories, valid source capture metadata, and two reviewers plus adjudication for each displayed claim. Missing task-time data is reported as a limitation and does not block the claim-quality score. Keep the benchmark input private if it contains unpublished review notes; publish only the resolved report and methodology.
+The JSON report includes raw counts, rates, source-class totals, distinct-domain/source-class averages, task-time median and range when measured, operational observations, and a review-completion gate. Use `null` for `askedAt` or `taskTimeSeconds` only when the value was not recorded; the report labels task time `not_measured` when no valid measurements are present. A complete claim-quality score requires at least 10 events from three categories, valid source capture metadata, and two reviewers plus adjudication for each displayed claim. Missing task-time data is reported as a limitation and does not block the claim-quality score. Keep the benchmark input private if it contains unpublished review notes; publish only the resolved report and methodology.

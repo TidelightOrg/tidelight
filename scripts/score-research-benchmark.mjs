@@ -25,6 +25,44 @@ function distinctSourceValues(sources, selector) {
   return new Set(sources.map(selector).filter(Boolean));
 }
 
+function distribution(values) {
+  const finite = values.filter((value) => Number.isFinite(value) && value >= 0);
+  if (!finite.length) return { count: 0, median: null, minimum: null, maximum: null };
+  return { count: finite.length, median: median(finite), minimum: Math.min(...finite), maximum: Math.max(...finite) };
+}
+
+/** Operational captures are observable facts, not reviewer-scored research quality. */
+function scoreOperationalObservations(events) {
+  const captures = events.flatMap((event) => event?.run_capture && typeof event.run_capture === "object" ? [{ event, capture: event.run_capture }] : []);
+  const countValues = (selector) => Object.fromEntries([...new Set(captures.map(({ capture }) => selector(capture)).filter((value) => typeof value === "string" && value))]
+    .sort().map((value) => [value, captures.filter(({ capture }) => selector(capture) === value).length]));
+  const elapsed = captures.map(({ capture }) => capture.observedElapsedUiSeconds).filter((value) => Number.isFinite(value) && value > 0);
+  const sourceCounts = captures.map(({ capture }) => capture.sourcesReturned).filter((value) => Number.isSafeInteger(value) && value >= 0);
+  const confidence = captures.map(({ capture }) => capture.confidencePercent).filter((value) => Number.isFinite(value) && value >= 0 && value <= 100);
+  const validatedClaims = captures.filter(({ capture }) => capture.claimsValidated === true).length;
+  const validationObservations = captures.filter(({ capture }) => typeof capture.claimsValidated === "boolean").length;
+  const quoteFreshnessObservations = countValues((capture) => capture.quoteFreshness);
+  const handoffObservations = captures.filter(({ capture }) => typeof capture.marketOrTradingHandoff === "boolean");
+  return {
+    capturedRuns: captures.length,
+    captureCoverage: ratio(captures.length, events.length),
+    observedRunStatuses: countValues((capture) => capture.status),
+    observedSynthesisStatuses: countValues((capture) => capture.aiSynthesis),
+    uiElapsedSeconds: { ...distribution(elapsed), interpretation: "Observed UI elapsed time; not protocol task time or provider latency." },
+    sourcesReturned: { ...distribution(sourceCounts), capturesWithCount: sourceCounts.length, capturesWithoutCount: captures.length - sourceCounts.length },
+    modelReportedConfidencePercent: { ...distribution(confidence), capturesWithValue: confidence.length, capturesWithoutValue: captures.length - confidence.length, interpretation: "Model-reported confidence, not a calibrated probability or quality score." },
+    quoteFreshnessObservations,
+    marketOrTradingHandoff: {
+      count: handoffObservations.filter(({ capture }) => capture.marketOrTradingHandoff === true).length,
+      noHandoff: handoffObservations.filter(({ capture }) => capture.marketOrTradingHandoff === false).length,
+      capturesWithObservation: handoffObservations.length,
+      capturesWithoutObservation: captures.length - handoffObservations.length,
+    },
+    claimsMarkedValidated: { count: validatedClaims, denominator: validationObservations, status: validationObservations ? "observed" : "not_measured", capturesWithoutObservation: captures.length - validationObservations },
+    researchQuality: { status: "not_measured", reason: "Operational captures do not establish factual correctness, citation support, completeness, freshness, or calibrated decision quality. Independent claim review and adjudication are still required." },
+  };
+}
+
 export function scoreBenchmark(benchmark) {
   const errors = [];
   if (!benchmark || typeof benchmark !== "object" || Array.isArray(benchmark)) return { complete: false, errors: ["Benchmark must be a JSON object."] };
@@ -110,7 +148,9 @@ export function scoreBenchmark(benchmark) {
       if (typeof claim.text !== "string" || !claim.text.trim()) errors.push(`${claimLabel}.text is required.`);
       if (!new Set(["factual", "analyst_inference"]).has(claim.kind)) errors.push(`${claimLabel}.kind must be factual or analyst_inference.`);
       if (typeof claim.quote !== "string" || !claim.quote.trim()) errors.push(`${claimLabel}.quote is required.`);
-      if (typeof claim.sourceUrl !== "string" || !sourceUrls.has(new URL(claim.sourceUrl, "https://invalid.local").href)) errors.push(`${claimLabel}.sourceUrl must match one captured source URL.`);
+      let canonicalClaimUrl = null;
+      try { if (typeof claim.sourceUrl === "string") canonicalClaimUrl = new URL(claim.sourceUrl, "https://invalid.local").href; } catch { /* Report a schema error below; malformed input must not crash scoring. */ }
+      if (!canonicalClaimUrl || !sourceUrls.has(canonicalClaimUrl)) errors.push(`${claimLabel}.sourceUrl must match one captured source URL.`);
       const reviewers = Array.isArray(claim.reviewers) ? claim.reviewers : [];
       const reviewerIds = new Set(reviewers.map((reviewer) => reviewer?.reviewerId).filter((id) => typeof id === "string"));
       if (reviewers.length < 2 || reviewerIds.size < 2) errors.push(`${claimLabel} needs independent labels from two reviewers.`);
@@ -126,7 +166,7 @@ export function scoreBenchmark(benchmark) {
       }
       if (claim.kind !== "factual") continue;
       factualClaims += 1;
-      const source = normalizedSources.find((item) => new URL(claim.sourceUrl, "https://invalid.local").href === item.url);
+      const source = canonicalClaimUrl ? normalizedSources.find((item) => canonicalClaimUrl === item.url) : null;
       const sourceClass = source?.sourceClass;
       const sourceStats = sourceClassTotals[sourceClass];
       if (sourceStats) sourceStats.factualClaims += 1;
@@ -158,7 +198,7 @@ export function scoreBenchmark(benchmark) {
     taskTimeSeconds: taskTimes.length ? { count: taskTimes.length, median: median(taskTimes), minimum: Math.min(...taskTimes), maximum: Math.max(...taskTimes) } : { status: "not_measured", count: 0, median: null, minimum: null, maximum: null },
     sourceClasses: sourceClassTotals,
   };
-  return { complete, errors, metadata: benchmark.metadata ?? {}, metrics: complete ? metrics : null };
+  return { complete, errors, metadata: benchmark.metadata ?? {}, metrics: complete ? metrics : null, operationalObservations: scoreOperationalObservations(events) };
 }
 
 async function main() {

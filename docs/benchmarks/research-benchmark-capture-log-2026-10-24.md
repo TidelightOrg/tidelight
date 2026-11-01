@@ -1,6 +1,6 @@
 # Frozen research benchmark capture log
 
-This log supplements the frozen ten-event source set. It records the eight live production runs captured on 24 October 2026 in Codex Cloud with GPT-5.6 Luna Light, the lowest available model. The captured run outputs were inspected in the session. Durations are elapsed times shown by the research UI. This is a partial operational capture, not a scored benchmark or a substitute for the two independent claim reviewers required by the protocol.
+This log supplements the frozen ten-event source set. It records ten live production runs captured on 24 October 2026: eight initial runs in Codex Cloud with GPT-5.6 Luna Light and two later reruns after the hourly limit cleared. The captured run outputs were inspected in the session. Durations are elapsed times shown by the research UI. This is a partial operational capture, not a scored benchmark or a substitute for the two independent claim reviewers required by the protocol.
 
 | Event | Elapsed | Observed output |
 | --- | ---: | --- |
@@ -19,4 +19,4 @@ This log supplements the frozen ten-event source set. It records the eight live 
 
 All ten rows now have observed production outputs. The final two were rerun after the hourly limit cleared; their results are actual source-only outputs, not imputed values. Exact browser start timestamps and saved-note completion times were not captured for any run, so elapsed UI durations are not treated as protocol task-time measurements. The human claim labels, source-fit labels, counter-evidence judgments and adjudications have not been performed; therefore the benchmark scorer must continue to report an incomplete gate and no benchmark score.
 
-The observed failures include missing or single-source coverage, source-only output when synthesis was unavailable, stale or questionable claims, and absent counter-evidence. These are qualitative findings from the captured outputs. No aggregate rate is calculated without the required claim-level review.
+The observed failures include missing or single-source coverage, source-only output when synthesis was unavailable, stale or questionable claims, and absent counter-evidence. These are qualitative findings from the captured outputs. The benchmark JSON now carries the operational values that were recorded in this log; unknown fields remain null or absent. Operational capture counts and UI elapsed time can be reported separately, but no aggregate quality rate is calculated without the required claim-level review.

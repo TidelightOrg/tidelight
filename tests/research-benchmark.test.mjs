@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
 import { scoreBenchmark } from "../scripts/score-research-benchmark.mjs";
 
 function event(index, options = {}) {
@@ -92,4 +93,45 @@ test("counts unsupported factual assertions from adjudicated labels", () => {
   benchmark.events[0].claims[0].resolution.quoteMatch = "unsupported";
   const result = scoreBenchmark(benchmark);
   assert.deepEqual(result.metrics.unsupportedClaimRate, { status: "measured", numerator: 1, denominator: 10, ratePct: 10 });
+});
+
+test("reports observed runtime and provider availability separately while claim review is pending", () => {
+  const benchmark = completeBenchmark();
+  benchmark.events[0].run_capture = { status: "source_only", observedElapsedUiSeconds: 42, sourcesReturned: 7, aiSynthesis: "unavailable", claimsValidated: false };
+  benchmark.events[1].run_capture = { status: "model", observedElapsedUiSeconds: 30, sourcesReturned: 12, aiSynthesis: "Gemini", claimsValidated: false };
+  benchmark.events[0].claims[0].reviewers = [];
+  const result = scoreBenchmark(benchmark);
+  assert.equal(result.complete, false, "operational observations do not bypass independent claim review");
+  assert.equal(result.metrics, null);
+  assert.deepEqual(result.operationalObservations.captureCoverage, { status: "measured", numerator: 2, denominator: 10, ratePct: 20 });
+  assert.deepEqual(result.operationalObservations.observedRunStatuses, { model: 1, source_only: 1 });
+  assert.deepEqual(result.operationalObservations.observedSynthesisStatuses, { Gemini: 1, unavailable: 1 });
+  assert.deepEqual(result.operationalObservations.uiElapsedSeconds, { count: 2, median: 36, minimum: 30, maximum: 42, interpretation: "Observed UI elapsed time; not protocol task time or provider latency." });
+  assert.equal(result.operationalObservations.researchQuality.status, "not_measured");
+});
+
+test("malformed claim URLs fail validation instead of crashing the benchmark scorer", () => {
+  const benchmark = completeBenchmark();
+  benchmark.events[0].claims[0].sourceUrl = "http://[invalid";
+  const result = scoreBenchmark(benchmark);
+  assert.equal(result.complete, false);
+  assert.ok(result.errors.some((error) => error.includes("sourceUrl must match one captured source URL")));
+});
+
+test("frozen production captures expose operational observations without inventing a quality score", async () => {
+  const frozen = JSON.parse(await readFile(new URL("../docs/benchmarks/research-benchmark-frozen-2026-10-24.json", import.meta.url), "utf8"));
+  const report = JSON.parse(await readFile(new URL("../docs/benchmarks/research-benchmark-operational-observations-2026-10-24.json", import.meta.url), "utf8"));
+  const result = scoreBenchmark(frozen);
+  assert.equal(result.complete, false);
+  assert.equal(result.metrics, null);
+  assert.deepEqual(result.operationalObservations.captureCoverage, { status: "measured", numerator: 10, denominator: 10, ratePct: 100 });
+  assert.deepEqual(result.operationalObservations.observedRunStatuses, { limited_model_response: 1, model_synthesis: 2, no_attributable_sources: 1, source_only: 6 });
+  assert.deepEqual(result.operationalObservations.observedSynthesisStatuses, { Gemini: 2, Qwen: 1, not_attempted: 1, unavailable: 6 });
+  assert.deepEqual(result.operationalObservations.uiElapsedSeconds, { count: 10, median: 33, minimum: 3, maximum: 42, interpretation: "Observed UI elapsed time; not protocol task time or provider latency." });
+  assert.equal(result.operationalObservations.sourcesReturned.capturesWithCount, 8);
+  assert.equal(result.operationalObservations.claimsMarkedValidated.status, "not_measured");
+  assert.equal(result.operationalObservations.researchQuality.status, "not_measured");
+  assert.equal(report.status, "OPERATIONAL_OBSERVATIONS_ONLY");
+  assert.deepEqual(report.operationalObservations, result.operationalObservations, "published observation artifact must match the reproducible scorer");
+  assert.equal(report.claimQuality.status, "not_measured");
 });
