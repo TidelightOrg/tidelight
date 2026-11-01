@@ -7,6 +7,8 @@ import { registerHooks } from "node:module";
 const hooks = registerHooks({
   resolve(specifier, context, nextResolve) {
     if (specifier === "server-only") return { url: "data:text/javascript,export {};", shortCircuit: true };
+    if (specifier === "@/lib/supabase/admin") return { url: "data:text/javascript,export const createAdminClient=()=>globalThis.__providerHealthAdmin?.() ?? {from:()=>({select(){return this},gte(){return this},order(){return this},limit(){return this},abortSignal(){return Promise.resolve({data:[],error:null})}})};", shortCircuit: true };
+    if (specifier === "./provider-health" && context.parentURL?.endsWith("/lib/ai-fallback.ts")) return { url: new URL("../lib/provider-health.ts", import.meta.url).href, shortCircuit: true };
     return nextResolve(specifier, context);
   },
 });
@@ -177,6 +179,34 @@ test("research can opt into a longer Gemini window within its route deadline", a
     return gemini([{ text: JSON.stringify(answer) }]);
   });
   assert.deepEqual(await aiJsonWithFallback(messages, valid, { budgetMs: 42000, deadlineAt: 53000 }), answer);
+});
+
+test("health-aware research routes around a provider with three recent consecutive failures", async t => {
+  configure(t);
+  const prior = globalThis.__providerHealthAdmin;
+  globalThis.__providerHealthAdmin = () => ({ from: () => ({ select() { return this; }, gte() { return this; }, order() { return this; }, limit() { return this; }, abortSignal() { return Promise.resolve({ data: [0, 1, 2].map(index => ({ provider: "qwen", outcome: "http_error", occurred_at: new Date(Date.now() - index * 1000).toISOString() })), error: null }); } }) });
+  t.after(() => { if (prior === undefined) delete globalThis.__providerHealthAdmin; else globalThis.__providerHealthAdmin = prior; });
+  const calls = [];
+  t.mock.method(globalThis, "fetch", async url => { calls.push(String(url)); return gemini([{ text: JSON.stringify(answer) }]); });
+  let routing;
+  assert.deepEqual(await aiJsonWithFallback(messages, valid, { healthAware: true, onProviderRouting: value => { routing = value; } }), answer);
+  assert.equal(calls.length, 1);
+  assert.match(calls[0], /generativelanguage/);
+  assert.deepEqual(routing.skippedProviders.map(item => item.provider), ["qwen"]);
+});
+
+test("health lookup failure preserves configured provider order", async t => {
+  configure(t);
+  const prior = globalThis.__providerHealthAdmin;
+  globalThis.__providerHealthAdmin = () => { throw new Error("telemetry unavailable"); };
+  t.after(() => { if (prior === undefined) delete globalThis.__providerHealthAdmin; else globalThis.__providerHealthAdmin = prior; });
+  const calls = [];
+  t.mock.method(globalThis, "fetch", async url => { calls.push(String(url)); return qwen(JSON.stringify(answer)); });
+  let routing;
+  assert.deepEqual(await aiJsonWithFallback(messages, valid, { healthAware: true, onProviderRouting: value => { routing = value; } }), answer);
+  assert.equal(calls.length, 1);
+  assert.match(calls[0], /bitgetops/);
+  assert.equal(routing.status, "unavailable");
 });
 
 test("full Agent Flow budget allows a source-heavy Qwen answer past twelve seconds", async t => {

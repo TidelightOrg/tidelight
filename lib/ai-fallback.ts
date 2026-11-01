@@ -1,4 +1,5 @@
 import "server-only";
+import { getProviderRoutingDecision, type ProviderRoutingDecision } from "./provider-health";
 
 type Message = { role: string; content: string };
 export type Provider = { label: "qwen" | "gemini"; endpoint: string; model: string; key: string };
@@ -36,6 +37,9 @@ export type AiRequestOptions = {
   /** Absolute route deadline, so work done before AI also consumes the budget. */
   deadlineAt?: number;
   provider?: Provider["label"];
+  /** Enables the short, shared provider circuit derived from minimized health events. */
+  healthAware?: boolean;
+  onProviderRouting?: (decision: ProviderRoutingDecision) => void;
   onSuccess?: (provider: { label: Provider["label"]; model: string }) => void;
   /** Sanitized provider-call telemetry. Callback errors never affect research. */
   onAttempt?: (attempt: ProviderAttempt) => void;
@@ -75,8 +79,14 @@ function responseText(payload: AiPayload, nativeGemini: boolean): string {
 }
 
 export async function aiJsonWithFallback(messages: Message[], valid: (value: Record<string, unknown>) => boolean, options: AiRequestOptions = {}) {
-  const providers = configuredAiProviders().filter(provider => !options.provider || provider.label === options.provider);
+  let providers = configuredAiProviders().filter(provider => !options.provider || provider.label === options.provider);
   if (!providers.length) throw new Error("ai-not-configured");
+  if (options.healthAware && providers.length > 1) {
+    const routing = await getProviderRoutingDecision(providers.map(provider => provider.label));
+    try { options.onProviderRouting?.(routing); } catch { /* Routing telemetry cannot change the research result. */ }
+    const skipped = new Set(routing.skippedProviders.map(item => item.provider));
+    if (skipped.size && skipped.size < providers.length) providers = providers.filter(provider => !skipped.has(provider.label));
+  }
   const budgetMs = Number.isFinite(options.budgetMs) ? Math.max(0, Math.min(options.budgetMs!, 45000)) : 20000;
   const deadlineAt = Math.min(Date.now() + budgetMs, Number.isFinite(options.deadlineAt) ? options.deadlineAt! : Infinity);
   const failures: string[] = [];
