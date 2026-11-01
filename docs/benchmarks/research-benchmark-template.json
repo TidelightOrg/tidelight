@@ -45,6 +45,23 @@
         "resolution": { "quoteMatch": "exact", "entailment": "supported", "sourceFit": "primary", "interpretationBoundary": "sourced_fact", "adjudicatorId": "reviewer-a", "note": "Record why initial labels differed, if applicable." }
       }
     ],
+    "run_capture": {
+      "capturedAt": null,
+      "environment": null,
+      "observedElapsedUiSeconds": null,
+      "taskTimeMeasured": false,
+      "status": null,
+      "sourcesReturned": null,
+      "aiSynthesis": null,
+      "confidencePercent": null,
+      "confidenceOrigin": null,
+      "quoteFreshness": null,
+      "claimsValidated": null,
+      "reviewerLabels": null,
+      "adjudications": null,
+      "marketOrTradingHandoff": null,
+      "observation": null
+    },
     "review": { "counterEvidenceInCapturedSources": false },
     "brief": { "counterEvidencePresent": false }
   }

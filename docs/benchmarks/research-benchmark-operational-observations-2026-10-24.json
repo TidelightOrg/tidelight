@@ -1,0 +1,108 @@
+{
+  "schemaVersion": 1,
+  "reportDate": "2026-11-01",
+  "status": "OPERATIONAL_OBSERVATIONS_ONLY",
+  "benchmark": "docs/benchmarks/research-benchmark-frozen-2026-10-24.json",
+  "setVersion": "2026-10-24-v1",
+  "captureLog": "docs/benchmarks/research-benchmark-capture-log-2026-10-24.md",
+  "claimQuality": {
+    "status": "not_measured",
+    "reason": "Independent claim review, source-fit adjudication, and outcome quality labels are not complete."
+  },
+  "operationalObservations": {
+    "capturedRuns": 9,
+    "unmatchedRunCaptures": [
+      {
+        "runId": "fomc-january-2026-unmatched",
+        "reportedQuestion": "Federal Reserve January 2026 decision",
+        "reason": "The capture log identifies this run as the January 2026 FOMC decision; it cannot count as coverage of the September 16, 2026 frozen event.",
+        "run_capture": {
+          "capturedAt": "2026-10-24",
+          "environment": "Production Tidelight Market Research page, signed-in browser session",
+          "taskTimeMeasured": false,
+          "claimsValidated": null,
+          "reviewerLabels": null,
+          "adjudications": null,
+          "observedElapsedUiSeconds": 34,
+          "status": "source_only",
+          "sourcesReturned": 18,
+          "aiSynthesis": "unavailable",
+          "marketOrTradingHandoff": null,
+          "observation": "Eighteen macro sources were collected. AI synthesis was unavailable; output remained source-only without a factual summary."
+        }
+      }
+    ],
+    "captureCoverage": {
+      "status": "measured",
+      "numerator": 9,
+      "denominator": 10,
+      "ratePct": 90
+    },
+    "observedRunStatuses": {
+      "limited_model_response": 1,
+      "model_synthesis": 2,
+      "no_attributable_sources": 1,
+      "source_only": 5
+    },
+    "observedSynthesisStatuses": {
+      "Gemini": 2,
+      "Qwen": 1,
+      "not_attempted": 1,
+      "unavailable": 5
+    },
+    "uiElapsedSeconds": {
+      "count": 9,
+      "median": 32,
+      "minimum": 3,
+      "maximum": 42,
+      "interpretation": "Observed UI elapsed time; not protocol task time or provider latency."
+    },
+    "sourcesReturned": {
+      "count": 7,
+      "median": 7,
+      "minimum": 0,
+      "maximum": 15,
+      "capturesWithCount": 7,
+      "capturesWithoutCount": 2
+    },
+    "modelReportedConfidencePercent": {
+      "count": 1,
+      "median": 10,
+      "minimum": 10,
+      "maximum": 10,
+      "capturesWithValue": 1,
+      "capturesWithoutValue": 8,
+      "interpretation": "Only values explicitly attributed to the model; not a calibrated probability or quality score."
+    },
+    "uiConfidencePercent": {
+      "count": 3,
+      "median": 0,
+      "minimum": 0,
+      "maximum": 10,
+      "capturesWithValue": 3,
+      "capturesWithoutValue": 6,
+      "interpretation": "Displayed confidence, including application fallback values; not necessarily model-reported or calibrated."
+    },
+    "quoteFreshnessObservations": {
+      "available": 1,
+      "stale": 1
+    },
+    "marketOrTradingHandoff": {
+      "count": 0,
+      "noHandoff": 4,
+      "capturesWithObservation": 4,
+      "capturesWithoutObservation": 5
+    },
+    "claimsMarkedValidated": {
+      "count": 0,
+      "denominator": 0,
+      "status": "not_measured",
+      "capturesWithoutObservation": 9
+    },
+    "researchQuality": {
+      "status": "not_measured",
+      "reason": "Operational captures do not establish factual correctness, citation support, completeness, freshness, or calibrated decision quality."
+    }
+  },
+  "interpretation": "These observations describe recorded production runs. They do not establish factual correctness, citation entailment, completeness, calibrated confidence, task time, or performance."
+}
