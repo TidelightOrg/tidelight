@@ -98,6 +98,8 @@ test("synthetic positive handoff preserves lineage through Research → paper St
   assert.ok(research, "research route emitted a saved result");
   assert.equal(research.researchRunId, researchId);
   assert.equal(research.tradeable, true);
+  assert.ok(research.evidenceGraph.nodes.some(node => node.type === "subject" && node.ticker === "NVDA"));
+  assert.ok(research.evidenceGraph.nodes.some(node => node.type === "source" && node.url === sourceRows[0].url));
   assert.equal(research.assets[0].handoff.destinations[0].mode, "paper_futures");
   assert.match(research.assets[0].handoff.destinations[0].href, new RegExp(`researchRunId=${researchId}`));
 
@@ -143,6 +145,8 @@ test("macro-only research saves a source-bound brief and bypasses stock provider
   assert.equal(result.assets[0].handoff, null);
   assert.equal(result.assets[0].market.perpSymbol, null);
   assert.equal(result.assets[0].market.lastPrice, null);
+  assert.ok(result.evidenceGraph.nodes.some(node => node.type === "subject" && node.subjectType === "macro_topic"));
+  assert.ok(result.evidenceGraph.nodes.some(node => node.type === "passage" && node.exactQuoteVerified === false));
   assert.deepEqual(result.assets[0].sources.map(source => source.via), ["Official source", "Independent reporting"]);
   assert.ok(result.assets[0].gateReasons.some(reason => reason.includes("information-only")));
   assert.equal(globalThis.flowTest.macroCalls, 1);

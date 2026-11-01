@@ -261,6 +261,14 @@ test("Simplified Chinese market radar localizes dynamic labels and feed states",
   assert.match(radar, /translate\(feedState === "live"/);
 });
 
+test("Research evidence trace labels remain available in Simplified Chinese", async () => {
+  const source = await readFile(new URL("app/ui/agent-flow-desk.tsx", root), "utf8");
+  for (const key of ["Evidence trace", "Source linkage shows provenance; it does not independently verify claim support.", "Retrieved excerpts are not quote-verified.", "Reality tokenized spot", "U.S. stock perpetual", "Supports", "Challenges", "No model confidence recorded"]) {
+    assert.equal(typeof translations[key], "string", `Missing evidence trace translation: ${key}`);
+    assert.ok(source.includes(key) && source.includes("translate("), `Evidence trace must translate ${key}`);
+  }
+});
+
 test("Simplified Chinese covers fixed public research replay copy and preserves evidence verbatim", async () => {
   const source = await readFile(new URL("app/replay/[token]/page.tsx", root), "utf8");
   const file = ts.createSourceFile("app/replay/[token]/page.tsx", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
