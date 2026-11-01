@@ -70,3 +70,5 @@
   .stock-hero .asset-profile-price small{max-width:130px;font-size:6px}
   .session-schedule-row strong{font-size:7px}
 }
+
+.sec-filing-cutoff{margin:10px 0;padding:9px 11px;border-left:2px solid var(--brand-teal);border-radius:4px;background:var(--panel);color:var(--muted);font-size:9px;line-height:1.55}

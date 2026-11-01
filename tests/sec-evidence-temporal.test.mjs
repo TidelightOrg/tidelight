@@ -79,5 +79,6 @@ test("SEC period and instant facts select the latest values filed by the as-of d
   assert.equal(result.financials.quarterly.find(period => period.periodEnd === "2024-12-31")?.revenue, 40, "fallback revenue tags are selected after applying the historical as-of cutoff");
   assert.equal(result.dividends[0].amountPerShare, 0.25, "an ineligible preferred dividend tag does not prevent fallback tag selection");
   assert.equal(result.asOf, "2025-06-01T12:00:00.000Z");
+  assert.deepEqual(result.limitations, ["SEC facts filed on the as-of date are excluded because filing times are unavailable."]);
   assert.notEqual(result.retrievedAt, result.asOf, "retrieval provenance records actual response processing time");
 });

@@ -28,6 +28,7 @@ export type CompanyResearch = {
   ticker: string;
   cik: string;
   asOf: string;
+  limitations: string[];
   companyName: string;
   industry: string | null;
   exchange: string | null;
@@ -155,7 +156,9 @@ export async function getSecCompanyResearch(ticker: string, website: string | nu
   const annual = buildPeriods(companyfacts, "annual", asOfDate);
   const targetData = options.includeAnalystTargets === false ? { status: "not_configured" as const } : await analystTargets(normalized);
   return {
-    ticker: normalized, cik, asOf: new Date(asOfMs).toISOString(), companyName: submissions.name || companyfacts.entityName,
+    ticker: normalized, cik, asOf: new Date(asOfMs).toISOString(),
+    limitations: ["SEC facts filed on the as-of date are excluded because filing times are unavailable."],
+    companyName: submissions.name || companyfacts.entityName,
     industry: submissions.sicDescription ?? null, exchange: submissions.exchanges?.[0] ?? null,
     headquarters, website, employeeCount, source: "SEC EDGAR",
     sourceUrl: `https://www.sec.gov/edgar/browse/?CIK=${Number(cik)}`,
