@@ -74,15 +74,6 @@ export async function POST(request: Request) {
   if (question.length < 5 || question.length > 500) return NextResponse.json({ error: "Ask a market question in 5 to 500 characters." }, { status: 400 });
   if (guest && body.judgeMode !== true) return NextResponse.json({ error: "Use the public Judge Mode research desk to start guest research." }, { status: 401 });
   if (guest && (body.contextRunId !== undefined || body.researchMonitorId !== undefined || body.researchMonitorRevision !== undefined || body.workspaceContext !== undefined)) return NextResponse.json({ error: "Guest research cannot access saved account context." }, { status: 403 });
-  if (guest) {
-    const secret = process.env.CRON_SECRET;
-    if (!secret) return NextResponse.json({ error: "Public research is temporarily unavailable." }, { status: 503 });
-    const ip = request.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "unknown";
-    const fingerprint = createHmac("sha256", secret).update(`guest-research:${ip}`).digest("hex");
-    const { data: allowed, error } = await supabase.rpc("reserve_guest_research", { p_fingerprint: fingerprint });
-    if (error) return NextResponse.json({ error: "Public research capacity could not be checked. Retry shortly." }, { status: 503 });
-    if (allowed !== true) return NextResponse.json({ error: "Public research has reached its hourly or daily limit for this connection. Sign in for your private research workspace." }, { status: 429 });
-  }
   const workspaceContext = typeof body.workspaceContext === "string" && body.workspaceContext.length <= 240 && /^\/(?!\/)[a-zA-Z0-9/_?=&.%+-]*$/.test(body.workspaceContext) ? body.workspaceContext : null;
   const contextRunId = typeof body.contextRunId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.contextRunId) ? body.contextRunId : null;
   let priorContext: { question: string; assets: Array<{ ticker: string; summary: string; stance: string; confidence: number; risks: string[] }> } | null = null;
@@ -115,6 +106,16 @@ export async function POST(request: Request) {
   const macroTopic: MacroTopic | null = tickers.length ? null : classifyMacroQuestion(question);
   if (monitor && (!tickers.includes(monitor.ticker) || macroTopic)) return NextResponse.json({ error: `Name ${monitor.ticker} in the company research question for this monitor.` }, { status: 422 });
   if (!tickers.length && !macroTopic) return NextResponse.json({ error: "Name a supported US stock, or ask about a dated FOMC, CPI, or employment release." }, { status: 422 });
+  // Validate scope and account-owned context before consuming anonymous capacity.
+  if (guest) {
+    const secret = process.env.CRON_SECRET;
+    if (!secret) return NextResponse.json({ error: "Public research is temporarily unavailable." }, { status: 503 });
+    const ip = request.headers.get("x-vercel-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "unknown";
+    const fingerprint = createHmac("sha256", secret).update(`guest-research:${ip}`).digest("hex");
+    const { data: allowed, error } = await supabase.rpc("reserve_guest_research", { p_fingerprint: fingerprint });
+    if (error) return NextResponse.json({ error: "Public research capacity could not be checked. Retry shortly." }, { status: 503 });
+    if (allowed !== true) return NextResponse.json({ error: "Public research has reached its hourly or daily limit for this connection. Sign in for your private research workspace." }, { status: 429 });
+  }
   let runId = crypto.randomUUID();
   if (user) {
     const hourAgo = new Date(Date.now() - 3_600_000).toISOString();

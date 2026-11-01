@@ -158,6 +158,12 @@ test("anonymous judge research is same-origin, session-only, and cannot hand off
   globalThis.flowTest.user = null;
   globalThis.flowTest.guestAllowed = true;
   captures.research.length = 0;
+  const rpcCallsBeforeInvalidQuestion = captures.rpc.length;
+  const invalidScope = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
+    method: "POST", headers: { origin: "https://tidelight.app", "content-type": "application/json" }, body: JSON.stringify({ question: "What could happen to an affected rToken?", judgeMode: true }),
+  }));
+  assert.equal(invalidScope.status, 422);
+  assert.equal(captures.rpc.length, rpcCallsBeforeInvalidQuestion, "unsupported guest questions do not consume rate-limit capacity");
   const response = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
     method: "POST", headers: { origin: "https://tidelight.app", "content-type": "application/json" }, body: JSON.stringify({ question: "Review NVDA with current public evidence", judgeMode: true }),
   }));
