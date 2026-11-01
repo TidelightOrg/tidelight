@@ -33,7 +33,12 @@ function distribution(values) {
 
 /** Operational captures are observable facts, not reviewer-scored research quality. */
 function scoreOperationalObservations(events, unmatchedRunCaptures = []) {
-  const captures = events.flatMap((event) => event?.run_capture && typeof event.run_capture === "object" ? [{ event, capture: event.run_capture }] : []);
+  const captures = events.flatMap((event) => {
+    const capture = event?.run_capture;
+    return capture && typeof capture === "object" && typeof capture.status === "string" && capture.status.trim()
+      ? [{ event, capture }]
+      : [];
+  });
   const countValues = (selector) => Object.fromEntries([...new Set(captures.map(({ capture }) => selector(capture)).filter((value) => typeof value === "string" && value))]
     .sort().map((value) => [value, captures.filter(({ capture }) => selector(capture) === value).length]));
   const elapsed = captures.map(({ capture }) => capture.observedElapsedUiSeconds).filter((value) => Number.isFinite(value) && value > 0);

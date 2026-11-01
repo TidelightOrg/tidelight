@@ -139,3 +139,11 @@ test("frozen production captures expose operational observations without inventi
   assert.deepEqual(report.operationalObservations, result.operationalObservations, "published observation artifact must match the reproducible scorer");
   assert.equal(report.claimQuality.status, "not_measured");
 });
+
+test("empty capture placeholders do not count as observed production runs", () => {
+  const benchmark = completeBenchmark();
+  benchmark.events.forEach((item) => { item.run_capture = { status: null, observedElapsedUiSeconds: null, claimsValidated: null }; });
+  const result = scoreBenchmark(benchmark);
+  assert.equal(result.operationalObservations.capturedRuns, 0);
+  assert.deepEqual(result.operationalObservations.captureCoverage, { status: "measured", numerator: 0, denominator: 10, ratePct: 0 });
+});
