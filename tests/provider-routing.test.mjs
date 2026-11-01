@@ -15,7 +15,7 @@ const events = (provider, outcome, count = 3, spacingMs = 1000, observedAt = Dat
 
 test("three consecutive recent failures open a provider circuit", () => {
   const now = Date.now();
-  const result = health.classifyProviderRouting(["qwen", "gemini"], events("qwen", "timeout"), now);
+  const result = health.classifyProviderRouting(["qwen", "gemini"], events("qwen", "timeout", 3, 1000, now), now);
   assert.equal(result.status, "available");
   assert.deepEqual(result.skippedProviders.map(item => item.provider), ["qwen"]);
   assert.equal(result.skippedProviders[0].consecutiveFailures, 3);
@@ -39,7 +39,7 @@ test("a success, stale events, and future events prevent false circuit opening",
 
 test("all providers open becomes a normal-order half-open probe", () => {
   const now = Date.now();
-  const result = health.classifyProviderRouting(["qwen", "gemini"], [...events("qwen", "network_error"), ...events("gemini", "timeout")], now);
+  const result = health.classifyProviderRouting(["qwen", "gemini"], [...events("qwen", "network_error", 3, 1000, now), ...events("gemini", "timeout", 3, 1000, now)], now);
   assert.equal(result.status, "all_open_probe");
   assert.deepEqual(result.skippedProviders, []);
 });
