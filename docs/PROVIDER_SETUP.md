@@ -39,6 +39,8 @@ In Settings, **Check AI availability** performs a small authenticated JSON reque
 
 Server logs record `ai-provider-http` with a bounded, redacted status/detail, `ai-provider-invalid` with response shape and finish metadata (no prompt or output), or `agent-flow-ai-unavailable` with a provider failure code. A 503 or timeout on the full source prompt is different from a missing key or retired model. The flow fails closed: without a validated source-bound assessment it offers no trade handoff.
 
+Agent Flow synthesis can also use recent operational events to avoid repeatedly sending a request to a provider that has just failed. Attempt completion timestamps are persisted in a strictly increasing order within each research request, so delayed route writes do not change event ordering. Three consecutive non-success attempts in the last two minutes open a 60-second provider circuit. Reads are limited to 10 metadata rows per configured provider and 300 ms; with the current two-provider configuration, this is at most 20 rows total. If health telemetry is unavailable, the normal configured provider order is used. If both circuits appear open, normal order is used as a recovery probe. This routing signal is operational telemetry only: it does not establish provider health or research quality, and the research result still requires the existing schema and evidence gates. Other AI call sites retain their existing routing unless they explicitly enable health-aware routing.
+
 ## Vercel configuration
 
 Already configured for Tidelight:

@@ -7,6 +7,8 @@ import { registerHooks } from "node:module";
 const hooks = registerHooks({
   resolve(specifier, context, nextResolve) {
     if (specifier === "server-only") return { url: "data:text/javascript,export {};", shortCircuit: true };
+    if (specifier === "@/lib/supabase/admin") return { url: "data:text/javascript,export const createAdminClient=()=>globalThis.__providerHealthAdmin?.() ?? {from:()=>({select(){return this},gte(){return this},order(){return this},limit(){return this},abortSignal(){return Promise.resolve({data:[],error:null})}})};", shortCircuit: true };
+    if (specifier === "./provider-health" && context.parentURL?.endsWith("/lib/ai-fallback.ts")) return { url: new URL("../lib/provider-health.ts", import.meta.url).href, shortCircuit: true };
     return nextResolve(specifier, context);
   },
 });
@@ -49,11 +51,13 @@ test("Qwen receives JSON instructions and a valid result avoids fallback", async
 
 test("provider attempts report successful calls with bounded metadata", async t => {
   configure(t, false);
+  t.mock.method(Date, "now", () => Date.parse("2026-01-01T00:00:00.000Z"));
   t.mock.method(globalThis, "fetch", async () => gemini([{ text: JSON.stringify(answer) }]));
   const attempts = [];
   await aiJsonWithFallback(messages, valid, { onAttempt: attempt => attempts.push(attempt) });
   assert.equal(attempts.length, 1);
-  assert.deepEqual({ ...attempts[0], durationMs: 0 }, { provider: "gemini", model: "gemini-test", attempt: 1, outcome: "success", durationMs: 0 });
+  assert.deepEqual(attempts[0], { provider: "gemini", model: "gemini-test", attempt: 1, outcome: "success", occurredAt: "2026-01-01T00:00:00.000Z", durationMs: 0 });
+  assert.ok(Number.isFinite(Date.parse(attempts[0].occurredAt)));
   assert.ok(attempts[0].durationMs >= 0);
   assert.equal(JSON.stringify(attempts).includes("Grounded result"), false);
   assert.equal(JSON.stringify(attempts).includes("test-gemini-key"), false);
@@ -72,6 +76,7 @@ test("provider attempt diagnostics record retry failures and success in order", 
     { provider: "qwen", attempt: 1, outcome: "http_error", httpStatus: 503 },
     { provider: "qwen", attempt: 2, outcome: "success", httpStatus: undefined },
   ]);
+  assert.ok(Date.parse(attempts[1].occurredAt) > Date.parse(attempts[0].occurredAt), "attempt timestamps preserve order even when calls complete in the same clock millisecond");
 });
 
 test("provider attempt callback exceptions never break a valid research response", async t => {
@@ -177,6 +182,35 @@ test("research can opt into a longer Gemini window within its route deadline", a
     return gemini([{ text: JSON.stringify(answer) }]);
   });
   assert.deepEqual(await aiJsonWithFallback(messages, valid, { budgetMs: 42000, deadlineAt: 53000 }), answer);
+});
+
+test("health-aware research routes around a provider with three recent consecutive failures", async t => {
+  configure(t);
+  const prior = globalThis.__providerHealthAdmin;
+  const observedAt = Date.now();
+  globalThis.__providerHealthAdmin = () => ({ from: () => ({ select() { return this; }, eq(_column, provider) { this.provider = provider; return this; }, gte() { return this; }, lte() { return this; }, order() { return this; }, limit() { return this; }, abortSignal() { return Promise.resolve({ data: this.provider === "qwen" ? [0, 1, 2].map(index => ({ provider: "qwen", outcome: "http_error", occurred_at: new Date(observedAt - index * 1000).toISOString() })) : [{ provider: "gemini", outcome: "success", occurred_at: new Date(observedAt).toISOString() }], error: null }); } }) });
+  t.after(() => { if (prior === undefined) delete globalThis.__providerHealthAdmin; else globalThis.__providerHealthAdmin = prior; });
+  const calls = [];
+  t.mock.method(globalThis, "fetch", async url => { calls.push(String(url)); return gemini([{ text: JSON.stringify(answer) }]); });
+  let routing;
+  assert.deepEqual(await aiJsonWithFallback(messages, valid, { healthAware: true, onProviderRouting: value => { routing = value; } }), answer);
+  assert.deepEqual(routing.skippedProviders.map(item => item.provider), ["qwen"]);
+  assert.equal(calls.length, 1);
+  assert.match(calls[0], /generativelanguage/);
+});
+
+test("health lookup failure preserves configured provider order", async t => {
+  configure(t);
+  const prior = globalThis.__providerHealthAdmin;
+  globalThis.__providerHealthAdmin = () => { throw new Error("telemetry unavailable"); };
+  t.after(() => { if (prior === undefined) delete globalThis.__providerHealthAdmin; else globalThis.__providerHealthAdmin = prior; });
+  const calls = [];
+  t.mock.method(globalThis, "fetch", async url => { calls.push(String(url)); return qwen(JSON.stringify(answer)); });
+  let routing;
+  assert.deepEqual(await aiJsonWithFallback(messages, valid, { healthAware: true, onProviderRouting: value => { routing = value; } }), answer);
+  assert.equal(calls.length, 1);
+  assert.match(calls[0], /bitgetops/);
+  assert.equal(routing.status, "unavailable");
 });
 
 test("full Agent Flow budget allows a source-heavy Qwen answer past twelve seconds", async t => {

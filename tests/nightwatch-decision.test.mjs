@@ -5,6 +5,7 @@ import { registerHooks } from "node:module";
 const hooks = registerHooks({
   resolve(specifier, context, nextResolve) {
     if (specifier === "server-only") return { url: "data:text/javascript,export {};", shortCircuit: true };
+    if (specifier === "./provider-health" && context.parentURL?.endsWith("/lib/ai-fallback.ts")) return { url: "data:text/javascript,export const getProviderRoutingDecision=async()=>({status:'available',skippedProviders:[]});", shortCircuit: true };
     if (specifier.startsWith("@/lib/")) return { url: new URL(`../lib/${specifier.slice(6)}.ts`, import.meta.url).href, shortCircuit: true };
     return nextResolve(specifier, context);
   },
