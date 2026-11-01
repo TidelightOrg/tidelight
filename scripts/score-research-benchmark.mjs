@@ -32,25 +32,28 @@ function distribution(values) {
 }
 
 /** Operational captures are observable facts, not reviewer-scored research quality. */
-function scoreOperationalObservations(events) {
+function scoreOperationalObservations(events, unmatchedRunCaptures = []) {
   const captures = events.flatMap((event) => event?.run_capture && typeof event.run_capture === "object" ? [{ event, capture: event.run_capture }] : []);
   const countValues = (selector) => Object.fromEntries([...new Set(captures.map(({ capture }) => selector(capture)).filter((value) => typeof value === "string" && value))]
     .sort().map((value) => [value, captures.filter(({ capture }) => selector(capture) === value).length]));
   const elapsed = captures.map(({ capture }) => capture.observedElapsedUiSeconds).filter((value) => Number.isFinite(value) && value > 0);
   const sourceCounts = captures.map(({ capture }) => capture.sourcesReturned).filter((value) => Number.isSafeInteger(value) && value >= 0);
-  const confidence = captures.map(({ capture }) => capture.confidencePercent).filter((value) => Number.isFinite(value) && value >= 0 && value <= 100);
+  const confidence = captures.filter(({ capture }) => capture.confidenceOrigin === "model_reported").map(({ capture }) => capture.confidencePercent).filter((value) => Number.isFinite(value) && value >= 0 && value <= 100);
+  const uiConfidence = captures.map(({ capture }) => capture.confidencePercent).filter((value) => Number.isFinite(value) && value >= 0 && value <= 100);
   const validatedClaims = captures.filter(({ capture }) => capture.claimsValidated === true).length;
   const validationObservations = captures.filter(({ capture }) => typeof capture.claimsValidated === "boolean").length;
   const quoteFreshnessObservations = countValues((capture) => capture.quoteFreshness);
   const handoffObservations = captures.filter(({ capture }) => typeof capture.marketOrTradingHandoff === "boolean");
   return {
     capturedRuns: captures.length,
+    unmatchedRunCaptures: Array.isArray(unmatchedRunCaptures) ? unmatchedRunCaptures : [],
     captureCoverage: ratio(captures.length, events.length),
     observedRunStatuses: countValues((capture) => capture.status),
     observedSynthesisStatuses: countValues((capture) => capture.aiSynthesis),
     uiElapsedSeconds: { ...distribution(elapsed), interpretation: "Observed UI elapsed time; not protocol task time or provider latency." },
     sourcesReturned: { ...distribution(sourceCounts), capturesWithCount: sourceCounts.length, capturesWithoutCount: captures.length - sourceCounts.length },
-    modelReportedConfidencePercent: { ...distribution(confidence), capturesWithValue: confidence.length, capturesWithoutValue: captures.length - confidence.length, interpretation: "Model-reported confidence, not a calibrated probability or quality score." },
+    modelReportedConfidencePercent: { ...distribution(confidence), capturesWithValue: confidence.length, capturesWithoutValue: captures.length - confidence.length, interpretation: "Only values explicitly attributed to the model; not a calibrated probability or quality score." },
+    uiConfidencePercent: { ...distribution(uiConfidence), capturesWithValue: uiConfidence.length, capturesWithoutValue: captures.length - uiConfidence.length, interpretation: "Displayed confidence, including application fallback values; not necessarily model-reported or calibrated." },
     quoteFreshnessObservations,
     marketOrTradingHandoff: {
       count: handoffObservations.filter(({ capture }) => capture.marketOrTradingHandoff === true).length,
@@ -198,7 +201,7 @@ export function scoreBenchmark(benchmark) {
     taskTimeSeconds: taskTimes.length ? { count: taskTimes.length, median: median(taskTimes), minimum: Math.min(...taskTimes), maximum: Math.max(...taskTimes) } : { status: "not_measured", count: 0, median: null, minimum: null, maximum: null },
     sourceClasses: sourceClassTotals,
   };
-  return { complete, errors, metadata: benchmark.metadata ?? {}, metrics: complete ? metrics : null, operationalObservations: scoreOperationalObservations(events) };
+  return { complete, errors, metadata: benchmark.metadata ?? {}, metrics: complete ? metrics : null, operationalObservations: scoreOperationalObservations(events, benchmark.unmatched_run_captures) };
 }
 
 async function main() {

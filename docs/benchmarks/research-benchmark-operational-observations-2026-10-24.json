@@ -10,48 +10,78 @@
     "reason": "Independent claim review, source-fit adjudication, and outcome quality labels are not complete."
   },
   "operationalObservations": {
-    "capturedRuns": 10,
+    "capturedRuns": 9,
+    "unmatchedRunCaptures": [
+      {
+        "runId": "fomc-january-2026-unmatched",
+        "reportedQuestion": "Federal Reserve January 2026 decision",
+        "reason": "The capture log identifies this run as the January 2026 FOMC decision; it cannot count as coverage of the September 16, 2026 frozen event.",
+        "run_capture": {
+          "capturedAt": "2026-10-24",
+          "environment": "Production Tidelight Market Research page, signed-in browser session",
+          "taskTimeMeasured": false,
+          "claimsValidated": null,
+          "reviewerLabels": null,
+          "adjudications": null,
+          "observedElapsedUiSeconds": 34,
+          "status": "source_only",
+          "sourcesReturned": 18,
+          "aiSynthesis": "unavailable",
+          "marketOrTradingHandoff": false,
+          "observation": "Eighteen macro sources were collected. AI synthesis was unavailable; output remained source-only without a factual summary or handoff."
+        }
+      }
+    ],
     "captureCoverage": {
       "status": "measured",
-      "numerator": 10,
+      "numerator": 9,
       "denominator": 10,
-      "ratePct": 100
+      "ratePct": 90
     },
     "observedRunStatuses": {
       "limited_model_response": 1,
       "model_synthesis": 2,
       "no_attributable_sources": 1,
-      "source_only": 6
+      "source_only": 5
     },
     "observedSynthesisStatuses": {
       "Gemini": 2,
       "Qwen": 1,
       "not_attempted": 1,
-      "unavailable": 6
+      "unavailable": 5
     },
     "uiElapsedSeconds": {
-      "count": 10,
-      "median": 33,
+      "count": 9,
+      "median": 32,
       "minimum": 3,
       "maximum": 42,
       "interpretation": "Observed UI elapsed time; not protocol task time or provider latency."
     },
     "sourcesReturned": {
-      "count": 8,
-      "median": 8.5,
+      "count": 7,
+      "median": 7,
       "minimum": 0,
-      "maximum": 18,
-      "capturesWithCount": 8,
+      "maximum": 15,
+      "capturesWithCount": 7,
       "capturesWithoutCount": 2
     },
     "modelReportedConfidencePercent": {
+      "count": 1,
+      "median": 10,
+      "minimum": 10,
+      "maximum": 10,
+      "capturesWithValue": 1,
+      "capturesWithoutValue": 8,
+      "interpretation": "Only values explicitly attributed to the model; not a calibrated probability or quality score."
+    },
+    "uiConfidencePercent": {
       "count": 3,
       "median": 0,
       "minimum": 0,
       "maximum": 10,
       "capturesWithValue": 3,
-      "capturesWithoutValue": 7,
-      "interpretation": "Model-reported confidence, not a calibrated probability or quality score."
+      "capturesWithoutValue": 6,
+      "interpretation": "Displayed confidence, including application fallback values; not necessarily model-reported or calibrated."
     },
     "quoteFreshnessObservations": {
       "available": 1,
@@ -59,15 +89,15 @@
     },
     "marketOrTradingHandoff": {
       "count": 0,
-      "noHandoff": 7,
-      "capturesWithObservation": 7,
+      "noHandoff": 6,
+      "capturesWithObservation": 6,
       "capturesWithoutObservation": 3
     },
     "claimsMarkedValidated": {
       "count": 0,
       "denominator": 0,
       "status": "not_measured",
-      "capturesWithoutObservation": 10
+      "capturesWithoutObservation": 9
     },
     "researchQuality": {
       "status": "not_measured",

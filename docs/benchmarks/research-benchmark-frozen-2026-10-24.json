@@ -232,7 +232,7 @@
       "question": "Summarize Alphabet's Q4 2025 results and 2026 capital-spending outlook using the captured sources. Separate reported outcomes from guidance and investor interpretation; do not infer future returns.",
       "askedAt": null,
       "taskTimeSeconds": null,
-      "referenceNote": "Alphabet reported Q4 revenue of $113.8 billion, up 18%, while its outlook anticipated $175–185 billion of 2026 capex. Reuters noted cloud growth and a mixed share-price reaction. The spending range is guidance, not realized spend.",
+      "referenceNote": "Alphabet reported Q4 revenue of $113.8 billion, up 18%, while its outlook anticipated $175\u2013185 billion of 2026 capex. Reuters noted cloud growth and a mixed share-price reaction. The spending range is guidance, not realized spend.",
       "sources": [
         {
           "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000012/googexhibit991q42025.htm",
@@ -266,7 +266,8 @@
         "aiSynthesis": "Qwen",
         "confidencePercent": 10,
         "marketOrTradingHandoff": false,
-        "observation": "Qwen response was based on one headline. The model reported no usable results and 10% confidence; no trade handoff."
+        "observation": "Qwen response was based on one headline. The model reported no usable results and 10% confidence; no trade handoff.",
+        "confidenceOrigin": "model_reported"
       }
     },
     {
@@ -276,7 +277,7 @@
       "question": "Explain the September 16, 2026 FOMC decision and the evidence relevant to its stated rationale. Distinguish the official decision from reporting and market interpretation; do not predict the next policy move.",
       "askedAt": null,
       "taskTimeSeconds": null,
-      "referenceNote": "The FOMC unanimously raised the federal funds target range by 25 basis points to 3.75%–4.00%, citing elevated inflation and a timelier return to its 2% goal. Reuters described projections for additional tightening; projections are not a commitment to a specific path.",
+      "referenceNote": "The FOMC unanimously raised the federal funds target range by 25 basis points to 3.75%\u20134.00%, citing elevated inflation and a timelier return to its 2% goal. Reuters described projections for additional tightening; projections are not a commitment to a specific path.",
       "sources": [
         {
           "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260916a.htm",
@@ -296,21 +297,7 @@
           "accessible": true,
           "capturedText": "The Federal Reserve raised interest rates on Wednesday and flagged more hikes in the coming months."
         }
-      ],
-      "run_capture": {
-        "capturedAt": "2026-10-24",
-        "environment": "Production Tidelight Market Research page, signed-in browser session",
-        "taskTimeMeasured": false,
-        "claimsValidated": null,
-        "reviewerLabels": null,
-        "adjudications": null,
-        "observedElapsedUiSeconds": 34,
-        "status": "source_only",
-        "sourcesReturned": 18,
-        "aiSynthesis": "unavailable",
-        "marketOrTradingHandoff": false,
-        "observation": "Eighteen macro sources were collected. AI synthesis was unavailable; output remained source-only without a factual summary or handoff."
-      }
+      ]
     },
     {
       "id": "us-cpi-2026-08-release-2026-09-11",
@@ -396,7 +383,8 @@
         "aiSynthesis": "unavailable",
         "confidencePercent": 0,
         "marketOrTradingHandoff": false,
-        "observation": "Completed in four research steps. Source-only macro brief; no verified AI assessment or factual macro conclusion established."
+        "observation": "Completed in four research steps. Source-only macro brief; no verified AI assessment or factual macro conclusion established.",
+        "confidenceOrigin": "application_fallback"
       }
     },
     {
@@ -440,7 +428,29 @@
         "aiSynthesis": "unavailable",
         "confidencePercent": 0,
         "marketOrTradingHandoff": false,
-        "observation": "Completed in four research steps. Source-only macro brief; expanded source list included off-topic regional, PPI, Canada, and India items. Relevance remains unadjudicated."
+        "observation": "Completed in four research steps. Source-only macro brief; expanded source list included off-topic regional, PPI, Canada, and India items. Relevance remains unadjudicated.",
+        "confidenceOrigin": "application_fallback"
+      }
+    }
+  ],
+  "unmatched_run_captures": [
+    {
+      "runId": "fomc-january-2026-unmatched",
+      "reportedQuestion": "Federal Reserve January 2026 decision",
+      "reason": "The capture log identifies this run as the January 2026 FOMC decision; it cannot count as coverage of the September 16, 2026 frozen event.",
+      "run_capture": {
+        "capturedAt": "2026-10-24",
+        "environment": "Production Tidelight Market Research page, signed-in browser session",
+        "taskTimeMeasured": false,
+        "claimsValidated": null,
+        "reviewerLabels": null,
+        "adjudications": null,
+        "observedElapsedUiSeconds": 34,
+        "status": "source_only",
+        "sourcesReturned": 18,
+        "aiSynthesis": "unavailable",
+        "marketOrTradingHandoff": false,
+        "observation": "Eighteen macro sources were collected. AI synthesis was unavailable; output remained source-only without a factual summary or handoff."
       }
     }
   ]
