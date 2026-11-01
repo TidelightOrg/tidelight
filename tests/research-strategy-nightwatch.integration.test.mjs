@@ -234,6 +234,8 @@ test("anonymous judge research is same-origin, session-only, and cannot hand off
   assert.equal(rateLimited.status, 429, "database rate-limit denial prevents provider work");
   globalThis.flowTest.user = previousUser;
   globalThis.flowTest.guestAllowed = true;
+});
+
 test("SEC-only evidence is eligible for grounded synthesis when issuer news retrieval is empty", async () => {
   globalThis.flowTest.emptyIssuerNews = true;
   globalThis.flowTest.aiCalls = 0;
