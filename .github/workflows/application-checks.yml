@@ -99,6 +99,38 @@ jobs:
       - name: Test replay permissions, ownership, expiry, and revocation
         run: psql -v ON_ERROR_STOP=1 -f tests/postgres/public-research-replay.sql
 
+  guest-research-rate-limit-database:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tidelight_guest_research_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d tidelight_guest_research_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: tidelight_guest_research_test
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare isolated guest research roles
+        run: psql -v ON_ERROR_STOP=1 -c "create role anon nologin; create role authenticated nologin; create role service_role nologin"
+      - name: Apply guest research rate-limit migration
+        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261031120000_guest_research_rate_limit.sql
+      - name: Test rate windows, rejected-reservation accounting, and permissions
+        run: psql -v ON_ERROR_STOP=1 -f tests/postgres/guest-research-rate-limit.sql
+
   nightwatch-replay-database:
     runs-on: ubuntu-latest
     services:

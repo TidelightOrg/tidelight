@@ -81,7 +81,7 @@ export async function POST(request: Request) {
     const fingerprint = createHmac("sha256", secret).update(`guest-research:${ip}`).digest("hex");
     const { data: allowed, error } = await supabase.rpc("reserve_guest_research", { p_fingerprint: fingerprint });
     if (error) return NextResponse.json({ error: "Public research capacity could not be checked. Retry shortly." }, { status: 503 });
-    if (allowed !== true) return NextResponse.json({ error: "Public research is at its hourly limit for this connection. Sign in for your private research workspace." }, { status: 429 });
+    if (allowed !== true) return NextResponse.json({ error: "Public research has reached its hourly or daily limit for this connection. Sign in for your private research workspace." }, { status: 429 });
   }
   const workspaceContext = typeof body.workspaceContext === "string" && body.workspaceContext.length <= 240 && /^\/(?!\/)[a-zA-Z0-9/_?=&.%+-]*$/.test(body.workspaceContext) ? body.workspaceContext : null;
   const contextRunId = typeof body.contextRunId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.contextRunId) ? body.contextRunId : null;
