@@ -101,7 +101,7 @@
     },
     "researchQuality": {
       "status": "not_measured",
-      "reason": "Operational captures do not establish factual correctness, citation support, completeness, freshness, or calibrated decision quality. Independent claim review and adjudication are still required."
+      "reason": "Operational captures do not establish factual correctness, citation support, completeness, freshness, or calibrated decision quality."
     }
   },
   "interpretation": "These observations describe recorded production runs. They do not establish factual correctness, citation entailment, completeness, calibrated confidence, task time, or performance."

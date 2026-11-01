@@ -195,6 +195,20 @@ test("validates capture objects, provenance, narrative observations, zero durati
   assert.ok(invalid.errors.some(error => error.includes("run_capture must be an object")));
   assert.ok(invalid.errors.some(error => error.includes("unmatched_run_captures must be an array")));
 
+  const invalidUnmatched = completeBenchmark();
+  invalidUnmatched.unmatched_run_captures = [{ runId: "unmatched", run_capture: { sourcesReturned: -1 } }];
+  const invalidUnmatchedResult = scoreBenchmark(invalidUnmatched);
+  assert.equal(invalidUnmatchedResult.complete, false);
+  assert.ok(invalidUnmatchedResult.errors.some(error => error.includes("unmatched_run_captures[0].run_capture.sourcesReturned")));
+  assert.equal(invalidUnmatchedResult.operationalObservations.capturedRuns, 0, "unmatched captures remain outside event coverage");
+
+  const validUnmatched = completeBenchmark();
+  validUnmatched.unmatched_run_captures = [{ runId: "unmatched", run_capture: { status: "source_only", sourcesReturned: 1 } }];
+  const validUnmatchedResult = scoreBenchmark(validUnmatched);
+  assert.equal(validUnmatchedResult.complete, true);
+  assert.equal(validUnmatchedResult.operationalObservations.capturedRuns, 0, "valid unmatched runs are not event coverage");
+  assert.ok(!validUnmatchedResult.operationalObservations.researchQuality.reason.includes("review"));
+
   const malformedArray = completeBenchmark();
   malformedArray.events[0].run_capture = [];
   assert.equal(scoreBenchmark(malformedArray).complete, false);

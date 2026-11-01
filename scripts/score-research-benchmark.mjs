@@ -31,26 +31,32 @@ function distribution(values) {
   return { count: finite.length, median: median(finite), minimum: Math.min(...finite), maximum: Math.max(...finite) };
 }
 
+function validateRunCapture(capture, label, errors, { required = false } = {}) {
+  if (capture === undefined || capture === null) {
+    if (required) errors.push(`${label} must be an object.`);
+    return false;
+  }
+  if (typeof capture !== "object" || Array.isArray(capture)) {
+    errors.push(`${label} must be an object${required ? "" : " or null when provided"}.`);
+    return false;
+  }
+  const invalid = [];
+  if (capture.observedElapsedUiSeconds !== null && capture.observedElapsedUiSeconds !== undefined && (typeof capture.observedElapsedUiSeconds !== "number" || !Number.isFinite(capture.observedElapsedUiSeconds) || capture.observedElapsedUiSeconds < 0)) invalid.push("observedElapsedUiSeconds must be a finite nonnegative number when recorded");
+  if (capture.sourcesReturned !== null && capture.sourcesReturned !== undefined && (!Number.isSafeInteger(capture.sourcesReturned) || capture.sourcesReturned < 0)) invalid.push("sourcesReturned must be a nonnegative safe integer when recorded");
+  if (capture.confidencePercent !== null && capture.confidencePercent !== undefined && (typeof capture.confidencePercent !== "number" || !Number.isFinite(capture.confidencePercent) || capture.confidencePercent < 0 || capture.confidencePercent > 100)) invalid.push("confidencePercent must be between 0 and 100 when recorded");
+  if (capture.confidencePercent !== null && capture.confidencePercent !== undefined && !["model_reported", "application_fallback"].includes(capture.confidenceOrigin)) invalid.push("confidenceOrigin must be model_reported or application_fallback when confidencePercent is recorded");
+  if (capture.confidenceOrigin !== null && capture.confidenceOrigin !== undefined && !["model_reported", "application_fallback"].includes(capture.confidenceOrigin)) invalid.push("confidenceOrigin must be model_reported or application_fallback when recorded");
+  errors.push(...invalid.map(message => `${label}.${message}.`));
+  return invalid.length === 0;
+}
+
 /** Operational captures are observable facts, not reviewer-scored research quality. */
 function scoreOperationalObservations(events, unmatchedRunCaptures = []) {
   const errors = [];
   const captures = events.flatMap((event, eventIndex) => {
     const capture = event?.run_capture;
     if (capture === undefined || capture === null) return [];
-    if (typeof capture !== "object" || Array.isArray(capture)) {
-      errors.push(`events[${eventIndex}].run_capture must be an object or null when provided.`);
-      return [];
-    }
-    const invalid = [];
-    if (capture.observedElapsedUiSeconds !== null && capture.observedElapsedUiSeconds !== undefined && (typeof capture.observedElapsedUiSeconds !== "number" || !Number.isFinite(capture.observedElapsedUiSeconds) || capture.observedElapsedUiSeconds < 0)) invalid.push("observedElapsedUiSeconds must be a finite nonnegative number when recorded");
-    if (capture.sourcesReturned !== null && capture.sourcesReturned !== undefined && (!Number.isSafeInteger(capture.sourcesReturned) || capture.sourcesReturned < 0)) invalid.push("sourcesReturned must be a nonnegative safe integer when recorded");
-    if (capture.confidencePercent !== null && capture.confidencePercent !== undefined && (typeof capture.confidencePercent !== "number" || !Number.isFinite(capture.confidencePercent) || capture.confidencePercent < 0 || capture.confidencePercent > 100)) invalid.push("confidencePercent must be between 0 and 100 when recorded");
-    if (capture.confidencePercent !== null && capture.confidencePercent !== undefined && !["model_reported", "application_fallback"].includes(capture.confidenceOrigin)) invalid.push("confidenceOrigin must be model_reported or application_fallback when confidencePercent is recorded");
-    if (capture.confidenceOrigin !== null && capture.confidenceOrigin !== undefined && !["model_reported", "application_fallback"].includes(capture.confidenceOrigin)) invalid.push("confidenceOrigin must be model_reported or application_fallback when recorded");
-    if (invalid.length) {
-      errors.push(...invalid.map(message => `events[${eventIndex}].run_capture.${message}.`));
-      return [];
-    }
+    if (!validateRunCapture(capture, `events[${eventIndex}].run_capture`, errors)) return [];
     // A template may contain an all-null placeholder. Count only a capture
     // with an observed run status or another concrete observation field.
     const hasObservation = capture && typeof capture === "object" && (
@@ -97,7 +103,7 @@ function scoreOperationalObservations(events, unmatchedRunCaptures = []) {
       capturesWithoutObservation: captures.length - handoffObservations.length,
     },
     claimsMarkedValidated: { count: validatedClaims, denominator: validationObservations, status: validationObservations ? "observed" : "not_measured", capturesWithoutObservation: captures.length - validationObservations },
-    researchQuality: { status: "not_measured", reason: "Operational captures do not establish factual correctness, citation support, completeness, freshness, or calibrated decision quality. Independent claim review and adjudication are still required." },
+    researchQuality: { status: "not_measured", reason: "Operational captures do not establish factual correctness, citation support, completeness, freshness, or calibrated decision quality." },
   };
 }
 
@@ -222,7 +228,16 @@ export function scoreBenchmark(benchmark) {
 
   if (!factualClaims) errors.push("The evaluation set must contain at least one independently reviewed factual claim.");
   if (categories.size < 3) errors.push(`At least three event categories are required; found ${categories.size}.`);
-  const { errors: captureErrors, ...operationalObservations } = scoreOperationalObservations(events, Array.isArray(benchmark.unmatched_run_captures) ? benchmark.unmatched_run_captures : []);
+  const unmatchedRunCaptures = Array.isArray(benchmark.unmatched_run_captures) ? benchmark.unmatched_run_captures : [];
+  for (const [index, record] of unmatchedRunCaptures.entries()) {
+    const label = `unmatched_run_captures[${index}]`;
+    if (!record || typeof record !== "object" || Array.isArray(record)) {
+      errors.push(`${label} must be an object.`);
+      continue;
+    }
+    validateRunCapture(record.run_capture, `${label}.run_capture`, errors, { required: true });
+  }
+  const { errors: captureErrors, ...operationalObservations } = scoreOperationalObservations(events, unmatchedRunCaptures);
   errors.push(...captureErrors);
   const complete = errors.length === 0;
   const mean = (sum, count) => count ? Math.round((sum / count) * 100) / 100 : null;
