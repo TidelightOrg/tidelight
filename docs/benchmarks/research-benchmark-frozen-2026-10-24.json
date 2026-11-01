@@ -137,7 +137,7 @@
         "status": "model_synthesis",
         "aiSynthesis": "Gemini",
         "quoteFreshness": "stale",
-        "marketOrTradingHandoff": false,
+        "marketOrTradingHandoff": null,
         "observation": "Gemini output included claims about a $678B backlog up 84% and institutional fund sales, with no counter-evidence. The quote was stale. An earlier paraphrased run returned FY Q4 coverage, so the exact frozen question was rerun and retained."
       }
     },
@@ -180,7 +180,8 @@
         "status": "no_attributable_sources",
         "sourcesReturned": 0,
         "aiSynthesis": "not_attempted",
-        "observation": "No attributable sources returned; synthesis was not attempted."
+        "observation": "No attributable sources returned; synthesis was not attempted.",
+        "marketOrTradingHandoff": null
       }
     },
     {
@@ -222,7 +223,8 @@
         "status": "source_only",
         "sourcesReturned": 15,
         "aiSynthesis": "unavailable",
-        "observation": "Source-only fallback with 15 headlines across 11 publishers; AI synthesis was unavailable."
+        "observation": "Source-only fallback with 15 headlines across 11 publishers; AI synthesis was unavailable.",
+        "marketOrTradingHandoff": null
       }
     },
     {
@@ -232,7 +234,7 @@
       "question": "Summarize Alphabet's Q4 2025 results and 2026 capital-spending outlook using the captured sources. Separate reported outcomes from guidance and investor interpretation; do not infer future returns.",
       "askedAt": null,
       "taskTimeSeconds": null,
-      "referenceNote": "Alphabet reported Q4 revenue of $113.8 billion, up 18%, while its outlook anticipated $175\u2013185 billion of 2026 capex. Reuters noted cloud growth and a mixed share-price reaction. The spending range is guidance, not realized spend.",
+      "referenceNote": "Alphabet reported Q4 revenue of $113.8 billion, up 18%, while its outlook anticipated $175–185 billion of 2026 capex. Reuters noted cloud growth and a mixed share-price reaction. The spending range is guidance, not realized spend.",
       "sources": [
         {
           "url": "https://www.sec.gov/Archives/edgar/data/1652044/000165204426000012/googexhibit991q42025.htm",
@@ -277,7 +279,7 @@
       "question": "Explain the September 16, 2026 FOMC decision and the evidence relevant to its stated rationale. Distinguish the official decision from reporting and market interpretation; do not predict the next policy move.",
       "askedAt": null,
       "taskTimeSeconds": null,
-      "referenceNote": "The FOMC unanimously raised the federal funds target range by 25 basis points to 3.75%\u20134.00%, citing elevated inflation and a timelier return to its 2% goal. Reuters described projections for additional tightening; projections are not a commitment to a specific path.",
+      "referenceNote": "The FOMC unanimously raised the federal funds target range by 25 basis points to 3.75%–4.00%, citing elevated inflation and a timelier return to its 2% goal. Reuters described projections for additional tightening; projections are not a commitment to a specific path.",
       "sources": [
         {
           "url": "https://www.federalreserve.gov/newsevents/pressreleases/monetary20260916a.htm",
@@ -338,7 +340,7 @@
         "status": "source_only",
         "sourcesReturned": 10,
         "aiSynthesis": "unavailable",
-        "marketOrTradingHandoff": false,
+        "marketOrTradingHandoff": null,
         "observation": "Ten macro sources were collected. AI synthesis was unavailable; output remained source-only."
       }
     },
@@ -449,8 +451,8 @@
         "status": "source_only",
         "sourcesReturned": 18,
         "aiSynthesis": "unavailable",
-        "marketOrTradingHandoff": false,
-        "observation": "Eighteen macro sources were collected. AI synthesis was unavailable; output remained source-only without a factual summary or handoff."
+        "marketOrTradingHandoff": null,
+        "observation": "Eighteen macro sources were collected. AI synthesis was unavailable; output remained source-only without a factual summary."
       }
     }
   ]

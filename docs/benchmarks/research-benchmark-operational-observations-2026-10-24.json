@@ -27,8 +27,8 @@
           "status": "source_only",
           "sourcesReturned": 18,
           "aiSynthesis": "unavailable",
-          "marketOrTradingHandoff": false,
-          "observation": "Eighteen macro sources were collected. AI synthesis was unavailable; output remained source-only without a factual summary or handoff."
+          "marketOrTradingHandoff": null,
+          "observation": "Eighteen macro sources were collected. AI synthesis was unavailable; output remained source-only without a factual summary."
         }
       }
     ],
@@ -89,9 +89,9 @@
     },
     "marketOrTradingHandoff": {
       "count": 0,
-      "noHandoff": 6,
-      "capturesWithObservation": 6,
-      "capturesWithoutObservation": 3
+      "noHandoff": 4,
+      "capturesWithObservation": 4,
+      "capturesWithoutObservation": 5
     },
     "claimsMarkedValidated": {
       "count": 0,

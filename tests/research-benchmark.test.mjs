@@ -147,6 +147,7 @@ test("frozen production captures expose operational observations without inventi
   assert.deepEqual(result.operationalObservations.modelReportedConfidencePercent, { count: 1, median: 10, minimum: 10, maximum: 10, capturesWithValue: 1, capturesWithoutValue: 8, interpretation: "Only values explicitly attributed to the model; not a calibrated probability or quality score." });
   assert.equal(result.operationalObservations.uiConfidencePercent.count, 3);
   assert.equal(result.operationalObservations.sourcesReturned.capturesWithCount, 7);
+  assert.deepEqual(result.operationalObservations.marketOrTradingHandoff, { count: 0, noHandoff: 4, capturesWithObservation: 4, capturesWithoutObservation: 5 });
   assert.equal(result.operationalObservations.claimsMarkedValidated.status, "not_measured");
   assert.equal(result.operationalObservations.researchQuality.status, "not_measured");
   assert.equal(report.status, "OPERATIONAL_OBSERVATIONS_ONLY");
@@ -183,4 +184,30 @@ test("quote freshness alone is an observation and invalid numeric capture values
     assert.equal(result.operationalObservations.capturedRuns, 0, "invalid numeric capture values cannot increase coverage");
     assert.ok(result.errors.some(error => error.includes("events[0].run_capture")));
   }
+});
+
+test("validates capture objects, provenance, narrative observations, zero durations, and unmatched records", () => {
+  const malformed = completeBenchmark();
+  malformed.events[0].run_capture = "source_only";
+  malformed.unmatched_run_captures = null;
+  const invalid = scoreBenchmark(malformed);
+  assert.equal(invalid.complete, false);
+  assert.ok(invalid.errors.some(error => error.includes("run_capture must be an object")));
+  assert.ok(invalid.errors.some(error => error.includes("unmatched_run_captures must be an array")));
+
+  const malformedArray = completeBenchmark();
+  malformedArray.events[0].run_capture = [];
+  assert.equal(scoreBenchmark(malformedArray).complete, false);
+
+  const confidence = completeBenchmark();
+  confidence.events[0].run_capture = { confidencePercent: 10 };
+  const missingOrigin = scoreBenchmark(confidence);
+  assert.equal(missingOrigin.complete, false);
+  assert.ok(missingOrigin.errors.some(error => error.includes("confidenceOrigin")));
+
+  const narrative = completeBenchmark();
+  narrative.events[0].run_capture = { observation: "Source-only result recorded", observedElapsedUiSeconds: 0 };
+  const observed = scoreBenchmark(narrative).operationalObservations;
+  assert.equal(observed.capturedRuns, 1);
+  assert.deepEqual(observed.uiElapsedSeconds, { count: 1, median: 0, minimum: 0, maximum: 0, interpretation: "Observed UI elapsed time; not protocol task time or provider latency." });
 });

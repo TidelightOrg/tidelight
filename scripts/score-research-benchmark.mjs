@@ -36,11 +36,17 @@ function scoreOperationalObservations(events, unmatchedRunCaptures = []) {
   const errors = [];
   const captures = events.flatMap((event, eventIndex) => {
     const capture = event?.run_capture;
-    if (!capture || typeof capture !== "object" || Array.isArray(capture)) return [];
+    if (capture === undefined || capture === null) return [];
+    if (typeof capture !== "object" || Array.isArray(capture)) {
+      errors.push(`events[${eventIndex}].run_capture must be an object or null when provided.`);
+      return [];
+    }
     const invalid = [];
     if (capture.observedElapsedUiSeconds !== null && capture.observedElapsedUiSeconds !== undefined && (typeof capture.observedElapsedUiSeconds !== "number" || !Number.isFinite(capture.observedElapsedUiSeconds) || capture.observedElapsedUiSeconds < 0)) invalid.push("observedElapsedUiSeconds must be a finite nonnegative number when recorded");
     if (capture.sourcesReturned !== null && capture.sourcesReturned !== undefined && (!Number.isSafeInteger(capture.sourcesReturned) || capture.sourcesReturned < 0)) invalid.push("sourcesReturned must be a nonnegative safe integer when recorded");
     if (capture.confidencePercent !== null && capture.confidencePercent !== undefined && (typeof capture.confidencePercent !== "number" || !Number.isFinite(capture.confidencePercent) || capture.confidencePercent < 0 || capture.confidencePercent > 100)) invalid.push("confidencePercent must be between 0 and 100 when recorded");
+    if (capture.confidencePercent !== null && capture.confidencePercent !== undefined && !["model_reported", "application_fallback"].includes(capture.confidenceOrigin)) invalid.push("confidenceOrigin must be model_reported or application_fallback when confidencePercent is recorded");
+    if (capture.confidenceOrigin !== null && capture.confidenceOrigin !== undefined && !["model_reported", "application_fallback"].includes(capture.confidenceOrigin)) invalid.push("confidenceOrigin must be model_reported or application_fallback when recorded");
     if (invalid.length) {
       errors.push(...invalid.map(message => `events[${eventIndex}].run_capture.${message}.`));
       return [];
@@ -55,6 +61,7 @@ function scoreOperationalObservations(events, unmatchedRunCaptures = []) {
       || typeof capture.claimsValidated === "boolean"
       || (typeof capture.confidencePercent === "number" && Number.isFinite(capture.confidencePercent))
       || (typeof capture.quoteFreshness === "string" && capture.quoteFreshness.trim())
+      || (typeof capture.observation === "string" && capture.observation.trim())
       || typeof capture.marketOrTradingHandoff === "boolean"
     );
     return hasObservation
@@ -63,7 +70,7 @@ function scoreOperationalObservations(events, unmatchedRunCaptures = []) {
   });
   const countValues = (selector) => Object.fromEntries([...new Set(captures.map(({ capture }) => selector(capture)).filter((value) => typeof value === "string" && value))]
     .sort().map((value) => [value, captures.filter(({ capture }) => selector(capture) === value).length]));
-  const elapsed = captures.map(({ capture }) => capture.observedElapsedUiSeconds).filter((value) => Number.isFinite(value) && value > 0);
+  const elapsed = captures.map(({ capture }) => capture.observedElapsedUiSeconds).filter((value) => Number.isFinite(value) && value >= 0);
   const sourceCounts = captures.map(({ capture }) => capture.sourcesReturned).filter((value) => Number.isSafeInteger(value) && value >= 0);
   const confidence = captures.filter(({ capture }) => capture.confidenceOrigin === "model_reported" && capture.aiSynthesis !== "unavailable" && capture.aiSynthesis !== "not_attempted").map(({ capture }) => capture.confidencePercent).filter((value) => Number.isFinite(value) && value >= 0 && value <= 100);
   const uiConfidence = captures.map(({ capture }) => capture.confidencePercent).filter((value) => Number.isFinite(value) && value >= 0 && value <= 100);
@@ -99,6 +106,7 @@ export function scoreBenchmark(benchmark) {
   if (!benchmark || typeof benchmark !== "object" || Array.isArray(benchmark)) return { complete: false, errors: ["Benchmark must be a JSON object."] };
   if (benchmark.schemaVersion !== 1) errors.push("schemaVersion must be 1.");
   if (!Array.isArray(benchmark.events)) errors.push("events must be an array.");
+  if (Object.hasOwn(benchmark, "unmatched_run_captures") && !Array.isArray(benchmark.unmatched_run_captures)) errors.push("unmatched_run_captures must be an array when provided.");
   const events = Array.isArray(benchmark.events) ? benchmark.events : [];
   if (events.length < 10) errors.push(`At least 10 events are required; found ${events.length}.`);
 
@@ -214,7 +222,7 @@ export function scoreBenchmark(benchmark) {
 
   if (!factualClaims) errors.push("The evaluation set must contain at least one independently reviewed factual claim.");
   if (categories.size < 3) errors.push(`At least three event categories are required; found ${categories.size}.`);
-  const { errors: captureErrors, ...operationalObservations } = scoreOperationalObservations(events, benchmark.unmatched_run_captures);
+  const { errors: captureErrors, ...operationalObservations } = scoreOperationalObservations(events, Array.isArray(benchmark.unmatched_run_captures) ? benchmark.unmatched_run_captures : []);
   errors.push(...captureErrors);
   const complete = errors.length === 0;
   const mean = (sum, count) => count ? Math.round((sum / count) * 100) / 100 : null;
