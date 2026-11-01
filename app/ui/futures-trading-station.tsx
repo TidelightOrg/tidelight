@@ -8,7 +8,7 @@ import ChartShareButton, { type ShareCandle, type ShareMarker } from "@/app/ui/c
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/app/ui/language-provider";
 import { LeverageControl, OrderGuideSheet, OrderTypeControl, TradingToolsButton, type OrderType, type TradePreferences } from "@/app/ui/futures-workshop-panels";
-import { estimateBookSweep, type ExecutionBookLevel, type ExecutionSide } from "@/lib/execution-feasibility";
+import { estimateBookSweep, executionSidesForAction, type ExecutionBookLevel, type ExecutionSide } from "@/lib/execution-feasibility";
 
 type PaperPosition={symbol:string;direction:"long"|"short";quantity:number;entry_fill:number;margin:number;entry_fee:number;opened_at:string};
 type Fill={id:string;symbol:string;action:string;direction:string;quantity:number;fill_price:number;notional:number;fee:number;realized_pnl:number;created_at:string};
@@ -36,8 +36,7 @@ const tradeSide=(fill:Fill):"B"|"S"=>fill.action==="open_long"||(fill.action==="
 
 function PaperExecutionEstimate({action,quantity,direction,market,now}:{action:"open_long"|"open_short"|"close";quantity:number;direction:"long"|"short"|null;market:MarketPayload|null;now:number}){
   const isClose=action==="close";
-  const entrySide:ExecutionSide|null=action==="open_long"?"buy":action==="open_short"?"sell":direction==="long"?"sell":direction==="short"?"buy":null;
-  const exitSide:ExecutionSide|null=isClose?null:entrySide==="buy"?"sell":entrySide==="sell"?"buy":null;
+  const {primarySide:entrySide,secondarySide:exitSide}=executionSidesForAction(action,direction);
   const book=market?.orderbook;
   const askPrices=(book?.asks??[]).map(level=>level.price).filter(price=>Number.isFinite(price)&&price>0);
   const bidPrices=(book?.bids??[]).map(level=>level.price).filter(price=>Number.isFinite(price)&&price>0);

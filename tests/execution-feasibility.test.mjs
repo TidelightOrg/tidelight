@@ -6,7 +6,7 @@ const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
   if (specifier === "@/lib/execution-feasibility") return { url: new URL("../lib/execution-feasibility.ts", import.meta.url).href, shortCircuit: true };
   return nextResolve(specifier, context);
 } });
-const { estimateBookSweep } = await import("@/lib/execution-feasibility");
+const { estimateBookSweep, executionSidesForAction } = await import("@/lib/execution-feasibility");
 hooks.deregister();
 
 test("book sweep prices a buy across visible ask levels", () => {
@@ -38,4 +38,12 @@ test("missing, stale, future-dated, and malformed books never produce an estimat
   assert.equal(estimateBookSweep({ ...base, bookTimestamp: 30_000 }).status, "unavailable");
   assert.equal(estimateBookSweep({ ...base, levels: [{ price: 0, size: 10 }], bookTimestamp: 19_000 }).status, "unavailable");
   assert.equal(estimateBookSweep({ ...base, levels: [{ price: 99, size: 3 }], oppositeBestPrice: 100, bookTimestamp: 19_000 }).status, "unavailable", "crossed books never create a slippage estimate");
+});
+
+test("execution confirmation sides match open and close actions", () => {
+  assert.deepEqual(executionSidesForAction("open_long", null), { primarySide: "buy", secondarySide: "sell" });
+  assert.deepEqual(executionSidesForAction("open_short", null), { primarySide: "sell", secondarySide: "buy" });
+  assert.deepEqual(executionSidesForAction("close", "long"), { primarySide: "sell", secondarySide: null });
+  assert.deepEqual(executionSidesForAction("close", "short"), { primarySide: "buy", secondarySide: null });
+  assert.deepEqual(executionSidesForAction("close", null), { primarySide: null, secondarySide: null });
 });

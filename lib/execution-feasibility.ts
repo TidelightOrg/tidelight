@@ -1,5 +1,13 @@
 export type ExecutionBookLevel = { price: number; size: number };
 export type ExecutionSide = "buy" | "sell";
+export type ExecutionAction = "open_long" | "open_short" | "close";
+export type PositionDirection = "long" | "short" | null;
+
+/** Return only the side(s) implied by the proposed paper action. */
+export function executionSidesForAction(action: ExecutionAction, direction: PositionDirection) {
+  const primarySide: ExecutionSide | null = action === "open_long" ? "buy" : action === "open_short" ? "sell" : direction === "long" ? "sell" : direction === "short" ? "buy" : null;
+  return { primarySide, secondarySide: action === "close" ? null : primarySide === "buy" ? "sell" : primarySide === "sell" ? "buy" : null } as const;
+}
 
 export type BookSweep = {
   status: "estimated" | "insufficient_depth" | "unavailable";
