@@ -14,11 +14,11 @@ begin
   for i in 1..7 loop
     if public.reserve_guest_research(v_fingerprint) then raise exception 'hourly retry % should be denied', i; end if;
   end loop;
-  update public.guest_research_rate_limits set hour_started_at = now() - interval '2 hours', day_started_at = now() where fingerprint = v_fingerprint;
+  update public.guest_research_rate_limits set hour_started_at = now() - interval '2 hours' where fingerprint = v_fingerprint;
   if not public.reserve_guest_research(v_fingerprint) then raise exception 'hourly-denied retries must not consume daily capacity'; end if;
   for i in 1..10 loop
     if i > 1 and (i - 1) % 3 = 0 then
-      update public.guest_research_rate_limits set hour_started_at = now() - interval '2 hours', day_started_at = now() where fingerprint = v_daily_fingerprint;
+      update public.guest_research_rate_limits set hour_started_at = now() - interval '2 hours' where fingerprint = v_daily_fingerprint;
     end if;
     v_allowed := public.reserve_guest_research(v_daily_fingerprint);
     if not v_allowed then raise exception 'daily request % should pass', i; end if;
