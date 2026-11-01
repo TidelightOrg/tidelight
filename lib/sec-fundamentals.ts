@@ -4,6 +4,7 @@ export type SecFact = { val: number; end: string; filed: string; form: string; f
 type CompanyFacts = { cik: number; entityName: string; facts: { [taxonomy: string]: Record<string, { label?: string; units?: Record<string, SecFact[]> }> } };
 type Submissions = { name: string; sic?: string; sicDescription?: string; exchanges?: string[]; addresses?: { business?: Record<string, string> }; formerNames?: Array<{ name: string; from: string; to: string }> };
 type TickerIndex = Record<string, { cik_str: number; ticker: string; title: string }>;
+type SecFinancialPeriod = { period: string; periodEnd: string; filed: string; form: string; revenue: number | null; netIncome: number | null; totalAssets: number | null; totalLiabilities: number | null; operatingCashFlow: number | null; capitalExpenditure: number | null; filedByMetric: Record<"revenue" | "netIncome" | "totalAssets" | "totalLiabilities" | "operatingCashFlow" | "capitalExpenditure", string | null> };
 
 const SEC = "https://data.sec.gov";
 const SEC_WEB = "https://www.sec.gov";
@@ -36,8 +37,8 @@ export type CompanyResearch = {
   sourceUrl: string;
   retrievedAt: string;
   financials: {
-    quarterly: { period: string; periodEnd: string; filed: string; form: string; revenue: number | null; netIncome: number | null; totalAssets: number | null; totalLiabilities: number | null; operatingCashFlow: number | null; capitalExpenditure: number | null }[];
-    annual: { period: string; periodEnd: string; filed: string; form: string; revenue: number | null; netIncome: number | null; totalAssets: number | null; totalLiabilities: number | null; operatingCashFlow: number | null; capitalExpenditure: number | null }[];
+    quarterly: SecFinancialPeriod[];
+    annual: SecFinancialPeriod[];
   };
   dividends: { periodEnd: string; filed: string; amountPerShare: number; unit: string }[];
   analystTargets: { status: "available"; high: number | null; low: number | null; mean: number | null; median: number | null; updatedAt: string; source: "Finnhub" } | { status: "not_configured" } | { status: "unavailable" };
@@ -103,6 +104,8 @@ function buildPeriods(facts: CompanyFacts, duration: "quarter" | "annual", asOfD
     const revenue = revenues.get(end), netIncome = income.get(end), operatingCashFlow = cash.get(end), capitalExpenditure = capex.get(end);
     const basis = revenue ?? netIncome ?? operatingCashFlow ?? capitalExpenditure;
     const formForInstant: "10-Q" | "10-K" = basis?.form === "10-K" ? "10-K" : basis?.form === "10-Q" ? "10-Q" : form;
+    const totalAssets = instantValue(facts, ["Assets"], end, formForInstant, asOfDate);
+    const totalLiabilities = instantValue(facts, ["Liabilities"], end, formForInstant, asOfDate);
     return {
       period: duration === "quarter" ? quarterLabel(end) : `FY ${new Date(`${end}T00:00:00Z`).getUTCFullYear()}`,
       periodEnd: end,
@@ -110,10 +113,11 @@ function buildPeriods(facts: CompanyFacts, duration: "quarter" | "annual", asOfD
       form: formForInstant,
       revenue: revenue?.val ?? null,
       netIncome: netIncome?.val ?? null,
-      totalAssets: instantValue(facts, ["Assets"], end, formForInstant, asOfDate)?.val ?? null,
-      totalLiabilities: instantValue(facts, ["Liabilities"], end, formForInstant, asOfDate)?.val ?? null,
+      totalAssets: totalAssets?.val ?? null,
+      totalLiabilities: totalLiabilities?.val ?? null,
       operatingCashFlow: operatingCashFlow?.val ?? null,
       capitalExpenditure: capitalExpenditure?.val ?? null,
+      filedByMetric: { revenue: revenue?.filed ?? null, netIncome: netIncome?.filed ?? null, totalAssets: totalAssets?.filed ?? null, totalLiabilities: totalLiabilities?.filed ?? null, operatingCashFlow: operatingCashFlow?.filed ?? null, capitalExpenditure: capitalExpenditure?.filed ?? null },
     };
   });
 }

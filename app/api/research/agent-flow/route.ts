@@ -270,7 +270,7 @@ export async function POST(request: Request) {
           for (const period of selectedPeriods) {
             for (const [key, label] of [["revenue", "Revenue"], ["netIncome", "Net income"], ["operatingCashFlow", "Operating cash flow"], ["totalAssets", "Total assets"], ["totalLiabilities", "Total liabilities"]] as const) {
               const value = period[key];
-              if (typeof value === "number" && Number.isFinite(value)) financialFacts.push({ id: `${period.form}:${period.periodEnd}:${key}`, label: `${period.period} ${label}`, value, unit: "USD", periodEnd: period.periodEnd, filedAt: period.filed, form: period.form, sourceUrl: secResearch!.sourceUrl });
+              if (typeof value === "number" && Number.isFinite(value)) financialFacts.push({ id: `${period.form}:${period.periodEnd}:${key}`, label: `${period.period} ${label}`, value, unit: "USD", periodEnd: period.periodEnd, filedAt: period.filedByMetric[key] ?? period.filed, form: period.form, sourceUrl: secResearch!.sourceUrl });
             }
           }
           stage("SEC filings", sec.status === "fulfilled" && financialFacts.length ? "complete" : "blocked", sec.status === "fulfilled" ? `${ticker}: ${financialFacts.length} filed facts` : `${ticker}: SEC facts unavailable`, financialFacts.length ? `${financialFacts.length} dated reported values from SEC company facts are available.` : "No eligible SEC facts were retrieved; missing financials are not inferred.", ticker);

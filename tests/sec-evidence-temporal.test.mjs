@@ -45,6 +45,9 @@ test("SEC period and instant facts select the latest values filed by the as-of d
         { val: 500, end: "2025-03-31", filed: "2025-05-01", form: "10-Q" },
         { val: 900, end: "2025-03-31", filed: "2026-05-01", form: "10-Q" },
       ] } },
+      NetIncomeLoss: { units: { USD: [
+        { val: 25, start: "2025-01-01", end: "2025-03-31", filed: "2025-05-03", form: "10-Q" },
+      ] } },
     } },
   };
   globalThis.fetch = async url => {
@@ -57,4 +60,5 @@ test("SEC period and instant facts select the latest values filed by the as-of d
   assert.equal(result.financials.quarterly[0].revenue, 100);
   assert.equal(result.financials.quarterly[0].totalAssets, 500);
   assert.equal(result.financials.quarterly[0].filed, "2025-05-01");
+  assert.deepEqual(result.financials.quarterly[0].filedByMetric, { revenue: "2025-05-01", netIncome: "2025-05-03", totalAssets: "2025-05-01", totalLiabilities: null, operatingCashFlow: null, capitalExpenditure: null });
 });
