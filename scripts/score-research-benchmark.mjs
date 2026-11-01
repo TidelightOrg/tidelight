@@ -33,8 +33,18 @@ function distribution(values) {
 
 /** Operational captures are observable facts, not reviewer-scored research quality. */
 function scoreOperationalObservations(events, unmatchedRunCaptures = []) {
-  const captures = events.flatMap((event) => {
+  const errors = [];
+  const captures = events.flatMap((event, eventIndex) => {
     const capture = event?.run_capture;
+    if (!capture || typeof capture !== "object" || Array.isArray(capture)) return [];
+    const invalid = [];
+    if (capture.observedElapsedUiSeconds !== null && capture.observedElapsedUiSeconds !== undefined && (typeof capture.observedElapsedUiSeconds !== "number" || !Number.isFinite(capture.observedElapsedUiSeconds) || capture.observedElapsedUiSeconds < 0)) invalid.push("observedElapsedUiSeconds must be a finite nonnegative number when recorded");
+    if (capture.sourcesReturned !== null && capture.sourcesReturned !== undefined && (!Number.isSafeInteger(capture.sourcesReturned) || capture.sourcesReturned < 0)) invalid.push("sourcesReturned must be a nonnegative safe integer when recorded");
+    if (capture.confidencePercent !== null && capture.confidencePercent !== undefined && (typeof capture.confidencePercent !== "number" || !Number.isFinite(capture.confidencePercent) || capture.confidencePercent < 0 || capture.confidencePercent > 100)) invalid.push("confidencePercent must be between 0 and 100 when recorded");
+    if (invalid.length) {
+      errors.push(...invalid.map(message => `events[${eventIndex}].run_capture.${message}.`));
+      return [];
+    }
     // A template may contain an all-null placeholder. Count only a capture
     // with an observed run status or another concrete observation field.
     const hasObservation = capture && typeof capture === "object" && (
@@ -44,6 +54,7 @@ function scoreOperationalObservations(events, unmatchedRunCaptures = []) {
       || Number.isSafeInteger(capture.sourcesReturned)
       || typeof capture.claimsValidated === "boolean"
       || (typeof capture.confidencePercent === "number" && Number.isFinite(capture.confidencePercent))
+      || (typeof capture.quoteFreshness === "string" && capture.quoteFreshness.trim())
       || typeof capture.marketOrTradingHandoff === "boolean"
     );
     return hasObservation
@@ -61,6 +72,7 @@ function scoreOperationalObservations(events, unmatchedRunCaptures = []) {
   const quoteFreshnessObservations = countValues((capture) => capture.quoteFreshness);
   const handoffObservations = captures.filter(({ capture }) => typeof capture.marketOrTradingHandoff === "boolean");
   return {
+    errors,
     capturedRuns: captures.length,
     unmatchedRunCaptures: Array.isArray(unmatchedRunCaptures) ? unmatchedRunCaptures : [],
     captureCoverage: ratio(captures.length, events.length),
@@ -202,6 +214,8 @@ export function scoreBenchmark(benchmark) {
 
   if (!factualClaims) errors.push("The evaluation set must contain at least one independently reviewed factual claim.");
   if (categories.size < 3) errors.push(`At least three event categories are required; found ${categories.size}.`);
+  const { errors: captureErrors, ...operationalObservations } = scoreOperationalObservations(events, benchmark.unmatched_run_captures);
+  errors.push(...captureErrors);
   const complete = errors.length === 0;
   const mean = (sum, count) => count ? Math.round((sum / count) * 100) / 100 : null;
   const metrics = {
@@ -220,7 +234,7 @@ export function scoreBenchmark(benchmark) {
     taskTimeSeconds: taskTimes.length ? { count: taskTimes.length, median: median(taskTimes), minimum: Math.min(...taskTimes), maximum: Math.max(...taskTimes) } : { status: "not_measured", count: 0, median: null, minimum: null, maximum: null },
     sourceClasses: sourceClassTotals,
   };
-  return { complete, errors, metadata: benchmark.metadata ?? {}, metrics: complete ? metrics : null, operationalObservations: scoreOperationalObservations(events, benchmark.unmatched_run_captures) };
+  return { complete, errors, metadata: benchmark.metadata ?? {}, metrics: complete ? metrics : null, operationalObservations };
 }
 
 async function main() {

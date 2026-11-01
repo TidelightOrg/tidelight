@@ -161,3 +161,26 @@ test("empty capture placeholders do not count as observed production runs", () =
   assert.equal(result.operationalObservations.capturedRuns, 0);
   assert.deepEqual(result.operationalObservations.captureCoverage, { status: "measured", numerator: 0, denominator: 10, ratePct: 0 });
 });
+
+test("quote freshness alone is an observation and invalid numeric capture values block coverage", () => {
+  const freshnessOnly = completeBenchmark();
+  freshnessOnly.events[0].run_capture = { status: null, quoteFreshness: "stale" };
+  const observed = scoreBenchmark(freshnessOnly);
+  assert.equal(observed.operationalObservations.capturedRuns, 1);
+  assert.deepEqual(observed.operationalObservations.captureCoverage, { status: "measured", numerator: 1, denominator: 10, ratePct: 10 });
+
+  for (const run_capture of [
+    { status: "captured", observedElapsedUiSeconds: -1 },
+    { status: "captured", sourcesReturned: -1 },
+    { status: "captured", sourcesReturned: 1.5 },
+    { status: "captured", sourcesReturned: Number.MAX_SAFE_INTEGER + 1 },
+    { status: "captured", confidencePercent: 101 },
+  ]) {
+    const malformed = completeBenchmark();
+    malformed.events[0].run_capture = run_capture;
+    const result = scoreBenchmark(malformed);
+    assert.equal(result.complete, false);
+    assert.equal(result.operationalObservations.capturedRuns, 0, "invalid numeric capture values cannot increase coverage");
+    assert.ok(result.errors.some(error => error.includes("events[0].run_capture")));
+  }
+});
