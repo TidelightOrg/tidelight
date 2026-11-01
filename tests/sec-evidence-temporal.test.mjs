@@ -79,6 +79,16 @@ test("SEC period and instant facts select the latest values filed by the as-of d
   assert.equal(result.financials.quarterly.find(period => period.periodEnd === "2024-12-31")?.revenue, 40, "fallback revenue tags are selected after applying the historical as-of cutoff");
   assert.equal(result.dividends[0].amountPerShare, 0.25, "an ineligible preferred dividend tag does not prevent fallback tag selection");
   assert.equal(result.asOf, "2025-06-01T12:00:00.000Z");
-  assert.deepEqual(result.limitations, ["SEC facts filed on the as-of date are excluded because filing times are unavailable."]);
+  assert.deepEqual(result.limitations, ["For historical as-of research, SEC facts filed on the as-of date are excluded because filing times are unavailable."]);
   assert.notEqual(result.retrievedAt, result.asOf, "retrieval provenance records actual response processing time");
+
+  companyfacts.facts["us-gaap"].RevenueFromContractWithCustomerExcludingAssessedTax.units.USD.push(
+    { val: 999, start: "2025-01-01", end: "2025-03-31", filed: "2025-06-01", form: "10-Q" },
+    { val: 1000, start: "2025-04-01", end: "2025-06-02", filed: "2025-06-01", form: "10-Q" },
+  );
+  t.mock.method(Date, "now", () => Date.parse("2025-06-01T12:00:00Z"));
+  const live = await getSecCompanyResearch("FIX", null, { includeAnalystTargets: false });
+  assert.equal(live.financials.quarterly.find(period => period.periodEnd === "2025-03-31")?.revenue, 999, "live research may include a filing accepted on the current day");
+  assert.equal(live.financials.quarterly.some(period => period.periodEnd === "2025-06-02"), false, "live same-day eligibility never admits a future reporting period");
+  assert.deepEqual(live.limitations, []);
 });
