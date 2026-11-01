@@ -101,6 +101,12 @@ test("synthetic positive handoff preserves lineage through Research → paper St
   assert.equal(research.tradeable, true);
   assert.ok(research.evidenceGraph.nodes.some(node => node.type === "subject" && node.ticker === "NVDA"));
   assert.ok(research.evidenceGraph.nodes.some(node => node.type === "source" && node.url === sourceRows[0].url));
+  const secRevenue = research.evidenceGraph.nodes.find(node => node.type === "financial_fact" && node.label.includes("Revenue"));
+  const secIncome = research.evidenceGraph.nodes.find(node => node.type === "financial_fact" && node.label.includes("Net income"));
+  assert.equal(secRevenue.filedAt, "2026-10-25");
+  assert.equal(secIncome.filedAt, "2026-10-26", "each metric keeps its own SEC filing date");
+  assert.ok(research.assets[0].sources.some(source => source.publisher === "SEC EDGAR"), "SEC citations are included in displayed asset sources");
+  assert.ok(captures.research.find(row => row.table === "research_sources")?.rows.some(source => source.publisher === "SEC EDGAR"), "SEC citations are persisted alongside the run");
   assert.equal(research.assets[0].handoff.destinations[0].mode, "paper_futures");
   assert.match(research.assets[0].handoff.destinations[0].href, new RegExp(`researchRunId=${researchId}`));
 
