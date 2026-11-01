@@ -69,7 +69,13 @@ export async function POST(request: Request) {
   const supabase = createAdminClient();
   let body: { question?: unknown; judgeMode?: unknown; contextRunId?: unknown; workspaceContext?: unknown; researchMonitorId?: unknown; researchMonitorRevision?: unknown };
   if (Number(request.headers.get("content-length") ?? 0) > 6_000) return NextResponse.json({ error: "Keep the research request under 6 KB." }, { status: 413 });
-  try { const raw = await request.text(); if (raw.length > 6_000) return NextResponse.json({ error: "Keep the research request under 6 KB." }, { status: 413 }); const parsed: unknown = JSON.parse(raw); if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return NextResponse.json({ error: "Send a valid question." }, { status: 400 }); body = parsed as typeof body; } catch { return NextResponse.json({ error: "Send a valid question." }, { status: 400 }); }
+  try {
+    const bytes = await request.arrayBuffer();
+    if (bytes.byteLength > 6_000) return NextResponse.json({ error: "Keep the research request under 6 KB." }, { status: 413 });
+    const parsed: unknown = JSON.parse(new TextDecoder().decode(bytes));
+    if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return NextResponse.json({ error: "Send a valid question." }, { status: 400 });
+    body = parsed as typeof body;
+  } catch { return NextResponse.json({ error: "Send a valid question." }, { status: 400 }); }
   const question = typeof body.question === "string" ? body.question.trim().replace(/\s+/g, " ") : "";
   if (question.length < 5 || question.length > 500) return NextResponse.json({ error: "Ask a market question in 5 to 500 characters." }, { status: 400 });
   if (guest && body.judgeMode !== true) return NextResponse.json({ error: "Use the public Judge Mode research desk to start guest research." }, { status: 401 });

@@ -159,6 +159,11 @@ test("anonymous judge research is same-origin, session-only, and cannot hand off
   globalThis.flowTest.guestAllowed = true;
   captures.research.length = 0;
   const rpcCallsBeforeInvalidQuestion = captures.rpc.length;
+  const oversizedUtf8Body = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
+    method: "POST", headers: { origin: "https://tidelight.app", "content-type": "application/json" }, body: JSON.stringify({ question: "Review NVDA with current public evidence", judgeMode: true, extra: "€".repeat(2_100) }),
+  }));
+  assert.equal(oversizedUtf8Body.status, 413, "UTF-8 request bytes are bounded even when decoded character count is below the limit");
+  assert.equal(captures.rpc.length, rpcCallsBeforeInvalidQuestion, "oversized requests do not consume anonymous capacity");
   const invalidScope = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
     method: "POST", headers: { origin: "https://tidelight.app", "content-type": "application/json" }, body: JSON.stringify({ question: "What could happen to an affected rToken?", judgeMode: true }),
   }));
