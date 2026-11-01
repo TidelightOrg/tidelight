@@ -134,6 +134,7 @@ test("random long/cash placebo is reproducible and seeds only from the training 
   const placebo = runRandomEntryPlacebo(candles, "4H", Date.now(), result.strategyKey, result.test.totalReturnPct);
   const repeated = runRandomEntryPlacebo(candles, "4H", Date.now(), result.strategyKey, result.test.totalReturnPct);
   assert.deepEqual(placebo, repeated);
+  assert.equal(placebo.version, 2);
   assert.equal(placebo.simulations, 100);
   assert.equal(runRandomEntryPlacebo(candles, "4H", Date.now(), result.strategyKey, result.test.totalReturnPct, Number.NaN).simulations, 100);
   assert.ok(placebo.p05ReturnPct <= placebo.medianReturnPct);
@@ -146,6 +147,28 @@ test("random long/cash placebo is reproducible and seeds only from the training 
   assert.equal(changed.seed, placebo.seed, "holdout prices cannot influence placebo randomization");
   assert.equal(changed.trainingEntryRatePerBar, placebo.trainingEntryRatePerBar);
   assert.equal(changed.trainingExitRatePerBar, placebo.trainingExitRatePerBar);
+});
+
+test("random placebo uses state-conditional training hazards and can enter at the first holdout open", () => {
+  const interval = FOUR_HOURS;
+  const candles = [];
+  let priorClose = 100;
+  for (let i = 0; i < 1_000; i += 1) {
+    const close = i < 660 ? 100 + i * 0.1 : 100 + 659 * 0.1;
+    const open = priorClose;
+    candles.push({ timestamp: start + i * interval, open, high: Math.max(open, close) + 0.1, low: Math.min(open, close) - 0.1, close, volume: 1_000, turnover: 100_000 });
+    priorClose = close;
+  }
+  const splitIndex = Math.floor(candles.length * 0.66);
+  const firstHoldout = candles[splitIndex];
+  const surge = firstHoldout.open * 1.4;
+  candles[splitIndex] = { ...firstHoldout, high: surge + 0.1, close: surge };
+  for (let i = splitIndex + 1; i < candles.length; i += 1) candles[i] = { ...candles[i], open: surge, high: surge + 0.1, low: surge - 0.1, close: surge };
+
+  const placebo = runRandomEntryPlacebo(candles, "4H", Date.now(), "sma_trend_v1", 39, 500);
+  assert.equal(placebo.trainingEntryRatePerBar, 1, "the sole observed cash-state transition is one entry per eligible cash bar");
+  assert.equal(placebo.trainingExitRatePerBar, 0, "no exit from the long state was observed in training");
+  assert.ok(placebo.p05ReturnPct > 30, "training-only initialization permits placebo exposure at the first holdout open");
 });
 
 test("trend pullback and semiconductor breakout are deterministic, boolean, causal rules", () => {

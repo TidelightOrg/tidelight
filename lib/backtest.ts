@@ -64,7 +64,7 @@ export type BacktestValidation = {
 
 export type WalkForwardFold = { index: number; trainStart: number; testStart: number; testEnd: number; metrics: BacktestMetrics };
 export type WalkForwardResult = { folds: WalkForwardFold[]; meanReturnPct: number; positiveFolds: number; totalFolds: number; evaluationStart: number; evaluationEnd: number };
-export type RandomEntryPlacebo = { version: 1; simulations: number; seed: number; trainingEntryRatePerBar: number; trainingExitRatePerBar: number; medianReturnPct: number; p05ReturnPct: number; p95ReturnPct: number; beatsStrategyPct: number };
+export type RandomEntryPlacebo = { version: 2; simulations: number; seed: number; trainingEntryRatePerBar: number; trainingExitRatePerBar: number; medianReturnPct: number; p05ReturnPct: number; p95ReturnPct: number; beatsStrategyPct: number };
 
 function validateCandles(input: MarketCandle[]) {
   const candles = [...input].sort((a, b) => a.timestamp - b.timestamp);
@@ -368,8 +368,8 @@ export function runCostSensitivity(symbol: string, interval: CandleInterval, inp
 
 /**
  * Deterministic random long/cash placebo. Entry and exit hazards are estimated
- * only from the strategy's training-window signal frequency, then applied to
- * the untouched holdout with identical fee and slippage assumptions.
+ * only from the strategy's training-window conditional state transitions,
+ * then applied to the untouched holdout with identical fee and slippage assumptions.
  */
 export function runRandomEntryPlacebo(input: MarketCandle[], interval: CandleInterval, asOf: number, strategyKey: StrategyKey, strategyHoldoutReturnPct: number, simulations = 100): RandomEntryPlacebo {
   const candles = prepareBacktestCandles(input, interval, asOf);
@@ -378,16 +378,19 @@ export function runRandomEntryPlacebo(input: MarketCandle[], interval: CandleInt
   const splitIndex = Math.floor(candles.length * BACKTEST_PARAMETERS.trainFraction);
   const warmup = BACKTEST_PARAMETERS.slowWindow;
   const strategySignals = buildSignals(candles, strategyKey);
-  const trainingBars = Math.max(1, splitIndex - warmup);
-  let prior = false, entries = 0, exits = 0;
-  for (let i = warmup; i < splitIndex; i += 1) {
+  let prior = strategySignals[Math.max(0, warmup - 2)] === true;
+  let cashStateBars = 0, longStateBars = 0, entries = 0, exits = 0;
+  for (let i = Math.max(1, warmup - 1); i < splitIndex; i += 1) {
+    if (prior) longStateBars += 1;
+    else cashStateBars += 1;
     const current = strategySignals[i] === true;
     if (current && !prior) entries += 1;
     if (!current && prior) exits += 1;
     prior = current;
   }
-  const trainingEntryRatePerBar = entries / trainingBars;
-  const trainingExitRatePerBar = exits / trainingBars;
+  // An unobserved prior state has no estimated transitions; keep its hazard at zero.
+  const trainingEntryRatePerBar = cashStateBars ? entries / cashStateBars : 0;
+  const trainingExitRatePerBar = longStateBars ? exits / longStateBars : 0;
   let seed = 2166136261;
   const seedMaterial = `${strategyKey}|${interval}|${candles.slice(warmup, splitIndex).map(candle => `${candle.timestamp}:${candle.open}:${candle.high}:${candle.low}:${candle.close}`).join("|")}`;
   for (let i = 0; i < seedMaterial.length; i += 1) seed = Math.imul(seed ^ seedMaterial.charCodeAt(i), 16777619);
@@ -404,7 +407,10 @@ export function runRandomEntryPlacebo(input: MarketCandle[], interval: CandleInt
       return (state >>> 0) / 0x1_0000_0000;
     };
     const placeboSignals = Array<boolean>(candles.length).fill(false);
-    let held = false;
+    // measure() uses signal[i - 1] at candle i's open, so set the signal
+    // immediately before the first holdout candle from training-only rates.
+    let held = random() < trainingEntryRatePerBar;
+    placeboSignals[splitIndex - 1] = held;
     for (let i = splitIndex; i < candles.length; i += 1) {
       if (held ? random() < trainingExitRatePerBar : random() < trainingEntryRatePerBar) held = !held;
       placeboSignals[i] = held;
@@ -413,5 +419,5 @@ export function runRandomEntryPlacebo(input: MarketCandle[], interval: CandleInt
   }
   returns.sort((a, b) => a - b);
   const quantile = (p: number) => returns[Math.floor((returns.length - 1) * p)];
-  return { version: 1, simulations: count, seed, trainingEntryRatePerBar, trainingExitRatePerBar, medianReturnPct: quantile(0.5), p05ReturnPct: quantile(0.05), p95ReturnPct: quantile(0.95), beatsStrategyPct: returns.filter(value => value >= strategyHoldoutReturnPct).length / returns.length * 100 };
+  return { version: 2, simulations: count, seed, trainingEntryRatePerBar, trainingExitRatePerBar, medianReturnPct: quantile(0.5), p05ReturnPct: quantile(0.05), p95ReturnPct: quantile(0.95), beatsStrategyPct: returns.filter(value => value >= strategyHoldoutReturnPct).length / returns.length * 100 };
 }
