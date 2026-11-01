@@ -118,6 +118,20 @@ test("malformed claim URLs fail validation instead of crashing the benchmark sco
   assert.ok(result.errors.some((error) => error.includes("sourceUrl must match one captured source URL")));
 });
 
+test("requires independently reviewed claims and handles malformed quote values", () => {
+  const empty = completeBenchmark();
+  empty.events.forEach(event => { event.claims = []; });
+  const emptyResult = scoreBenchmark(empty);
+  assert.equal(emptyResult.complete, false);
+  assert.ok(emptyResult.errors.some(error => error.includes("at least one reviewed claim")));
+
+  const malformed = completeBenchmark();
+  malformed.events[0].claims[0].quote = null;
+  const malformedResult = scoreBenchmark(malformed);
+  assert.equal(malformedResult.complete, false);
+  assert.ok(malformedResult.errors.some(error => error.includes("quote is required")));
+});
+
 test("frozen production captures expose operational observations without inventing a quality score", async () => {
   const frozen = JSON.parse(await readFile(new URL("../docs/benchmarks/research-benchmark-frozen-2026-10-24.json", import.meta.url), "utf8"));
   const report = JSON.parse(await readFile(new URL("../docs/benchmarks/research-benchmark-operational-observations-2026-10-24.json", import.meta.url), "utf8"));

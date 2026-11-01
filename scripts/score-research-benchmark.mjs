@@ -54,7 +54,7 @@ function scoreOperationalObservations(events, unmatchedRunCaptures = []) {
     .sort().map((value) => [value, captures.filter(({ capture }) => selector(capture) === value).length]));
   const elapsed = captures.map(({ capture }) => capture.observedElapsedUiSeconds).filter((value) => Number.isFinite(value) && value > 0);
   const sourceCounts = captures.map(({ capture }) => capture.sourcesReturned).filter((value) => Number.isSafeInteger(value) && value >= 0);
-  const confidence = captures.filter(({ capture }) => capture.confidenceOrigin === "model_reported").map(({ capture }) => capture.confidencePercent).filter((value) => Number.isFinite(value) && value >= 0 && value <= 100);
+  const confidence = captures.filter(({ capture }) => capture.confidenceOrigin === "model_reported" && capture.aiSynthesis !== "unavailable" && capture.aiSynthesis !== "not_attempted").map(({ capture }) => capture.confidencePercent).filter((value) => Number.isFinite(value) && value >= 0 && value <= 100);
   const uiConfidence = captures.map(({ capture }) => capture.confidencePercent).filter((value) => Number.isFinite(value) && value >= 0 && value <= 100);
   const validatedClaims = captures.filter(({ capture }) => capture.claimsValidated === true).length;
   const validationObservations = captures.filter(({ capture }) => typeof capture.claimsValidated === "boolean").length;
@@ -161,12 +161,14 @@ export function scoreBenchmark(benchmark) {
 
     const claims = Array.isArray(event.claims) ? event.claims : [];
     if (!Array.isArray(event.claims)) errors.push(`${label}.claims must be an array.`);
+    else if (!claims.length) errors.push(`${label}.claims must contain at least one reviewed claim.`);
     for (const [claimIndex, claim] of claims.entries()) {
       const claimLabel = `${label}.claims[${claimIndex}]`;
       if (!claim || typeof claim !== "object") { errors.push(`${claimLabel} must be an object.`); continue; }
       if (typeof claim.text !== "string" || !claim.text.trim()) errors.push(`${claimLabel}.text is required.`);
       if (!new Set(["factual", "analyst_inference"]).has(claim.kind)) errors.push(`${claimLabel}.kind must be factual or analyst_inference.`);
-      if (typeof claim.quote !== "string" || !claim.quote.trim()) errors.push(`${claimLabel}.quote is required.`);
+      const quote = typeof claim.quote === "string" ? claim.quote : "";
+      if (!quote.trim()) errors.push(`${claimLabel}.quote is required.`);
       let canonicalClaimUrl = null;
       try { if (typeof claim.sourceUrl === "string") canonicalClaimUrl = new URL(claim.sourceUrl, "https://invalid.local").href; } catch { /* Report a schema error below; malformed input must not crash scoring. */ }
       if (!canonicalClaimUrl || !sourceUrls.has(canonicalClaimUrl)) errors.push(`${claimLabel}.sourceUrl must match one captured source URL.`);
@@ -189,7 +191,7 @@ export function scoreBenchmark(benchmark) {
       const sourceClass = source?.sourceClass;
       const sourceStats = sourceClassTotals[sourceClass];
       if (sourceStats) sourceStats.factualClaims += 1;
-      if (claim.sourceUrl && claim.quote.trim() && source) {
+      if (claim.sourceUrl && quote.trim() && source) {
         citedClaims += 1;
         if (sourceStats) sourceStats.citedClaims += 1;
       }
@@ -198,6 +200,7 @@ export function scoreBenchmark(benchmark) {
     }
   }
 
+  if (!factualClaims) errors.push("The evaluation set must contain at least one independently reviewed factual claim.");
   if (categories.size < 3) errors.push(`At least three event categories are required; found ${categories.size}.`);
   const complete = errors.length === 0;
   const mean = (sum, count) => count ? Math.round((sum / count) * 100) / 100 : null;
