@@ -51,11 +51,12 @@ test("Qwen receives JSON instructions and a valid result avoids fallback", async
 
 test("provider attempts report successful calls with bounded metadata", async t => {
   configure(t, false);
+  t.mock.method(Date, "now", () => Date.parse("2026-01-01T00:00:00.000Z"));
   t.mock.method(globalThis, "fetch", async () => gemini([{ text: JSON.stringify(answer) }]));
   const attempts = [];
   await aiJsonWithFallback(messages, valid, { onAttempt: attempt => attempts.push(attempt) });
   assert.equal(attempts.length, 1);
-  assert.deepEqual({ ...attempts[0], occurredAt: "2026-01-01T00:00:00.000Z", durationMs: 0 }, { provider: "gemini", model: "gemini-test", attempt: 1, outcome: "success", occurredAt: "2026-01-01T00:00:00.000Z", durationMs: 0 });
+  assert.deepEqual(attempts[0], { provider: "gemini", model: "gemini-test", attempt: 1, outcome: "success", occurredAt: "2026-01-01T00:00:00.000Z", durationMs: 0 });
   assert.ok(Number.isFinite(Date.parse(attempts[0].occurredAt)));
   assert.ok(attempts[0].durationMs >= 0);
   assert.equal(JSON.stringify(attempts).includes("Grounded result"), false);
