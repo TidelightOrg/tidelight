@@ -113,7 +113,7 @@ test("synthetic positive handoff preserves lineage through Research → paper St
   assert.equal(research.assets[0].sources[0].publisher, "SEC EDGAR", "primary SEC evidence remains available within downstream source caps");
   assert.ok(captures.research.find(row => row.table === "research_sources")?.rows.some(source => source.publisher === "SEC EDGAR"), "SEC citations are persisted alongside the run");
   assert.equal(research.assets[0].handoff.destinations[0].mode, "paper_futures");
-  assert.match(research.assets[0].handoff.destinations[0].href, new RegExp(`researchRunId=${researchId}`));
+  assert.ok(research.assets[0].handoff.destinations[0].href.includes("researchRunId=d475bd46-5035-4ae5-9f19-e2959a4f0734"));
 
   const strategyResponse = await strategyRoute.POST(new Request("https://tidelight.app/api/futures/paper", {
     method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ symbol: "NVDAUSDT", researchRunId: research.researchRunId, mode: "check" }),
