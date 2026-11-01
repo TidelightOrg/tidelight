@@ -188,7 +188,7 @@ test("health-aware research routes around a provider with three recent consecuti
   configure(t);
   const prior = globalThis.__providerHealthAdmin;
   const observedAt = Date.now();
-  globalThis.__providerHealthAdmin = () => ({ from: () => ({ select() { return this; }, eq(_column, provider) { this.provider = provider; return this; }, gte() { return this; }, order() { return this; }, limit() { return this; }, abortSignal() { return Promise.resolve({ data: this.provider === "qwen" ? [0, 1, 2].map(index => ({ provider: "qwen", outcome: "http_error", occurred_at: new Date(observedAt - index * 1000).toISOString() })) : [{ provider: "gemini", outcome: "success", occurred_at: new Date(observedAt).toISOString() }], error: null }); } }) });
+  globalThis.__providerHealthAdmin = () => ({ from: () => ({ select() { return this; }, eq(_column, provider) { this.provider = provider; return this; }, gte() { return this; }, lte() { return this; }, order() { return this; }, limit() { return this; }, abortSignal() { return Promise.resolve({ data: this.provider === "qwen" ? [0, 1, 2].map(index => ({ provider: "qwen", outcome: "http_error", occurred_at: new Date(observedAt - index * 1000).toISOString() })) : [{ provider: "gemini", outcome: "success", occurred_at: new Date(observedAt).toISOString() }], error: null }); } }) });
   t.after(() => { if (prior === undefined) delete globalThis.__providerHealthAdmin; else globalThis.__providerHealthAdmin = prior; });
   const calls = [];
   t.mock.method(globalThis, "fetch", async url => { calls.push(String(url)); return gemini([{ text: JSON.stringify(answer) }]); });

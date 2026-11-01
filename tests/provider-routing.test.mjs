@@ -55,6 +55,7 @@ test("provider health reads only a bounded recent window and fails open", async 
       select(columns) { this.observed = { columns }; observed.push(this.observed); return this; },
       eq(column, value) { this.observed.provider = value; return this; },
       gte(column, value) { this.observed.column = column; this.observed.since = value; return this; },
+      lte(column, value) { this.observed.throughColumn = column; this.observed.through = value; return this; },
       order(column, options) { this.observed.order = [column, options.ascending]; return this; },
       limit(value) { this.observed.limit = value; return this; },
       abortSignal(signal) { this.observed.signal = signal; return Promise.resolve({ data: events(this.observed.provider, this.observed.provider === "qwen" ? "http_error" : "success", 3, 1000, now), error: null }); },
@@ -67,6 +68,8 @@ test("provider health reads only a bounded recent window and fails open", async 
   for (const row of observed) {
     assert.equal(row.columns, "provider,outcome,occurred_at");
     assert.equal(row.column, "occurred_at");
+    assert.equal(row.throughColumn, "occurred_at");
+    assert.equal(Date.parse(row.through), now);
     assert.equal(row.order[0], "occurred_at");
     assert.equal(row.limit, 10);
     assert.equal(Date.parse(row.since), now - health.PROVIDER_CIRCUIT_FAILURE_WINDOW_MS);
@@ -83,7 +86,7 @@ test("recent per-provider reads retain Qwen failures behind a busy Gemini event 
   const now = Date.now();
   globalThis.__providerHealthAdmin = () => ({ from() {
     return {
-      select() { return this; }, eq(_column, provider) { this.provider = provider; return this; }, gte() { return this; }, order() { return this; }, limit() { return this; },
+      select() { return this; }, eq(_column, provider) { this.provider = provider; return this; }, gte() { return this; }, lte() { return this; }, order() { return this; }, limit() { return this; },
       abortSignal() { return Promise.resolve({ data: this.provider === "qwen" ? events("qwen", "timeout", 3, 1000, now) : events("gemini", "success", 10, 1000, now), error: null }); },
     };
   } });

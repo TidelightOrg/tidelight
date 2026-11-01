@@ -56,6 +56,7 @@ export async function getProviderRoutingDecision(providers: ProviderHealthLabel[
         .select("provider,outcome,occurred_at")
         .eq("provider", provider)
         .gte("occurred_at", new Date(now - PROVIDER_CIRCUIT_FAILURE_WINDOW_MS).toISOString())
+        .lte("occurred_at", new Date(now).toISOString())
         .order("occurred_at", { ascending: false })
         .limit(10)
         .abortSignal(controller.signal)));
