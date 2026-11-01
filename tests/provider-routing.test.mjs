@@ -11,7 +11,7 @@ const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
 const health = await import("../lib/provider-health.ts");
 hooks.deregister();
 
-const events = (provider, outcome, count = 3, spacingMs = 1000) => Array.from({ length: count }, (_, index) => ({ provider, outcome, occurred_at: new Date(Date.now() - index * spacingMs).toISOString() }));
+const events = (provider, outcome, count = 3, spacingMs = 1000, observedAt = Date.now()) => Array.from({ length: count }, (_, index) => ({ provider, outcome, occurred_at: new Date(observedAt - index * spacingMs).toISOString() }));
 
 test("three consecutive recent failures open a provider circuit", () => {
   const now = Date.now();
@@ -48,6 +48,7 @@ test("provider health reads only a bounded recent window and fails open", async 
   const prior = globalThis.__providerHealthAdmin;
   t.after(() => { if (prior === undefined) delete globalThis.__providerHealthAdmin; else globalThis.__providerHealthAdmin = prior; });
   let observed = {};
+  const now = Date.now();
   globalThis.__providerHealthAdmin = () => ({ from(table) {
     assert.equal(table, "research_provider_health_events");
     return {
@@ -55,10 +56,9 @@ test("provider health reads only a bounded recent window and fails open", async 
       gte(column, value) { observed.column = column; observed.since = value; return this; },
       order(column, options) { observed.order = [column, options.ascending]; return this; },
       limit(value) { observed.limit = value; return this; },
-    abortSignal(signal) { observed.signal = signal; return Promise.resolve({ data: events("qwen", "http_error", 3, 1000), error: null }); },
+      abortSignal(signal) { observed.signal = signal; return Promise.resolve({ data: events("qwen", "http_error", 3, 1000, now), error: null }); },
     };
   } });
-  const now = Date.now();
   const result = await health.getProviderRoutingDecision(["qwen", "gemini"], now);
   assert.equal(result.skippedProviders[0].provider, "qwen");
   assert.equal(observed.columns, "provider,outcome,occurred_at");

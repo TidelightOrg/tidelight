@@ -91,6 +91,7 @@ export async function aiJsonWithFallback(messages: Message[], valid: (value: Rec
   const budgetMs = Number.isFinite(options.budgetMs) ? Math.max(0, Math.min(options.budgetMs!, 45000)) : 20000;
   const deadlineAt = Math.min(Date.now() + budgetMs, Number.isFinite(options.deadlineAt) ? options.deadlineAt! : Infinity);
   const failures: string[] = [];
+  let latestAttemptTimestamp = 0;
   for (const [index, provider] of providers.entries()) {
     const remaining = deadlineAt - Date.now();
     if (remaining <= 0) break;
@@ -106,7 +107,8 @@ export async function aiJsonWithFallback(messages: Message[], valid: (value: Rec
       const report = (outcome: ProviderAttempt["outcome"], httpStatus?: number) => {
         if (reported) return;
         reported = true;
-        reportAttempt(options.onAttempt, { provider: provider.label, model: provider.model, attempt: attempt + 1, outcome, occurredAt: new Date().toISOString(), durationMs: Math.max(0, Date.now() - attemptStartedAt), ...(httpStatus === undefined ? {} : { httpStatus }) });
+        latestAttemptTimestamp = Math.max(Date.now(), latestAttemptTimestamp + 1);
+        reportAttempt(options.onAttempt, { provider: provider.label, model: provider.model, attempt: attempt + 1, outcome, occurredAt: new Date(latestAttemptTimestamp).toISOString(), durationMs: Math.max(0, Date.now() - attemptStartedAt), ...(httpStatus === undefined ? {} : { httpStatus }) });
       };
       const nativeGemini = provider.label === "gemini";
       const timeoutMs = Math.min(providerDeadline - Date.now(), attempt === 0 ? (nativeGemini ? 22000 : 16000) : 9000);

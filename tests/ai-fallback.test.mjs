@@ -75,6 +75,7 @@ test("provider attempt diagnostics record retry failures and success in order", 
     { provider: "qwen", attempt: 1, outcome: "http_error", httpStatus: 503 },
     { provider: "qwen", attempt: 2, outcome: "success", httpStatus: undefined },
   ]);
+  assert.ok(Date.parse(attempts[1].occurredAt) > Date.parse(attempts[0].occurredAt), "attempt timestamps preserve order even when calls complete in the same clock millisecond");
 });
 
 test("provider attempt callback exceptions never break a valid research response", async t => {
@@ -185,15 +186,16 @@ test("research can opt into a longer Gemini window within its route deadline", a
 test("health-aware research routes around a provider with three recent consecutive failures", async t => {
   configure(t);
   const prior = globalThis.__providerHealthAdmin;
-  globalThis.__providerHealthAdmin = () => ({ from: () => ({ select() { return this; }, gte() { return this; }, order() { return this; }, limit() { return this; }, abortSignal() { return Promise.resolve({ data: [0, 1, 2].map(index => ({ provider: "qwen", outcome: "http_error", occurred_at: new Date(Date.now() - index * 1000).toISOString() })), error: null }); } }) });
+  const observedAt = Date.now();
+  globalThis.__providerHealthAdmin = () => ({ from: () => ({ select() { return this; }, gte() { return this; }, order() { return this; }, limit() { return this; }, abortSignal() { return Promise.resolve({ data: [0, 1, 2].map(index => ({ provider: "qwen", outcome: "http_error", occurred_at: new Date(observedAt - index * 1000).toISOString() })), error: null }); } }) });
   t.after(() => { if (prior === undefined) delete globalThis.__providerHealthAdmin; else globalThis.__providerHealthAdmin = prior; });
   const calls = [];
   t.mock.method(globalThis, "fetch", async url => { calls.push(String(url)); return gemini([{ text: JSON.stringify(answer) }]); });
   let routing;
   assert.deepEqual(await aiJsonWithFallback(messages, valid, { healthAware: true, onProviderRouting: value => { routing = value; } }), answer);
+  assert.deepEqual(routing.skippedProviders.map(item => item.provider), ["qwen"]);
   assert.equal(calls.length, 1);
   assert.match(calls[0], /generativelanguage/);
-  assert.deepEqual(routing.skippedProviders.map(item => item.provider), ["qwen"]);
 });
 
 test("health lookup failure preserves configured provider order", async t => {
