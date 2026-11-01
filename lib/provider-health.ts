@@ -52,14 +52,15 @@ export async function getProviderRoutingDecision(providers: ProviderHealthLabel[
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), PROVIDER_HEALTH_READ_TIMEOUT_MS);
     try {
-      const { data, error } = await admin.from("research_provider_health_events")
+      const rows = await Promise.all(providers.map(provider => admin.from("research_provider_health_events")
         .select("provider,outcome,occurred_at")
+        .eq("provider", provider)
         .gte("occurred_at", new Date(now - PROVIDER_CIRCUIT_FAILURE_WINDOW_MS).toISOString())
         .order("occurred_at", { ascending: false })
-        .limit(60)
-        .abortSignal(controller.signal);
-      if (error || !Array.isArray(data)) return { status: "unavailable", skippedProviders: [] };
-      return classifyProviderRouting(providers, data as ProviderHealthEvent[], now);
+        .limit(10)
+        .abortSignal(controller.signal)));
+      if (rows.some(({ error, data }) => error || !Array.isArray(data))) return { status: "unavailable", skippedProviders: [] };
+      return classifyProviderRouting(providers, rows.flatMap(({ data }) => data as ProviderHealthEvent[]), now);
     } finally {
       clearTimeout(timer);
     }
