@@ -105,7 +105,7 @@ export async function POST(request: Request) {
   } catch { return NextResponse.json({ error: "Send a valid question." }, { status: 400 }); }
   const question = typeof body.question === "string" ? body.question.trim().replace(/\s+/g, " ") : "";
   if (question.length < 5 || question.length > 500) return NextResponse.json({ error: "Ask a market question in 5 to 500 characters." }, { status: 400 });
-  if (guest && body.judgeMode !== true) return NextResponse.json({ error: "Use the public Judge Mode research desk to start guest research." }, { status: 401 });
+  if (guest && body.judgeMode !== true) return NextResponse.json({ error: "Sign in to run research, or use the public Judge Mode research desk to start guest research." }, { status: 401 });
   if (guest && (body.contextRunId !== undefined || body.researchMonitorId !== undefined || body.researchMonitorRevision !== undefined || body.workspaceContext !== undefined)) return NextResponse.json({ error: "Guest research cannot access saved account context." }, { status: 403 });
   const workspaceContext = typeof body.workspaceContext === "string" && body.workspaceContext.length <= 240 && /^\/(?!\/)[a-zA-Z0-9/_?=&.%+-]*$/.test(body.workspaceContext) ? body.workspaceContext : null;
   const contextRunId = typeof body.contextRunId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.contextRunId) ? body.contextRunId : null;

@@ -159,6 +159,12 @@ test("anonymous judge research is same-origin, session-only, and cannot hand off
   globalThis.flowTest.guestAllowed = true;
   captures.research.length = 0;
   const rpcCallsBeforeInvalidQuestion = captures.rpc.length;
+  const nonJudgeGuest = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
+    method: "POST", headers: { origin: "https://tidelight.app", "content-type": "application/json" }, body: JSON.stringify({ question: "Review NVDA with current public evidence" }),
+  }));
+  assert.equal(nonJudgeGuest.status, 401);
+  assert.match((await nonJudgeGuest.json()).error, /sign in/i);
+  assert.equal(captures.rpc.length, rpcCallsBeforeInvalidQuestion, "ordinary guest requests do not consume Judge Mode capacity");
   let streamingChunksRead = 0;
   let oversizedStreamCancelled = false;
   const streamingRequest = new Request("https://tidelight.app/api/research/agent-flow", {

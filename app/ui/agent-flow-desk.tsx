@@ -121,6 +121,7 @@ export default function AgentFlowDesk({ initialQuestion, initialMonitorId = null
   const [activeSuggestion, setActiveSuggestion] = useState(0);
   const [suggestionOffset, setSuggestionOffset] = useState(0);
   const controller = useRef<AbortController | null>(null);
+  const restoreFrame = useRef<number | null>(null);
   const stageStartedAt = useRef(new Map<string, number>());
   const handoffRef = useRef<HTMLDivElement>(null);
   const suggestionListRef = useRef<HTMLDivElement>(null);
@@ -141,15 +142,14 @@ export default function AgentFlowDesk({ initialQuestion, initialMonitorId = null
 
   useEffect(() => {
     if (!evaluatorMode) return;
-    let frame = 0;
     try {
       const saved = sessionStorage.getItem("tidelight-judge-research-v1");
       if (saved && saved.length < 1_500_000) {
         const parsed = JSON.parse(saved) as FlowResult;
-        if (parsed?.guestSessionResult === true && Array.isArray(parsed.assets) && Array.isArray(parsed.trace)) frame = window.requestAnimationFrame(() => setResult(parsed));
+        if (parsed?.guestSessionResult === true && Array.isArray(parsed.assets) && Array.isArray(parsed.trace)) restoreFrame.current = window.requestAnimationFrame(() => { restoreFrame.current = null; setResult(parsed); });
       } else if (saved) sessionStorage.removeItem("tidelight-judge-research-v1");
     } catch { try { sessionStorage.removeItem("tidelight-judge-research-v1"); } catch { /* Storage may be unavailable. */ } }
-    return () => { if (frame) window.cancelAnimationFrame(frame); };
+    return () => { if (restoreFrame.current !== null) { window.cancelAnimationFrame(restoreFrame.current); restoreFrame.current = null; } };
   }, [evaluatorMode]);
 
   useEffect(() => {
@@ -193,6 +193,7 @@ export default function AgentFlowDesk({ initialQuestion, initialMonitorId = null
     event?.preventDefault();
     const submitted = question.trim();
     if (submitted.length < 4) { setError("Ask about a US stock, its tokenized market, or a dated Fed/BLS release."); return; }
+    if (restoreFrame.current !== null) { window.cancelAnimationFrame(restoreFrame.current); restoreFrame.current = null; }
     if (evaluatorMode) { try { sessionStorage.removeItem("tidelight-judge-research-v1"); } catch { /* Browser storage is optional. */ } }
     controller.current?.abort();
     const request = new AbortController();
