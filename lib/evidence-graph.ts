@@ -28,7 +28,7 @@ export type EvidenceGraphNode =
   | { id: string; type: "event"; question: string; asOf: string }
   | { id: string; type: "subject"; subjectType: "issuer" | "macro_topic"; ticker: string; name: string }
   | { id: string; type: "instrument"; symbol: string; marketType: "reality_tokenized_spot" | "us_stock_perpetual"; observedAt: string | null; lastPrice: number | null; availability: "observed" | "unavailable" }
-  | { id: string; type: "source"; url: string; title: string; publisher: string; publishedAt: string | null; capturedAt: string; temporalStatus: "dated_by_snapshot" | "undated"; excerpt: string | null }
+  | { id: string; type: "source"; url: string; title: string; publisher: string; publishedAt: string | null; capturedAt: string; temporalStatus: "dated_by_snapshot" | "date_only_before_snapshot" | "undated"; excerpt: string | null }
   | { id: string; type: "hypothesis"; ticker: string; stance: FlowStance; summary: string; reportedConfidence: number | null; confidenceOrigin: "model_reported" | "application_calibrated" | "application_fallback"; riskConsiderations: string[]; nextCheck: string | null }
   | { id: string; type: "claim"; ticker: string; polarity: "supporting" | "contrary"; text: string; citationStatus: "source_linked" | "undated_source_linked" | "no_temporally_valid_source"; sourceIds: string[] }
   | { id: string; type: "passage"; sourceId: string; text: string; capturedAt: string; excerptKind: "retrieved_excerpt"; exactQuoteVerified: false };
@@ -79,6 +79,7 @@ export function buildEvidenceGraph(input: { question: string; assets: EvidenceGr
     }
 
     const sourceIdsByUrl = new Map<string, { sourceId: string; passageId: string | null }>();
+    const futureSourceUrls = new Set<string>();
     const citedUrls = new Set([...(asset.evidenceBalance?.supporting ?? []), ...(asset.evidenceBalance?.counter ?? [])].flatMap(point => point.citedUrls));
     const prioritizedSources = [...asset.sources].sort((left, right) => Number(citedUrls.has(right.url)) - Number(citedUrls.has(left.url)));
     for (const source of prioritizedSources.slice(0, 30)) {
@@ -86,12 +87,18 @@ export function buildEvidenceGraph(input: { question: string; assets: EvidenceGr
       try { parsed = new URL(source.url); } catch { continue; }
       if (parsed.protocol !== "https:") continue;
       const publishedMs = source.publishedAt ? Date.parse(source.publishedAt) : NaN;
+      const dateOnly = typeof source.publishedAt === "string" && /^\d{4}-\d{2}-\d{2}$/.test(source.publishedAt);
+      const dateOnlyIsValid = dateOnly && !Number.isNaN(publishedMs) && new Date(publishedMs).toISOString().slice(0, 10) === source.publishedAt;
       // A future-dated source is omitted completely so a historical snapshot
       // cannot reveal even its existence or excerpt before the publication.
-      if (Number.isFinite(publishedMs) && publishedMs > asOfMs) continue;
+      const snapshotDate = asOf.slice(0, 10);
+      const publishedDate = Number.isFinite(publishedMs) ? new Date(publishedMs).toISOString().slice(0, 10) : null;
+      const isFuture = dateOnly ? !dateOnlyIsValid || publishedDate! >= snapshotDate : Number.isFinite(publishedMs) && publishedMs > asOfMs;
+      const canonicalUrl = parsed.toString();
+      if (isFuture) { futureSourceUrls.add(canonicalUrl); continue; }
       const sourceId = stableId("source", parsed.toString());
-      const temporalStatus = !Number.isFinite(publishedMs) ? "undated" as const : "dated_by_snapshot" as const;
-      addNode({ id: sourceId, type: "source", url: parsed.toString(), title: source.title.slice(0, 300), publisher: source.publisher.slice(0, 120), publishedAt: Number.isFinite(publishedMs) ? new Date(publishedMs).toISOString() : null, capturedAt: asOf, temporalStatus, excerpt: null });
+      const temporalStatus = dateOnly ? "date_only_before_snapshot" as const : !Number.isFinite(publishedMs) ? "undated" as const : "dated_by_snapshot" as const;
+      addNode({ id: sourceId, type: "source", url: canonicalUrl, title: source.title.slice(0, 300), publisher: source.publisher.slice(0, 120), publishedAt: Number.isFinite(publishedMs) ? (dateOnly ? source.publishedAt! : new Date(publishedMs).toISOString()) : null, capturedAt: asOf, temporalStatus, excerpt: null });
       const passageId = typeof source.snippet === "string" && source.snippet.trim() ? stableId("passage", `${sourceId}\n${source.snippet}`) : null;
       if (passageId) {
         addNode({ id: passageId, type: "passage", sourceId, text: source.snippet!.slice(0, 1_200), capturedAt: asOf, excerptKind: "retrieved_excerpt", exactQuoteVerified: false });
@@ -106,6 +113,10 @@ export function buildEvidenceGraph(input: { question: string; assets: EvidenceGr
       ["contrary", asset.evidenceBalance?.counter ?? [], "challenges"],
     ] as const) {
       for (const point of points.slice(0, 16)) {
+        const citesOnlyFutureSources = point.citedUrls.length > 0 && point.citedUrls.every(url => {
+          try { return futureSourceUrls.has(new URL(url).toString()); } catch { return false; }
+        });
+        if (citesOnlyFutureSources) continue;
         const validSources = [...new Map(point.citedUrls.map(url => {
           try { const source = sourceIdsByUrl.get(new URL(url).toString()); return source ? [source.sourceId, source] as const : null; } catch { return null; }
         }).filter((item): item is readonly [string, { sourceId: string; passageId: string | null }] => Boolean(item)))].map(([, source]) => source).filter(source => {

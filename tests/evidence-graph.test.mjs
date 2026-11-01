@@ -96,3 +96,19 @@ test("duplicate claim text merges citations so graph edges and source ids agree"
   assert.equal(new Set(claim.sourceIds).size, 2);
   assert.deepEqual(new Set(sourceIds), new Set(claim.sourceIds));
 });
+
+test("future-only claims are omitted and date-only publication precision is retained", () => {
+  const sameDay = { title: "Same-day source", url: "https://publisher.example/same-day", publisher: "Publisher", publishedAt: "2026-10-31", snippet: "Publication time unavailable." };
+  const priorDay = { ...sameDay, url: "https://publisher.example/prior-day", publishedAt: "2026-10-30" };
+  const graph = buildEvidenceGraph({ question: "Historical snapshot", asOf, synthesisMode: "model", assets: [{ ...asset, sources: [...sources, sameDay, priorDay], evidenceBalance: { supporting: [
+    { text: "Only future evidence", citedUrls: [sources[2].url] },
+    { text: "Prior day date precision", citedUrls: [priorDay.url] },
+    { text: "Same day is temporally ambiguous", citedUrls: [sameDay.url] },
+  ], counter: [] } }] });
+  const claims = graph.nodes.filter(node => node.type === "claim");
+  assert.deepEqual(claims.map(node => node.text), ["Prior day date precision"]);
+  const source = graph.nodes.find(node => node.type === "source" && node.url === priorDay.url);
+  assert.equal(source.publishedAt, "2026-10-30");
+  assert.equal(source.temporalStatus, "date_only_before_snapshot");
+  assert.equal(graph.nodes.some(node => node.type === "source" && node.url === sameDay.url), false);
+});
