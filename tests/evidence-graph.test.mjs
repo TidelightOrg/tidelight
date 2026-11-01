@@ -64,3 +64,19 @@ test("future market timestamps cannot leak their prices into an as-of graph", ()
   assert.equal(instrument.observedAt, null);
   assert.equal(instrument.lastPrice, null);
 });
+
+test("prioritizes sources cited by claims within the graph bound", () => {
+  const longSources = Array.from({ length: 35 }, (_, index) => ({ title: `Source ${index}`, url: `https://publisher.example/${index}`, publisher: "Publisher", publishedAt: "2026-10-30T10:00:00Z", snippet: `Excerpt ${index}` }));
+  const graph = buildEvidenceGraph({ question: "Review NVDA", asOf, synthesisMode: "model", assets: [{ ...asset, sources: longSources, evidenceBalance: { supporting: [{ text: "Supported", citedUrls: [longSources[34].url] }], counter: [] } }] });
+  const claim = graph.nodes.find(node => node.type === "claim");
+  assert.equal(claim.citationStatus, "source_linked");
+  assert.equal(graph.nodes.some(node => node.type === "source" && node.url === longSources[34].url), true);
+  assert.equal(graph.nodes.filter(node => node.type === "source").length, 30);
+});
+
+test("per-asset synthesis attribution keeps source-only fallback confidence unattributed", () => {
+  const graph = buildEvidenceGraph({ question: "Review multiple issuers", asOf, synthesisMode: "model", assets: [{ ...asset, ticker: "NVDA", synthesisMode: "model" }, { ...asset, ticker: "TSLA", synthesisMode: "source_only", confidence: 0.7 }] });
+  const fallback = graph.nodes.find(node => node.type === "hypothesis" && node.ticker === "TSLA");
+  assert.equal(fallback.reportedConfidence, null);
+  assert.equal(fallback.confidenceOrigin, "application_fallback");
+});

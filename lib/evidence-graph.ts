@@ -12,6 +12,7 @@ export type EvidenceGraphAsset = {
   evidenceBalance?: { supporting: FlowEvidencePoint[]; counter: FlowEvidencePoint[] };
   risks?: string[];
   nextCheck?: string;
+  synthesisMode?: "model" | "source_only";
   market?: {
     spotSymbol?: string | null;
     spotLastPrice?: number | null;
@@ -59,7 +60,8 @@ export function buildEvidenceGraph(input: { question: string; assets: EvidenceGr
     const issuerId = stableId("subject", `${subjectType}\n${ticker}`);
     const hypothesisId = stableId("hypothesis", `${ticker}\n${asOf}\n${asset.stance}\n${asset.summary}`);
     addNode({ id: issuerId, type: "subject", subjectType, ticker, name: asset.issuer.slice(0, 120) });
-    addNode({ id: hypothesisId, type: "hypothesis", ticker, stance: asset.stance, summary: asset.summary.slice(0, 900), reportedConfidence: input.synthesisMode === "model" && Number.isFinite(asset.confidence) ? Math.max(0, Math.min(1, asset.confidence)) : null, confidenceOrigin: input.synthesisMode === "model" ? "model_reported" : "application_fallback", riskConsiderations: (asset.risks ?? []).slice(0, 8).map(risk => risk.slice(0, 250)), nextCheck: asset.nextCheck?.slice(0, 250) ?? null });
+    const synthesisMode = asset.synthesisMode ?? input.synthesisMode;
+    addNode({ id: hypothesisId, type: "hypothesis", ticker, stance: asset.stance, summary: asset.summary.slice(0, 900), reportedConfidence: synthesisMode === "model" && Number.isFinite(asset.confidence) ? Math.max(0, Math.min(1, asset.confidence)) : null, confidenceOrigin: synthesisMode === "model" ? "model_reported" : "application_fallback", riskConsiderations: (asset.risks ?? []).slice(0, 8).map(risk => risk.slice(0, 250)), nextCheck: asset.nextCheck?.slice(0, 250) ?? null });
     addEdge(eventId, issuerId, "about");
     addEdge(hypothesisId, issuerId, "about");
 
@@ -76,7 +78,9 @@ export function buildEvidenceGraph(input: { question: string; assets: EvidenceGr
     }
 
     const sourceIdsByUrl = new Map<string, { sourceId: string; passageId: string | null }>();
-    for (const source of asset.sources.slice(0, 20)) {
+    const citedUrls = new Set([...(asset.evidenceBalance?.supporting ?? []), ...(asset.evidenceBalance?.counter ?? [])].flatMap(point => point.citedUrls));
+    const prioritizedSources = [...asset.sources].sort((left, right) => Number(citedUrls.has(right.url)) - Number(citedUrls.has(left.url)));
+    for (const source of prioritizedSources.slice(0, 30)) {
       let parsed: URL;
       try { parsed = new URL(source.url); } catch { continue; }
       if (parsed.protocol !== "https:") continue;
