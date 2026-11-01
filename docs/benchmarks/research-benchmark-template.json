@@ -54,6 +54,7 @@
       "sourcesReturned": null,
       "aiSynthesis": null,
       "confidencePercent": null,
+      "confidenceOrigin": null,
       "quoteFreshness": null,
       "claimsValidated": null,
       "reviewerLabels": null,
