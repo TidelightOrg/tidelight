@@ -134,7 +134,7 @@ test("random long/cash placebo is reproducible and seeds only from the training 
   const placebo = runRandomEntryPlacebo(candles, "4H", Date.now(), result.strategyKey, result.test.totalReturnPct);
   const repeated = runRandomEntryPlacebo(candles, "4H", Date.now(), result.strategyKey, result.test.totalReturnPct);
   assert.deepEqual(placebo, repeated);
-  assert.equal(placebo.version, 2);
+  assert.equal(placebo.version, 3);
   assert.equal(placebo.simulations, 100);
   assert.equal(runRandomEntryPlacebo(candles, "4H", Date.now(), result.strategyKey, result.test.totalReturnPct, Number.NaN).simulations, 100);
   assert.ok(placebo.p05ReturnPct <= placebo.medianReturnPct);
@@ -169,6 +169,16 @@ test("random placebo uses state-conditional training hazards and can enter at th
   assert.equal(placebo.trainingEntryRatePerBar, 1, "the sole observed cash-state transition is one entry per eligible cash bar");
   assert.equal(placebo.trainingExitRatePerBar, 0, "no exit from the long state was observed in training");
   assert.ok(placebo.p05ReturnPct > 30, "training-only initialization permits placebo exposure at the first holdout open");
+});
+
+test("all-long training occupancy initializes the placebo long without future data", () => {
+  const candles = fixture(1_000).map((candle, index) => ({ ...candle, open: 100 + index, close: 101 + index, high: 101.1 + index, low: 99 + index }));
+  const result = runBacktest("NVDAUSDT", "4H", candles, Date.now(), "channel_breakout_v1");
+  const placebo = runRandomEntryPlacebo(candles, "4H", Date.now(), result.strategyKey, result.test.totalReturnPct, 100);
+  assert.equal(placebo.initialState, "training_long_occupancy");
+  assert.equal(placebo.trainingEntryRatePerBar, 0);
+  assert.equal(placebo.trainingExitRatePerBar, 0);
+  assert.ok(placebo.p05ReturnPct > 0, "all-long training initializes simulated exposure long during holdout");
 });
 
 test("trend pullback and semiconductor breakout are deterministic, boolean, causal rules", () => {
