@@ -40,6 +40,12 @@ test("missing, stale, future-dated, and malformed books never produce an estimat
   assert.equal(estimateBookSweep({ ...base, levels: [{ price: 99, size: 3 }], oppositeBestPrice: 100, bookTimestamp: 19_000 }).status, "unavailable", "crossed books never create a slippage estimate");
 });
 
+test("near-future venue timestamps honor the five-second server-receipt skew allowance", () => {
+  const base = { levels: [{ price: 100, size: 3 }], side: "buy", quantity: 1, referencePrice: 100, now: 20_000 };
+  assert.equal(estimateBookSweep({ ...base, bookTimestamp: 25_000 }).status, "estimated");
+  assert.equal(estimateBookSweep({ ...base, bookTimestamp: 25_001 }).status, "unavailable");
+});
+
 test("execution confirmation sides match open and close actions", () => {
   assert.deepEqual(executionSidesForAction("open_long", null), { primarySide: "buy", secondarySide: "sell" });
   assert.deepEqual(executionSidesForAction("open_short", null), { primarySide: "sell", secondarySide: "buy" });

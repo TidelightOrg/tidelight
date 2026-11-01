@@ -52,6 +52,8 @@ export function estimateBookSweep(input: {
     slippageBps: null,
     bookAgeMs,
   } as const;
+  // Bitget and our server can differ by up to 5 seconds. `now` must be the
+  // server receipt time for this snapshot, not the user's browser clock.
   if (!Number.isFinite(input.quantity) || input.quantity <= 0 || !base.referencePrice || bookAgeMs === null || bookAgeMs < -5_000 || bookAgeMs > maxAgeMs || validLevels.length === 0 || crossedBook) {
     return { ...base, status: "unavailable" };
   }
