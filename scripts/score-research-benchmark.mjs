@@ -35,7 +35,18 @@ function distribution(values) {
 function scoreOperationalObservations(events, unmatchedRunCaptures = []) {
   const captures = events.flatMap((event) => {
     const capture = event?.run_capture;
-    return capture && typeof capture === "object" && typeof capture.status === "string" && capture.status.trim()
+    // A template may contain an all-null placeholder. Count only a capture
+    // with an observed run status or another concrete observation field.
+    const hasObservation = capture && typeof capture === "object" && (
+      (typeof capture.status === "string" && capture.status.trim())
+      || (typeof capture.aiSynthesis === "string" && capture.aiSynthesis.trim())
+      || Number.isFinite(capture.observedElapsedUiSeconds)
+      || Number.isSafeInteger(capture.sourcesReturned)
+      || typeof capture.claimsValidated === "boolean"
+      || (typeof capture.confidencePercent === "number" && Number.isFinite(capture.confidencePercent))
+      || typeof capture.marketOrTradingHandoff === "boolean"
+    );
+    return hasObservation
       ? [{ event, capture }]
       : [];
   });
