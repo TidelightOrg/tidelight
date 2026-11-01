@@ -13,6 +13,7 @@ export type EvidenceGraphAsset = {
   risks?: string[];
   nextCheck?: string;
   synthesisMode?: "model" | "source_only";
+  confidenceCapped?: boolean;
   market?: {
     spotSymbol?: string | null;
     spotLastPrice?: number | null;
@@ -28,7 +29,7 @@ export type EvidenceGraphNode =
   | { id: string; type: "subject"; subjectType: "issuer" | "macro_topic"; ticker: string; name: string }
   | { id: string; type: "instrument"; symbol: string; marketType: "reality_tokenized_spot" | "us_stock_perpetual"; observedAt: string | null; lastPrice: number | null; availability: "observed" | "unavailable" }
   | { id: string; type: "source"; url: string; title: string; publisher: string; publishedAt: string | null; capturedAt: string; temporalStatus: "dated_by_snapshot" | "undated"; excerpt: string | null }
-  | { id: string; type: "hypothesis"; ticker: string; stance: FlowStance; summary: string; reportedConfidence: number | null; confidenceOrigin: "model_reported" | "application_fallback"; riskConsiderations: string[]; nextCheck: string | null }
+  | { id: string; type: "hypothesis"; ticker: string; stance: FlowStance; summary: string; reportedConfidence: number | null; confidenceOrigin: "model_reported" | "application_calibrated" | "application_fallback"; riskConsiderations: string[]; nextCheck: string | null }
   | { id: string; type: "claim"; ticker: string; polarity: "supporting" | "contrary"; text: string; citationStatus: "source_linked" | "undated_source_linked" | "no_temporally_valid_source"; sourceIds: string[] }
   | { id: string; type: "passage"; sourceId: string; text: string; capturedAt: string; excerptKind: "retrieved_excerpt"; exactQuoteVerified: false };
 
@@ -61,7 +62,7 @@ export function buildEvidenceGraph(input: { question: string; assets: EvidenceGr
     const hypothesisId = stableId("hypothesis", `${ticker}\n${asOf}\n${asset.stance}\n${asset.summary}`);
     addNode({ id: issuerId, type: "subject", subjectType, ticker, name: asset.issuer.slice(0, 120) });
     const synthesisMode = asset.synthesisMode ?? input.synthesisMode;
-    addNode({ id: hypothesisId, type: "hypothesis", ticker, stance: asset.stance, summary: asset.summary.slice(0, 900), reportedConfidence: synthesisMode === "model" && Number.isFinite(asset.confidence) ? Math.max(0, Math.min(1, asset.confidence)) : null, confidenceOrigin: synthesisMode === "model" ? "model_reported" : "application_fallback", riskConsiderations: (asset.risks ?? []).slice(0, 8).map(risk => risk.slice(0, 250)), nextCheck: asset.nextCheck?.slice(0, 250) ?? null });
+    addNode({ id: hypothesisId, type: "hypothesis", ticker, stance: asset.stance, summary: asset.summary.slice(0, 900), reportedConfidence: synthesisMode === "model" && Number.isFinite(asset.confidence) ? Math.max(0, Math.min(1, asset.confidence)) : null, confidenceOrigin: synthesisMode !== "model" ? "application_fallback" : asset.confidenceCapped ? "application_calibrated" : "model_reported", riskConsiderations: (asset.risks ?? []).slice(0, 8).map(risk => risk.slice(0, 250)), nextCheck: asset.nextCheck?.slice(0, 250) ?? null });
     addEdge(eventId, issuerId, "about");
     addEdge(hypothesisId, issuerId, "about");
 
@@ -114,7 +115,10 @@ export function buildEvidenceGraph(input: { question: string; assets: EvidenceGr
         const validSourceIds = validSources.map(source => source.sourceId);
         const hasUndatedSource = validSources.some(source => nodes.get(source.sourceId)?.type === "source" && (nodes.get(source.sourceId) as Extract<EvidenceGraphNode, { type: "source" }>).temporalStatus === "undated");
         const claimId = stableId("claim", `${ticker}\n${asOf}\n${polarity}\n${point.text}`);
-        addNode({ id: claimId, type: "claim", ticker, polarity, text: point.text.slice(0, 700), citationStatus: validSourceIds.length ? (hasUndatedSource ? "undated_source_linked" : "source_linked") : "no_temporally_valid_source", sourceIds: validSourceIds });
+        const priorClaim = nodes.get(claimId);
+        const mergedSourceIds = [...new Set([...(priorClaim?.type === "claim" ? priorClaim.sourceIds : []), ...validSourceIds])];
+        const priorUndated = priorClaim?.type === "claim" && priorClaim.citationStatus === "undated_source_linked";
+        addNode({ id: claimId, type: "claim", ticker, polarity, text: point.text.slice(0, 700), citationStatus: mergedSourceIds.length ? (hasUndatedSource || priorUndated ? "undated_source_linked" : "source_linked") : "no_temporally_valid_source", sourceIds: mergedSourceIds });
         addEdge(hypothesisId, claimId, relation);
         for (const source of validSources) addEdge(claimId, source.passageId ?? source.sourceId, "cites");
       }

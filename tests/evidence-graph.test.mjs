@@ -80,3 +80,19 @@ test("per-asset synthesis attribution keeps source-only fallback confidence unat
   assert.equal(fallback.reportedConfidence, null);
   assert.equal(fallback.confidenceOrigin, "application_fallback");
 });
+
+
+test("confidence capped by source policy is labeled application-calibrated", () => {
+  const graph = buildEvidenceGraph({ question: "Review NVDA", asOf, synthesisMode: "model", assets: [{ ...asset, confidence: 0.4, confidenceCapped: true }] });
+  const hypothesis = graph.nodes.find(node => node.type === "hypothesis");
+  assert.equal(hypothesis.reportedConfidence, 0.4);
+  assert.equal(hypothesis.confidenceOrigin, "application_calibrated");
+});
+
+test("duplicate claim text merges citations so graph edges and source ids agree", () => {
+  const graph = buildEvidenceGraph({ question: "Review NVDA", asOf, synthesisMode: "model", assets: [{ ...asset, evidenceBalance: { supporting: [{ text: "Same fact", citedUrls: [sources[0].url] }, { text: "Same fact", citedUrls: [sources[1].url] }], counter: [] } }] });
+  const claim = graph.nodes.find(node => node.type === "claim");
+  const sourceIds = graph.edges.filter(edge => edge.from === claim.id && edge.relation === "cites").map(edge => { const target = graph.nodes.find(node => node.id === edge.to); return target.type === "passage" ? target.sourceId : target.id; });
+  assert.equal(new Set(claim.sourceIds).size, 2);
+  assert.deepEqual(new Set(sourceIds), new Set(claim.sourceIds));
+});
