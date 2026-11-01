@@ -12,7 +12,7 @@ const macroRows = [
   { title: "Federal Reserve issues September 2026 FOMC statement", url: "https://news.google.com/rss/articles/fomc", publisher: "Federal Reserve", publishedAt: new Date().toISOString(), snippet: "The Committee decided to maintain the target range.", sourceKind: "official" },
   { title: "Fed holds rates in September, Reuters reports", url: "https://news.google.com/rss/articles/reuters", publisher: "Reuters", publishedAt: new Date().toISOString(), snippet: "Economists expected a decision to maintain rates.", sourceKind: "independent_reporting" },
 ];
-const captures = { rpc: [], research: [], nightwatch: null, orders: [], marketCalls: 0, macroCalls: 0 };
+const captures = { rpc: [], research: [], nightwatch: null, orders: [], marketCalls: 0, macroCalls: 0, aiCalls: 0 };
 const candle = (index) => ({ timestamp: Date.now() - (100 - index) * 4 * 60 * 60 * 1000, close: 100 + index / 100, open: 100, high: 101, low: 99, volume: 1000 });
 const candles = Array.from({ length: 100 }, (_, index) => candle(index));
 
@@ -36,6 +36,8 @@ function queryFor(table) {
 
 globalThis.flowTest = {
   macroCalls: 0,
+  aiCalls: 0,
+  emptyIssuerNews: false,
   user,
   auth: { getUser: async () => ({ data: { user }, error: null }) },
   from: queryFor,
@@ -62,11 +64,11 @@ const modules = {
   "@/lib/supabase/server": "export const createClient=async()=>globalThis.flowTest;",
   "@/lib/supabase/admin": "export const createAdminClient=()=>globalThis.flowTest.admin;",
   "@/lib/supabase/auth-user": "export const getServerAuthState=async()=>({user:globalThis.flowTest.user,errorCode:null});",
-  "@/lib/ai-fallback": `export const configuredAiProviders=()=>["fixture"]; export const aiJsonWithFallback=async(messages)=>{const text=messages.map(message=>message.content).join(" ");return /FOMC/.test(text)?{assets:[{ticker:"MACRO",summary:"The Federal Reserve maintained the target range in its September 2026 decision. The supplied official source states the decision; Reuters reports economist expectations as context. The sources do not establish the next policy move.",stance:"unclear",confidence:0.3,citedUrls:["${macroRows[0].url}","${macroRows[1].url}"],supportingEvidence:[{text:"The Committee maintained the target range.",citedUrls:["${macroRows[0].url}"]}],counterEvidence:[{text:"Economists had expected the same decision.",citedUrls:["${macroRows[1].url}"]}],risks:["This is not a forecast of the next policy move."],nextCheck:"Read the next official statement and minutes."}]}:{assets:[{ticker:"NVDA",summary:"Synthetic fixture: two current independent publishers agree on a directional scenario for test coverage only.",stance:"bullish",confidence:0.9,citedUrls:["${sourceRows[0].url}","${sourceRows[1].url}"],risks:["Synthetic fixture only"],nextCheck:"Remove the fixture after the isolated test."}]};};`,
+  "@/lib/ai-fallback": `export const configuredAiProviders=()=>["fixture"]; export const aiJsonWithFallback=async(messages)=>{globalThis.flowTest.aiCalls++;const text=messages.map(message=>message.content).join(" ");return /FOMC/.test(text)?{assets:[{ticker:"MACRO",summary:"The Federal Reserve maintained the target range in its September 2026 decision. The supplied official source states the decision; Reuters reports economist expectations as context. The sources do not establish the next policy move.",stance:"unclear",confidence:0.3,citedUrls:["${macroRows[0].url}","${macroRows[1].url}"],supportingEvidence:[{text:"The Committee maintained the target range.",citedUrls:["${macroRows[0].url}"]}],counterEvidence:[{text:"Economists had expected the same decision.",citedUrls:["${macroRows[1].url}"]}],risks:["This is not a forecast of the next policy move."],nextCheck:"Read the next official statement and minutes."}]}:globalThis.flowTest.emptyIssuerNews?{assets:[{ticker:"NVDA",summary:"SEC-only fixture: reported revenue and net income are available with filing dates; this does not establish future performance.",stance:"unclear",confidence:0.3,citedUrls:["https://www.sec.gov/edgar/browse/?CIK=1"],supportingEvidence:[{text:"SEC company facts include filed revenue and net income.",citedUrls:["https://www.sec.gov/edgar/browse/?CIK=1"]}],risks:["Reported financial facts do not forecast future performance."],nextCheck:"Review the complete 10-Q."}]}:{assets:[{ticker:"NVDA",summary:"Synthetic fixture: two current independent publishers agree on a directional scenario for test coverage only.",stance:"bullish",confidence:0.9,citedUrls:["${sourceRows[0].url}","${sourceRows[1].url}"],risks:["Synthetic fixture only"],nextCheck:"Remove the fixture after the isolated test."}]};};`,
   "@/lib/bitget-market": "export const STOCK_PERP_UNIVERSE=[\"NVDAUSDT\"]; export const getIssuerName=()=>\"Synthetic NVIDIA\"; export const getBitgetAsset=(...args)=>globalThis.flowTest.asset(...args); export const getBitgetStockPerp=(...args)=>globalThis.flowTest.perp(...args); export const getBitgetCandles=(...args)=>globalThis.flowTest.candles(...args);",
   "@/lib/sec-fundamentals": "export const getSecCompanyResearch=async(ticker,_website,options)=>({ticker,sourceUrl:'https://www.sec.gov/edgar/browse/?CIK=1',financials:{quarterly:[{period:'Q3 2026',periodEnd:'2026-09-30',filed:'2026-10-25',form:'10-Q',revenue:100,netIncome:10,totalAssets:500,totalLiabilities:100,operatingCashFlow:20,capitalExpenditure:5,filedByMetric:{revenue:'2026-10-25',netIncome:'2026-10-26',totalAssets:'2026-10-25',totalLiabilities:'2026-10-25',operatingCashFlow:'2026-10-26',capitalExpenditure:'2026-10-26'}}],annual:[]},dividends:[],analystTargets:{status:'not_configured'}});",
   "@/lib/backtest": "export const prepareBacktestCandles=()=>Array.from({length:80},(_,i)=>({timestamp:Date.now()-(80-i)*14400000-60000,close:100})); export const buildSignals=()=>Array.from({length:80},(_,i)=>i===79); export const ALPHA_STRATEGIES={sma_trend_v1:{label:\"Synthetic SMA fixture\"}};",
-  "@/lib/agent-flow-sources": `export const buildIssuerNewsQueries=()=>Array(5).fill("question-focused fixture query"); export const gatherIssuerEvidence=async()=>${JSON.stringify(sourceRows)}; export const issuerEvidenceLookbackDays=()=>30;`,
+  "@/lib/agent-flow-sources": `export const buildIssuerNewsQueries=()=>Array(5).fill("question-focused fixture query"); export const gatherIssuerEvidence=async()=>globalThis.flowTest.emptyIssuerNews?[]:${JSON.stringify(sourceRows)}; export const issuerEvidenceLookbackDays=()=>30;`,
   "@/lib/macro-research-sources": `export const classifyMacroQuestion=question=>/FOMC/i.test(question)?"monetary_policy":null; export const buildMacroNewsQueries=()=>["site:federalreserve.gov FOMC","FOMC Reuters"]; export const macroResearchLookbackDays=()=>365; export const gatherMacroEvidence=async()=>{globalThis.flowTest.macroCalls++; return ${JSON.stringify(macroRows)};};`,
   "@/lib/agentkey-flow-sources": "export const agentKeyIssuerEvidence=async()=>[];",
   "@/lib/futures-paper-agent": "export const decideFuturesPaper=async input=>{globalThis.flowTest.strategyResearch=input.research;return{action:\"hold\",confidence:0.8,rationale:\"Synthetic Strategy fixture hold; no paper fill.\",evidence:[\"Synthetic completed candle\"],risks:[],invalidation:\"Fixture ends\"};};",
@@ -231,4 +233,21 @@ test("anonymous judge research is same-origin, session-only, and cannot hand off
   assert.equal(rateLimited.status, 429, "database rate-limit denial prevents provider work");
   globalThis.flowTest.user = previousUser;
   globalThis.flowTest.guestAllowed = true;
+test("SEC-only evidence is eligible for grounded synthesis when issuer news retrieval is empty", async () => {
+  globalThis.flowTest.emptyIssuerNews = true;
+  globalThis.flowTest.aiCalls = 0;
+  const response = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
+    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: "Summarize NVDA's reported revenue and net income using its filed financials" }),
+  }));
+  assert.equal(response.status, 200);
+  const events = (await response.text()).split("\n\n").filter(Boolean).map(frame => JSON.parse(frame.split("\ndata: ")[1]));
+  const result = events.findLast(frame => frame.researchRunId);
+  assert.ok(result, "research route emitted a saved result");
+  assert.equal(globalThis.flowTest.aiCalls, 1, "the configured analyst received SEC facts despite empty news coverage");
+  assert.match(result.assets[0].summary, /SEC-only fixture/);
+  assert.ok(result.assets[0].sources.some(source => source.publisher === "SEC EDGAR"));
+  assert.ok(result.evidenceGraph.nodes.some(node => node.type === "source" && node.publisher === "SEC EDGAR"));
+  assert.ok(result.evidenceGraph.nodes.some(node => node.type === "claim" && node.citationStatus === "source_linked"));
+  assert.equal(result.assets[0].tradeable, false, "SEC fundamentals alone do not unlock a trading handoff");
+  globalThis.flowTest.emptyIssuerNews = false;
 });

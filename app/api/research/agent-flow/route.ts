@@ -307,7 +307,7 @@ export async function POST(request: Request) {
         stage("Research analyst", "running", "Cross-checking the evidence", "Reviewing primary issuer excerpts alongside headline coverage for corroboration, disagreement, timing, and exact source links. Excerpts remain partial and are not treated as complete filings.");
         const assessments: Record<string, FlowAssessment> = {};
         let synthesisProvider: string | null = null;
-        if (configuredAiProviders().length && snapshots.some(snap => snap.sources.length)) {
+        if (configuredAiProviders().length && snapshots.some(snap => snap.sources.length || snap.financialFacts.length)) {
           try {
             const sourceByTicker = Object.fromEntries(snapshots.map(snap => [snap.ticker, researchSourcesFor(snap)]));
             const result = await aiJsonWithFallback([
