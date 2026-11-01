@@ -38,8 +38,12 @@ test("SEC period and instant facts select the latest values filed by the as-of d
   const companyfacts = {
     cik: 1, entityName: "Fixture Corp", facts: { "us-gaap": {
       RevenueFromContractWithCustomerExcludingAssessedTax: { units: { USD: [
-        { val: 100, start: "2025-01-01", end: "2025-03-31", filed: "2025-05-01", form: "10-Q" },
         { val: 900, start: "2025-01-01", end: "2025-03-31", filed: "2026-05-01", form: "10-Q" },
+        { val: 700, start: "2024-10-01", end: "2024-12-31", filed: "2026-05-01", form: "10-Q" },
+      ] } },
+      Revenues: { units: { USD: [
+        { val: 100, start: "2025-01-01", end: "2025-03-31", filed: "2025-05-01", form: "10-Q" },
+        { val: 40, start: "2024-10-01", end: "2024-12-31", filed: "2025-02-01", form: "10-Q" },
       ] } },
       Assets: { units: { USD: [
         { val: 500, end: "2025-03-31", filed: "2025-05-01", form: "10-Q" },
@@ -61,4 +65,5 @@ test("SEC period and instant facts select the latest values filed by the as-of d
   assert.equal(result.financials.quarterly[0].totalAssets, 500);
   assert.equal(result.financials.quarterly[0].filed, "2025-05-01");
   assert.deepEqual(result.financials.quarterly[0].filedByMetric, { revenue: "2025-05-01", netIncome: "2025-05-03", totalAssets: "2025-05-01", totalLiabilities: null, operatingCashFlow: null, capitalExpenditure: null });
+  assert.equal(result.financials.quarterly.find(period => period.periodEnd === "2024-12-31")?.revenue, 40, "fallback revenue tags are selected after applying the historical as-of cutoff");
 });

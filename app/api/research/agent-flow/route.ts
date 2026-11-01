@@ -24,7 +24,7 @@ function researchSourcesFor(snapshot: MarketSnapshot): FlowEvidence[] {
   if (!snapshot.financialFacts.length) return snapshot.sources;
   const filedAt = [...snapshot.financialFacts].map(fact => fact.filedAt).sort().at(-1) ?? null;
   const excerpt = snapshot.financialFacts.map(fact => `${fact.label}: ${fact.value} ${fact.unit}; period ended ${fact.periodEnd}; filed ${fact.filedAt} (${fact.form}).`).join(" ");
-  return [...snapshot.sources, { title: "SEC EDGAR company facts", url: snapshot.financialFacts[0].sourceUrl, publisher: "SEC EDGAR", publishedAt: filedAt, via: "Official source", snippet: excerpt }];
+  return [{ title: "SEC EDGAR company facts", url: snapshot.financialFacts[0].sourceUrl, publisher: "SEC EDGAR", publishedAt: filedAt, via: "Official source", snippet: excerpt }, ...snapshot.sources];
 }
 async function settleWithin<T>(task: Promise<T>, timeoutMs: number): Promise<T> {
   let timer: ReturnType<typeof setTimeout> | undefined;

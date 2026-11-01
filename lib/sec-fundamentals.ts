@@ -66,26 +66,25 @@ async function analystTargets(ticker: string): Promise<CompanyResearch["analystT
   }
 }
 
-function latestFact(facts: CompanyFacts, tags: string[], unit = "USD"): SecFact[] {
+function latestFact(facts: CompanyFacts, tags: string[], unit = "USD", eligible: (item: SecFact) => boolean = () => true): SecFact[] {
   const gaap = facts.facts["us-gaap"] ?? {};
   for (const tag of tags) {
-    const values = gaap[tag]?.units?.[unit];
+    const values = gaap[tag]?.units?.[unit]?.filter(eligible);
     if (values?.length) return values;
   }
   return [];
 }
 
 function periodValues(facts: CompanyFacts, tags: string[], form: "10-Q" | "10-K", duration: "quarter" | "annual", asOfDate = "9999-12-31"): Map<string, SecFact> {
-  const valid = latestFact(facts, tags).filter((item) => item.form === form && item.start && item.end && item.filed && item.filed <= asOfDate && item.end <= asOfDate);
   const lengthDays = (item: SecFact) => (Date.parse(`${item.end}T00:00:00Z`) - Date.parse(`${item.start}T00:00:00Z`)) / 86400000;
-  const filtered = valid.filter((item) => duration === "quarter" ? lengthDays(item) >= 60 && lengthDays(item) <= 115 : lengthDays(item) >= 300 && lengthDays(item) <= 400);
+  const filtered = latestFact(facts, tags, "USD", item => Boolean(item.form === form && item.start && item.end && item.filed) && item.filed <= asOfDate && item.end <= asOfDate && (duration === "quarter" ? lengthDays(item) >= 60 && lengthDays(item) <= 115 : lengthDays(item) >= 300 && lengthDays(item) <= 400));
   const byEnd = new Map<string, SecFact>();
   for (const item of filtered.sort((a, b) => a.filed.localeCompare(b.filed))) byEnd.set(item.end, item);
   return byEnd;
 }
 
 function instantValue(facts: CompanyFacts, tags: string[], end: string, form: "10-Q" | "10-K", asOfDate = "9999-12-31"): SecFact | undefined {
-  return latestFact(facts, tags).filter((item) => item.end === end && item.form === form && !item.start && item.filed <= asOfDate && item.end <= asOfDate).sort((a, b) => b.filed.localeCompare(a.filed))[0];
+  return latestFact(facts, tags, "USD", item => item.end === end && item.form === form && !item.start && Boolean(item.filed) && item.filed <= asOfDate && item.end <= asOfDate).sort((a, b) => b.filed.localeCompare(a.filed))[0];
 }
 
 function quarterLabel(end: string) {
