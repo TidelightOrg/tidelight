@@ -73,7 +73,8 @@ export async function recordProviderHealth(attempts: ProviderAttempt[]) {
   if (!attempts.length) return;
   try {
     const admin = createAdminClient();
-    const rows = attempts.slice(0, 6).map(({ provider, model, attempt, outcome, durationMs, httpStatus }) => ({
+    const rows = attempts.slice(0, 6).map(({ provider, model, attempt, outcome, occurredAt, durationMs, httpStatus }) => ({
+      occurred_at: occurredAt,
       provider,
       model: model.slice(0, 80),
       attempt,

@@ -55,7 +55,8 @@ test("provider attempts report successful calls with bounded metadata", async t 
   const attempts = [];
   await aiJsonWithFallback(messages, valid, { onAttempt: attempt => attempts.push(attempt) });
   assert.equal(attempts.length, 1);
-  assert.deepEqual({ ...attempts[0], durationMs: 0 }, { provider: "gemini", model: "gemini-test", attempt: 1, outcome: "success", durationMs: 0 });
+  assert.deepEqual({ ...attempts[0], occurredAt: "2026-01-01T00:00:00.000Z", durationMs: 0 }, { provider: "gemini", model: "gemini-test", attempt: 1, outcome: "success", occurredAt: "2026-01-01T00:00:00.000Z", durationMs: 0 });
+  assert.ok(Number.isFinite(Date.parse(attempts[0].occurredAt)));
   assert.ok(attempts[0].durationMs >= 0);
   assert.equal(JSON.stringify(attempts).includes("Grounded result"), false);
   assert.equal(JSON.stringify(attempts).includes("test-gemini-key"), false);

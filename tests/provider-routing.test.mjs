@@ -71,3 +71,18 @@ test("provider health reads only a bounded recent window and fails open", async 
   globalThis.__providerHealthAdmin = () => { throw new Error("unavailable"); };
   assert.deepEqual(await health.getProviderRoutingDecision(["qwen", "gemini"], now), { status: "unavailable", skippedProviders: [] });
 });
+
+test("provider telemetry persists attempt time instead of write-batch time", async t => {
+  const prior = globalThis.__providerHealthAdmin;
+  t.after(() => { if (prior === undefined) delete globalThis.__providerHealthAdmin; else globalThis.__providerHealthAdmin = prior; });
+  let inserted;
+  globalThis.__providerHealthAdmin = () => ({ from(table) {
+    assert.equal(table, "research_provider_health_events");
+    return { insert(rows) { inserted = rows; return { abortSignal: () => Promise.resolve({ error: null }) }; } };
+  } });
+  const occurredAt = "2026-10-31T21:15:00.000Z";
+  await health.recordProviderHealth([{ provider: "qwen", model: "qwen-test", attempt: 1, outcome: "timeout", occurredAt, durationMs: 500, httpStatus: undefined }]);
+  assert.equal(inserted[0].occurred_at, occurredAt);
+  assert.equal(inserted[0].duration_ms, 500);
+  assert.equal(JSON.stringify(inserted).includes("prompt"), false);
+});

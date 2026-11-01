@@ -50,6 +50,7 @@ export type ProviderAttempt = {
   model: string;
   attempt: number;
   outcome: "success" | "http_error" | "invalid_response" | "timeout" | "network_error";
+  occurredAt: string;
   durationMs: number;
   httpStatus?: number;
 };
@@ -105,7 +106,7 @@ export async function aiJsonWithFallback(messages: Message[], valid: (value: Rec
       const report = (outcome: ProviderAttempt["outcome"], httpStatus?: number) => {
         if (reported) return;
         reported = true;
-        reportAttempt(options.onAttempt, { provider: provider.label, model: provider.model, attempt: attempt + 1, outcome, durationMs: Math.max(0, Date.now() - attemptStartedAt), ...(httpStatus === undefined ? {} : { httpStatus }) });
+        reportAttempt(options.onAttempt, { provider: provider.label, model: provider.model, attempt: attempt + 1, outcome, occurredAt: new Date().toISOString(), durationMs: Math.max(0, Date.now() - attemptStartedAt), ...(httpStatus === undefined ? {} : { httpStatus }) });
       };
       const nativeGemini = provider.label === "gemini";
       const timeoutMs = Math.min(providerDeadline - Date.now(), attempt === 0 ? (nativeGemini ? 22000 : 16000) : 9000);
