@@ -55,6 +55,12 @@ test("SEC period and instant facts select the latest values filed by the as-of d
       NetIncomeLoss: { units: { USD: [
         { val: 25, start: "2025-01-01", end: "2025-03-31", filed: "2025-05-03", form: "10-Q" },
       ] } },
+      CommonStockDividendsPerShareCashPaid: { units: { "USD / shares": [
+        { val: 0.5, end: "2025-03-31", filed: "2026-05-01", form: "10-Q" },
+      ] } },
+      CommonStockDividendsPerShareDeclared: { units: { "USD / shares": [
+        { val: 0.25, end: "2025-03-31", filed: "2025-05-01", form: "10-Q" },
+      ] } },
     } },
   };
   globalThis.fetch = async url => {
@@ -69,4 +75,7 @@ test("SEC period and instant facts select the latest values filed by the as-of d
   assert.equal(result.financials.quarterly[0].filed, "2025-05-01");
   assert.deepEqual(result.financials.quarterly[0].filedByMetric, { revenue: "2025-05-01", netIncome: "2025-05-03", totalAssets: "2025-05-01", totalLiabilities: null, operatingCashFlow: null, capitalExpenditure: null });
   assert.equal(result.financials.quarterly.find(period => period.periodEnd === "2024-12-31")?.revenue, 40, "fallback revenue tags are selected after applying the historical as-of cutoff");
+  assert.equal(result.dividends[0].amountPerShare, 0.25, "an ineligible preferred dividend tag does not prevent fallback tag selection");
+  assert.equal(result.asOf, "2025-06-01T12:00:00.000Z");
+  assert.notEqual(result.retrievedAt, result.asOf, "retrieval provenance records actual response processing time");
 });

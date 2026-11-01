@@ -27,6 +27,7 @@ async function secJson<T>(url: string): Promise<T> {
 export type CompanyResearch = {
   ticker: string;
   cik: string;
+  asOf: string;
   companyName: string;
   industry: string | null;
   exchange: string | null;
@@ -142,23 +143,23 @@ export async function getSecCompanyResearch(ticker: string, website: string | nu
     secJson<Submissions>(`${SEC}/submissions/CIK${cik}.json`),
     secJson<CompanyFacts>(`${SEC}/api/xbrl/companyfacts/CIK${cik}.json`),
   ]);
+  const retrievedAt = new Date().toISOString();
   const address = submissions.addresses?.business;
   const headquarters = address ? [address.street1, address.street2, [address.city, address.stateOrCountry, address.zipCode].filter(Boolean).join(" ")].filter(Boolean).join(", ") : null;
   const facts = companyfacts.facts["dei"]?.EntityNumberOfEmployees?.units?.pure ?? [];
   const employeeCount = facts.filter(item => filedBeforeAsOfDay(item.filed, asOfDate) && item.end <= asOfDate).sort((a, b) => b.end.localeCompare(a.end))[0]?.val ?? null;
-  const dividends = latestFact(companyfacts, ["CommonStockDividendsPerShareCashPaid", "CommonStockDividendsPerShareDeclared"], "USD / shares")
-    .filter((item) => ["10-Q", "10-K"].includes(item.form) && item.end && item.filed && filedBeforeAsOfDay(item.filed, asOfDate) && item.end <= asOfDate)
+  const dividends = latestFact(companyfacts, ["CommonStockDividendsPerShareCashPaid", "CommonStockDividendsPerShareDeclared"], "USD / shares", item => ["10-Q", "10-K"].includes(item.form) && Boolean(item.end && item.filed) && filedBeforeAsOfDay(item.filed, asOfDate) && item.end <= asOfDate)
     .sort((a, b) => b.end.localeCompare(a.end)).slice(0, 12)
     .map((item) => ({ periodEnd: item.end, filed: item.filed, amountPerShare: item.val, unit: "USD per share as reported" }));
   const quarterly = buildPeriods(companyfacts, "quarter", asOfDate);
   const annual = buildPeriods(companyfacts, "annual", asOfDate);
   const targetData = options.includeAnalystTargets === false ? { status: "not_configured" as const } : await analystTargets(normalized);
   return {
-    ticker: normalized, cik, companyName: submissions.name || companyfacts.entityName,
+    ticker: normalized, cik, asOf: new Date(asOfMs).toISOString(), companyName: submissions.name || companyfacts.entityName,
     industry: submissions.sicDescription ?? null, exchange: submissions.exchanges?.[0] ?? null,
     headquarters, website, employeeCount, source: "SEC EDGAR",
     sourceUrl: `https://www.sec.gov/edgar/browse/?CIK=${Number(cik)}`,
-    retrievedAt: new Date(asOfMs).toISOString(),
+    retrievedAt,
     financials: { quarterly, annual },
     dividends,
     analystTargets: targetData,
