@@ -697,3 +697,7 @@
   .agent-flow-page .flow-prompts{gap:7px}
   .agent-flow-page .flow-prompts button{width:100%;display:flex;align-items:center;justify-content:space-between;padding:10px 12px;font-size:11px}
 }
+.flow-guest-note{margin-top:12px!important;padding:10px 12px;border:1px solid color-mix(in srgb,var(--mint) 28%,var(--line));border-radius:10px;background:color-mix(in srgb,var(--mint) 5%,var(--panel));color:var(--muted)!important}.flow-guest-note a{color:var(--text);text-decoration:underline;text-underline-offset:3px}
+.flow-guest-result{display:grid;gap:5px;margin:0 0 16px;padding:13px 15px;border:1px solid color-mix(in srgb,var(--mint) 32%,var(--line));border-radius:12px;background:color-mix(in srgb,var(--mint) 6%,var(--panel));color:var(--muted);font:11px/1.55 var(--font)}
+.flow-guest-result b{color:var(--mint);font:10px var(--mono);letter-spacing:.08em;text-transform:uppercase}
+.flow-guest-result a{width:max-content;margin-top:3px;color:var(--text);text-decoration:underline;text-underline-offset:3px}

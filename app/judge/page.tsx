@@ -41,7 +41,7 @@ export default function JudgePage() {
           <h1>Follow the evidence.<br /><em>Inspect the decision.</em></h1>
           <p className="judge-lede">Trace an after-hours market question through its sources, tokenized instrument context, scenarios, and risk gates.</p>
           <div className="judge-actions">
-            <Link className="judge-primary" href="/flow?demo=1&question=Should%20I%20review%20the%20affected%20rToken%20after%20an%20after-hours%20earnings%20event%3F">Start the evaluation <span aria-hidden="true">↗</span></Link>
+            <Link className="judge-primary" href="/flow?demo=1&question=Should%20I%20review%20rNVDA%2C%20the%20tokenized%20exposure%20to%20Nvidia%2C%20after%20an%20after-hours%20earnings%20event%3F">Start public research · no sign-in <span aria-hidden="true">↗</span></Link>
             <Link className="judge-secondary" href="/evidence">Evidence and methods <span aria-hidden="true">↗</span></Link>
           </div>
         </div>
