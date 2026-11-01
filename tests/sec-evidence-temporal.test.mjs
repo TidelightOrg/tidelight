@@ -20,6 +20,7 @@ test("SEC facts retain period and filing dates and omit future information from 
       ticker: "NVDA", issuer: "NVIDIA", summary: "Research only.", stance: "unclear", confidence: 0, sources: [],
       financialFacts: [
         { id: "10-Q:2026-07-31:revenue", label: "Q2 2026 Revenue", value: 46743000000, unit: "USD", periodEnd: "2026-07-31", filedAt: "2026-08-27", form: "10-Q", sourceUrl: "https://www.sec.gov/edgar/browse/?CIK=1045810" },
+        { id: "10-Q:2026-10-31:filing-day", label: "Same-day filing", value: 3, unit: "USD", periodEnd: "2026-09-30", filedAt: "2026-10-31", form: "10-Q", sourceUrl: "https://www.sec.gov/edgar/browse/?CIK=1045810" },
         { id: "10-Q:2026-10-31:revenue", label: "Q3 2026 Revenue", value: 1, unit: "USD", periodEnd: "2026-10-31", filedAt: "2026-11-26", form: "10-Q", sourceUrl: "https://www.sec.gov/edgar/browse/?CIK=1045810" },
         { id: "fake", label: "Non SEC", value: 2, unit: "USD", periodEnd: "2026-07-31", filedAt: "2026-08-27", form: "10-Q", sourceUrl: "https://example.com/filing" },
       ],
@@ -27,6 +28,7 @@ test("SEC facts retain period and filing dates and omit future information from 
   });
   const facts = graph.nodes.filter(node => node.type === "financial_fact");
   assert.equal(facts.length, 1);
+  assert.equal(facts.some(fact => fact.label === "Same-day filing"), false, "date-only SEC filing timestamps are excluded for the whole as-of day");
   assert.equal(facts[0].filedAt, "2026-08-27");
   assert.equal(facts[0].value, 46743000000);
   assert.ok(graph.edges.some(edge => edge.to === facts[0].id && edge.relation === "about"));

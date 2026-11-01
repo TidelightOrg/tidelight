@@ -268,7 +268,7 @@ export async function POST(request: Request) {
           const annualFocus = /\b(?:annual|fiscal year|FY\s?20\d{2}|10-K)\b/i.test(question);
           const selectedPeriods = annualFocus ? [...annual.slice(0, 6), ...quarterly.slice(0, 2)] : [...quarterly.slice(0, 6), ...annual.slice(0, 2)];
           for (const period of selectedPeriods) {
-            for (const [key, label] of [["revenue", "Revenue"], ["netIncome", "Net income"], ["operatingCashFlow", "Operating cash flow"], ["totalAssets", "Total assets"], ["totalLiabilities", "Total liabilities"]] as const) {
+            for (const [key, label] of [["revenue", "Revenue"], ["netIncome", "Net income"], ["operatingCashFlow", "Operating cash flow"], ["capitalExpenditure", "Capital expenditure"], ["totalAssets", "Total assets"], ["totalLiabilities", "Total liabilities"]] as const) {
               const value = period[key];
               if (typeof value === "number" && Number.isFinite(value)) financialFacts.push({ id: `${period.form}:${period.periodEnd}:${key}`, label: `${period.period} ${label}`, value, unit: "USD", periodEnd: period.periodEnd, filedAt: period.filedByMetric[key] ?? period.filed, form: period.form, sourceUrl: secResearch!.sourceUrl });
             }
