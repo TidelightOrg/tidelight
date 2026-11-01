@@ -43,6 +43,13 @@ function stableId(kind: string, value: string) {
   return `${kind}:${createHash("sha256").update(value).digest("hex").slice(0, 24)}`;
 }
 
+function isValidDateOnly(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
+}
+
 /** Build a bounded, citation-addressable graph. Citation links establish provenance, not semantic truth. */
 export function buildEvidenceGraph(input: { question: string; assets: EvidenceGraphAsset[]; asOf: string; synthesisMode: "model" | "source_only" }): EvidenceGraph {
   const asOfMs = Date.parse(input.asOf);
@@ -74,7 +81,7 @@ export function buildEvidenceGraph(input: { question: string; assets: EvidenceGr
       const periodMs = Date.parse(fact.periodEnd);
       let sourceUrl: URL;
       try { sourceUrl = new URL(fact.sourceUrl); } catch { continue; }
-      if (sourceUrl.protocol !== "https:" || !/(^|\.)sec\.gov$/i.test(sourceUrl.hostname) || !Number.isFinite(filedMs) || !Number.isFinite(periodMs) || filedMs > asOfMs || periodMs > asOfMs || !Number.isFinite(fact.value)) continue;
+      if (sourceUrl.protocol !== "https:" || !/(^|\.)sec\.gov$/i.test(sourceUrl.hostname) || !isValidDateOnly(fact.filedAt) || !isValidDateOnly(fact.periodEnd) || !Number.isFinite(filedMs) || !Number.isFinite(periodMs) || filedMs > asOfMs || periodMs > asOfMs || !Number.isFinite(fact.value)) continue;
       const factId = stableId("financial-fact", `${ticker}\n${fact.id}\n${fact.filedAt}\n${fact.value}`);
       addNode({ id: factId, type: "financial_fact", ticker, label: fact.label.slice(0, 120), value: fact.value, unit: fact.unit.slice(0, 40), periodEnd: new Date(periodMs).toISOString().slice(0, 10), filedAt: new Date(filedMs).toISOString().slice(0, 10), form: fact.form.slice(0, 12), sourceUrl: sourceUrl.toString() });
       addEdge(issuerId, factId, "about");

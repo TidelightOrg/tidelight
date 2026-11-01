@@ -57,6 +57,14 @@ test("macro subjects are not mislabeled as issuers and invalid snapshot times fa
   assert.throws(() => buildEvidenceGraph({ question: "x", assets: [], asOf: "invalid", synthesisMode: "model" }), /invalid-asof/);
 });
 
+test("SEC financial facts reject impossible date-only filing and period dates", () => {
+  const base = { id: "fact-1", label: "Revenue", value: 12, unit: "USD", periodEnd: "2026-09-30", filedAt: "2026-10-30", form: "10-Q", sourceUrl: "https://www.sec.gov/Archives/edgar/data/1/filing.htm" };
+  for (const fact of [{ ...base, periodEnd: "2026-02-30" }, { ...base, filedAt: "2026-02-30" }]) {
+    const graph = buildEvidenceGraph({ question: "Review NVDA filing", asOf, synthesisMode: "source_only", assets: [{ ...asset, financialFacts: [fact] }] });
+    assert.equal(graph.nodes.some(node => node.type === "financial_fact"), false);
+  }
+});
+
 test("future market timestamps cannot leak their prices into an as-of graph", () => {
   const graph = buildEvidenceGraph({ question: "Review NVDA", asOf, synthesisMode: "model", assets: [{ ...asset, market: { spotSymbol: "RNVDAUSDT", spotLastPrice: 999, spotProviderTimestamp: Date.parse(asOf) + 1 } }] });
   const instrument = graph.nodes.find(node => node.type === "instrument");
