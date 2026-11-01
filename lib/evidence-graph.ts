@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import type { FlowEvidencePoint, FlowSource, FlowStance } from "@/lib/agent-flow-policy";
 
 export type EvidenceGraphSource = FlowSource & { snippet?: string | null };
+export type EvidenceGraphFact = { id: string; label: string; value: number; unit: string; periodEnd: string; filedAt: string; form: string; sourceUrl: string };
 export type EvidenceGraphAsset = {
   ticker: string;
   issuer: string;
@@ -12,6 +13,7 @@ export type EvidenceGraphAsset = {
   evidenceBalance?: { supporting: FlowEvidencePoint[]; counter: FlowEvidencePoint[] };
   risks?: string[];
   nextCheck?: string;
+  financialFacts?: EvidenceGraphFact[];
   synthesisMode?: "model" | "source_only";
   confidenceCapped?: boolean;
   market?: {
@@ -31,7 +33,8 @@ export type EvidenceGraphNode =
   | { id: string; type: "source"; url: string; title: string; publisher: string; publishedAt: string | null; capturedAt: string; temporalStatus: "dated_by_snapshot" | "date_only_before_snapshot" | "undated"; excerpt: string | null }
   | { id: string; type: "hypothesis"; ticker: string; stance: FlowStance; summary: string; reportedConfidence: number | null; confidenceOrigin: "model_reported" | "application_calibrated" | "application_fallback"; riskConsiderations: string[]; nextCheck: string | null }
   | { id: string; type: "claim"; ticker: string; polarity: "supporting" | "contrary"; text: string; citationStatus: "source_linked" | "undated_source_linked" | "no_temporally_valid_source"; sourceIds: string[] }
-  | { id: string; type: "passage"; sourceId: string; text: string; capturedAt: string; excerptKind: "retrieved_excerpt"; exactQuoteVerified: false };
+  | { id: string; type: "passage"; sourceId: string; text: string; capturedAt: string; excerptKind: "retrieved_excerpt"; exactQuoteVerified: false }
+  | { id: string; type: "financial_fact"; ticker: string; label: string; value: number; unit: string; periodEnd: string; filedAt: string; form: string; sourceUrl: string };
 
 export type EvidenceGraphEdge = { id: string; from: string; to: string; relation: "about" | "exposes_to" | "cites" | "supports" | "challenges" | "derived_from" | "contains_passage" };
 export type EvidenceGraph = { version: 1; asOf: string; nodes: EvidenceGraphNode[]; edges: EvidenceGraphEdge[] };
@@ -65,6 +68,17 @@ export function buildEvidenceGraph(input: { question: string; assets: EvidenceGr
     addNode({ id: hypothesisId, type: "hypothesis", ticker, stance: asset.stance, summary: asset.summary.slice(0, 900), reportedConfidence: synthesisMode === "model" && Number.isFinite(asset.confidence) ? Math.max(0, Math.min(1, asset.confidence)) : null, confidenceOrigin: synthesisMode !== "model" ? "application_fallback" : asset.confidenceCapped ? "application_calibrated" : "model_reported", riskConsiderations: (asset.risks ?? []).slice(0, 8).map(risk => risk.slice(0, 250)), nextCheck: asset.nextCheck?.slice(0, 250) ?? null });
     addEdge(eventId, issuerId, "about");
     addEdge(hypothesisId, issuerId, "about");
+
+    for (const fact of (asset.financialFacts ?? []).slice(0, 12)) {
+      const filedMs = Date.parse(fact.filedAt);
+      const periodMs = Date.parse(fact.periodEnd);
+      let sourceUrl: URL;
+      try { sourceUrl = new URL(fact.sourceUrl); } catch { continue; }
+      if (sourceUrl.protocol !== "https:" || !/(^|\.)sec\.gov$/i.test(sourceUrl.hostname) || !Number.isFinite(filedMs) || !Number.isFinite(periodMs) || filedMs > asOfMs || periodMs > asOfMs || !Number.isFinite(fact.value)) continue;
+      const factId = stableId("financial-fact", `${ticker}\n${fact.id}\n${fact.filedAt}\n${fact.value}`);
+      addNode({ id: factId, type: "financial_fact", ticker, label: fact.label.slice(0, 120), value: fact.value, unit: fact.unit.slice(0, 40), periodEnd: new Date(periodMs).toISOString().slice(0, 10), filedAt: new Date(filedMs).toISOString().slice(0, 10), form: fact.form.slice(0, 12), sourceUrl: sourceUrl.toString() });
+      addEdge(issuerId, factId, "about");
+    }
 
     const instruments = [
       { symbol: asset.market?.spotSymbol, marketType: "reality_tokenized_spot" as const, timestamp: asset.market?.spotProviderTimestamp, price: asset.market?.spotLastPrice },
