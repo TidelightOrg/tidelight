@@ -35,8 +35,9 @@ const LIVE_TERMS=[
 const tradeSide=(fill:Fill):"B"|"S"=>fill.action==="open_long"||(fill.action==="close"&&fill.direction==="short")?"B":"S";
 
 function PaperExecutionEstimate({action,quantity,direction,market,now}:{action:"open_long"|"open_short"|"close";quantity:number;direction:"long"|"short"|null;market:MarketPayload|null;now:number}){
+  const isClose=action==="close";
   const entrySide:ExecutionSide|null=action==="open_long"?"buy":action==="open_short"?"sell":direction==="long"?"sell":direction==="short"?"buy":null;
-  const exitSide:ExecutionSide|null=entrySide==="buy"?"sell":entrySide==="sell"?"buy":null;
+  const exitSide:ExecutionSide|null=isClose?null:entrySide==="buy"?"sell":entrySide==="sell"?"buy":null;
   const book=market?.orderbook;
   const askPrices=(book?.asks??[]).map(level=>level.price).filter(price=>Number.isFinite(price)&&price>0);
   const bidPrices=(book?.bids??[]).map(level=>level.price).filter(price=>Number.isFinite(price)&&price>0);
@@ -50,12 +51,12 @@ function PaperExecutionEstimate({action,quantity,direction,market,now}:{action:"
   const sweep=(side:ExecutionSide|null,stress=false)=>side?estimateBookSweep({levels:levels(side,stress),side,quantity,referencePrice,oppositeBestPrice:side==="buy"?bestBid:bestAsk,bookTimestamp:validBook?book?.timestamp??null:null,now}):null;
   const entry=sweep(entrySide),exit=sweep(exitSide),stressEntry=sweep(entrySide,true),stressExit=sweep(exitSide,true);
   const line=(label:string,result:ReturnType<typeof estimateBookSweep>|null)=><div className="execution-estimate-row"><span>{label}</span>{!result||result.status==="unavailable"?<b>Unavailable · fresh book required</b>:<b className={result.status==="estimated"?"":"execution-estimate-warning"}>{result.status==="estimated"?`${result.slippageBps!.toFixed(1)} bps · ${usd(result.averagePrice!,4)}`:`${result.coveragePct.toFixed(0)}% depth · incomplete`}</b>}</div>;
-  const stressUnavailable=!stressEntry||!stressExit||stressEntry.status==="unavailable"||stressExit.status==="unavailable";
-  const stressIncomplete=stressEntry?.status==="insufficient_depth"||stressExit?.status==="insufficient_depth";
+  const stressUnavailable=!stressEntry||stressEntry.status==="unavailable"||(!isClose&&(!stressExit||stressExit.status==="unavailable"));
+  const stressIncomplete=stressEntry?.status==="insufficient_depth"||(!isClose&&stressExit?.status==="insufficient_depth");
   return <section className="execution-estimate" aria-label="Visible order book execution estimate">
     <header><span>BITGET · VISIBLE BOOK</span><b>{Number.isFinite(quantity)&&quantity>0?`${quantity.toFixed(4)} contract units`:"Size unavailable"}</b></header>
-    {line("Entry sweep",entry)}{line("Exit sweep",exit)}
-    <div className="execution-estimate-stress"><span>50% depth stress</span><b className={stressIncomplete||stressUnavailable?"execution-estimate-warning":""}>{stressUnavailable?"Unavailable · fresh book required":stressIncomplete?"Insufficient visible depth":`${stressEntry!.slippageBps!.toFixed(1)} / ${stressExit!.slippageBps!.toFixed(1)} bps · entry / exit`}</b></div>
+    {line(isClose?"Close sweep":"Entry sweep",entry)}{isClose?null:line("Exit sweep",exit)}
+    <div className="execution-estimate-stress"><span>50% depth stress</span><b className={stressIncomplete||stressUnavailable?"execution-estimate-warning":""}>{stressUnavailable?"Unavailable · fresh book required":stressIncomplete?"Insufficient visible depth":isClose?`${stressEntry!.slippageBps!.toFixed(1)} bps · close`:`${stressEntry!.slippageBps!.toFixed(1)} / ${stressExit!.slippageBps!.toFixed(1)} bps · entry / exit`}</b></div>
     <p>Estimated from this contract’s latest visible Bitget levels only. Freshness, hidden liquidity, queue position, fees and funding can change execution; this is not a fill guarantee.</p>
   </section>;
 }
