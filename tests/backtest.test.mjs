@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildSignals, runBacktest, runCostSensitivity, runWalkForward } from "../lib/backtest.ts";
+import { buildSignals, runBacktest, runCostSensitivity, runRandomEntryPlacebo, runWalkForward } from "../lib/backtest.ts";
 
 const FOUR_HOURS = 4 * 60 * 60 * 1000;
 const ONE_DAY = 24 * 60 * 60 * 1000;
@@ -126,6 +126,26 @@ test("cost stress uses identical candles and shows increasing assumed friction",
   assert.ok(scenarios[1].slippageBpsPerSide < scenarios[2].slippageBpsPerSide);
   assert.ok(scenarios.every((item) => Number.isFinite(item.returnPct)));
   assert.ok(scenarios[2].returnPct <= scenarios[0].returnPct);
+});
+
+test("random long/cash placebo is reproducible and seeds only from the training window", () => {
+  const candles = fixture(1_000);
+  const result = runBacktest("RAAPLUSDT", "4H", candles);
+  const placebo = runRandomEntryPlacebo(candles, "4H", Date.now(), result.strategyKey, result.test.totalReturnPct);
+  const repeated = runRandomEntryPlacebo(candles, "4H", Date.now(), result.strategyKey, result.test.totalReturnPct);
+  assert.deepEqual(placebo, repeated);
+  assert.equal(placebo.simulations, 100);
+  assert.equal(runRandomEntryPlacebo(candles, "4H", Date.now(), result.strategyKey, result.test.totalReturnPct, Number.NaN).simulations, 100);
+  assert.ok(placebo.p05ReturnPct <= placebo.medianReturnPct);
+  assert.ok(placebo.medianReturnPct <= placebo.p95ReturnPct);
+  assert.ok(placebo.beatsStrategyPct >= 0 && placebo.beatsStrategyPct <= 100);
+
+  const changedHoldout = [...candles];
+  changedHoldout[900] = { ...changedHoldout[900], open: 220, high: 230, low: 210, close: 225 };
+  const changed = runRandomEntryPlacebo(changedHoldout, "4H", Date.now(), result.strategyKey, result.test.totalReturnPct);
+  assert.equal(changed.seed, placebo.seed, "holdout prices cannot influence placebo randomization");
+  assert.equal(changed.trainingEntryRatePerBar, placebo.trainingEntryRatePerBar);
+  assert.equal(changed.trainingExitRatePerBar, placebo.trainingExitRatePerBar);
 });
 
 test("trend pullback and semiconductor breakout are deterministic, boolean, causal rules", () => {
