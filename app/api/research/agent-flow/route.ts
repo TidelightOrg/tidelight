@@ -28,6 +28,33 @@ async function settleWithin<T>(task: Promise<T>, timeoutMs: number): Promise<T> 
     if (timer) clearTimeout(timer);
   }
 }
+async function readBoundedBody(request: Request, limitBytes: number): Promise<Uint8Array | null> {
+  const reader = request.body?.getReader();
+  if (!reader) return new Uint8Array();
+  const chunks: Uint8Array[] = [];
+  let totalBytes = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > limitBytes) {
+        await reader.cancel().catch(() => undefined);
+        return null;
+      }
+      chunks.push(value);
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  const body = new Uint8Array(totalBytes);
+  let offset = 0;
+  for (const chunk of chunks) {
+    body.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return body;
+}
 function sourceOnlyRead(snap: MarketSnapshot, tokenizedMarketQuestion: boolean): FlowAssessment {
   const publishers = new Set(snap.sources.map(source => source.publisher.trim().toLowerCase()).filter(Boolean));
   const latest = snap.sources[0];
@@ -70,8 +97,8 @@ export async function POST(request: Request) {
   let body: { question?: unknown; judgeMode?: unknown; contextRunId?: unknown; workspaceContext?: unknown; researchMonitorId?: unknown; researchMonitorRevision?: unknown };
   if (Number(request.headers.get("content-length") ?? 0) > 6_000) return NextResponse.json({ error: "Keep the research request under 6 KB." }, { status: 413 });
   try {
-    const bytes = await request.arrayBuffer();
-    if (bytes.byteLength > 6_000) return NextResponse.json({ error: "Keep the research request under 6 KB." }, { status: 413 });
+    const bytes = await readBoundedBody(request, 6_000);
+    if (!bytes) return NextResponse.json({ error: "Keep the research request under 6 KB." }, { status: 413 });
     const parsed: unknown = JSON.parse(new TextDecoder().decode(bytes));
     if (!parsed || typeof parsed !== "object" || Array.isArray(parsed)) return NextResponse.json({ error: "Send a valid question." }, { status: 400 });
     body = parsed as typeof body;

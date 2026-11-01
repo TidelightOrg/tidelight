@@ -159,6 +159,21 @@ test("anonymous judge research is same-origin, session-only, and cannot hand off
   globalThis.flowTest.guestAllowed = true;
   captures.research.length = 0;
   const rpcCallsBeforeInvalidQuestion = captures.rpc.length;
+  let streamingChunksRead = 0;
+  let oversizedStreamCancelled = false;
+  const streamingRequest = new Request("https://tidelight.app/api/research/agent-flow", {
+    method: "POST", headers: { origin: "https://tidelight.app", "content-type": "application/json" }, duplex: "half",
+    body: new ReadableStream({
+      pull(controller) { streamingChunksRead++; controller.enqueue(new Uint8Array(1_024)); },
+      cancel() { oversizedStreamCancelled = true; },
+    }),
+  });
+  assert.equal(streamingRequest.headers.has("content-length"), false, "streamed request has no declared length");
+  const oversizedStreamResponse = await researchRoute.POST(streamingRequest);
+  assert.equal(oversizedStreamResponse.status, 413);
+  assert.ok(oversizedStreamCancelled, "oversized streamed bodies are cancelled as soon as the byte cap is crossed");
+  assert.ok(streamingChunksRead <= 7, "the route does not drain an unbounded chunked body");
+  assert.equal(captures.rpc.length, rpcCallsBeforeInvalidQuestion, "oversized streamed requests do not consume anonymous capacity");
   const oversizedUtf8Body = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
     method: "POST", headers: { origin: "https://tidelight.app", "content-type": "application/json" }, body: JSON.stringify({ question: "Review NVDA with current public evidence", judgeMode: true, extra: "€".repeat(2_100) }),
   }));
