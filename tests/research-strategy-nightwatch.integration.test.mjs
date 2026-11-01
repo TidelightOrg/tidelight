@@ -98,6 +98,8 @@ test("synthetic positive handoff preserves lineage through Research → paper St
   assert.ok(research, "research route emitted a saved result");
   assert.equal(research.researchRunId, researchId);
   assert.equal(research.tradeable, true);
+  assert.ok(research.evidenceGraph.nodes.some(node => node.type === "subject" && node.ticker === "NVDA"));
+  assert.ok(research.evidenceGraph.nodes.some(node => node.type === "source" && node.url === sourceRows[0].url));
   assert.equal(research.assets[0].handoff.destinations[0].mode, "paper_futures");
   assert.match(research.assets[0].handoff.destinations[0].href, new RegExp(`researchRunId=${researchId}`));
 
@@ -143,6 +145,8 @@ test("macro-only research saves a source-bound brief and bypasses stock provider
   assert.equal(result.assets[0].handoff, null);
   assert.equal(result.assets[0].market.perpSymbol, null);
   assert.equal(result.assets[0].market.lastPrice, null);
+  assert.ok(result.evidenceGraph.nodes.some(node => node.type === "subject" && node.subjectType === "macro_topic"));
+  assert.ok(result.evidenceGraph.nodes.some(node => node.type === "passage" && node.exactQuoteVerified === false));
   assert.deepEqual(result.assets[0].sources.map(source => source.via), ["Official source", "Independent reporting"]);
   assert.ok(result.assets[0].gateReasons.some(reason => reason.includes("information-only")));
   assert.equal(globalThis.flowTest.macroCalls, 1);
@@ -196,7 +200,7 @@ test("anonymous judge research is same-origin, session-only, and cannot hand off
   assert.equal(response.status, 200);
   const events = (await response.text()).split("\n\n").filter(Boolean).map(frame => JSON.parse(frame.split("\ndata: ")[1]));
   const result = events.findLast(frame => frame.guestSessionResult === true);
-  assert.ok(result, "guest research emits an in-session result without an account record identifier");
+  assert.ok(result, `guest research emits an in-session result without an account record identifier; events=${JSON.stringify(events.slice(-3))}`);
   assert.equal("researchRunId" in result, false);
   assert.equal(result.tradeable, false);
   assert.equal(result.assets[0].tradeable, false);
