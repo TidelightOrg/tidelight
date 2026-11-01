@@ -38,11 +38,16 @@ function PaperExecutionEstimate({action,quantity,direction,market,now}:{action:"
   const entrySide:ExecutionSide|null=action==="open_long"?"buy":action==="open_short"?"sell":direction==="long"?"sell":direction==="short"?"buy":null;
   const exitSide:ExecutionSide|null=entrySide==="buy"?"sell":entrySide==="sell"?"buy":null;
   const book=market?.orderbook;
+  const askPrices=(book?.asks??[]).map(level=>level.price).filter(price=>Number.isFinite(price)&&price>0);
+  const bidPrices=(book?.bids??[]).map(level=>level.price).filter(price=>Number.isFinite(price)&&price>0);
+  const bestAsk=askPrices.length?Math.min(...askPrices):null,bestBid=bidPrices.length?Math.max(...bidPrices):null;
+  const validBook=bestAsk!==null&&bestBid!==null&&bestAsk>=bestBid;
+  const referencePrice=validBook?(bestAsk!+bestBid!)/2:null;
   const levels=(side:ExecutionSide,halfDepth=false):ExecutionBookLevel[]=>{
     const rows=side==="buy"?book?.asks??[]:book?.bids??[];
     return halfDepth?rows.map(level=>({...level,size:level.size*.5})):rows;
   };
-  const sweep=(side:ExecutionSide|null,stress=false)=>side?estimateBookSweep({levels:levels(side,stress),side,quantity,referencePrice:market?.market.lastPrice??null,bookTimestamp:book?.timestamp??null,now}):null;
+  const sweep=(side:ExecutionSide|null,stress=false)=>side?estimateBookSweep({levels:levels(side,stress),side,quantity,referencePrice,oppositeBestPrice:side==="buy"?bestBid:bestAsk,bookTimestamp:validBook?book?.timestamp??null:null,now}):null;
   const entry=sweep(entrySide),exit=sweep(exitSide),stressEntry=sweep(entrySide,true),stressExit=sweep(exitSide,true);
   const line=(label:string,result:ReturnType<typeof estimateBookSweep>|null)=><div className="execution-estimate-row"><span>{label}</span>{!result||result.status==="unavailable"?<b>Unavailable · fresh book required</b>:<b className={result.status==="estimated"?"":"execution-estimate-warning"}>{result.status==="estimated"?`${result.slippageBps!.toFixed(1)} bps · ${usd(result.averagePrice!,4)}`:`${result.coveragePct.toFixed(0)}% depth · incomplete`}</b>}</div>;
   const stressIncomplete=stressEntry?.status!=="estimated"||stressExit?.status!=="estimated";

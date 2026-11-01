@@ -37,4 +37,5 @@ test("missing, stale, future-dated, and malformed books never produce an estimat
   assert.equal(estimateBookSweep({ ...base, bookTimestamp: 1000 }).status, "unavailable");
   assert.equal(estimateBookSweep({ ...base, bookTimestamp: 30_000 }).status, "unavailable");
   assert.equal(estimateBookSweep({ ...base, levels: [{ price: 0, size: 10 }], bookTimestamp: 19_000 }).status, "unavailable");
+  assert.equal(estimateBookSweep({ ...base, levels: [{ price: 99, size: 3 }], oppositeBestPrice: 100, bookTimestamp: 19_000 }).status, "unavailable", "crossed books never create a slippage estimate");
 });

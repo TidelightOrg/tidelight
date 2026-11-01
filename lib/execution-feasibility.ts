@@ -20,6 +20,7 @@ export function estimateBookSweep(input: {
   side: ExecutionSide;
   quantity: number;
   referencePrice: number | null;
+  oppositeBestPrice?: number | null;
   bookTimestamp: number | null;
   now?: number;
   maxAgeMs?: number;
@@ -28,6 +29,9 @@ export function estimateBookSweep(input: {
   const maxAgeMs = input.maxAgeMs ?? 15_000;
   const bookAgeMs = input.bookTimestamp !== null && Number.isFinite(input.bookTimestamp) ? now - input.bookTimestamp : null;
   const validLevels = input.levels.filter(level => Number.isFinite(level.price) && level.price > 0 && Number.isFinite(level.size) && level.size > 0);
+  const bestPrice = validLevels.length ? (input.side === "buy" ? Math.min(...validLevels.map(level => level.price)) : Math.max(...validLevels.map(level => level.price))) : null;
+  const oppositeBestPrice = input.oppositeBestPrice;
+  const crossedBook = bestPrice !== null && Number.isFinite(oppositeBestPrice) && (input.side === "buy" ? bestPrice < (oppositeBestPrice as number) : bestPrice > (oppositeBestPrice as number));
   const visibleCapacity = validLevels.reduce((sum, level) => sum + level.size, 0);
   const base = {
     side: input.side,
@@ -40,7 +44,7 @@ export function estimateBookSweep(input: {
     slippageBps: null,
     bookAgeMs,
   } as const;
-  if (!Number.isFinite(input.quantity) || input.quantity <= 0 || !base.referencePrice || bookAgeMs === null || bookAgeMs < -5_000 || bookAgeMs > maxAgeMs || validLevels.length === 0) {
+  if (!Number.isFinite(input.quantity) || input.quantity <= 0 || !base.referencePrice || bookAgeMs === null || bookAgeMs < -5_000 || bookAgeMs > maxAgeMs || validLevels.length === 0 || crossedBook) {
     return { ...base, status: "unavailable" };
   }
 
