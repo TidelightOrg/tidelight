@@ -50,11 +50,12 @@ function PaperExecutionEstimate({action,quantity,direction,market,now}:{action:"
   const sweep=(side:ExecutionSide|null,stress=false)=>side?estimateBookSweep({levels:levels(side,stress),side,quantity,referencePrice,oppositeBestPrice:side==="buy"?bestBid:bestAsk,bookTimestamp:validBook?book?.timestamp??null:null,now}):null;
   const entry=sweep(entrySide),exit=sweep(exitSide),stressEntry=sweep(entrySide,true),stressExit=sweep(exitSide,true);
   const line=(label:string,result:ReturnType<typeof estimateBookSweep>|null)=><div className="execution-estimate-row"><span>{label}</span>{!result||result.status==="unavailable"?<b>Unavailable · fresh book required</b>:<b className={result.status==="estimated"?"":"execution-estimate-warning"}>{result.status==="estimated"?`${result.slippageBps!.toFixed(1)} bps · ${usd(result.averagePrice!,4)}`:`${result.coveragePct.toFixed(0)}% depth · incomplete`}</b>}</div>;
-  const stressIncomplete=stressEntry?.status!=="estimated"||stressExit?.status!=="estimated";
+  const stressUnavailable=!stressEntry||!stressExit||stressEntry.status==="unavailable"||stressExit.status==="unavailable";
+  const stressIncomplete=stressEntry?.status==="insufficient_depth"||stressExit?.status==="insufficient_depth";
   return <section className="execution-estimate" aria-label="Visible order book execution estimate">
     <header><span>BITGET · VISIBLE BOOK</span><b>{Number.isFinite(quantity)&&quantity>0?`${quantity.toFixed(4)} contract units`:"Size unavailable"}</b></header>
     {line("Entry sweep",entry)}{line("Exit sweep",exit)}
-    <div className="execution-estimate-stress"><span>50% depth stress</span><b className={stressIncomplete?"execution-estimate-warning":""}>{stressIncomplete?"Insufficient visible depth":`${stressEntry!.slippageBps!.toFixed(1)} / ${stressExit!.slippageBps!.toFixed(1)} bps · entry / exit`}</b></div>
+    <div className="execution-estimate-stress"><span>50% depth stress</span><b className={stressIncomplete||stressUnavailable?"execution-estimate-warning":""}>{stressUnavailable?"Unavailable · fresh book required":stressIncomplete?"Insufficient visible depth":`${stressEntry!.slippageBps!.toFixed(1)} / ${stressExit!.slippageBps!.toFixed(1)} bps · entry / exit`}</b></div>
     <p>Estimated from this contract’s latest visible Bitget levels only. Freshness, hidden liquidity, queue position, fees and funding can change execution; this is not a fill guarantee.</p>
   </section>;
 }
