@@ -10,7 +10,7 @@ test("Overview and Research Desk evidence briefs expose public replay publishing
   assert.match(workspace, /ResearchReplayShare researchRunId=\{brief\.research_run_id\}/);
   assert.match(replayRoute, /evidenceBrief/);
   assert.match(replayRoute, /Source-bounded research saved/);
-  assert.match(replayRoute, /validUrls/);
+  assert.match(replayRoute, /publicSourceUrl\(url, usedSourceSet\)/);
 });
 
 test("public evidence replays preserve the explicit unknown answer state", async () => {

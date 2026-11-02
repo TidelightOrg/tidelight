@@ -149,6 +149,11 @@ test("publishing requires the owning session and serializes only cited public ev
     assert.equal(legacyEvidencePayload.assets[0].evidenceBalance.supporting[0].quoteSourceUrl, "https://news.example/story");
     assert.equal(legacyEvidencePayload.assets[0].evidenceBalance.supporting[0].claimSupportStatus, "not_independently_verified");
     assert.deepEqual(legacyEvidencePayload.assets[0].evidenceBalance.supporting[0].passageSpan, { startCodepoint: 0, endCodepoint: 30 });
+    context.run.summary = { ...context.run.summary, claims: [{ claim: "A source-linked claim.", quote: "A matching archived quotation.", source_url: "https://NEWS.example:443/story" }] };
+    const canonicalBriefResponse = await route.POST(new Request("https://tidelight.app/api/research/replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ researchRunId: token }) }));
+    assert.equal(canonicalBriefResponse.status, 200);
+    const canonicalBriefPayload = calls.filter(call => call.table === "public_research_replays").at(-1).values.payload;
+    assert.equal(canonicalBriefPayload.assets[0].evidenceBalance.supporting[0].quoteSourceUrl, "https://news.example/story");
     context.run.summary = { assets: [{ ticker: "NVDA", issuer: "NVIDIA", summary: "Two sources.", sources: ["https://news.example/story", "https://NOT-CITED.example:443/story"], evidenceBalance: { supporting: [{ text: "A source-bound claim.", quote: "Other source text.", citedUrls: ["https://news.example/story", "https://NOT-CITED.example:443/story", "https://forged.example/story"] }] } }] };
     const multiSourceResponse = await route.POST(new Request("https://tidelight.app/api/research/replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ researchRunId: token }) }));
     assert.equal(multiSourceResponse.status, 200);

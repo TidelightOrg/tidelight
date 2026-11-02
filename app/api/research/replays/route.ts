@@ -68,8 +68,10 @@ export async function POST(request: Request) {
       const url = typeof claim.sourceUrl === "string" ? claim.sourceUrl : typeof claim.source_url === "string" ? claim.source_url : "";
       return [{ text: claim.claim.slice(0, 260), quote: claim.quote, citedUrls: url ? [url] : [] }];
     });
-    const validUrls = new Set(sources.map(source => source.url));
-    const points = claims.flatMap(point => point.citedUrls.every(url => validUrls.has(url)) ? [point] : []);
+    // Claim citations are canonicalized and checked against both the asset's
+    // sources and persisted run lineage below; comparing raw URLs here would
+    // reject equivalent forms before that validation can occur.
+    const points = claims;
     const answerStatus = summary.answer_status === "insufficient_evidence" || summary.answer_status === "source_matched_claims" ? summary.answer_status : undefined;
     return [{ ticker, issuer, summary: String(summary.summary).slice(0, 700), ...(answerStatus ? { answerStatus } : {}), stance: "unclear", confidence: 0, confidenceCapped: true, gateReasons: ["Evidence brief; no trading handoff was assessed."], sources: sources.map(source => source.url), evidenceBalance: { supporting: points.slice(0, 3), counter: [] }, market: { perpSymbol: null, spotSymbol: null, lastPrice: null, providerTimestamp: null }, risks: [], nextCheck: null }];
   })() : [];
