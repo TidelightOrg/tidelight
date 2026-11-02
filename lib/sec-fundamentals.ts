@@ -82,21 +82,29 @@ function latestFact(facts: CompanyFacts, tags: string[], unit = "USD", eligible:
 function filedBeforeAsOfDay(filed: string, asOfDate: string, includeSameDay: boolean) { return includeSameDay ? filed <= asOfDate : filed < asOfDate; }
 
 type PeriodFact = { value: SecFact; fiscalIdentity: SecFact };
+const periodIdentityKey = (fact: SecFact) => `${fact.start ?? ""}:${fact.end}`;
 
 function periodValues(facts: CompanyFacts, tags: string[], form: "10-Q" | "10-K", duration: "quarter" | "annual", asOfDate: string, includeSameDay: boolean): Map<string, PeriodFact> {
   const lengthDays = (item: SecFact) => (Date.parse(`${item.end}T00:00:00Z`) - Date.parse(`${item.start}T00:00:00Z`)) / 86400000;
   const eligible = (item: SecFact) => Boolean(item.form === form && item.start && item.end && item.filed) && filedBeforeAsOfDay(item.filed, asOfDate, includeSameDay) && item.end <= asOfDate && (duration === "quarter" ? lengthDays(item) >= 60 && lengthDays(item) <= 115 : lengthDays(item) >= 300 && lengthDays(item) <= 400);
-  const byEnd = new Map<string, SecFact>();
-  const fiscalIdentityByEnd = new Map<string, SecFact>();
+  const byEnd = new Map<string, PeriodFact>();
+  const fiscalIdentityByInterval = new Map<string, SecFact>();
   for (const tag of tags) {
     const latestByEnd = new Map<string, SecFact>();
     for (const item of latestFact(facts, [tag], "USD", eligible).sort((a, b) => a.filed.localeCompare(b.filed))) {
       latestByEnd.set(item.end, item);
-      if (!fiscalIdentityByEnd.has(item.end)) fiscalIdentityByEnd.set(item.end, item);
+      const interval = periodIdentityKey(item);
+      // SEC's fy/fp describe the filing that contains a fact. Retain these
+      // fields from the first eligible filing for this exact reporting interval
+      // so later comparative filings cannot rewrite its fiscal identity.
+      if (!fiscalIdentityByInterval.has(interval)) fiscalIdentityByInterval.set(interval, item);
     }
-    for (const [end, item] of latestByEnd) if (!byEnd.has(end)) byEnd.set(end, item);
+    for (const [end, value] of latestByEnd) {
+      if (byEnd.has(end)) continue;
+      byEnd.set(end, { value, fiscalIdentity: fiscalIdentityByInterval.get(periodIdentityKey(value)) ?? value });
+    }
   }
-  return new Map([...byEnd].map(([end, value]) => [end, { value, fiscalIdentity: fiscalIdentityByEnd.get(end) ?? value }]));
+  return byEnd;
 }
 
 function instantValue(facts: CompanyFacts, tags: string[], end: string, form: "10-Q" | "10-K", asOfDate: string, includeSameDay: boolean): SecFact | undefined {
