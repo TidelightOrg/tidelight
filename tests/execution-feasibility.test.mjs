@@ -6,7 +6,15 @@ const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
   if (specifier === "@/lib/execution-feasibility") return { url: new URL("../lib/execution-feasibility.ts", import.meta.url).href, shortCircuit: true };
   return nextResolve(specifier, context);
 } });
-const { estimateBookSweep, executionSidesForAction, serverAnchoredSnapshotNow } = await import("@/lib/execution-feasibility");
+const { bestExecutableBookPrices, estimateBookSweep, executionSidesForAction, serverAnchoredSnapshotNow } = await import("@/lib/execution-feasibility");
+
+test("best reference prices ignore unusable zero and negative size levels", () => {
+  assert.deepEqual(bestExecutableBookPrices(
+    [{ price: 90, size: 0 }, { price: 101, size: 2 }, { price: 99, size: -1 }],
+    [{ price: 110, size: 0 }, { price: 100, size: 3 }, { price: 102, size: -1 }],
+  ), { bestAsk: 101, bestBid: 100 });
+  assert.deepEqual(bestExecutableBookPrices([{ price: 90, size: 0 }], []), { bestAsk: null, bestBid: null });
+});
 hooks.deregister();
 
 test("book sweep prices a buy across visible ask levels", () => {

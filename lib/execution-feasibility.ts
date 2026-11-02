@@ -3,6 +3,13 @@ export type ExecutionSide = "buy" | "sell";
 export type ExecutionAction = "open_long" | "open_short" | "close";
 export type PositionDirection = "long" | "short" | null;
 
+/** Best displayed prices must come from levels that can contribute executable size. */
+export function bestExecutableBookPrices(asks: ExecutionBookLevel[], bids: ExecutionBookLevel[]) {
+  const askPrices = asks.filter(level => Number.isFinite(level.price) && level.price > 0 && Number.isFinite(level.size) && level.size > 0).map(level => level.price);
+  const bidPrices = bids.filter(level => Number.isFinite(level.price) && level.price > 0 && Number.isFinite(level.size) && level.size > 0).map(level => level.price);
+  return { bestAsk: askPrices.length ? Math.min(...askPrices) : null, bestBid: bidPrices.length ? Math.max(...bidPrices) : null };
+}
+
 /** Advance a server-timestamped snapshot clock by elapsed client time since the request began (a conservative upper bound on response transit). */
 export function serverAnchoredSnapshotNow(serverReceivedAt: number | null | undefined, clientRequestStartedAt: number | null | undefined, clientNow: number, processingMs = 0) {
   if (!Number.isFinite(serverReceivedAt) || !Number.isFinite(clientRequestStartedAt) || !Number.isFinite(clientNow)) return clientNow;

@@ -8,7 +8,7 @@ import ChartShareButton, { type ShareCandle, type ShareMarker } from "@/app/ui/c
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/app/ui/language-provider";
 import { LeverageControl, OrderGuideSheet, OrderTypeControl, TradingToolsButton, type OrderType, type TradePreferences } from "@/app/ui/futures-workshop-panels";
-import { estimateBookSweep, executionSidesForAction, serverAnchoredSnapshotNow, type ExecutionBookLevel, type ExecutionSide } from "@/lib/execution-feasibility";
+import { bestExecutableBookPrices, estimateBookSweep, executionSidesForAction, serverAnchoredSnapshotNow, type ExecutionBookLevel, type ExecutionSide } from "@/lib/execution-feasibility";
 
 type PaperPosition={symbol:string;direction:"long"|"short";quantity:number;entry_fill:number;margin:number;entry_fee:number;opened_at:string};
 type Fill={id:string;symbol:string;action:string;direction:string;quantity:number;fill_price:number;notional:number;fee:number;realized_pnl:number;created_at:string};
@@ -38,9 +38,7 @@ function PaperExecutionEstimate({action,quantity,direction,symbol,market,clientR
   const isClose=action==="close";
   const {primarySide:entrySide,secondarySide:exitSide}=executionSidesForAction(action,direction);
   const book=market?.market.symbol===symbol?market.orderbook:undefined;
-  const askPrices=(book?.asks??[]).map(level=>level.price).filter(price=>Number.isFinite(price)&&price>0);
-  const bidPrices=(book?.bids??[]).map(level=>level.price).filter(price=>Number.isFinite(price)&&price>0);
-  const bestAsk=askPrices.length?Math.min(...askPrices):null,bestBid=bidPrices.length?Math.max(...bidPrices):null;
+  const {bestAsk,bestBid}=bestExecutableBookPrices(book?.asks??[],book?.bids??[]);
   const validBook=bestAsk!==null&&bestBid!==null&&bestAsk>=bestBid;
   const referencePrice=validBook?(bestAsk!+bestBid!)/2:null;
   const levels=(side:ExecutionSide,halfDepth=false):ExecutionBookLevel[]=>{
@@ -313,9 +311,9 @@ export default function FuturesTradingStation({signedIn,initialSymbol,researchRu
     catch(cause){setError(cause instanceof Error?cause.message:"Paper control unavailable.");}
     finally{setBusy(false);}
   }
-  const bestAsk=payload?.orderbook.asks[0]?.price,bestBid=payload?.orderbook.bids[0]?.price;
+  const {bestAsk,bestBid}=bestExecutableBookPrices(currentPayload?.orderbook.asks??[],currentPayload?.orderbook.bids??[]);
   const spread=bestAsk&&bestBid?((bestAsk-bestBid)/((bestAsk+bestBid)/2))*10000:null;
-  const freshness=payload?.market.providerTimestamp&&marketRequestStartedAt?Math.max(0,Math.floor((serverAnchoredSnapshotNow(payload.orderbook.receivedAt,marketRequestStartedAt,clockNow,payload.orderbook.processingMs)-payload.market.providerTimestamp)/1000)):null;
+  const freshness=currentPayload?.market.providerTimestamp&&marketRequestStartedAt?Math.max(0,Math.floor((serverAnchoredSnapshotNow(currentPayload.orderbook.receivedAt,marketRequestStartedAt,clockNow,currentPayload.orderbook.processingMs)-currentPayload.market.providerTimestamp)/1000)):null;
   const paperReviewQuantity=paperConfirmation==="close"?(activePosition?.quantity??0):(price&&Number(size)>0?Number(size)*leverage/price:0);
   return <div className="content-wrap inner-page futures-station">
     <header className="station-heading"><div><span className="station-eyebrow">TIDELIGHT · {chinese?"BITGET 美股永续合约":"BITGET USDT FUTURES"}</span><h1>{chinese?<>美股 <span>永续交易台</span></>:<>Stocks <span>perpetual desk</span></>}</h1><p>{chinese?"Bitget 实时行情和 10,000 USDT 模拟账户。":"Bitget’s live market data and a funded $10,000 paper account."}{liveOrdersEnabled?(chinese?" 实盘权限需经过审批。":" Live access follows a separate approval flow."):(chinese?" 实盘订单已在此部署全局关闭。":" Live exchange orders are disabled across this deployment.")}</p></div><div className="station-mode"><i/>{liveMode?"LIVE ACCESS APPROVED":"PAPER ACCOUNT"}<span>{liveMode?"LIVE MODE":"SIMULATED EXECUTION"}</span><div className="station-mode-switch" role="group" aria-label="Execution mode"><button type="button" aria-pressed={!liveMode} onClick={()=>setLiveMode(false)}>{chinese?"模拟":"Paper"}</button><button type="button" aria-pressed={liveMode} onClick={switchToLive} disabled={!liveOrdersEnabled} title={!liveOrdersEnabled?"Live exchange execution is disabled":"Request or open approved live access"}>{chinese?"实盘":"Live"}</button></div></div></header>
