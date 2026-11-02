@@ -154,6 +154,11 @@ test("publishing requires the owning session and serializes only cited public ev
     assert.equal(canonicalBriefResponse.status, 200);
     const canonicalBriefPayload = calls.filter(call => call.table === "public_research_replays").at(-1).values.payload;
     assert.equal(canonicalBriefPayload.assets[0].evidenceBalance.supporting[0].quoteSourceUrl, "https://news.example/story");
+    context.run.summary = { ...context.run.summary, claims: [...Array.from({ length: 3 }, () => ({ claim: "Unsupported.", quote: "Other source text.", source_url: "https://forged.example/story" })), { claim: "Eligible later claim.", quote: "A matching archived quotation.", source_url: "https://news.example/story" }] };
+    const laterClaimResponse = await route.POST(new Request("https://tidelight.app/api/research/replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ researchRunId: token }) }));
+    assert.equal(laterClaimResponse.status, 200);
+    const laterClaimPayload = calls.filter(call => call.table === "public_research_replays").at(-1).values.payload;
+    assert.equal(laterClaimPayload.assets[0].evidenceBalance.supporting[0].text, "Eligible later claim.");
     context.run.summary = { assets: [{ ticker: "NVDA", issuer: "NVIDIA", summary: "Two sources.", sources: ["https://news.example/story", "https://NOT-CITED.example:443/story"], evidenceBalance: { supporting: [{ text: "A source-bound claim.", quote: "Other source text.", citedUrls: ["https://news.example/story", "https://NOT-CITED.example:443/story", "https://forged.example/story"] }] } }] };
     const multiSourceResponse = await route.POST(new Request("https://tidelight.app/api/research/replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ researchRunId: token }) }));
     assert.equal(multiSourceResponse.status, 200);
