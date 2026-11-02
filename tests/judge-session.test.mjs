@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { JUDGE_SESSION_KEY, storeJudgeResult, clearJudgeResult } from "../lib/judge-session.ts";
+import { JUDGE_SESSION_KEY, storeJudgeResult, clearJudgeResult, judgeClearWarningPending } from "../lib/judge-session.ts";
 
 test("judge session storage reports successful persistence and deletion", t => {
   const previous = globalThis.sessionStorage;
@@ -32,4 +32,13 @@ test("judge result display distinguishes storage failure and offers a clear acti
   assert.match(page, /Browser storage is unavailable or the result is too large/);
   assert.match(page, /Clear this result/);
   assert.match(page, /setResult\(null\)/);
+});
+
+
+test("a failed deletion remains visible after a later session-only result", () => {
+  let pending = judgeClearWarningPending(false, true, false);
+  assert.equal(pending, true);
+  pending = judgeClearWarningPending(pending, false, false);
+  assert.equal(pending, true, "a second failed clear cannot hide the stale stored result");
+  assert.equal(judgeClearWarningPending(pending, false, true), false);
 });
