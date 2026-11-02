@@ -112,7 +112,10 @@ export async function POST(request: Request) {
     const evidencePoints = (items: unknown) => Array.isArray(items) ? items.flatMap((rawPoint) => {
       const point = object(rawPoint);
       if (!point || typeof point.text !== "string") return [];
-      const citedUrls = Array.isArray(point.citedUrls) ? [...new Set(point.citedUrls.filter((url): url is string => typeof url === "string" && usedSourceSet.has(url)))].slice(0, 3) : [];
+      const citedUrls = Array.isArray(point.citedUrls) ? [...new Set(point.citedUrls.flatMap(url => {
+        const canonical = publicSourceUrl(url, usedSourceSet);
+        return canonical ? [canonical] : [];
+      }))].slice(0, 3) : [];
       if (!citedUrls.length) return [];
       const quote = typeof point.quote === "string" ? point.quote.trim().slice(0, 600) : "";
       const matchedSource = citedUrls.map(url => sourceByUrl.get(url)).find(source => source && typeof source.excerpt === "string" && quote && findQuotePassageSpan(source.excerpt, quote));
