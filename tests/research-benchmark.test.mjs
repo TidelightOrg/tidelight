@@ -6,7 +6,7 @@ import { scoreBenchmark } from "../scripts/score-research-benchmark.mjs";
 function event(index, options = {}) {
   const sourceUrl = `https://issuer${index % 3}.example/news/${index}`;
   const sources = [
-    { url: sourceUrl, sourceClass: "primary", accessible: true, capturedText: "Full captured source text", publicationAt: null, capturedAt: "2026-10-05T09:00:00Z" },
+    { url: sourceUrl, sourceClass: "primary", accessible: true, capturedText: "Full captured source text. The matched source passage", publicationAt: null, capturedAt: "2026-10-05T09:00:00Z" },
     { url: `https://publisher${index % 2}.example/story/${index}`, sourceClass: "independent_reporting", accessible: false, capturedText: "", publicationAt: null, capturedAt: "2026-10-05T09:00:00Z" },
   ];
   return {
@@ -85,6 +85,22 @@ test("blocks completion when event, category, or independent review requirements
   assert.ok(result.errors.some((error) => error.includes("At least 10 events")));
   assert.ok(result.errors.some((error) => error.includes("three event categories")));
   assert.ok(result.errors.some((error) => error.includes("two reviewers")));
+});
+
+test("rejects empty or whitespace-equivalent reviewer identities and unsupported exact quotations", () => {
+  const benchmark = completeBenchmark();
+  benchmark.events[0].claims[0].reviewers[0].reviewerId = " ";
+  benchmark.events[1].claims[0].reviewers[0].reviewerId = " a ";
+  benchmark.events[1].claims[0].reviewers[1].reviewerId = "a";
+  benchmark.events[2].claims[0].quote = "Not in the captured source";
+  benchmark.events[3].claims[0].reviewers.push({ ...benchmark.events[3].claims[0].reviewers[0], reviewerId: " " });
+  benchmark.events[4].claims[0].reviewers.push({ ...benchmark.events[4].claims[0].reviewers[0], reviewerId: " a " });
+  const result = scoreBenchmark(benchmark);
+  assert.equal(result.complete, false);
+  assert.equal(result.metrics, null);
+  assert.equal(result.errors.filter(error => error.includes("two reviewers")).length, 2);
+  assert.equal(result.errors.filter(error => error.includes("reviewer IDs must all be nonempty and unique")).length, 4);
+  assert.ok(result.errors.some(error => error.includes("exact quote label")));
 });
 
 test("counts unsupported factual assertions from adjudicated labels", () => {
