@@ -46,6 +46,8 @@ test("SEC period and instant facts select the latest values filed by the as-of d
   const companyfacts = {
     cik: 1, entityName: "Fixture Corp", facts: { "us-gaap": {
       RevenueFromContractWithCustomerExcludingAssessedTax: { units: { USD: [
+        { val: 400, start: "2023-10-01", end: "2024-09-30", filed: "2024-11-15", form: "10-K", fy: 2025, fp: "FY" },
+        { val: 450, start: "2023-10-01", end: "2024-09-30", filed: "2026-11-15", form: "10-K", fy: 2026, fp: "FY" },
         { val: 900, start: "2025-01-01", end: "2025-03-31", filed: "2025-05-01", form: "10-Q", fy: 2025, fp: "Q1" },
         { val: 900, start: "2025-01-01", end: "2025-03-31", filed: "2026-05-01", form: "10-Q", fy: 2025, fp: "Q1" },
         { val: 999, start: "2025-01-01", end: "2025-03-31", filed: "2025-06-01", form: "10-Q", fy: 2025, fp: "Q1" },
@@ -100,4 +102,8 @@ test("SEC period and instant facts select the latest values filed by the as-of d
   assert.equal(live.financials.quarterly.find(period => period.periodEnd === "2025-03-31")?.revenue, 999, "live research may include a filing accepted on the current day");
   assert.equal(live.financials.quarterly.some(period => period.periodEnd === "2025-06-02"), false, "live same-day eligibility never admits a future reporting period");
   assert.deepEqual(live.limitations, []);
+  const comparative = await getSecCompanyResearch("FIX", null, { asOf: "2027-06-01T12:00:00Z", includeAnalystTargets: false });
+  const revisedAnnual = comparative.financials.annual.find(period => period.periodEnd === "2024-09-30");
+  assert.equal(revisedAnnual?.revenue, 450, "as-of value uses the latest comparative fact available by the requested date");
+  assert.equal(revisedAnnual?.period, "FY 2025", "fiscal identity remains tied to the earliest eligible filing for the reported interval");
 });

@@ -81,16 +81,22 @@ function latestFact(facts: CompanyFacts, tags: string[], unit = "USD", eligible:
 // the as-of calendar day as unavailable because intraday ordering is unknown.
 function filedBeforeAsOfDay(filed: string, asOfDate: string, includeSameDay: boolean) { return includeSameDay ? filed <= asOfDate : filed < asOfDate; }
 
-function periodValues(facts: CompanyFacts, tags: string[], form: "10-Q" | "10-K", duration: "quarter" | "annual", asOfDate: string, includeSameDay: boolean): Map<string, SecFact> {
+type PeriodFact = { value: SecFact; fiscalIdentity: SecFact };
+
+function periodValues(facts: CompanyFacts, tags: string[], form: "10-Q" | "10-K", duration: "quarter" | "annual", asOfDate: string, includeSameDay: boolean): Map<string, PeriodFact> {
   const lengthDays = (item: SecFact) => (Date.parse(`${item.end}T00:00:00Z`) - Date.parse(`${item.start}T00:00:00Z`)) / 86400000;
   const eligible = (item: SecFact) => Boolean(item.form === form && item.start && item.end && item.filed) && filedBeforeAsOfDay(item.filed, asOfDate, includeSameDay) && item.end <= asOfDate && (duration === "quarter" ? lengthDays(item) >= 60 && lengthDays(item) <= 115 : lengthDays(item) >= 300 && lengthDays(item) <= 400);
   const byEnd = new Map<string, SecFact>();
+  const fiscalIdentityByEnd = new Map<string, SecFact>();
   for (const tag of tags) {
     const latestByEnd = new Map<string, SecFact>();
-    for (const item of latestFact(facts, [tag], "USD", eligible).sort((a, b) => a.filed.localeCompare(b.filed))) latestByEnd.set(item.end, item);
+    for (const item of latestFact(facts, [tag], "USD", eligible).sort((a, b) => a.filed.localeCompare(b.filed))) {
+      latestByEnd.set(item.end, item);
+      if (!fiscalIdentityByEnd.has(item.end)) fiscalIdentityByEnd.set(item.end, item);
+    }
     for (const [end, item] of latestByEnd) if (!byEnd.has(end)) byEnd.set(end, item);
   }
-  return byEnd;
+  return new Map([...byEnd].map(([end, value]) => [end, { value, fiscalIdentity: fiscalIdentityByEnd.get(end) ?? value }]));
 }
 
 function instantValue(facts: CompanyFacts, tags: string[], end: string, form: "10-Q" | "10-K", asOfDate: string, includeSameDay: boolean): SecFact | undefined {
@@ -103,11 +109,12 @@ function buildPeriods(facts: CompanyFacts, duration: "quarter" | "annual", asOfD
   const income = periodValues(facts, ["NetIncomeLoss"], form, duration, asOfDate, includeSameDay);
   const cash = periodValues(facts, ["NetCashProvidedByUsedInOperatingActivities"], form, duration, asOfDate, includeSameDay);
   const capex = periodValues(facts, ["PaymentsToAcquirePropertyPlantAndEquipment"], form, duration, asOfDate, includeSameDay);
-  const ends = [...new Set([...revenues.keys(), ...income.keys(), ...cash.keys(), ...capex.keys()])].filter(end => [revenues, income, cash, capex].some(series => (series.get(end)?.filed ?? "9999-12-31") <= asOfDate)).sort().reverse().slice(0, duration === "quarter" ? 16 : 10);
+  const ends = [...new Set([...revenues.keys(), ...income.keys(), ...cash.keys(), ...capex.keys()])].filter(end => [revenues, income, cash, capex].some(series => (series.get(end)?.value.filed ?? "9999-12-31") <= asOfDate)).sort().reverse().slice(0, duration === "quarter" ? 16 : 10);
   return ends.map((end) => {
     const revenue = revenues.get(end), netIncome = income.get(end), operatingCashFlow = cash.get(end), capitalExpenditure = capex.get(end);
-    const basis = revenue ?? netIncome ?? operatingCashFlow ?? capitalExpenditure;
-    const formForInstant: "10-Q" | "10-K" = basis?.form === "10-K" ? "10-K" : basis?.form === "10-Q" ? "10-Q" : form;
+    const basisValue = revenue?.value ?? netIncome?.value ?? operatingCashFlow?.value ?? capitalExpenditure?.value;
+    const basis = revenue?.fiscalIdentity ?? netIncome?.fiscalIdentity ?? operatingCashFlow?.fiscalIdentity ?? capitalExpenditure?.fiscalIdentity ?? basisValue;
+    const formForInstant: "10-Q" | "10-K" = basisValue?.form === "10-K" ? "10-K" : basisValue?.form === "10-Q" ? "10-Q" : form;
     const totalAssets = instantValue(facts, ["Assets"], end, formForInstant, asOfDate, includeSameDay);
     const totalLiabilities = instantValue(facts, ["Liabilities"], end, formForInstant, asOfDate, includeSameDay);
     return {
@@ -115,15 +122,15 @@ function buildPeriods(facts: CompanyFacts, duration: "quarter" | "annual", asOfD
         ? (/^Q[1-4]$/.test(basis?.fp ?? "") && Number.isSafeInteger(basis?.fy) ? `${basis!.fp} FY${basis!.fy}` : `Period ended ${end}`)
         : (basis?.fp === "FY" && Number.isSafeInteger(basis.fy) ? `FY ${basis.fy}` : `Year ended ${end}`),
       periodEnd: end,
-      filed: basis?.filed ?? "",
+      filed: basisValue?.filed ?? "",
       form: formForInstant,
-      revenue: revenue?.val ?? null,
-      netIncome: netIncome?.val ?? null,
+      revenue: revenue?.value.val ?? null,
+      netIncome: netIncome?.value.val ?? null,
       totalAssets: totalAssets?.val ?? null,
       totalLiabilities: totalLiabilities?.val ?? null,
-      operatingCashFlow: operatingCashFlow?.val ?? null,
-      capitalExpenditure: capitalExpenditure?.val ?? null,
-      filedByMetric: { revenue: revenue?.filed ?? null, netIncome: netIncome?.filed ?? null, totalAssets: totalAssets?.filed ?? null, totalLiabilities: totalLiabilities?.filed ?? null, operatingCashFlow: operatingCashFlow?.filed ?? null, capitalExpenditure: capitalExpenditure?.filed ?? null },
+      operatingCashFlow: operatingCashFlow?.value.val ?? null,
+      capitalExpenditure: capitalExpenditure?.value.val ?? null,
+      filedByMetric: { revenue: revenue?.value.filed ?? null, netIncome: netIncome?.value.filed ?? null, totalAssets: totalAssets?.filed ?? null, totalLiabilities: totalLiabilities?.filed ?? null, operatingCashFlow: operatingCashFlow?.value.filed ?? null, capitalExpenditure: capitalExpenditure?.value.filed ?? null },
     };
   });
 }
