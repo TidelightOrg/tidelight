@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getServerAuthState } from "@/lib/supabase/auth-user";
+import { verifyBacktestExperimentManifest } from "@/lib/backtest-manifest";
 
 export const dynamic = "force-dynamic";
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -23,9 +24,12 @@ export async function POST(request: Request) {
   delete publicParameters.researchRunId;
   const candles = Array.isArray(run.candles) ? run.candles : [];
   if (!candles.length || candles.length > 1000 || typeof params.candleHash !== "string" || !/^[0-9a-f]{64}$/i.test(params.candleHash)) return NextResponse.json({ error: "This run does not contain a complete reproducible candle archive." }, { status: 422 });
+  const experimentManifest = params.experimentManifest ?? null;
+  if (experimentManifest !== null && !verifyBacktestExperimentManifest(experimentManifest, candles)) return NextResponse.json({ error: "The archived candles do not match this experiment manifest." }, { status: 422 });
   const payload = {
     schemaVersion: 1,
     run: { id: run.id, symbol: run.symbol, interval: run.interval, strategyKey: run.strategy_key, parameters: publicParameters, dataStart: run.data_start, dataEnd: run.data_end, candleCount: run.candle_count, candleHash: params.candleHash, createdAt: run.created_at },
+    experimentManifest,
     asset: { name: typeof params.assetName === "string" ? params.assetName.slice(0, 160) : run.symbol, kind: typeof params.assetKind === "string" ? params.assetKind.slice(0, 48) : "unknown" },
     train: run.train_metrics,
     holdout: run.test_metrics,
