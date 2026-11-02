@@ -12,7 +12,7 @@ const macroRows = [
   { title: "Federal Reserve issues September 2026 FOMC statement", url: "https://news.google.com/rss/articles/fomc", publisher: "Federal Reserve", publishedAt: new Date().toISOString(), snippet: "The Committee decided to maintain the target range.", sourceKind: "official" },
   { title: "Fed holds rates in September, Reuters reports", url: "https://news.google.com/rss/articles/reuters", publisher: "Reuters", publishedAt: new Date().toISOString(), snippet: "Economists expected a decision to maintain rates.", sourceKind: "independent_reporting" },
 ];
-const captures = { rpc: [], research: [], nightwatch: null, orders: [], marketCalls: 0, macroCalls: 0 };
+const captures = { rpc: [], research: [], nightwatch: null, orders: [], marketCalls: 0, macroCalls: 0, aiCalls: 0 };
 const candle = (index) => ({ timestamp: Date.now() - (100 - index) * 4 * 60 * 60 * 1000, close: 100 + index / 100, open: 100, high: 101, low: 99, volume: 1000 });
 const candles = Array.from({ length: 100 }, (_, index) => candle(index));
 
@@ -36,6 +36,10 @@ function queryFor(table) {
 
 globalThis.flowTest = {
   macroCalls: 0,
+  aiCalls: 0,
+  emptyIssuerNews: false,
+  sourceRows,
+  macroRows,
   user,
   auth: { getUser: async () => ({ data: { user }, error: null }) },
   from: queryFor,
@@ -57,30 +61,31 @@ globalThis.flowTest = {
   },
 };
 
-const modules = {
-  "next/server": "export const after=()=>{}; export const NextResponse=class extends Response { static json(data,init={}) { return Response.json(data,init); } };",
-  "@/lib/supabase/server": "export const createClient=async()=>globalThis.flowTest;",
-  "@/lib/supabase/admin": "export const createAdminClient=()=>globalThis.flowTest.admin;",
-  "@/lib/supabase/auth-user": "export const getServerAuthState=async()=>({user:globalThis.flowTest.user,errorCode:null});",
-  "@/lib/ai-fallback": `export const configuredAiProviders=()=>["fixture"]; export const aiJsonWithFallback=async(messages)=>{const text=messages.map(message=>message.content).join(" ");return /FOMC/.test(text)?{assets:[{ticker:"MACRO",summary:"The Federal Reserve maintained the target range in its September 2026 decision. The supplied official source states the decision; Reuters reports economist expectations as context. The sources do not establish the next policy move.",stance:"unclear",confidence:0.3,citedUrls:["${macroRows[0].url}","${macroRows[1].url}"],supportingEvidence:[{text:"The Committee maintained the target range.",citedUrls:["${macroRows[0].url}"]}],counterEvidence:[{text:"Economists had expected the same decision.",citedUrls:["${macroRows[1].url}"]}],risks:["This is not a forecast of the next policy move."],nextCheck:"Read the next official statement and minutes."}]}:{assets:[{ticker:"NVDA",summary:"Synthetic fixture: two current independent publishers agree on a directional scenario for test coverage only.",stance:"bullish",confidence:0.9,citedUrls:["${sourceRows[0].url}","${sourceRows[1].url}"],risks:["Synthetic fixture only"],nextCheck:"Remove the fixture after the isolated test."}]};};`,
-  "@/lib/bitget-market": "export const STOCK_PERP_UNIVERSE=[\"NVDAUSDT\"]; export const getIssuerName=()=>\"Synthetic NVIDIA\"; export const getBitgetAsset=(...args)=>globalThis.flowTest.asset(...args); export const getBitgetStockPerp=(...args)=>globalThis.flowTest.perp(...args); export const getBitgetCandles=(...args)=>globalThis.flowTest.candles(...args);",
-  "@/lib/backtest": "export const prepareBacktestCandles=()=>Array.from({length:80},(_,i)=>({timestamp:Date.now()-(80-i)*14400000-60000,close:100})); export const buildSignals=()=>Array.from({length:80},(_,i)=>i===79); export const ALPHA_STRATEGIES={sma_trend_v1:{label:\"Synthetic SMA fixture\"}};",
-  "@/lib/agent-flow-sources": `export const buildIssuerNewsQueries=()=>Array(5).fill("question-focused fixture query"); export const gatherIssuerEvidence=async()=>${JSON.stringify(sourceRows)}; export const issuerEvidenceLookbackDays=()=>30;`,
-  "@/lib/macro-research-sources": `export const classifyMacroQuestion=question=>/FOMC/i.test(question)?"monetary_policy":null; export const buildMacroNewsQueries=()=>["site:federalreserve.gov FOMC","FOMC Reuters"]; export const macroResearchLookbackDays=()=>365; export const gatherMacroEvidence=async()=>{globalThis.flowTest.macroCalls++; return ${JSON.stringify(macroRows)};};`,
-  "@/lib/agentkey-flow-sources": "export const agentKeyIssuerEvidence=async()=>[];",
-  "@/lib/futures-paper-agent": "export const decideFuturesPaper=async input=>{globalThis.flowTest.strategyResearch=input.research;return{action:\"hold\",confidence:0.8,rationale:\"Synthetic Strategy fixture hold; no paper fill.\",evidence:[\"Synthetic completed candle\"],risks:[],invalidation:\"Fixture ends\"};};",
-  "@/lib/futures-paper-policy": "export const normalizeFuturesProposal=()=>null;",
-  "@/lib/nightwatch-signal": "export const evaluateSmaCrossover=()=>({fastSma:101,slowSma:100,previousFastSma:99,previousSlowSma:100});",
-  "@/lib/nightwatch-agent": "export const decideNightwatch=async input=>{globalThis.flowTest.nightwatch=input;return{action:\"hold\",signal:\"hold\",confidence:0.9,rationale:\"Synthetic Nightwatch fixture held; no order.\",evidence:[\"Synthetic linked research fixture\"],risks:[],invalidation:\"Fixture ends\",horizon:\"test only\"};};",
-  "@/lib/nightwatch-preferences": "export const normalizeNightwatchPreferences=value=>({playbook_key:value.playbook_key??\"sma_trend_v1\"});",
-  "@/lib/email/nightwatch": "export const enqueueNightwatchEmail=async()=>{};",
-  "@/lib/email/delivery": "export const drainEmailQueue=async()=>{};",
-};
+const mockSpecifiers = new Set([
+  "next/server",
+  "@/lib/supabase/server",
+  "@/lib/supabase/admin",
+  "@/lib/supabase/auth-user",
+  "@/lib/ai-fallback",
+  "@/lib/provider-health",
+  "@/lib/bitget-market",
+  "@/lib/backtest",
+  "@/lib/agent-flow-sources",
+  "@/lib/macro-research-sources",
+  "@/lib/agentkey-flow-sources",
+  "@/lib/sec-fundamentals",
+  "@/lib/futures-paper-agent",
+  "@/lib/nightwatch-signal",
+  "@/lib/nightwatch-agent",
+  "@/lib/nightwatch-preferences",
+  "@/lib/email/nightwatch",
+  "@/lib/email/delivery",
+]);
 
 const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
-  if (specifier === "server-only") return { url: "data:text/javascript,export {};", shortCircuit: true };
-  if (modules[specifier]) return { url: `data:text/javascript,${encodeURIComponent(modules[specifier])}`, shortCircuit: true };
-  if (specifier.startsWith("@/lib/")) return { url: new URL(`../lib/${specifier.slice(6)}.ts`, import.meta.url).href, shortCircuit: true };
+  if (specifier === "server-only" || mockSpecifiers.has(specifier)) return { url: new URL("./fixtures/research-flow-integration-mocks.mjs", import.meta.url).href, shortCircuit: true };
+  if (specifier === "@/lib/agent-flow-policy") return { url: new URL("../lib/agent-flow-policy.ts", import.meta.url).href, shortCircuit: true };
+  if (specifier === "@/lib/evidence-graph") return { url: new URL("../lib/evidence-graph.ts", import.meta.url).href, shortCircuit: true };
   return nextResolve(specifier, context);
 } });
 const researchRoute = await import("../app/api/research/agent-flow/route.ts");
@@ -100,8 +105,15 @@ test("synthetic positive handoff preserves lineage through Research → paper St
   assert.equal(research.tradeable, true);
   assert.ok(research.evidenceGraph.nodes.some(node => node.type === "subject" && node.ticker === "NVDA"));
   assert.ok(research.evidenceGraph.nodes.some(node => node.type === "source" && node.url === sourceRows[0].url));
+  const secRevenue = research.evidenceGraph.nodes.find(node => node.type === "financial_fact" && node.label.includes("Revenue"));
+  const secIncome = research.evidenceGraph.nodes.find(node => node.type === "financial_fact" && node.label.includes("Net income"));
+  assert.equal(secRevenue.filedAt, "2026-10-25");
+  assert.equal(secIncome.filedAt, "2026-10-26", "each metric keeps its own SEC filing date");
+  assert.ok(research.assets[0].sources.some(source => source.publisher === "SEC EDGAR"), "SEC citations are included in displayed asset sources");
+  assert.equal(research.assets[0].sources[0].publisher, "SEC EDGAR", "primary SEC evidence remains available within downstream source caps");
+  assert.ok(captures.research.find(row => row.table === "research_sources")?.rows.some(source => source.publisher === "SEC EDGAR"), "SEC citations are persisted alongside the run");
   assert.equal(research.assets[0].handoff.destinations[0].mode, "paper_futures");
-  assert.match(research.assets[0].handoff.destinations[0].href, new RegExp(`researchRunId=${researchId}`));
+  assert.ok(research.assets[0].handoff.destinations[0].href.includes("researchRunId=d475bd46-5035-4ae5-9f19-e2959a4f0734"));
 
   const strategyResponse = await strategyRoute.POST(new Request("https://tidelight.app/api/futures/paper", {
     method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ symbol: "NVDAUSDT", researchRunId: research.researchRunId, mode: "check" }),
@@ -224,4 +236,38 @@ test("anonymous judge research is same-origin, session-only, and cannot hand off
   assert.equal(rateLimited.status, 429, "database rate-limit denial prevents provider work");
   globalThis.flowTest.user = previousUser;
   globalThis.flowTest.guestAllowed = true;
+});
+
+test("SEC-only evidence is eligible for grounded synthesis when issuer news retrieval is empty", async () => {
+  globalThis.flowTest.emptyIssuerNews = true;
+  globalThis.flowTest.manySecPeriods = true;
+  globalThis.flowTest.aiCalls = 0;
+  const response = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
+    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: "Summarize NVDA's reported revenue and net income using its filed financials" }),
+  }));
+  assert.equal(response.status, 200);
+  const events = (await response.text()).split("\n\n").filter(Boolean).map(frame => JSON.parse(frame.split("\ndata: ")[1]));
+  const result = events.findLast(frame => frame.researchRunId);
+  assert.ok(result, "research route emitted a saved result");
+  assert.equal(globalThis.flowTest.aiCalls, 1, "the configured analyst received SEC facts despite empty news coverage");
+  assert.match(result.assets[0].summary, /SEC-only fixture/);
+  assert.ok(result.assets[0].sources.some(source => source.publisher === "SEC EDGAR"));
+  assert.ok(result.evidenceGraph.nodes.some(node => node.type === "source" && node.publisher === "SEC EDGAR"));
+  assert.ok(result.evidenceGraph.nodes.some(node => node.type === "claim" && node.citationStatus === "source_linked"));
+  assert.match(globalThis.flowTest.lastPrompt, /Capital expenditure: 5 USD/);
+  assert.ok(result.evidenceGraph.nodes.some(node => node.type === "financial_fact" && /Period ended 2026-09-30 Capital expenditure/.test(node.label) && node.sourceUrl === "https://data.sec.gov/api/xbrl/companyfacts/CIK0000000001.json"));
+  const prompt = JSON.parse(globalThis.flowTest.lastPrompt.slice(globalThis.flowTest.lastPrompt.indexOf('{"question"')));
+  const facts = prompt.assets[0].financialFacts;
+  const secSource = prompt.assets[0].sources.find(source => source.publisher === "SEC EDGAR");
+  const passage = result.evidenceGraph.nodes.find(node => node.type === "passage" && node.text.includes("Period ended 2026-09-30 Revenue"));
+  assert.ok(facts.length < 36 && facts.length <= 12, "the synthesis input is bounded to the captured evidence");
+  for (const fact of facts) {
+    assert.ok(secSource.snippet.includes(`${fact.label}: ${fact.value} ${fact.unit}`));
+    assert.ok(passage.text.includes(`${fact.label}: ${fact.value} ${fact.unit}`));
+    assert.ok(result.evidenceGraph.nodes.some(node => node.type === "financial_fact" && node.label === fact.label && node.value === fact.value));
+  }
+  assert.ok(result.researchCoverage.limitations.some(limit => limit.includes("filed on the research date")));
+  assert.equal(result.assets[0].tradeable, false, "SEC fundamentals alone do not unlock a trading handoff");
+  globalThis.flowTest.emptyIssuerNews = false;
+  globalThis.flowTest.manySecPeriods = false;
 });

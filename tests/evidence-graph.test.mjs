@@ -57,6 +57,14 @@ test("macro subjects are not mislabeled as issuers and invalid snapshot times fa
   assert.throws(() => buildEvidenceGraph({ question: "x", assets: [], asOf: "invalid", synthesisMode: "model" }), /invalid-asof/);
 });
 
+test("SEC financial facts reject impossible date-only filing and period dates", () => {
+  const base = { id: "fact-1", label: "Revenue", value: 12, unit: "USD", periodEnd: "2026-09-30", filedAt: "2026-10-30", form: "10-Q", sourceUrl: "https://www.sec.gov/Archives/edgar/data/1/filing.htm" };
+  for (const fact of [{ ...base, periodEnd: "2026-02-30" }, { ...base, filedAt: "2026-02-30" }]) {
+    const graph = buildEvidenceGraph({ question: "Review NVDA filing", asOf, synthesisMode: "source_only", assets: [{ ...asset, financialFacts: [fact] }] });
+    assert.equal(graph.nodes.some(node => node.type === "financial_fact"), false);
+  }
+});
+
 test("future market timestamps cannot leak their prices into an as-of graph", () => {
   const graph = buildEvidenceGraph({ question: "Review NVDA", asOf, synthesisMode: "model", assets: [{ ...asset, market: { spotSymbol: "RNVDAUSDT", spotLastPrice: 999, spotProviderTimestamp: Date.parse(asOf) + 1 } }] });
   const instrument = graph.nodes.find(node => node.type === "instrument");
@@ -81,7 +89,6 @@ test("per-asset synthesis attribution keeps source-only fallback confidence unat
   assert.equal(fallback.confidenceOrigin, "application_fallback");
 });
 
-
 test("confidence capped by source policy is labeled application-calibrated", () => {
   const graph = buildEvidenceGraph({ question: "Review NVDA", asOf, synthesisMode: "model", assets: [{ ...asset, confidence: 0.4, confidenceCapped: true }] });
   const hypothesis = graph.nodes.find(node => node.type === "hypothesis");
@@ -92,9 +99,11 @@ test("confidence capped by source policy is labeled application-calibrated", () 
 test("duplicate claim text merges citations so graph edges and source ids agree", () => {
   const graph = buildEvidenceGraph({ question: "Review NVDA", asOf, synthesisMode: "model", assets: [{ ...asset, evidenceBalance: { supporting: [{ text: "Same fact", citedUrls: [sources[0].url] }, { text: "Same fact", citedUrls: [sources[1].url] }], counter: [] } }] });
   const claim = graph.nodes.find(node => node.type === "claim");
-  const sourceIds = graph.edges.filter(edge => edge.from === claim.id && edge.relation === "cites").map(edge => { const target = graph.nodes.find(node => node.id === edge.to); return target.type === "passage" ? target.sourceId : target.id; });
+  const targetIds = graph.edges.filter(edge => edge.from === claim.id && edge.relation === "cites").map(edge => edge.to);
+  const sourceIds = graph.edges.filter(edge => edge.from === claim.id && edge.relation === "cites").map(edge => { const target = graph.nodes.find(node => node.id === edge.to); return target?.type === "passage" ? target.sourceId : target?.id; });
   assert.equal(new Set(claim.sourceIds).size, 2);
   assert.deepEqual(new Set(sourceIds), new Set(claim.sourceIds));
+  assert.equal(targetIds.length, 2);
 });
 
 test("future-only claims are omitted and date-only publication precision is retained", () => {

@@ -4,6 +4,7 @@ export type SecFact = { val: number; end: string; filed: string; form: string; f
 type CompanyFacts = { cik: number; entityName: string; facts: { [taxonomy: string]: Record<string, { label?: string; units?: Record<string, SecFact[]> }> } };
 type Submissions = { name: string; sic?: string; sicDescription?: string; exchanges?: string[]; addresses?: { business?: Record<string, string> }; formerNames?: Array<{ name: string; from: string; to: string }> };
 type TickerIndex = Record<string, { cik_str: number; ticker: string; title: string }>;
+type SecFinancialPeriod = { period: string; periodEnd: string; filed: string; form: string; revenue: number | null; netIncome: number | null; totalAssets: number | null; totalLiabilities: number | null; operatingCashFlow: number | null; capitalExpenditure: number | null; filedByMetric: Record<"revenue" | "netIncome" | "totalAssets" | "totalLiabilities" | "operatingCashFlow" | "capitalExpenditure", string | null> };
 
 const SEC = "https://data.sec.gov";
 const SEC_WEB = "https://www.sec.gov";
@@ -26,6 +27,8 @@ async function secJson<T>(url: string): Promise<T> {
 export type CompanyResearch = {
   ticker: string;
   cik: string;
+  asOf: string;
+  limitations: string[];
   companyName: string;
   industry: string | null;
   exchange: string | null;
@@ -36,8 +39,8 @@ export type CompanyResearch = {
   sourceUrl: string;
   retrievedAt: string;
   financials: {
-    quarterly: { period: string; periodEnd: string; filed: string; form: string; revenue: number | null; netIncome: number | null; totalAssets: number | null; totalLiabilities: number | null; operatingCashFlow: number | null; capitalExpenditure: number | null }[];
-    annual: { period: string; periodEnd: string; filed: string; form: string; revenue: number | null; netIncome: number | null; totalAssets: number | null; totalLiabilities: number | null; operatingCashFlow: number | null; capitalExpenditure: number | null }[];
+    quarterly: SecFinancialPeriod[];
+    annual: SecFinancialPeriod[];
   };
   dividends: { periodEnd: string; filed: string; amountPerShare: number; unit: string }[];
   analystTargets: { status: "available"; high: number | null; low: number | null; mean: number | null; median: number | null; updatedAt: string; source: "Finnhub" } | { status: "not_configured" } | { status: "unavailable" };
@@ -65,26 +68,33 @@ async function analystTargets(ticker: string): Promise<CompanyResearch["analystT
   }
 }
 
-function latestFact(facts: CompanyFacts, tags: string[], unit = "USD"): SecFact[] {
+function latestFact(facts: CompanyFacts, tags: string[], unit = "USD", eligible: (item: SecFact) => boolean = () => true): SecFact[] {
   const gaap = facts.facts["us-gaap"] ?? {};
   for (const tag of tags) {
-    const values = gaap[tag]?.units?.[unit];
+    const values = gaap[tag]?.units?.[unit]?.filter(eligible);
     if (values?.length) return values;
   }
   return [];
 }
 
-function periodValues(facts: CompanyFacts, tags: string[], form: "10-Q" | "10-K", duration: "quarter" | "annual"): Map<string, SecFact> {
-  const valid = latestFact(facts, tags).filter((item) => item.form === form && item.start && item.end && item.filed);
+// SEC Company Facts exposes an acceptance date here, not a timestamp. Treat
+// the as-of calendar day as unavailable because intraday ordering is unknown.
+function filedBeforeAsOfDay(filed: string, asOfDate: string, includeSameDay: boolean) { return includeSameDay ? filed <= asOfDate : filed < asOfDate; }
+
+function periodValues(facts: CompanyFacts, tags: string[], form: "10-Q" | "10-K", duration: "quarter" | "annual", asOfDate: string, includeSameDay: boolean): Map<string, SecFact> {
   const lengthDays = (item: SecFact) => (Date.parse(`${item.end}T00:00:00Z`) - Date.parse(`${item.start}T00:00:00Z`)) / 86400000;
-  const filtered = valid.filter((item) => duration === "quarter" ? lengthDays(item) >= 60 && lengthDays(item) <= 115 : lengthDays(item) >= 300 && lengthDays(item) <= 400);
+  const eligible = (item: SecFact) => Boolean(item.form === form && item.start && item.end && item.filed) && filedBeforeAsOfDay(item.filed, asOfDate, includeSameDay) && item.end <= asOfDate && (duration === "quarter" ? lengthDays(item) >= 60 && lengthDays(item) <= 115 : lengthDays(item) >= 300 && lengthDays(item) <= 400);
   const byEnd = new Map<string, SecFact>();
-  for (const item of filtered.sort((a, b) => a.filed.localeCompare(b.filed))) byEnd.set(item.end, item);
+  for (const tag of tags) {
+    const latestByEnd = new Map<string, SecFact>();
+    for (const item of latestFact(facts, [tag], "USD", eligible).sort((a, b) => a.filed.localeCompare(b.filed))) latestByEnd.set(item.end, item);
+    for (const [end, item] of latestByEnd) if (!byEnd.has(end)) byEnd.set(end, item);
+  }
   return byEnd;
 }
 
-function instantValue(facts: CompanyFacts, tags: string[], end: string, form: "10-Q" | "10-K"): SecFact | undefined {
-  return latestFact(facts, tags).filter((item) => item.end === end && item.form === form && !item.start).sort((a, b) => b.filed.localeCompare(a.filed))[0];
+function instantValue(facts: CompanyFacts, tags: string[], end: string, form: "10-Q" | "10-K", asOfDate: string, includeSameDay: boolean): SecFact | undefined {
+  return latestFact(facts, tags, "USD", item => item.end === end && item.form === form && !item.start && Boolean(item.filed) && filedBeforeAsOfDay(item.filed, asOfDate, includeSameDay) && item.end <= asOfDate).sort((a, b) => b.filed.localeCompare(a.filed))[0];
 }
 
 function quarterLabel(end: string) {
@@ -92,32 +102,40 @@ function quarterLabel(end: string) {
   return `Q${Math.ceil((date.getUTCMonth() + 1) / 3)} ${date.getUTCFullYear()}`;
 }
 
-function buildPeriods(facts: CompanyFacts, duration: "quarter" | "annual") {
+function buildPeriods(facts: CompanyFacts, duration: "quarter" | "annual", asOfDate: string, includeSameDay: boolean) {
   const form = duration === "quarter" ? "10-Q" : "10-K";
-  const revenues = periodValues(facts, ["RevenueFromContractWithCustomerExcludingAssessedTax", "Revenues", "SalesRevenueNet"], form, duration);
-  const income = periodValues(facts, ["NetIncomeLoss"], form, duration);
-  const cash = periodValues(facts, ["NetCashProvidedByUsedInOperatingActivities"], form, duration);
-  const capex = periodValues(facts, ["PaymentsToAcquirePropertyPlantAndEquipment"], form, duration);
-  const ends = [...new Set([...revenues.keys(), ...income.keys(), ...cash.keys(), ...capex.keys()])].sort().reverse().slice(0, duration === "quarter" ? 16 : 10);
+  const revenues = periodValues(facts, ["RevenueFromContractWithCustomerExcludingAssessedTax", "Revenues", "SalesRevenueNet"], form, duration, asOfDate, includeSameDay);
+  const income = periodValues(facts, ["NetIncomeLoss"], form, duration, asOfDate, includeSameDay);
+  const cash = periodValues(facts, ["NetCashProvidedByUsedInOperatingActivities"], form, duration, asOfDate, includeSameDay);
+  const capex = periodValues(facts, ["PaymentsToAcquirePropertyPlantAndEquipment"], form, duration, asOfDate, includeSameDay);
+  const ends = [...new Set([...revenues.keys(), ...income.keys(), ...cash.keys(), ...capex.keys()])].filter(end => [revenues, income, cash, capex].some(series => (series.get(end)?.filed ?? "9999-12-31") <= asOfDate)).sort().reverse().slice(0, duration === "quarter" ? 16 : 10);
   return ends.map((end) => {
-    const basis = revenues.get(end) ?? income.get(end) ?? cash.get(end) ?? capex.get(end);
+    const revenue = revenues.get(end), netIncome = income.get(end), operatingCashFlow = cash.get(end), capitalExpenditure = capex.get(end);
+    const basis = revenue ?? netIncome ?? operatingCashFlow ?? capitalExpenditure;
     const formForInstant: "10-Q" | "10-K" = basis?.form === "10-K" ? "10-K" : basis?.form === "10-Q" ? "10-Q" : form;
+    const totalAssets = instantValue(facts, ["Assets"], end, formForInstant, asOfDate, includeSameDay);
+    const totalLiabilities = instantValue(facts, ["Liabilities"], end, formForInstant, asOfDate, includeSameDay);
     return {
       period: duration === "quarter" ? quarterLabel(end) : `FY ${new Date(`${end}T00:00:00Z`).getUTCFullYear()}`,
       periodEnd: end,
       filed: basis?.filed ?? "",
       form: formForInstant,
-      revenue: revenues.get(end)?.val ?? null,
-      netIncome: income.get(end)?.val ?? null,
-      totalAssets: instantValue(facts, ["Assets"], end, formForInstant)?.val ?? null,
-      totalLiabilities: instantValue(facts, ["Liabilities"], end, formForInstant)?.val ?? null,
-      operatingCashFlow: cash.get(end)?.val ?? null,
-      capitalExpenditure: capex.get(end)?.val ?? null,
+      revenue: revenue?.val ?? null,
+      netIncome: netIncome?.val ?? null,
+      totalAssets: totalAssets?.val ?? null,
+      totalLiabilities: totalLiabilities?.val ?? null,
+      operatingCashFlow: operatingCashFlow?.val ?? null,
+      capitalExpenditure: capitalExpenditure?.val ?? null,
+      filedByMetric: { revenue: revenue?.filed ?? null, netIncome: netIncome?.filed ?? null, totalAssets: totalAssets?.filed ?? null, totalLiabilities: totalLiabilities?.filed ?? null, operatingCashFlow: operatingCashFlow?.filed ?? null, capitalExpenditure: capitalExpenditure?.filed ?? null },
     };
   });
 }
 
-export async function getSecCompanyResearch(ticker: string, website: string | null): Promise<CompanyResearch> {
+export async function getSecCompanyResearch(ticker: string, website: string | null, options: { asOf?: string; includeAnalystTargets?: boolean } = {}): Promise<CompanyResearch> {
+  const asOfMs = options.asOf === undefined ? Date.now() : Date.parse(options.asOf);
+  if (!Number.isFinite(asOfMs)) throw new Error("sec-company-research-invalid-asof");
+  const asOfDate = new Date(asOfMs).toISOString().slice(0, 10);
+  const includeSameDay = options.asOf === undefined;
   const normalized = ticker.toUpperCase();
   const index = await secJson<TickerIndex>(`${SEC_WEB}/files/company_tickers.json`);
   const match = Object.values(index).find((item) => item.ticker.toUpperCase() === normalized);
@@ -127,22 +145,26 @@ export async function getSecCompanyResearch(ticker: string, website: string | nu
     secJson<Submissions>(`${SEC}/submissions/CIK${cik}.json`),
     secJson<CompanyFacts>(`${SEC}/api/xbrl/companyfacts/CIK${cik}.json`),
   ]);
+  const retrievedAt = new Date().toISOString();
   const address = submissions.addresses?.business;
   const headquarters = address ? [address.street1, address.street2, [address.city, address.stateOrCountry, address.zipCode].filter(Boolean).join(" ")].filter(Boolean).join(", ") : null;
   const facts = companyfacts.facts["dei"]?.EntityNumberOfEmployees?.units?.pure ?? [];
-  const employeeCount = facts.sort((a, b) => b.end.localeCompare(a.end))[0]?.val ?? null;
-  const dividends = latestFact(companyfacts, ["CommonStockDividendsPerShareCashPaid", "CommonStockDividendsPerShareDeclared"], "USD / shares")
-    .filter((item) => ["10-Q", "10-K"].includes(item.form) && item.end && item.filed)
+  const employeeCount = facts.filter(item => filedBeforeAsOfDay(item.filed, asOfDate, includeSameDay) && item.end <= asOfDate).sort((a, b) => b.end.localeCompare(a.end))[0]?.val ?? null;
+  const dividends = latestFact(companyfacts, ["CommonStockDividendsPerShareCashPaid", "CommonStockDividendsPerShareDeclared"], "USD / shares", item => ["10-Q", "10-K"].includes(item.form) && Boolean(item.end && item.filed) && filedBeforeAsOfDay(item.filed, asOfDate, includeSameDay) && item.end <= asOfDate)
     .sort((a, b) => b.end.localeCompare(a.end)).slice(0, 12)
     .map((item) => ({ periodEnd: item.end, filed: item.filed, amountPerShare: item.val, unit: "USD per share as reported" }));
-  const targetData = await analystTargets(normalized);
+  const quarterly = buildPeriods(companyfacts, "quarter", asOfDate, includeSameDay);
+  const annual = buildPeriods(companyfacts, "annual", asOfDate, includeSameDay);
+  const targetData = options.includeAnalystTargets === false ? { status: "not_configured" as const } : await analystTargets(normalized);
   return {
-    ticker: normalized, cik, companyName: submissions.name || companyfacts.entityName,
+    ticker: normalized, cik, asOf: new Date(asOfMs).toISOString(),
+    limitations: options.asOf === undefined ? [] : ["For historical as-of research, SEC facts filed on the as-of date are excluded because filing times are unavailable."],
+    companyName: submissions.name || companyfacts.entityName,
     industry: submissions.sicDescription ?? null, exchange: submissions.exchanges?.[0] ?? null,
     headquarters, website, employeeCount, source: "SEC EDGAR",
     sourceUrl: `https://www.sec.gov/edgar/browse/?CIK=${Number(cik)}`,
-    retrievedAt: new Date().toISOString(),
-    financials: { quarterly: buildPeriods(companyfacts, "quarter"), annual: buildPeriods(companyfacts, "annual") },
+    retrievedAt,
+    financials: { quarterly, annual },
     dividends,
     analystTargets: targetData,
   };
