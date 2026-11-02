@@ -1,8 +1,20 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
+import { registerHooks } from "node:module";
 import { classifyMacroQuestion } from "../lib/macro-research-sources.ts";
 import { extractFlowTickers, gateFlowTrade, isTokenizedMarketQuestion, normalizeFlowAssessment, sourceOnlyAssessment, tokenizedMarketReview } from "../lib/agent-flow-policy.ts";
+
+const importHooks = registerHooks({
+  resolve(specifier, context, nextResolve) {
+    if (specifier === "server-only") return { url: "data:text/javascript,export {};", shortCircuit: true };
+    if (specifier === "@/lib/supabase/admin") return { url: "data:text/javascript,export const createAdminClient=()=>globalThis.__providerHealthAdmin?.() ?? {from:()=>({select(){return this},gte(){return this},order(){return this},limit(){return this},abortSignal(){return Promise.resolve({data:[],error:null})}})};", shortCircuit: true };
+    if (specifier === "./provider-health" && context.parentURL?.endsWith("/lib/ai-fallback.ts")) return { url: new URL("../lib/provider-health.ts", import.meta.url).href, shortCircuit: true };
+    return nextResolve(specifier, context);
+  },
+});
+const { aiJsonWithFallback } = await import("../lib/ai-fallback.ts");
+importHooks.deregister();
 
 const suite = JSON.parse(await readFile(new URL("../docs/benchmarks/research-contract-scenarios-v1.json", import.meta.url), "utf8"));
 const NOW = Date.parse("2026-10-01T12:00:00Z");
@@ -17,14 +29,39 @@ assert.equal(suite.metadata.independentHumanReview, false);
 assert.equal(suite.metadata.researchQualityScore, null);
 
 for (const scenario of suite.scenarios) {
-  test(`research contract: ${scenario.id}`, () => {
+  test(`research contract: ${scenario.id}`, async t => {
     const { input, expected } = scenario;
-    if (scenario.kind === "source_only" || scenario.kind === "provider_outage") {
+    if (scenario.kind === "source_only") {
       const result = sourceOnlyAssessment(input);
       assert.equal(result.stance, expected.stance);
       assert.equal(result.confidence, expected.confidence);
+      assert.equal(["bullish", "bearish"].includes(result.stance), expected.directional);
       assert.match(result.summary, /AI synthesis is unavailable/i);
       assert.ok(!result.summary.toLowerCase().includes("buy"));
+      return;
+    }
+    if (scenario.kind === "provider_outage") {
+      const keys = ["BITGET_QWEN_API_KEY", "BITGET_QWEN_MODEL", "BITGET_QWEN_BASE_URL", "GEMINI_API_KEY", "GEMINI_MODEL"];
+      const previous = Object.fromEntries(keys.map(key => [key, process.env[key]]));
+      t.after(() => { for (const key of keys) { if (previous[key] === undefined) delete process.env[key]; else process.env[key] = previous[key]; } });
+      process.env.BITGET_QWEN_API_KEY = "fixture-qwen-key";
+      process.env.BITGET_QWEN_MODEL = "fixture-qwen";
+      process.env.BITGET_QWEN_BASE_URL = "https://hackathon.bitgetops.com/v1";
+      process.env.GEMINI_API_KEY = "fixture-gemini-key";
+      process.env.GEMINI_MODEL = "fixture-gemini";
+      const attempts = [];
+      t.mock.method(globalThis, "fetch", async () => new Response("fixture provider unavailable", { status: 503 }));
+      const warnings = [];
+      t.mock.method(console, "warn", (...args) => warnings.push(args));
+      await assert.rejects(aiJsonWithFallback([{ role: "user", content: "fixture-only research question" }], () => false, { budgetMs: 5000, onAttempt: attempt => attempts.push(attempt) }));
+      assert.ok(attempts.length >= 3, "both providers should exhaust bounded failure attempts");
+      assert.ok(attempts.every(attempt => attempt.outcome === "http_error" && attempt.httpStatus === 503));
+      assert.ok(warnings.every(warning => !JSON.stringify(warning).includes("fixture-only research question")));
+      const result = sourceOnlyAssessment(input);
+      assert.equal(result.stance, expected.stance);
+      assert.equal(result.confidence, expected.confidence);
+      assert.equal(["bullish", "bearish"].includes(result.stance), expected.directional);
+      assert.match(result.summary, /AI synthesis is unavailable/i);
       return;
     }
     if (scenario.kind === "source_failure") {
