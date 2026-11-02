@@ -12,7 +12,7 @@ const hooks = registerHooks({
     return nextResolve(specifier, context);
   },
 });
-const { aiJsonWithFallback, configuredAiProviders, safeProviderError } = await import("../lib/ai-fallback.ts");
+const { aiJsonWithFallback, configuredAiProviders, discardProviderErrorBody, safeProviderError } = await import("../lib/ai-fallback.ts");
 hooks.deregister();
 
 const messages = [{ role: "system", content: "Return JSON" }, { role: "user", content: "Assess supplied facts" }];
@@ -292,8 +292,20 @@ test("Qwen disables optional thinking for bounded JSON tasks", async t => {
 
 
 test("provider diagnostics redact secrets and discard non-JSON errors", () => {
-  assert.equal(safeProviderError("<html>secret-key</html>", "secret-key"), "Provider returned a non-success response.");
-  const detail = safeProviderError(JSON.stringify({error:{status:"UNAVAILABLE",message:"secret-key at https://example.com?key=secret-key Bearer abcdef"}}), "secret-key");
+  assert.equal(safeProviderError(), "Provider returned a non-success response.");
+  const detail = safeProviderError();
   assert.equal(detail, "Provider returned a non-success response.");
   assert.doesNotMatch(detail, /UNAVAILABLE|secret-key|https:|abcdef/);
+});
+
+test("discarding provider error bodies cancels the stream without reading it", async () => {
+  let canceled = false;
+  let pulled = false;
+  const body = new ReadableStream({
+    pull() { pulled = true; },
+    cancel() { canceled = true; },
+  });
+  await discardProviderErrorBody({ body });
+  assert.equal(canceled, true);
+  assert.equal(pulled, false);
 });

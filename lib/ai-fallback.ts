@@ -149,8 +149,8 @@ export async function aiJsonWithFallback(messages: Message[], valid: (value: Rec
           if (!response.ok) {
             // Provider error bodies can echo research prompts or source text.
             // Do not parse, retain, or log that untrusted response content.
-            try { await response.body?.cancel(); } catch { /* keep the bounded failure path */ }
-            console.warn("ai-provider-http", { provider: provider.label, model: provider.model, status: response.status, detail: safeProviderError("", provider.key) });
+            await discardProviderErrorBody(response);
+            console.warn("ai-provider-http", { provider: provider.label, model: provider.model, status: response.status, detail: safeProviderError() });
             return { response, payload: null };
           }
           return { response, payload: await response.json() as AiPayload };
@@ -198,6 +198,11 @@ export async function aiJsonWithFallback(messages: Message[], valid: (value: Rec
 }
 
 /** Provider error bodies are untrusted and may echo research content; retain no body fields. */
-export function safeProviderError(_raw: string, _key: string): string {
+export function safeProviderError(): string {
   return "Provider returned a non-success response.";
+}
+
+/** Release an untrusted error stream without reading or buffering its contents. */
+export async function discardProviderErrorBody(response: Pick<Response, "body">): Promise<void> {
+  try { await response.body?.cancel(); } catch { /* cancellation must not mask the provider status */ }
 }
