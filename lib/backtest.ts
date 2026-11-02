@@ -64,7 +64,7 @@ export type BacktestValidation = {
 
 export type WalkForwardFold = { index: number; trainStart: number; testStart: number; testEnd: number; metrics: BacktestMetrics };
 export type WalkForwardResult = { folds: WalkForwardFold[]; meanReturnPct: number; positiveFolds: number; totalFolds: number; evaluationStart: number; evaluationEnd: number };
-export type RandomEntryPlacebo = { version: 3; initialState: "training_long_occupancy" | "training_cash_occupancy" | "randomized_from_training_entry_rate"; simulations: number; seed: number; trainingEntryRatePerBar: number; trainingExitRatePerBar: number; medianReturnPct: number; p05ReturnPct: number; p95ReturnPct: number; beatsStrategyPct: number };
+export type RandomEntryPlacebo = { version: 4; initialState: "training_long_occupancy" | "training_cash_occupancy" | "randomized_from_stationary_occupancy"; simulations: number; seed: number; trainingEntryRatePerBar: number; trainingExitRatePerBar: number; medianReturnPct: number; p05ReturnPct: number; p95ReturnPct: number; beatsStrategyPct: number };
 
 function validateCandles(input: MarketCandle[]) {
   const candles = [...input].sort((a, b) => a.timestamp - b.timestamp);
@@ -409,8 +409,8 @@ export function runRandomEntryPlacebo(input: MarketCandle[], interval: CandleInt
     const placeboSignals = Array<boolean>(candles.length).fill(false);
     // measure() uses signal[i - 1] at candle i's open, so set the signal
     // immediately before the first holdout candle from training-only rates.
-    const initialState = cashStateBars === 0 ? "training_long_occupancy" : longStateBars === 0 ? "training_cash_occupancy" : "randomized_from_training_entry_rate";
-    let held = initialState === "training_long_occupancy" ? true : initialState === "training_cash_occupancy" ? false : random() < trainingEntryRatePerBar;
+    const initialState = cashStateBars === 0 ? "training_long_occupancy" : longStateBars === 0 ? "training_cash_occupancy" : "randomized_from_stationary_occupancy";
+    let held = initialState === "training_long_occupancy" ? true : initialState === "training_cash_occupancy" ? false : random() < (trainingEntryRatePerBar + trainingExitRatePerBar > 0 ? trainingEntryRatePerBar / (trainingEntryRatePerBar + trainingExitRatePerBar) : longStateBars / (cashStateBars + longStateBars));
     placeboSignals[splitIndex - 1] = held;
     for (let i = splitIndex; i < candles.length; i += 1) {
       if (held ? random() < trainingExitRatePerBar : random() < trainingEntryRatePerBar) held = !held;
@@ -420,6 +420,6 @@ export function runRandomEntryPlacebo(input: MarketCandle[], interval: CandleInt
   }
   returns.sort((a, b) => a - b);
   const quantile = (p: number) => returns[Math.floor((returns.length - 1) * p)];
-  const initialState = cashStateBars === 0 ? "training_long_occupancy" : longStateBars === 0 ? "training_cash_occupancy" : "randomized_from_training_entry_rate";
-  return { version: 3, initialState, simulations: count, seed, trainingEntryRatePerBar, trainingExitRatePerBar, medianReturnPct: quantile(0.5), p05ReturnPct: quantile(0.05), p95ReturnPct: quantile(0.95), beatsStrategyPct: returns.filter(value => value >= strategyHoldoutReturnPct).length / returns.length * 100 };
+  const initialState = cashStateBars === 0 ? "training_long_occupancy" : longStateBars === 0 ? "training_cash_occupancy" : "randomized_from_stationary_occupancy";
+  return { version: 4, initialState, simulations: count, seed, trainingEntryRatePerBar, trainingExitRatePerBar, medianReturnPct: quantile(0.5), p05ReturnPct: quantile(0.05), p95ReturnPct: quantile(0.95), beatsStrategyPct: returns.filter(value => value >= strategyHoldoutReturnPct).length / returns.length * 100 };
 }

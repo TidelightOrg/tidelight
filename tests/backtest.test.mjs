@@ -134,7 +134,7 @@ test("random long/cash placebo is reproducible and seeds only from the training 
   const placebo = runRandomEntryPlacebo(candles, "4H", Date.now(), result.strategyKey, result.test.totalReturnPct);
   const repeated = runRandomEntryPlacebo(candles, "4H", Date.now(), result.strategyKey, result.test.totalReturnPct);
   assert.deepEqual(placebo, repeated);
-  assert.equal(placebo.version, 3);
+  assert.equal(placebo.version, 4);
   assert.equal(placebo.simulations, 100);
   assert.equal(runRandomEntryPlacebo(candles, "4H", Date.now(), result.strategyKey, result.test.totalReturnPct, Number.NaN).simulations, 100);
   assert.ok(placebo.p05ReturnPct <= placebo.medianReturnPct);
