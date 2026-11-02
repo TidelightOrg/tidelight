@@ -8,7 +8,7 @@ import ChartShareButton, { type ShareCandle, type ShareMarker } from "@/app/ui/c
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/app/ui/language-provider";
 import { LeverageControl, OrderGuideSheet, OrderTypeControl, TradingToolsButton, type OrderType, type TradePreferences } from "@/app/ui/futures-workshop-panels";
-import { bestExecutableBookPrices, estimateBookSweep, executionSidesForAction, serverAnchoredSnapshotNow, type ExecutionBookLevel, type ExecutionSide } from "@/lib/execution-feasibility";
+import { bestExecutableBookPrices, estimateBookSweep, estimateSizeSensitivity, executionSidesForAction, serverAnchoredSnapshotNow, type ExecutionBookLevel, type ExecutionSide } from "@/lib/execution-feasibility";
 
 type PaperPosition={symbol:string;direction:"long"|"short";quantity:number;entry_fill:number;margin:number;entry_fee:number;opened_at:string};
 type Fill={id:string;symbol:string;action:string;direction:string;quantity:number;fill_price:number;notional:number;fee:number;realized_pnl:number;created_at:string};
@@ -48,6 +48,7 @@ function PaperExecutionEstimate({action,quantity,direction,symbol,market,clientR
   const snapshotNow=serverAnchoredSnapshotNow(book?.receivedAt,clientRequestStartedAt,now,book?.processingMs);
   const sweep=(side:ExecutionSide|null,stress=false)=>side?estimateBookSweep({levels:levels(side,stress),side,quantity,referencePrice,oppositeBestPrice:side==="buy"?bestBid:bestAsk,bookTimestamp:validBook?book?.timestamp??null:null,receivedAt:book?.receivedAt,now:snapshotNow}):null;
   const entry=sweep(entrySide),exit=sweep(exitSide),stressEntry=sweep(entrySide,true),stressExit=sweep(exitSide,true);
+  const sensitivity=entrySide?estimateSizeSensitivity({levels:levels(entrySide),side:entrySide,quantity,referencePrice,oppositeBestPrice:entrySide==="buy"?bestBid:bestAsk,bookTimestamp:validBook?book?.timestamp??null:null,receivedAt:book?.receivedAt,now:snapshotNow}):[];
   const validQuantity=Number.isFinite(quantity)&&quantity>0;
   const line=(label:string,result:ReturnType<typeof estimateBookSweep>|null)=><div className="execution-estimate-row"><span>{label}</span>{!validQuantity?<b>Unavailable · enter a valid size</b>:!result||result.status==="unavailable"?<b>Unavailable · fresh book required</b>:<b className={result.status==="estimated"?"":"execution-estimate-warning"}>{result.status==="estimated"?`${result.slippageBps!.toFixed(1)} bps · ${usd(result.averagePrice!,4)}`:`${result.coveragePct.toFixed(0)}% depth · incomplete`}</b>}</div>;
   const stressUnavailable=!stressEntry||stressEntry.status==="unavailable"||(!isClose&&(!stressExit||stressExit.status==="unavailable"));
@@ -56,7 +57,8 @@ function PaperExecutionEstimate({action,quantity,direction,symbol,market,clientR
     <header><span>BITGET · VISIBLE BOOK</span><b>{Number.isFinite(quantity)&&quantity>0?`${quantity.toFixed(4)} contract units`:"Size unavailable"}</b></header>
     {line(isClose?"Close sweep":pendingOrder?"Current-book entry scenario":"Entry sweep",entry)}{isClose?null:line("Exit sweep",exit)}
     <div className="execution-estimate-stress"><span>50% depth stress</span><b className={stressIncomplete||stressUnavailable?"execution-estimate-warning":""}>{!validQuantity?"Unavailable · enter a valid size":stressUnavailable?"Unavailable · fresh book required":stressIncomplete?"Insufficient visible depth":isClose?`${stressEntry!.slippageBps!.toFixed(1)} bps · close`:`${stressEntry!.slippageBps!.toFixed(1)} / ${stressExit!.slippageBps!.toFixed(1)} bps · entry / exit`}</b></div>
-    <p>{pendingOrder?"A limit or conditional order may execute later against a different book. This is only a current-book scenario, not an estimate of its eventual fill. ":""}Estimated from this contract’s latest visible Bitget levels only. Freshness, hidden liquidity, queue position, fees and funding can change execution; this is not a fill guarantee.</p>
+    {sensitivity.map(({multiplier,sweep:result})=><div key={multiplier} className="execution-estimate-row"><span>{multiplier}× size · {isClose?"close":"entry"} scenario</span><b className={result.status==="estimated"?"":"execution-estimate-warning"}>{!validQuantity?"Unavailable · enter a valid size":result.status==="estimated"?`${result.slippageBps!.toFixed(1)} bps · ${usd(result.averagePrice!,4)}`:result.status==="insufficient_depth"?`${result.coveragePct.toFixed(0)}% depth · incomplete`:"Unavailable · fresh book required"}</b></div>)}
+    <p>{pendingOrder?"A limit or conditional order may execute later against a different book. This is only a current-book scenario, not an estimate of its eventual fill. ":""}Size scenarios use the same visible book and do not change the proposed order. Estimated from this contract’s latest visible Bitget levels only. Freshness, hidden liquidity, queue position, fees and funding can change execution; this is not a fill guarantee.</p>
   </section>;
 }
 
