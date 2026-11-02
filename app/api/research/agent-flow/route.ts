@@ -285,8 +285,9 @@ export async function POST(request: Request) {
           const requestedYear = question.match(/\b(?:FY\s*|fiscal year\s+|year ended\s+)(20\d{2})\b/i)?.[1];
           const requestedQuarter = question.match(/\bQ([1-4])\s*(20\d{2})\b/i);
           const requestedLabel = requestedYear ? `FY ${requestedYear}` : requestedQuarter ? `Q${requestedQuarter[1]} ${requestedQuarter[2]}` : null;
-          const selectedPeriods = requestedLabel
-            ? [...defaultPeriods.filter(period => period.period === requestedLabel), ...defaultPeriods.filter(period => period.period !== requestedLabel)]
+          const requestedPeriod = requestedLabel ? [...annual, ...quarterly].find(period => period.period === requestedLabel) : undefined;
+          const selectedPeriods = requestedPeriod
+            ? [requestedPeriod, ...defaultPeriods.filter(period => period.period !== requestedLabel).slice(0, 7)]
             : defaultPeriods;
           for (const period of selectedPeriods) {
             for (const [key, label] of [["revenue", "Revenue"], ["netIncome", "Net income"], ["operatingCashFlow", "Operating cash flow"], ["capitalExpenditure", "Capital expenditure"], ["totalAssets", "Total assets"], ["totalLiabilities", "Total liabilities"]] as const) {
