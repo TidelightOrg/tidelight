@@ -32,6 +32,7 @@ test("judge result display distinguishes storage failure and offers a clear acti
   assert.match(page, /if \(stored\) setClearError\(false\)/);
   assert.match(page, /Browser storage is unavailable or the result is too large/);
   assert.match(page, /Clear this result/);
+  assert.match(page, /className="sr-only" role="status" aria-live="polite"/);
   assert.match(page, /setResult\(null\)/);
   assert.match(page, /setClearError\(!cleared\)/);
 });
