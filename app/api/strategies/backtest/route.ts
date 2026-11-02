@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { getBitgetAsset, getBitgetCandles, getBitgetStockPerp, type AlphaMarketCategory, type CandleInterval } from "@/lib/bitget-market";
-import { ALPHA_STRATEGIES, prepareBacktestCandles, runBacktest, runCostSensitivity, runWalkForward, type StrategyKey, type WalkForwardResult } from "@/lib/backtest";
+import { ALPHA_STRATEGIES, prepareBacktestCandles, runBacktest, runCostSensitivity, runRandomEntryPlacebo, runWalkForward, type StrategyKey, type WalkForwardResult } from "@/lib/backtest";
 import { createClient } from "@/lib/supabase/server";
 import { getServerAuthState } from "@/lib/supabase/auth-user";
 
@@ -57,6 +57,11 @@ export async function POST(request: Request) {
     try { walkForward = runWalkForward(symbol, interval, candles, evaluatedAt, strategyKey); }
     catch (error) { walkForwardStatus = error instanceof Error ? error.message : "More completed history is required for rolling windows."; }
     const costSensitivity = runCostSensitivity(symbol, interval, candles, evaluatedAt, strategyKey);
+    const momentumResult = strategyKey === "channel_breakout_v1" ? result : runBacktest(symbol, interval, candles, evaluatedAt, "channel_breakout_v1");
+    const benchmarks = {
+      momentum: { strategyKey: "channel_breakout_v1" as const, returnPct: momentumResult.test.totalReturnPct, maxDrawdownPct: momentumResult.test.maxDrawdownPct, trades: momentumResult.test.trades },
+      randomEntry: runRandomEntryPlacebo(candles, interval, evaluatedAt, strategyKey, result.test.totalReturnPct),
+    };
     const candleHash = createHash("sha256").update(JSON.stringify(candles)).digest("hex");
     const replayParameters = { ...result.parameters, marketCategory, ...(hypothesis ? { hypothesis } : {}) };
     const { data, error } = await supabase.from("strategy_backtest_runs").insert({
@@ -64,7 +69,7 @@ export async function POST(request: Request) {
       symbol,
       interval,
       strategy_key: result.strategyKey,
-      parameters: { ...replayParameters, candleHash, assetName: asset.name, assetKind: marketCategory === "SPOT" ? asset.kind : "stock-perpetual", walkForward, walkForwardStatus, costSensitivity, researchRunId },
+      parameters: { ...replayParameters, candleHash, assetName: asset.name, assetKind: marketCategory === "SPOT" ? asset.kind : "stock-perpetual", walkForward, walkForwardStatus, costSensitivity, benchmarks, researchRunId },
       train_metrics: result.train,
       test_metrics: result.test,
       data_start: new Date(result.dataStart).toISOString(),
@@ -76,7 +81,7 @@ export async function POST(request: Request) {
       console.error("Backtest persistence failed", error.code);
       return Response.json({ error: "The run completed, but could not be saved. Please try again." }, { status: 503 });
     }
-    return Response.json({ run: { ...result, parameters: replayParameters, id: data.id, runId: data.id, createdAt: data.created_at, assetName: asset.name, assetKind: marketCategory === "SPOT" ? asset.kind : "stock-perpetual", candleHash, candles, walkForward, walkForwardStatus, costSensitivity, researchRunId, providerTimestamp: asset.providerTimestamp, sessionHours: asset.tradingSessions, weekendTradable: asset.weekendTradable } }, { headers: { "Cache-Control": "no-store" } });
+    return Response.json({ run: { ...result, parameters: replayParameters, id: data.id, runId: data.id, createdAt: data.created_at, assetName: asset.name, assetKind: marketCategory === "SPOT" ? asset.kind : "stock-perpetual", candleHash, candles, walkForward, walkForwardStatus, costSensitivity, benchmarks, researchRunId, providerTimestamp: asset.providerTimestamp, sessionHours: asset.tradingSessions, weekendTradable: asset.weekendTradable } }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Backtest unavailable.";
     const status = /At least|too short/.test(message) ? 422 : 503;

@@ -280,13 +280,24 @@ export async function POST(request: Request) {
           const financialFacts: ResearchFact[] = [];
           const quarterly = secResearch?.financials.quarterly ?? [];
           const annual = secResearch?.financials.annual ?? [];
-          const annualFocus = /\b(?:annual|fiscal year|FY\s?20\d{2}|10-K)\b/i.test(question);
-          const selectedPeriods = annualFocus ? [...annual.slice(0, 6), ...quarterly.slice(0, 2)] : [...quarterly.slice(0, 6), ...annual.slice(0, 2)];
-          for (const period of selectedPeriods) {
-            for (const [key, label] of [["revenue", "Revenue"], ["netIncome", "Net income"], ["operatingCashFlow", "Operating cash flow"], ["capitalExpenditure", "Capital expenditure"], ["totalAssets", "Total assets"], ["totalLiabilities", "Total liabilities"]] as const) {
-              const value = period[key];
-              if (typeof value === "number" && Number.isFinite(value)) financialFacts.push({ id: `${period.form}:${period.periodEnd}:${key}`, label: `Period ended ${period.periodEnd} ${label}`, value, unit: "USD", periodEnd: period.periodEnd, filedAt: period.filedByMetric[key] ?? period.filed, form: period.form, sourceUrl: `https://data.sec.gov/api/xbrl/companyfacts/CIK${secResearch!.cik}.json` });
-            }
+          const annualFocus = /\b(?:annual|fiscal year|year ended|FY\s?20\d{2}|10-K)\b/i.test(question);
+          const defaultPeriods = annualFocus ? [...annual.slice(0, 6), ...quarterly.slice(0, 2)] : [...quarterly.slice(0, 6), ...annual.slice(0, 2)];
+          const quarterMatches = [...question.matchAll(/\bQ([1-4])\s*(?:FY\s*)?(20\d{2})\b/gi)];
+          const quarterStrippedQuestion = question.replace(/\bQ[1-4]\s*(?:FY\s*)?20\d{2}\b/gi, " ");
+          const yearMatches = [...quarterStrippedQuestion.matchAll(/\b(?:FY\s*|fiscal year\s+|year ended\s+)(20\d{2})\b/gi)];
+          const requestedLabels = [...quarterMatches.map(match => `Q${match[1]} FY${match[2]}`), ...yearMatches.map(match => `FY ${match[1]}`)];
+          const allPeriods = [...annual, ...quarterly];
+          const requestedPeriods = requestedLabels.map(label => allPeriods.find(candidate => candidate.period === label)).filter((period): period is NonNullable<typeof period> => Boolean(period)).filter((period, index, periods) => periods.indexOf(period) === index);
+          const requestedPeriodsSeen = new Set(requestedPeriods);
+          const selectedPeriods = [...requestedPeriods, ...defaultPeriods.filter(period => !requestedPeriodsSeen.has(period)).slice(0, Math.max(0, 8 - requestedPeriods.length))];
+          const metricLabels = [["revenue", "Revenue"], ["netIncome", "Net income"], ["operatingCashFlow", "Operating cash flow"], ["capitalExpenditure", "Capital expenditure"], ["totalAssets", "Total assets"], ["totalLiabilities", "Total liabilities"]] as const;
+          const factOrder = requestedPeriods.length > 1
+            ? metricLabels.flatMap(([key]) => requestedPeriods.map(period => ({ period, key }))).concat(metricLabels.flatMap(([key]) => selectedPeriods.filter(period => !requestedPeriodsSeen.has(period)).map(period => ({ period, key }))))
+            : selectedPeriods.flatMap(period => metricLabels.map(([key]) => ({ period, key })));
+          for (const { period, key } of factOrder) {
+            const label = metricLabels.find(([metric]) => metric === key)?.[1];
+            const value = period[key];
+            if (label && typeof value === "number" && Number.isFinite(value)) financialFacts.push({ id: `${period.form}:${period.periodEnd}:${key}`, label: `Period ended ${period.periodEnd} ${label}`, value, unit: "USD", periodEnd: period.periodEnd, filedAt: period.filedByMetric[key] ?? period.filed, form: period.form, sourceUrl: `https://data.sec.gov/api/xbrl/companyfacts/CIK${secResearch!.cik}.json` });
           }
           const capturedFacts = boundedSecFacts(financialFacts);
           stage("SEC filings", sec.status === "fulfilled" && capturedFacts.length ? "complete" : "blocked", sec.status === "fulfilled" ? `${ticker}: ${capturedFacts.length} filed facts` : `${ticker}: SEC facts unavailable`, capturedFacts.length ? `${capturedFacts.length} dated reported values from SEC company facts are available.` : "No eligible SEC facts were retrieved; missing financials are not inferred.", ticker);

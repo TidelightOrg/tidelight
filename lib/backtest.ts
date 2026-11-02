@@ -64,6 +64,7 @@ export type BacktestValidation = {
 
 export type WalkForwardFold = { index: number; trainStart: number; testStart: number; testEnd: number; metrics: BacktestMetrics };
 export type WalkForwardResult = { folds: WalkForwardFold[]; meanReturnPct: number; positiveFolds: number; totalFolds: number; evaluationStart: number; evaluationEnd: number };
+export type RandomEntryPlacebo = { version: 4; initialState: "training_long_occupancy" | "training_cash_occupancy" | "randomized_from_stationary_occupancy"; simulations: number; seed: number; trainingEntryRatePerBar: number; trainingExitRatePerBar: number; medianReturnPct: number; p05ReturnPct: number; p95ReturnPct: number; beatsStrategyPct: number };
 
 function validateCandles(input: MarketCandle[]) {
   const candles = [...input].sort((a, b) => a.timestamp - b.timestamp);
@@ -363,4 +364,62 @@ export function runCostSensitivity(symbol: string, interval: CandleInterval, inp
     { label: "Elevated", feeBpsPerSide: 15, slippageBpsPerSide: 10 },
     { label: "Stress", feeBpsPerSide: 25, slippageBpsPerSide: 25 },
   ].map((scenario) => ({ ...scenario, returnPct: measure(candles, fast, slow, splitIndex, candles.length, interval, scenario.feeBpsPerSide, scenario.slippageBpsPerSide, signals).totalReturnPct }));
+}
+
+/**
+ * Deterministic random long/cash placebo. Entry and exit hazards are estimated
+ * only from the strategy's training-window conditional state transitions,
+ * then applied to the untouched holdout with identical fee and slippage assumptions.
+ */
+export function runRandomEntryPlacebo(input: MarketCandle[], interval: CandleInterval, asOf: number, strategyKey: StrategyKey, strategyHoldoutReturnPct: number, simulations = 100): RandomEntryPlacebo {
+  const candles = prepareBacktestCandles(input, interval, asOf);
+  if (candles.length < 80) throw new Error("Placebo comparison needs at least 80 completed candles.");
+  const count = Math.max(20, Math.min(500, Number.isFinite(simulations) ? Math.floor(simulations) : 100));
+  const splitIndex = Math.floor(candles.length * BACKTEST_PARAMETERS.trainFraction);
+  const warmup = BACKTEST_PARAMETERS.slowWindow;
+  const strategySignals = buildSignals(candles, strategyKey);
+  let prior = strategySignals[Math.max(0, warmup - 2)] === true;
+  let cashStateBars = 0, longStateBars = 0, entries = 0, exits = 0;
+  for (let i = Math.max(1, warmup - 1); i < splitIndex; i += 1) {
+    if (prior) longStateBars += 1;
+    else cashStateBars += 1;
+    const current = strategySignals[i] === true;
+    if (current && !prior) entries += 1;
+    if (!current && prior) exits += 1;
+    prior = current;
+  }
+  // An unobserved prior state has no estimated transitions; keep its hazard at zero.
+  const trainingEntryRatePerBar = cashStateBars ? entries / cashStateBars : 0;
+  const trainingExitRatePerBar = longStateBars ? exits / longStateBars : 0;
+  let seed = 2166136261;
+  const seedMaterial = `${strategyKey}|${interval}|${candles.slice(warmup, splitIndex).map(candle => `${candle.timestamp}:${candle.open}:${candle.high}:${candle.low}:${candle.close}`).join("|")}`;
+  for (let i = 0; i < seedMaterial.length; i += 1) seed = Math.imul(seed ^ seedMaterial.charCodeAt(i), 16777619);
+  seed >>>= 0;
+  if (seed === 0) seed = 1;
+  const fast = movingAverages(candles, BACKTEST_PARAMETERS.fastWindow);
+  const slow = movingAverages(candles, BACKTEST_PARAMETERS.slowWindow);
+  const returns: number[] = [];
+  for (let simulation = 0; simulation < count; simulation += 1) {
+    let state = (seed ^ Math.imul(simulation + 1, 0x9e3779b1)) >>> 0;
+    if (state === 0) state = simulation + 1;
+    const random = () => {
+      state ^= state << 13; state ^= state >>> 17; state ^= state << 5;
+      return (state >>> 0) / 0x1_0000_0000;
+    };
+    const placeboSignals = Array<boolean>(candles.length).fill(false);
+    // measure() uses signal[i - 1] at candle i's open, so set the signal
+    // immediately before the first holdout candle from training-only rates.
+    const initialState = cashStateBars === 0 ? "training_long_occupancy" : longStateBars === 0 ? "training_cash_occupancy" : "randomized_from_stationary_occupancy";
+    let held = initialState === "training_long_occupancy" ? true : initialState === "training_cash_occupancy" ? false : random() < (trainingEntryRatePerBar + trainingExitRatePerBar > 0 ? trainingEntryRatePerBar / (trainingEntryRatePerBar + trainingExitRatePerBar) : longStateBars / (cashStateBars + longStateBars));
+    placeboSignals[splitIndex - 1] = held;
+    for (let i = splitIndex; i < candles.length; i += 1) {
+      if (held ? random() < trainingExitRatePerBar : random() < trainingEntryRatePerBar) held = !held;
+      placeboSignals[i] = held;
+    }
+    returns.push(measure(candles, fast, slow, splitIndex, candles.length, interval, BACKTEST_PARAMETERS.feeBpsPerSide, BACKTEST_PARAMETERS.slippageBpsPerSide, placeboSignals).totalReturnPct);
+  }
+  returns.sort((a, b) => a - b);
+  const quantile = (p: number) => returns[Math.floor((returns.length - 1) * p)];
+  const initialState = cashStateBars === 0 ? "training_long_occupancy" : longStateBars === 0 ? "training_cash_occupancy" : "randomized_from_stationary_occupancy";
+  return { version: 4, initialState, simulations: count, seed, trainingEntryRatePerBar, trainingExitRatePerBar, medianReturnPct: quantile(0.5), p05ReturnPct: quantile(0.05), p95ReturnPct: quantile(0.95), beatsStrategyPct: returns.filter(value => value >= strategyHoldoutReturnPct).length / returns.length * 100 };
 }

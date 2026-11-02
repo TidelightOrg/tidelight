@@ -81,14 +81,28 @@ function latestFact(facts: CompanyFacts, tags: string[], unit = "USD", eligible:
 // the as-of calendar day as unavailable because intraday ordering is unknown.
 function filedBeforeAsOfDay(filed: string, asOfDate: string, includeSameDay: boolean) { return includeSameDay ? filed <= asOfDate : filed < asOfDate; }
 
-function periodValues(facts: CompanyFacts, tags: string[], form: "10-Q" | "10-K", duration: "quarter" | "annual", asOfDate: string, includeSameDay: boolean): Map<string, SecFact> {
+type PeriodFact = { value: SecFact; fiscalIdentity: SecFact };
+const periodIdentityKey = (fact: SecFact) => `${fact.start ?? ""}:${fact.end}`;
+
+function periodValues(facts: CompanyFacts, tags: string[], form: "10-Q" | "10-K", duration: "quarter" | "annual", asOfDate: string, includeSameDay: boolean): Map<string, PeriodFact> {
   const lengthDays = (item: SecFact) => (Date.parse(`${item.end}T00:00:00Z`) - Date.parse(`${item.start}T00:00:00Z`)) / 86400000;
   const eligible = (item: SecFact) => Boolean(item.form === form && item.start && item.end && item.filed) && filedBeforeAsOfDay(item.filed, asOfDate, includeSameDay) && item.end <= asOfDate && (duration === "quarter" ? lengthDays(item) >= 60 && lengthDays(item) <= 115 : lengthDays(item) >= 300 && lengthDays(item) <= 400);
-  const byEnd = new Map<string, SecFact>();
+  const byEnd = new Map<string, PeriodFact>();
+  const fiscalIdentityByInterval = new Map<string, SecFact>();
   for (const tag of tags) {
     const latestByEnd = new Map<string, SecFact>();
-    for (const item of latestFact(facts, [tag], "USD", eligible).sort((a, b) => a.filed.localeCompare(b.filed))) latestByEnd.set(item.end, item);
-    for (const [end, item] of latestByEnd) if (!byEnd.has(end)) byEnd.set(end, item);
+    for (const item of latestFact(facts, [tag], "USD", eligible).sort((a, b) => a.filed.localeCompare(b.filed))) {
+      latestByEnd.set(item.end, item);
+      const interval = periodIdentityKey(item);
+      // SEC's fy/fp describe the filing that contains a fact. Retain these
+      // fields from the first eligible filing for this exact reporting interval
+      // so later comparative filings cannot rewrite its fiscal identity.
+      if (!fiscalIdentityByInterval.has(interval)) fiscalIdentityByInterval.set(interval, item);
+    }
+    for (const [end, value] of latestByEnd) {
+      if (byEnd.has(end)) continue;
+      byEnd.set(end, { value, fiscalIdentity: fiscalIdentityByInterval.get(periodIdentityKey(value)) ?? value });
+    }
   }
   return byEnd;
 }
@@ -97,36 +111,34 @@ function instantValue(facts: CompanyFacts, tags: string[], end: string, form: "1
   return latestFact(facts, tags, "USD", item => item.end === end && item.form === form && !item.start && Boolean(item.filed) && filedBeforeAsOfDay(item.filed, asOfDate, includeSameDay) && item.end <= asOfDate).sort((a, b) => b.filed.localeCompare(a.filed))[0];
 }
 
-function quarterLabel(end: string) {
-  const date = new Date(`${end}T00:00:00Z`);
-  return `Q${Math.ceil((date.getUTCMonth() + 1) / 3)} ${date.getUTCFullYear()}`;
-}
-
 function buildPeriods(facts: CompanyFacts, duration: "quarter" | "annual", asOfDate: string, includeSameDay: boolean) {
   const form = duration === "quarter" ? "10-Q" : "10-K";
   const revenues = periodValues(facts, ["RevenueFromContractWithCustomerExcludingAssessedTax", "Revenues", "SalesRevenueNet"], form, duration, asOfDate, includeSameDay);
   const income = periodValues(facts, ["NetIncomeLoss"], form, duration, asOfDate, includeSameDay);
   const cash = periodValues(facts, ["NetCashProvidedByUsedInOperatingActivities"], form, duration, asOfDate, includeSameDay);
   const capex = periodValues(facts, ["PaymentsToAcquirePropertyPlantAndEquipment"], form, duration, asOfDate, includeSameDay);
-  const ends = [...new Set([...revenues.keys(), ...income.keys(), ...cash.keys(), ...capex.keys()])].filter(end => [revenues, income, cash, capex].some(series => (series.get(end)?.filed ?? "9999-12-31") <= asOfDate)).sort().reverse().slice(0, duration === "quarter" ? 16 : 10);
+  const ends = [...new Set([...revenues.keys(), ...income.keys(), ...cash.keys(), ...capex.keys()])].filter(end => [revenues, income, cash, capex].some(series => (series.get(end)?.value.filed ?? "9999-12-31") <= asOfDate)).sort().reverse().slice(0, duration === "quarter" ? 16 : 10);
   return ends.map((end) => {
     const revenue = revenues.get(end), netIncome = income.get(end), operatingCashFlow = cash.get(end), capitalExpenditure = capex.get(end);
-    const basis = revenue ?? netIncome ?? operatingCashFlow ?? capitalExpenditure;
-    const formForInstant: "10-Q" | "10-K" = basis?.form === "10-K" ? "10-K" : basis?.form === "10-Q" ? "10-Q" : form;
+    const basisValue = revenue?.value ?? netIncome?.value ?? operatingCashFlow?.value ?? capitalExpenditure?.value;
+    const basis = revenue?.fiscalIdentity ?? netIncome?.fiscalIdentity ?? operatingCashFlow?.fiscalIdentity ?? capitalExpenditure?.fiscalIdentity ?? basisValue;
+    const formForInstant: "10-Q" | "10-K" = basisValue?.form === "10-K" ? "10-K" : basisValue?.form === "10-Q" ? "10-Q" : form;
     const totalAssets = instantValue(facts, ["Assets"], end, formForInstant, asOfDate, includeSameDay);
     const totalLiabilities = instantValue(facts, ["Liabilities"], end, formForInstant, asOfDate, includeSameDay);
     return {
-      period: duration === "quarter" ? quarterLabel(end) : `FY ${new Date(`${end}T00:00:00Z`).getUTCFullYear()}`,
+      period: duration === "quarter"
+        ? (/^Q[1-4]$/.test(basis?.fp ?? "") && Number.isSafeInteger(basis?.fy) ? `${basis!.fp} FY${basis!.fy}` : `Period ended ${end}`)
+        : (basis?.fp === "FY" && Number.isSafeInteger(basis.fy) ? `FY ${basis.fy}` : `Year ended ${end}`),
       periodEnd: end,
-      filed: basis?.filed ?? "",
+      filed: basisValue?.filed ?? "",
       form: formForInstant,
-      revenue: revenue?.val ?? null,
-      netIncome: netIncome?.val ?? null,
+      revenue: revenue?.value.val ?? null,
+      netIncome: netIncome?.value.val ?? null,
       totalAssets: totalAssets?.val ?? null,
       totalLiabilities: totalLiabilities?.val ?? null,
-      operatingCashFlow: operatingCashFlow?.val ?? null,
-      capitalExpenditure: capitalExpenditure?.val ?? null,
-      filedByMetric: { revenue: revenue?.filed ?? null, netIncome: netIncome?.filed ?? null, totalAssets: totalAssets?.filed ?? null, totalLiabilities: totalLiabilities?.filed ?? null, operatingCashFlow: operatingCashFlow?.filed ?? null, capitalExpenditure: capitalExpenditure?.filed ?? null },
+      operatingCashFlow: operatingCashFlow?.value.val ?? null,
+      capitalExpenditure: capitalExpenditure?.value.val ?? null,
+      filedByMetric: { revenue: revenue?.value.filed ?? null, netIncome: netIncome?.value.filed ?? null, totalAssets: totalAssets?.filed ?? null, totalLiabilities: totalLiabilities?.filed ?? null, operatingCashFlow: operatingCashFlow?.value.filed ?? null, capitalExpenditure: capitalExpenditure?.value.filed ?? null },
     };
   });
 }
