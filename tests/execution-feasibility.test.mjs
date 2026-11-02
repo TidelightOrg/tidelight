@@ -63,3 +63,9 @@ test("execution confirmation sides match open and close actions", () => {
   assert.deepEqual(executionSidesForAction("close", "short"), { primarySide: "buy", secondarySide: null });
   assert.deepEqual(executionSidesForAction("close", null), { primarySide: null, secondarySide: null });
 });
+
+test("slow delivery counts against order-book freshness", () => {
+  const comparisonNow = serverAnchoredSnapshotNow(20_000, 50_000, 66_000);
+  assert.equal(comparisonNow, 36_000);
+  assert.equal(estimateBookSweep({ levels: [{ price: 101, size: 5 }], side: "buy", quantity: 1, referencePrice: 100, oppositeBestPrice: 99, bookTimestamp: 20_000, now: comparisonNow }).status, "unavailable");
+});

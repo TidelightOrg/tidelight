@@ -3,10 +3,10 @@ export type ExecutionSide = "buy" | "sell";
 export type ExecutionAction = "open_long" | "open_short" | "close";
 export type PositionDirection = "long" | "short" | null;
 
-/** Advance a server-timestamped snapshot clock by elapsed client time since receipt. */
-export function serverAnchoredSnapshotNow(serverReceivedAt: number | null | undefined, clientReceivedAt: number | null | undefined, clientNow: number) {
-  if (!Number.isFinite(serverReceivedAt) || !Number.isFinite(clientReceivedAt) || !Number.isFinite(clientNow)) return clientNow;
-  return (serverReceivedAt as number) + Math.max(0, clientNow - (clientReceivedAt as number));
+/** Advance a server-timestamped snapshot clock by elapsed client time since the request began (a conservative upper bound on response transit). */
+export function serverAnchoredSnapshotNow(serverReceivedAt: number | null | undefined, clientRequestStartedAt: number | null | undefined, clientNow: number) {
+  if (!Number.isFinite(serverReceivedAt) || !Number.isFinite(clientRequestStartedAt) || !Number.isFinite(clientNow)) return clientNow;
+  return (serverReceivedAt as number) + Math.max(0, clientNow - (clientRequestStartedAt as number));
 }
 
 /** Return only the side(s) implied by the proposed paper action. */
