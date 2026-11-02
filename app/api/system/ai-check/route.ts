@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { aiJsonWithFallback, configuredAiProviders, safeProviderError } from "@/lib/ai-fallback";
+import { aiJsonWithFallback, configuredAiProviders, discardProviderErrorBody, safeProviderError } from "@/lib/ai-fallback";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -20,7 +20,10 @@ export async function POST(request: Request) {
     const modelsUrl = provider.label === "gemini" ? "https://generativelanguage.googleapis.com/v1beta/models" : "https://hackathon.bitgetops.com/v1/models";
     const headers: Record<string, string> = provider.label === "gemini" ? { "x-goog-api-key": provider.key } : { Authorization: `Bearer ${provider.key}` };
     const models = await fetch(modelsUrl, { headers, signal: AbortSignal.timeout(5000), cache: "no-store" }).then(async response => {
-      if (!response.ok) return { status: response.status, detail: safeProviderError(await response.text(), provider.key) };
+      if (!response.ok) {
+        await discardProviderErrorBody(response);
+        return { status: response.status, detail: safeProviderError() };
+      }
       const body = await response.json();
       const list: unknown[] = provider.label === "gemini" ? body.models ?? [] : body.data ?? [];
       const names = list.flatMap(item => { if (!item || typeof item !== "object") return []; const obj = item as Record<string, unknown>; const name = obj.name ?? obj.id; return typeof name === "string" ? [name.replace(/^models\//, "")] : []; });

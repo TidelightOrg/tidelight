@@ -12,7 +12,7 @@ const hooks = registerHooks({
     return nextResolve(specifier, context);
   },
 });
-const { aiJsonWithFallback, configuredAiProviders, safeProviderError } = await import("../lib/ai-fallback.ts");
+const { aiJsonWithFallback, configuredAiProviders, discardProviderErrorBody, safeProviderError } = await import("../lib/ai-fallback.ts");
 hooks.deregister();
 
 const messages = [{ role: "system", content: "Return JSON" }, { role: "user", content: "Assess supplied facts" }];
@@ -138,6 +138,39 @@ test("transient HTTP retries remain bounded before switching provider", async t 
   });
   assert.deepEqual(await aiJsonWithFallback(messages, valid), answer);
   assert.equal(qwenCalls, 2);
+});
+
+test("non-OK provider bodies are canceled and echoed research content never reaches logs", async t => {
+  configure(t);
+  const privateQuestion = "PRIVATE_RESEARCH_QUESTION_73";
+  const privateSecret = "PROVIDER_ECHO_SECRET_91";
+  const warnings = [];
+  t.mock.method(console, "warn", (...args) => warnings.push(args));
+  let qwenCalls = 0;
+  let canceledBodies = 0;
+  let readBodies = 0;
+  t.mock.method(globalThis, "fetch", async url => {
+    if (url.includes("bitgetops")) {
+      qwenCalls++;
+      const body = new ReadableStream({
+        pull(controller) { readBodies++; controller.enqueue(new TextEncoder().encode(`${privateQuestion} ${privateSecret}`)); controller.close(); },
+        cancel() { canceledBodies++; },
+      }, { highWaterMark: 0 });
+      return new Response(body, { status: 503 });
+    }
+    return gemini([{ text: JSON.stringify(answer) }]);
+  });
+
+  assert.deepEqual(await aiJsonWithFallback([
+    { role: "system", content: "Return JSON" },
+    { role: "user", content: privateQuestion },
+  ], valid), answer);
+  assert.equal(qwenCalls, 2, "transient HTTP failures retain their bounded same-provider retry");
+  assert.equal(canceledBodies, 2, "each provider error stream is canceled");
+  assert.equal(readBodies, 0, "provider error content is never consumed");
+  assert.equal(JSON.stringify(warnings).includes(privateQuestion), false);
+  assert.equal(JSON.stringify(warnings).includes(privateSecret), false);
+  assert.ok(warnings.every(([, details]) => details?.detail === "Provider returned a non-success response."));
 });
 
 test("stalled Qwen response body is aborted and leaves time for Gemini", async t => {
@@ -292,8 +325,20 @@ test("Qwen disables optional thinking for bounded JSON tasks", async t => {
 
 
 test("provider diagnostics redact secrets and discard non-JSON errors", () => {
-  assert.equal(safeProviderError("<html>secret-key</html>", "secret-key"), "Provider returned a non-JSON error.");
-  const detail = safeProviderError(JSON.stringify({error:{status:"UNAVAILABLE",message:"secret-key at https://example.com?key=secret-key Bearer abcdef"}}), "secret-key");
-  assert.match(detail, /UNAVAILABLE/);
-  assert.doesNotMatch(detail, /secret-key|https:|abcdef/);
+  assert.equal(safeProviderError(), "Provider returned a non-success response.");
+  const detail = safeProviderError();
+  assert.equal(detail, "Provider returned a non-success response.");
+  assert.doesNotMatch(detail, /UNAVAILABLE|secret-key|https:|abcdef/);
+});
+
+test("discarding provider error bodies cancels the stream without reading it", async () => {
+  let canceled = false;
+  let pulled = false;
+  const body = new ReadableStream({
+    pull() { pulled = true; },
+    cancel() { canceled = true; },
+  });
+  await discardProviderErrorBody({ body });
+  assert.equal(canceled, true);
+  assert.equal(pulled, false);
 });

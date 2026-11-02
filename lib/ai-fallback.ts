@@ -147,8 +147,10 @@ export async function aiJsonWithFallback(messages: Message[], valid: (value: Rec
             } : { model: provider.model, temperature: 0.15, enable_thinking: false, response_format: { type: "json_object" }, messages }),
           });
           if (!response.ok) {
-            const detail = await response.text();
-            console.warn("ai-provider-http", { provider: provider.label, model: provider.model, status: response.status, detail: safeProviderError(detail, provider.key) });
+            // Provider error bodies can echo research prompts or source text.
+            // Do not parse, retain, or log that untrusted response content.
+            await discardProviderErrorBody(response);
+            console.warn("ai-provider-http", { provider: provider.label, model: provider.model, status: response.status, detail: safeProviderError() });
             return { response, payload: null };
           }
           return { response, payload: await response.json() as AiPayload };
@@ -195,15 +197,12 @@ export async function aiJsonWithFallback(messages: Message[], valid: (value: Rec
   throw new Error(failures.join(",") || "ai-unavailable");
 }
 
-/** Only bounded provider error fields are retained; credentials and URLs are redacted. */
-export function safeProviderError(raw: string, key: string): string {
-  let value = "Provider returned a non-JSON error.";
-  try {
-    const body = JSON.parse(raw);
-    const error = body?.error;
-    if (error && typeof error === "object") {
-      value = [error.status, error.code, error.type, error.message].filter(item => typeof item === "string" || typeof item === "number").join(": ");
-    } else if (typeof error === "string") value = error;
-  } catch { /* HTML gateway errors are not retained. */ }
-  return value.split(key).join("[redacted]").replace(/https?:\/\/\S+/gi, "[url]").replace(/(?:Bearer\s+|AIza|sk-)[A-Za-z0-9._-]+/gi, "[redacted]").slice(0, 400);
+/** Provider error bodies are untrusted and may echo research content; retain no body fields. */
+export function safeProviderError(): string {
+  return "Provider returned a non-success response.";
+}
+
+/** Release an untrusted error stream without reading or buffering its contents. */
+export async function discardProviderErrorBody(response: Pick<Response, "body">): Promise<void> {
+  try { await response.body?.cancel(); } catch { /* cancellation must not mask the provider status */ }
 }

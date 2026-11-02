@@ -125,6 +125,23 @@ test("provider responses must include a valid assessment for each requested comp
   assert.equal(normalizeFlowAssessments({ assets: [nvda] }, {}), null);
 });
 
+test("invalid synthesis emits only bounded reason codes and keeps validation unchanged", () => {
+  const check = (response, expected) => {
+    const reasons = [];
+    assert.equal(normalizeFlowAssessments(response, { NVDA: sources }, now, reason => reasons.push(reason)), null);
+    assert.deepEqual(reasons, [expected]);
+  };
+  check({}, "assets_not_array");
+  check({ assets: [{ ...assessment, ticker: "OTHER" }] }, "missing_assessment");
+  check({ assets: [{ ...assessment, ticker: "NVDA", summary: "short" }] }, "invalid_summary");
+  check({ assets: [{ ...assessment, ticker: "NVDA", stance: "unknown" }] }, "invalid_stance");
+  check({ assets: [{ ...assessment, ticker: "NVDA", confidence: "0.8" }] }, "invalid_confidence");
+  const reasons = [];
+  assert.ok(normalizeFlowAssessments({ assets: [{ ...assessment, ticker: "NVDA" }] }, { NVDA: sources }, now, reason => reasons.push(reason)));
+  assert.deepEqual(reasons, []);
+  assert.equal(normalizeFlowAssessments({}, { NVDA: sources }, now, () => { throw new Error("telemetry failed"); }), null);
+});
+
 test("unknown companies and duplicate provider assessments cannot overwrite the first valid requested result", () => {
   const nvda = { ...assessment, ticker: "NVDA" };
   const response = { assets: [null, [], { ...nvda, ticker: "__proto__" }, { ...nvda, confidence: null }, nvda, { ...nvda, confidence: 1 }, { ...nvda, ticker: "TSLA" }] };

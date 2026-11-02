@@ -22,6 +22,8 @@ Production verification must record the deployed commit and deployment state, th
 
 ## Runtime findings workflow
 
+Research synthesis logs a bounded validation reason when parsed model JSON fails the assessment contract. The reason identifies the failing field or a missing assessment, without logging the research question, source text, ticker, or model output. Provider HTTP and parsed-JSON errors are logged without provider error bodies; timeout attempts are recorded in the response's `operationalDiagnostics.providerAttempts` and, when the health write succeeds, in `research_provider_health_events`. A request-wide source-only result means no provider returned a valid assessment; an individual asset can also receive a source-only fallback when it has no attributable sources, even if another asset in the same request was synthesized successfully. Validation failure from one attempt does not prevent a later provider response from passing the normal research and trade gates.
+
 1. Review current Supabase security/performance advisors and Vercel deployment/runtime logs using read-only access.
 2. Record each finding with source, severity, affected route/object, reproducible evidence, and whether it is production-confirmed.
 3. Fix only findings with an understood impact and a regression test; avoid broad policy changes without a verified access-control defect.
