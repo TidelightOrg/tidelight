@@ -19,7 +19,10 @@ test("blocked or oversized browser storage is reported without disrupting resear
   globalThis.sessionStorage = { setItem() { throw new Error("blocked"); }, removeItem() { throw new Error("blocked"); } };
   assert.equal(storeJudgeResult({ question: "NVDA" }), false);
   assert.equal(clearJudgeResult(), false);
+  let writes = 0;
+  globalThis.sessionStorage = { setItem() { writes++; }, removeItem() {} };
   assert.equal(storeJudgeResult({ data: "x".repeat(1_500_000) }), false);
+  assert.equal(writes, 0, "oversized results are rejected before attempting a write");
 });
 
 test("judge result display distinguishes storage failure and offers a clear action", async () => {
