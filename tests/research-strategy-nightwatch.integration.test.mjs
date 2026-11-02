@@ -271,3 +271,23 @@ test("SEC-only evidence is eligible for grounded synthesis when issuer news retr
   globalThis.flowTest.emptyIssuerNews = false;
   globalThis.flowTest.manySecPeriods = false;
 });
+
+test("SEC facts prioritize the fiscal year named by the question before the graph passage cap", async () => {
+  globalThis.flowTest.emptyIssuerNews = true;
+  globalThis.flowTest.manySecPeriods = true;
+  globalThis.flowTest.aiCalls = 0;
+  const response = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
+    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: "Summarize NVDA FY2023 reported revenue and net income from SEC filings" }),
+  }));
+  assert.equal(response.status, 200);
+  const events = (await response.text()).split("\n\n").filter(Boolean).map(frame => JSON.parse(frame.split("\ndata: ")[1]));
+  const result = events.findLast(frame => frame.researchRunId);
+  assert.ok(result);
+  const prompt = JSON.parse(globalThis.flowTest.lastPrompt.slice(globalThis.flowTest.lastPrompt.indexOf('{"question"')));
+  const facts = prompt.assets[0].financialFacts;
+  assert.ok(facts.some(fact => fact.label.includes("Period ended 2023-12-31 Revenue")), "the requested FY2023 appears within the bounded synthesis facts");
+  assert.equal(facts[0].label, "Period ended 2023-12-31 Revenue", "the requested annual period is placed before newer comparisons");
+  assert.ok(result.evidenceGraph.nodes.some(node => node.type === "financial_fact" && node.label.includes("Period ended 2023-12-31 Revenue")));
+  globalThis.flowTest.emptyIssuerNews = false;
+  globalThis.flowTest.manySecPeriods = false;
+});

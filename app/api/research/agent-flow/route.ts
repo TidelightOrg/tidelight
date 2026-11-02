@@ -281,7 +281,13 @@ export async function POST(request: Request) {
           const quarterly = secResearch?.financials.quarterly ?? [];
           const annual = secResearch?.financials.annual ?? [];
           const annualFocus = /\b(?:annual|fiscal year|FY\s?20\d{2}|10-K)\b/i.test(question);
-          const selectedPeriods = annualFocus ? [...annual.slice(0, 6), ...quarterly.slice(0, 2)] : [...quarterly.slice(0, 6), ...annual.slice(0, 2)];
+          const defaultPeriods = annualFocus ? [...annual.slice(0, 6), ...quarterly.slice(0, 2)] : [...quarterly.slice(0, 6), ...annual.slice(0, 2)];
+          const requestedYear = question.match(/\b(?:FY\s*|fiscal year\s+|year ended\s+)(20\d{2})\b/i)?.[1];
+          const requestedQuarter = question.match(/\bQ([1-4])\s*(20\d{2})\b/i);
+          const requestedLabel = requestedYear ? `FY ${requestedYear}` : requestedQuarter ? `Q${requestedQuarter[1]} ${requestedQuarter[2]}` : null;
+          const selectedPeriods = requestedLabel
+            ? [...defaultPeriods.filter(period => period.period === requestedLabel), ...defaultPeriods.filter(period => period.period !== requestedLabel)]
+            : defaultPeriods;
           for (const period of selectedPeriods) {
             for (const [key, label] of [["revenue", "Revenue"], ["netIncome", "Net income"], ["operatingCashFlow", "Operating cash flow"], ["capitalExpenditure", "Capital expenditure"], ["totalAssets", "Total assets"], ["totalLiabilities", "Total liabilities"]] as const) {
               const value = period[key];
