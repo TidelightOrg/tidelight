@@ -35,10 +35,19 @@ test("judge result display distinguishes storage failure and offers a clear acti
 });
 
 
-test("a failed deletion remains visible after a later session-only result", () => {
-  let pending = judgeClearWarningPending(false, true, false);
+test("a failed deletion remains visible after a later oversized result", t => {
+  const previous = globalThis.sessionStorage;
+  t.after(() => { if (previous === undefined) delete globalThis.sessionStorage; else globalThis.sessionStorage = previous; });
+  const values = new Map([[JUDGE_SESSION_KEY, "older result"]]);
+  globalThis.sessionStorage = { setItem(key, value) { values.set(key, value); }, removeItem() { throw new Error("blocked"); } };
+  let pending = judgeClearWarningPending(false, true, clearJudgeResult());
   assert.equal(pending, true);
-  pending = judgeClearWarningPending(pending, false, false);
+  const stored = storeJudgeResult({ data: "x".repeat(1_500_000) });
+  assert.equal(stored, false);
+  assert.equal(values.get(JUDGE_SESSION_KEY), "older result");
+  pending = judgeClearWarningPending(pending, stored, clearJudgeResult());
   assert.equal(pending, true, "a second failed clear cannot hide the stale stored result");
-  assert.equal(judgeClearWarningPending(pending, false, true), false);
+  globalThis.sessionStorage.removeItem = key => values.delete(key);
+  assert.equal(judgeClearWarningPending(pending, stored, clearJudgeResult()), false);
+  assert.equal(values.has(JUDGE_SESSION_KEY), false);
 });
