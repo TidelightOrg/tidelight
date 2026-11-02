@@ -201,6 +201,7 @@ export function scoreBenchmark(benchmark) {
       const reviewers = Array.isArray(claim.reviewers) ? claim.reviewers : [];
       const reviewerIds = new Set(reviewers.map((reviewer) => typeof reviewer?.reviewerId === "string" ? reviewer.reviewerId.trim() : "").filter(Boolean));
       if (reviewers.length < 2 || reviewerIds.size < 2) errors.push(`${claimLabel} needs independent labels from two reviewers.`);
+      if (reviewerIds.size !== reviewers.length) errors.push(`${claimLabel} reviewer IDs must all be nonempty and unique.`);
       for (const reviewer of reviewers) {
         if (!QUOTE_MATCH.has(reviewer?.quoteMatch) || !ENTAILMENT.has(reviewer?.entailment) || !SOURCE_FIT.has(reviewer?.sourceFit) || !INTERPRETATION.has(reviewer?.interpretationBoundary)) {
           errors.push(`${claimLabel} contains an invalid reviewer label.`);

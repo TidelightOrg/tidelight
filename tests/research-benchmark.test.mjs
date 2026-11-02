@@ -93,10 +93,13 @@ test("rejects empty or whitespace-equivalent reviewer identities and unsupported
   benchmark.events[1].claims[0].reviewers[0].reviewerId = " a ";
   benchmark.events[1].claims[0].reviewers[1].reviewerId = "a";
   benchmark.events[2].claims[0].quote = "Not in the captured source";
+  benchmark.events[3].claims[0].reviewers.push({ ...benchmark.events[3].claims[0].reviewers[0], reviewerId: " " });
+  benchmark.events[4].claims[0].reviewers.push({ ...benchmark.events[4].claims[0].reviewers[0], reviewerId: " a " });
   const result = scoreBenchmark(benchmark);
   assert.equal(result.complete, false);
   assert.equal(result.metrics, null);
   assert.equal(result.errors.filter(error => error.includes("two reviewers")).length, 2);
+  assert.equal(result.errors.filter(error => error.includes("reviewer IDs must all be nonempty and unique")).length, 4);
   assert.ok(result.errors.some(error => error.includes("exact quote label")));
 });
 
