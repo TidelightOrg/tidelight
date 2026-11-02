@@ -85,11 +85,20 @@ export function gateFlowTrade(input: FlowGateInput) {
   return { tradeable: reasons.length === 0, reasons, direction: input.assessment.stance === "bullish" ? "long" as const : input.assessment.stance === "bearish" ? "short" as const : null };
 }
 
+export type FlowValidationFailure = "no_requested_assets" | "assets_not_array" | "missing_assessment" | "invalid_summary" | "invalid_stance" | "invalid_confidence";
+
+function assessmentFailure(value: Record<string, unknown>): FlowValidationFailure | null {
+  if (typeof value.summary !== "string" || value.summary.trim().slice(0, 700).length < 25) return "invalid_summary";
+  if (typeof value.stance !== "string" || !["bullish", "bearish", "mixed", "unclear"].includes(value.stance)) return "invalid_stance";
+  if (typeof value.confidence !== "number" || !Number.isFinite(value.confidence) || value.confidence < 0 || value.confidence > 1) return "invalid_confidence";
+  return null;
+}
+
 export function normalizeFlowAssessment(value: Record<string, unknown>, sources: FlowSource[], now = Date.now()): FlowAssessment | null {
   const summary = typeof value.summary === "string" ? value.summary.trim().slice(0, 700) : "";
   const stance = value.stance;
   const confidence = typeof value.confidence === "number" ? value.confidence : NaN;
-  if (summary.length < 25 || typeof stance !== "string" || !["bullish", "bearish", "mixed", "unclear"].includes(stance) || !Number.isFinite(confidence) || confidence < 0 || confidence > 1) return null;
+  if (assessmentFailure(value) || typeof stance !== "string") return null;
   const valid = new Set(sources.map(source => source.url));
   const evidencePoints = (items: unknown): FlowEvidencePoint[] => Array.isArray(items)
     ? items.flatMap((item): FlowEvidencePoint[] => {
@@ -120,10 +129,13 @@ export function normalizeFlowAssessment(value: Record<string, unknown>, sources:
 }
 
 /** A partial or malformed provider response must allow the next provider to try. */
-export function normalizeFlowAssessments(value: Record<string, unknown>, sourcesByTicker: Record<string, FlowSource[]>, now = Date.now()): Record<string, FlowAssessment> | null {
+export function normalizeFlowAssessments(value: Record<string, unknown>, sourcesByTicker: Record<string, FlowSource[]>, now = Date.now(), onFailure?: (reason: FlowValidationFailure) => void): Record<string, FlowAssessment> | null {
+  const fail = (reason: FlowValidationFailure) => { try { onFailure?.(reason); } catch { /* Diagnostics must not affect validation. */ } return null; };
   const requested = Object.keys(sourcesByTicker);
-  if (!requested.length || !Array.isArray(value.assets)) return null;
+  if (!requested.length) return fail("no_requested_assets");
+  if (!Array.isArray(value.assets)) return fail("assets_not_array");
   const assessments: Record<string, FlowAssessment> = {};
+  const failures: Record<string, FlowValidationFailure> = {};
   for (const item of value.assets) {
     if (!item || typeof item !== "object" || Array.isArray(item)) continue;
     const candidate = item as Record<string, unknown>;
@@ -131,6 +143,8 @@ export function normalizeFlowAssessments(value: Record<string, unknown>, sources
     if (!Object.hasOwn(sourcesByTicker, ticker) || Object.hasOwn(assessments, ticker)) continue;
     const normalized = normalizeFlowAssessment(candidate, sourcesByTicker[ticker], now);
     if (normalized) assessments[ticker] = normalized;
+    else failures[ticker] = assessmentFailure(candidate) ?? "missing_assessment";
   }
-  return requested.every(ticker => Object.hasOwn(assessments, ticker)) ? assessments : null;
+  const missing = requested.find(ticker => !Object.hasOwn(assessments, ticker));
+  return missing ? fail(failures[missing] ?? "missing_assessment") : assessments;
 }
