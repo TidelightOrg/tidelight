@@ -37,6 +37,6 @@ test("public replays only label quotes after matching captured source text", asy
   assert.match(route, /startCodepoint: passageSpan\.start_codepoint/);
   assert.match(page, /QUOTE MATCHED/);
   assert.match(page, /SUPPORT UNVERIFIED/);
-  assert.match(page, /Source passage · \{/);
+  assert.match(page, /Captured excerpt offsets · \{/);
   assert.match(css, /\.shared-replay-quote/);
 });
