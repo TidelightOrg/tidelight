@@ -108,3 +108,20 @@ test("provider telemetry persists attempt time instead of write-batch time", asy
   assert.equal(inserted[0].duration_ms, 500);
   assert.equal(JSON.stringify(inserted).includes("prompt"), false);
 });
+
+test("hung telemetry operations cannot block routing or research persistence", async t => {
+  const prior = globalThis.__providerHealthAdmin;
+  t.after(() => { if (prior === undefined) delete globalThis.__providerHealthAdmin; else globalThis.__providerHealthAdmin = prior; });
+  const signals = [];
+  globalThis.__providerHealthAdmin = () => ({ from() { return {
+    select() { return this; }, eq() { return this; }, gte() { return this; }, lte() { return this; }, order() { return this; }, limit() { return this; }, insert() { return this; },
+    abortSignal(signal) { signals.push(signal); return new Promise(() => {}); },
+  }; } });
+  const started = Date.now();
+  assert.deepEqual(await health.getProviderRoutingDecision(["qwen", "gemini"]), { status: "unavailable", skippedProviders: [] });
+  assert.ok(Date.now() - started < 2000);
+  assert.ok(signals.every(signal => signal.aborted));
+  await health.recordProviderHealth([{ provider: "qwen", model: "qwen-test", attempt: 1, outcome: "timeout", occurredAt: new Date().toISOString(), durationMs: 10 }]);
+  assert.ok(signals.at(-1).aborted);
+  assert.ok(Date.now() - started < 4000);
+});
