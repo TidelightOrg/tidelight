@@ -93,3 +93,8 @@ export function estimateBookSweep(input: {
     slippageBps: signedMove === null ? null : signedMove / base.referencePrice * 10_000,
   };
 }
+
+/** Evaluate smaller and larger visible-book sweeps using identical snapshot assumptions. */
+export function estimateSizeSensitivity(input: Parameters<typeof estimateBookSweep>[0]) {
+  return [0.5, 2].map(multiplier => ({ multiplier, sweep: estimateBookSweep({ ...input, quantity: input.quantity * multiplier }) }));
+}

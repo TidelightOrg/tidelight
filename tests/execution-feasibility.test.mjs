@@ -6,7 +6,7 @@ const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
   if (specifier === "@/lib/execution-feasibility") return { url: new URL("../lib/execution-feasibility.ts", import.meta.url).href, shortCircuit: true };
   return nextResolve(specifier, context);
 } });
-const { bestExecutableBookPrices, estimateBookSweep, executionSidesForAction, serverAnchoredSnapshotNow } = await import("@/lib/execution-feasibility");
+const { bestExecutableBookPrices, estimateBookSweep, estimateSizeSensitivity, executionSidesForAction, serverAnchoredSnapshotNow } = await import("@/lib/execution-feasibility");
 
 test("best reference prices ignore unusable zero and negative size levels", () => {
   assert.deepEqual(bestExecutableBookPrices(
@@ -81,4 +81,15 @@ test("slow delivery counts against order-book freshness", () => {
 test("server processing is excluded and future venue skew is checked at receipt", () => {
   assert.equal(serverAnchoredSnapshotNow(20_000, 50_000, 58_000, 6_000), 22_000);
   assert.equal(estimateBookSweep({ levels: [{ price: 101, size: 5 }], side: "buy", quantity: 1, referencePrice: 100, oppositeBestPrice: 99, bookTimestamp: 26_000, receivedAt: 20_000, now: 28_000 }).status, "unavailable");
+});
+
+test("size sensitivity reuses the same visible book and reports incomplete depth", () => {
+  const [small, large] = estimateSizeSensitivity({ levels: [{price: 101, size: 1}, {price: 102, size: 1}], side: "buy", quantity: 1.5, referencePrice: 100, oppositeBestPrice: 99, bookTimestamp: 20_000, now: 20_000 });
+  assert.equal(small.multiplier, 0.5);
+  assert.equal(small.sweep.averagePrice, 101);
+  assert.equal(large.sweep.status, "insufficient_depth");
+  assert.equal(large.sweep.filledQuantity, 2);
+  assert.equal(large.sweep.requestedQuantity, 3);
+  const stale = estimateSizeSensitivity({ levels: [{price: 101, size: 5}], side: "buy", quantity: 1, referencePrice: 100, oppositeBestPrice: 99, bookTimestamp: 1, now: 20_000 });
+  assert.ok(stale.every(result => result.sweep.status === "unavailable"));
 });
