@@ -20,10 +20,25 @@ export const maxDuration = 120;
 type Stage = { id: string; agent: string; status: "running" | "complete" | "blocked"; title: string; detail: string; at: string; asset?: string };
 type ResearchFact = { id: string; label: string; value: number; unit: string; periodEnd: string; filedAt: string; form: string; sourceUrl: string };
 type MarketSnapshot = { ticker: string; issuer: string; sources: FlowEvidence[]; secStatus: "available" | "unavailable"; financialFacts: ResearchFact[]; perp: Awaited<ReturnType<typeof getBitgetStockPerp>>; spot: Awaited<ReturnType<typeof getBitgetAsset>>; candles: Awaited<ReturnType<typeof getBitgetCandles>> };
+function secFactExcerpt(fact: ResearchFact) {
+  return `${fact.label}: ${fact.value} ${fact.unit}; period ended ${fact.periodEnd}; filed ${fact.filedAt} (${fact.form}).`;
+}
+// Keep the model's facts inside the graph passage and persisted source bounds.
+function boundedSecFacts(facts: ResearchFact[]): ResearchFact[] {
+  const selected: ResearchFact[] = [];
+  let length = 0;
+  for (const fact of facts) {
+    const nextLength = secFactExcerpt(fact).length + (selected.length ? 1 : 0);
+    if (selected.length === 12 || length + nextLength > 1_200) break;
+    selected.push(fact);
+    length += nextLength;
+  }
+  return selected;
+}
 function researchSourcesFor(snapshot: MarketSnapshot): FlowEvidence[] {
   if (!snapshot.financialFacts.length) return snapshot.sources;
   const filedAt = [...snapshot.financialFacts].map(fact => fact.filedAt).sort().at(-1) ?? null;
-  const excerpt = snapshot.financialFacts.map(fact => `${fact.label}: ${fact.value} ${fact.unit}; period ended ${fact.periodEnd}; filed ${fact.filedAt} (${fact.form}).`).join(" ");
+  const excerpt = snapshot.financialFacts.map(secFactExcerpt).join(" ");
   return [{ title: "SEC EDGAR company facts", url: snapshot.financialFacts[0].sourceUrl, publisher: "SEC EDGAR", publishedAt: filedAt, via: "Official source", snippet: excerpt }, ...snapshot.sources];
 }
 async function settleWithin<T>(task: Promise<T>, timeoutMs: number): Promise<T> {
@@ -273,7 +288,8 @@ export async function POST(request: Request) {
               if (typeof value === "number" && Number.isFinite(value)) financialFacts.push({ id: `${period.form}:${period.periodEnd}:${key}`, label: `Period ended ${period.periodEnd} ${label}`, value, unit: "USD", periodEnd: period.periodEnd, filedAt: period.filedByMetric[key] ?? period.filed, form: period.form, sourceUrl: `https://data.sec.gov/api/xbrl/companyfacts/CIK${secResearch!.cik}.json` });
             }
           }
-          stage("SEC filings", sec.status === "fulfilled" && financialFacts.length ? "complete" : "blocked", sec.status === "fulfilled" ? `${ticker}: ${financialFacts.length} filed facts` : `${ticker}: SEC facts unavailable`, financialFacts.length ? `${financialFacts.length} dated reported values from SEC company facts are available.` : "No eligible SEC facts were retrieved; missing financials are not inferred.", ticker);
+          const capturedFacts = boundedSecFacts(financialFacts);
+          stage("SEC filings", sec.status === "fulfilled" && capturedFacts.length ? "complete" : "blocked", sec.status === "fulfilled" ? `${ticker}: ${capturedFacts.length} filed facts` : `${ticker}: SEC facts unavailable`, capturedFacts.length ? `${capturedFacts.length} dated reported values from SEC company facts are available.` : "No eligible SEC facts were retrieved; missing financials are not inferred.", ticker);
           const evidence = [...new Map([...feedEvidence, ...liveEvidence].map(source => [source.url, source])).values()]
             .sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? "")).slice(0, 40);
           stage(
@@ -291,7 +307,7 @@ export async function POST(request: Request) {
                 : "AgentKey and public feeds returned no recent, attributable article links.",
             ticker,
           );
-          return { ticker, issuer: market?.name ?? spotAsset?.name ?? ticker, secStatus: sec.status === "fulfilled" ? "available" as const : "unavailable" as const, financialFacts, perp: market, spot: spotAsset,
+          return { ticker, issuer: market?.name ?? spotAsset?.name ?? ticker, secStatus: sec.status === "fulfilled" ? "available" as const : "unavailable" as const, financialFacts: capturedFacts, perp: market, spot: spotAsset,
             candles: candles.status === "fulfilled" ? candles.value : [], sources: evidence };
         }));
         const lookbackDays = issuerEvidenceLookbackDays(question);
@@ -348,7 +364,7 @@ export async function POST(request: Request) {
         });
         const evidenceGraph = buildEvidenceGraph({ question, asOf: new Date(now).toISOString(), synthesisMode: synthesisProvider ? "model" : "source_only", assets: assets.map(asset => ({ ...asset, synthesisMode: assessments[asset.ticker] ? "model" : "source_only", sources: researchSourcesFor(snapshots.find(snapshot => snapshot.ticker === asset.ticker)!), financialFacts: snapshots.find(snapshot => snapshot.ticker === asset.ticker)?.financialFacts ?? [] })) });
         stage("Coordinator", "complete", "Review ready", user && assets.some(asset => asset.tradeable) ? "One or more scenarios may proceed to a separate trade review. Nothing was sent to Bitget or the paper ledger." : guest && assets.some(asset => asset.tradeable) ? "The research gates passed, but public judge sessions are read-only. No paper or live action is available." : "Keep watching the evidence and market. No scenario passed every trade review gate.");
-        const result = { ...(user ? { researchRunId: runId } : { guestSessionResult: true }), question, synthesis: synthesisProvider ? { mode: "model" as const, provider: synthesisProvider } : { mode: "source_only" as const, provider: null }, evidenceGraph, ...(providerAttempts.length || providerRouting ? { operationalDiagnostics: { providerAttempts, ...(providerRouting ? { providerRouting } : {}) } } : {}), researchCoverage: { mode: "deep", lookbackDays, queriesPerTicker: buildIssuerNewsQueries(tickers[0], getIssuerName(tickers[0]), question).length * 2, collectedItems: snapshots.reduce((count, snap) => count + snap.sources.length, 0), publishers: [...new Set(snapshots.flatMap(snap => snap.sources.map(source => source.publisher)))].length, sourceDomains: [...new Set(snapshots.flatMap(snap => snap.sources.map(source => new URL(source.url).hostname)))].length, collectedAt: new Date().toISOString(), limitations: ["Primary issuer excerpts are bounded and partial; open the cited source for the complete release.", "Public-feed coverage is bounded and cannot represent the entire internet."] }, assets: user ? assets : assets.map(asset => ({ ...asset, tradeable: false, handoff: null, gateReasons: [...asset.gateReasons, "Guest research is read-only; sign in to review this decision in a paper workflow."] })), tradeable: user ? assets.some(asset => asset.tradeable) : false, trace, ...(user && contextRunId ? { contextRunId } : {}), ...(user && workspaceContext ? { workspaceContext } : {}) };
+        const result = { ...(user ? { researchRunId: runId } : { guestSessionResult: true }), question, synthesis: synthesisProvider ? { mode: "model" as const, provider: synthesisProvider } : { mode: "source_only" as const, provider: null }, evidenceGraph, ...(providerAttempts.length || providerRouting ? { operationalDiagnostics: { providerAttempts, ...(providerRouting ? { providerRouting } : {}) } } : {}), researchCoverage: { mode: "deep", lookbackDays, queriesPerTicker: buildIssuerNewsQueries(tickers[0], getIssuerName(tickers[0]), question).length * 2, collectedItems: snapshots.reduce((count, snap) => count + snap.sources.length, 0), publishers: [...new Set(snapshots.flatMap(snap => snap.sources.map(source => source.publisher)))].length, sourceDomains: [...new Set(snapshots.flatMap(snap => snap.sources.map(source => new URL(source.url).hostname)))].length, collectedAt: new Date().toISOString(), limitations: ["Primary issuer excerpts are bounded and partial; open the cited source for the complete release.", "Public-feed coverage is bounded and cannot represent the entire internet.", "SEC facts filed on the research date are excluded because filing times are unavailable."] }, assets: user ? assets : assets.map(asset => ({ ...asset, tradeable: false, handoff: null, gateReasons: [...asset.gateReasons, "Guest research is read-only; sign in to review this decision in a paper workflow."] })), tradeable: user ? assets.some(asset => asset.tradeable) : false, trace, ...(user && contextRunId ? { contextRunId } : {}), ...(user && workspaceContext ? { workspaceContext } : {}) };
         await recordProviderHealth(providerAttempts);
         if (user) { const { error: saveError } = await supabase.from("research_runs").update({ status: "complete", completed_at: new Date().toISOString(), summary: result }).eq("id", runId).eq("user_id", user.id); if (saveError) { stage("Coordinator", "blocked", "Private trace could not be saved", "No trade handoff was offered because the research record was not committed."); throw new Error(`research-save-failed:${saveError.code}`); } }
         let monitorObservationSaved = false;

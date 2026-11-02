@@ -1955,6 +1955,8 @@
   "The provider did not return a valid source-bound reading. Market data and source links remain available; no trade handoff will be offered.": "提供程序未返回有效的源绑定读数。市场数据和来源链接仍然可用；不会提供任何交易交接。",
   "The public SEC XBRL feed did not return a compatible filing for this issuer.": "公共 SEC XBRL 源未返回该发行人的兼容备案。",
   "For historical as-of research, SEC facts filed on the as-of date are excluded because filing times are unavailable.": "对于历史时点研究，由于 SEC 未提供具体备案时间，因此不包含截至日期当天备案的事实。",
+  "SEC facts filed on the research date are excluded because filing times are unavailable.": "由于 SEC 未提供具体备案时间，因此不包含研究当天备案的事实。",
+  "Research coverage limits": "研究覆盖范围限制",
   "The research community": "研究社区",
   "The research feed is temporarily unavailable.": "研究提要暂时不可用。",
   "The research flow could not finish.": "研究流程无法完成。",

@@ -240,6 +240,7 @@ test("anonymous judge research is same-origin, session-only, and cannot hand off
 
 test("SEC-only evidence is eligible for grounded synthesis when issuer news retrieval is empty", async () => {
   globalThis.flowTest.emptyIssuerNews = true;
+  globalThis.flowTest.manySecPeriods = true;
   globalThis.flowTest.aiCalls = 0;
   const response = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
     method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: "Summarize NVDA's reported revenue and net income using its filed financials" }),
@@ -255,6 +256,18 @@ test("SEC-only evidence is eligible for grounded synthesis when issuer news retr
   assert.ok(result.evidenceGraph.nodes.some(node => node.type === "claim" && node.citationStatus === "source_linked"));
   assert.match(globalThis.flowTest.lastPrompt, /Capital expenditure: 5 USD/);
   assert.ok(result.evidenceGraph.nodes.some(node => node.type === "financial_fact" && /Period ended 2026-09-30 Capital expenditure/.test(node.label) && node.sourceUrl === "https://data.sec.gov/api/xbrl/companyfacts/CIK0000000001.json"));
+  const prompt = JSON.parse(globalThis.flowTest.lastPrompt.slice(globalThis.flowTest.lastPrompt.indexOf('{"question"')));
+  const facts = prompt.assets[0].financialFacts;
+  const secSource = prompt.assets[0].sources.find(source => source.publisher === "SEC EDGAR");
+  const passage = result.evidenceGraph.nodes.find(node => node.type === "passage" && node.text.includes("Period ended 2026-09-30 Revenue"));
+  assert.ok(facts.length < 36 && facts.length <= 12, "the synthesis input is bounded to the captured evidence");
+  for (const fact of facts) {
+    assert.ok(secSource.snippet.includes(`${fact.label}: ${fact.value} ${fact.unit}`));
+    assert.ok(passage.text.includes(`${fact.label}: ${fact.value} ${fact.unit}`));
+    assert.ok(result.evidenceGraph.nodes.some(node => node.type === "financial_fact" && node.label === fact.label && node.value === fact.value));
+  }
+  assert.ok(result.researchCoverage.limitations.some(limit => limit.includes("filed on the research date")));
   assert.equal(result.assets[0].tradeable, false, "SEC fundamentals alone do not unlock a trading handoff");
   globalThis.flowTest.emptyIssuerNews = false;
+  globalThis.flowTest.manySecPeriods = false;
 });
