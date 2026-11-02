@@ -45,6 +45,10 @@ export async function POST(request: Request) {
     .eq("research_run_id", runId).order("created_at", { ascending: true }).limit(500);
   if (evidenceError) return NextResponse.json({ error: "Persisted research claims could not be captured." }, { status: 503, headers: noStore });
   if ((evidenceCount ?? 0) > (evidence?.length ?? 0)) return NextResponse.json({ error: "This run has more claim records than the capsule can capture completely." }, { status: 413, headers: noStore });
+  const capturedSourceIds = new Set((sources ?? []).map(source => source.id));
+  if ((evidence ?? []).some(item => item.source_id !== null && !capturedSourceIds.has(item.source_id))) {
+    return NextResponse.json({ error: "Source lineage changed while the decision capsule was being captured." }, { status: 409, headers: noStore });
+  }
 
   const snapshot = buildOriginalCapsuleSnapshot(run as CapsuleRun, (sources ?? []) as CapsuleSource[], (evidence ?? []) as CapsuleEvidence[]);
   let integrityHash: string;

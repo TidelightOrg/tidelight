@@ -3,26 +3,35 @@ import assert from "node:assert/strict";
 import { registerHooks } from "node:module";
 
 const calls = [];
-globalThis.capsuleRouteTest = { user: { id: "test-owner" } };
+globalThis.capsuleRouteTest = { user: { id: "test-owner" }, sources: [], evidence: [] };
 globalThis.flowTest = { user: globalThis.capsuleRouteTest.user };
 globalThis.flowTest.admin = {
   from(table) {
     const query = {
+      operation: "select",
       select() { return this; },
       eq() { return this; },
       order() { return this; },
       limit() { return this; },
       maybeSingle() {
+        if (table === "decision_capsules" && this.operation === "insert") {
+          return Promise.resolve({ data: globalThis.capsuleRouteTest.insertedCapsule ?? null, error: null });
+        }
         return Promise.resolve({ data: table === "research_runs" ? {
           id: "d475bd46-5035-4ae5-9f19-e2959a4f0734",
           question: "Macro research with no persisted sources",
           status: "complete",
+          summary: { note: "Fixture summary" },
+          created_at: "2026-11-01T00:00:00Z",
+          completed_at: "2026-11-01T00:01:00Z",
+          model_name: "fixture-model",
         } : table === "decision_capsules" ? globalThis.capsuleRouteTest.existingCapsule ?? null : null,
         error: table === "decision_capsules" ? globalThis.capsuleRouteTest.capsuleLookupError ?? null : null });
       },
-      insert() { calls.push({ table, operation: "insert" }); return this; },
+      insert(rows) { this.operation = "insert"; calls.push({ table, operation: "insert", rows }); return this; },
       then(resolve, reject) {
-        return Promise.resolve({ data: [], error: null, count: 0 }).then(resolve, reject);
+        const data = table === "research_sources" ? globalThis.capsuleRouteTest.sources : table === "research_evidence" ? globalThis.capsuleRouteTest.evidence : [];
+        return Promise.resolve({ data, error: null, count: data.length }).then(resolve, reject);
       },
     };
     return query;
@@ -43,6 +52,7 @@ const route = await import("../app/api/decision-capsules/route.ts");
 hooks.deregister();
 
 test("capsule creation rejects a completed source-empty run without inserting a capsule", async () => {
+  calls.length = 0;
   const response = await route.POST(new Request("https://tidelight.app/api/decision-capsules", {
     method: "POST",
     headers: { "content-type": "application/json" },
@@ -54,7 +64,44 @@ test("capsule creation rejects a completed source-empty run without inserting a 
   assert.deepEqual(calls, []);
 });
 
+test("capsule capture rejects non-null evidence links outside the captured source set", async () => {
+  calls.length = 0;
+  globalThis.capsuleRouteTest.sources = [{ id: "captured-source" }];
+  globalThis.capsuleRouteTest.evidence = [{ source_id: "missing-source" }];
+  const response = await route.POST(new Request("https://tidelight.app/api/decision-capsules", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ researchRunId: "d475bd46-5035-4ae5-9f19-e2959a4f0734" }),
+  }));
+
+  assert.equal(response.status, 409);
+  assert.match((await response.json()).error, /source lineage changed/i);
+  assert.deepEqual(calls, []);
+  globalThis.capsuleRouteTest.sources = [];
+  globalThis.capsuleRouteTest.evidence = [];
+});
+
+test("capsule capture preserves evidence whose source link is null", async () => {
+  calls.length = 0;
+  globalThis.capsuleRouteTest.sources = [{ id: "captured-source", url: "https://source.example", title: "Source", publisher: "Fixture", published_at: null, retrieved_at: "2026-11-02T00:00:00Z", source_type: "report", excerpt: "Captured text", content_hash: null }];
+  globalThis.capsuleRouteTest.evidence = [{ source_id: null, claim: "Unlinked claim", supporting_quote: null, stance: "unclear", confidence: 0.2, created_at: "2026-11-02T00:00:00Z", quote_match_status: "not_recorded", claim_support_status: "not_independently_verified", passage_start_codepoint: null, passage_end_codepoint: null }];
+  globalThis.capsuleRouteTest.insertedCapsule = { id: "inserted-capsule", created_at: "2026-11-02T00:00:00Z", original_snapshot: {}, integrity_hash: "a".repeat(64), hash_algorithm: "sha256", schema_version: 1 };
+  const response = await route.POST(new Request("https://tidelight.app/api/decision-capsules", {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ researchRunId: "d475bd46-5035-4ae5-9f19-e2959a4f0734" }),
+  }));
+
+  assert.equal(response.status, 201);
+  const insert = calls.findLast(call => call.table === "decision_capsules" && call.operation === "insert");
+  assert.equal(insert.rows.original_snapshot.evidence[0].sourceId, null);
+  globalThis.capsuleRouteTest.sources = [];
+  globalThis.capsuleRouteTest.evidence = [];
+  globalThis.capsuleRouteTest.insertedCapsule = null;
+});
+
 test("capsule retries return the verified saved capsule before requiring source rows", async () => {
+  calls.length = 0;
   const { hashCapsuleSnapshot } = await import("../lib/decision-capsules.ts");
   const snapshot = { schemaVersion: 1, research: { question: "Original saved decision" }, sources: [], evidence: [] };
   const capsule = {
