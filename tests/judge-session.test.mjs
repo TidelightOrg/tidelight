@@ -29,6 +29,7 @@ test("judge result display distinguishes storage failure and offers a clear acti
   const { readFile } = await import("node:fs/promises");
   const page = await readFile(new URL("../app/ui/agent-flow-desk.tsx", import.meta.url), "utf8");
   assert.match(page, /data\.guestSessionResult === true && storeJudgeResult\(data\)/);
+  assert.match(page, /if \(stored\) setClearError\(false\)/);
   assert.match(page, /Browser storage is unavailable or the result is too large/);
   assert.match(page, /Clear this result/);
   assert.match(page, /setResult\(null\)/);

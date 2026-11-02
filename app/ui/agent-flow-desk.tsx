@@ -247,7 +247,10 @@ export default function AgentFlowDesk({ initialQuestion, initialMonitorId = null
         } else if (kind === "result") {
           completed = true;
           setQuoteNow(Date.now());
-          setGuestStored(data.guestSessionResult === true && storeJudgeResult(data));
+          const stored = data.guestSessionResult === true && storeJudgeResult(data);
+          setGuestStored(stored);
+          // A successful overwrite also removes the older result whose deletion failed.
+          if (stored) setClearError(false);
           setResult(data as FlowResult);
         } else if (kind === "error") {
           throw new Error(data.error || "The research flow stopped before completion.");
