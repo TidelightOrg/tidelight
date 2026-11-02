@@ -69,3 +69,8 @@ test("slow delivery counts against order-book freshness", () => {
   assert.equal(comparisonNow, 36_000);
   assert.equal(estimateBookSweep({ levels: [{ price: 101, size: 5 }], side: "buy", quantity: 1, referencePrice: 100, oppositeBestPrice: 99, bookTimestamp: 20_000, now: comparisonNow }).status, "unavailable");
 });
+
+test("server processing is excluded and future venue skew is checked at receipt", () => {
+  assert.equal(serverAnchoredSnapshotNow(20_000, 50_000, 58_000, 6_000), 22_000);
+  assert.equal(estimateBookSweep({ levels: [{ price: 101, size: 5 }], side: "buy", quantity: 1, referencePrice: 100, oppositeBestPrice: 99, bookTimestamp: 26_000, receivedAt: 20_000, now: 28_000 }).status, "unavailable");
+});

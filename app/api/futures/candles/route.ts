@@ -12,6 +12,7 @@ async function publicData(path: string) {
 }
 
 export async function GET(request: Request) {
+  const startedAt = performance.now();
   const query = new URL(request.url).searchParams;
   const symbol = query.get("symbol")?.toUpperCase() ?? "";
   const interval = query.get("interval") ?? "15m";
@@ -36,7 +37,7 @@ export async function GET(request: Request) {
       market: { symbol, lastPrice: asset.lastPrice, change24h: asset.change24h, high24h: asset.high24h, low24h: asset.low24h, open24h: asset.open24h, volume24h: asset.volume24h, turnover24h: asset.turnover24h, providerTimestamp: asset.providerTimestamp },
       funding: Number.isFinite(fundingRate) && Number.isFinite(nextFundingAt) ? { rate: fundingRate, nextUpdate: nextFundingAt, intervalHours: Number.isFinite(fundingInterval) ? fundingInterval : null } : null,
       candles: candles.slice(-120).map(({ timestamp, open, high, low, close, volume }) => ({ timestamp, open, high, low, close, volume })),
-      orderbook: { asks: (depth?.a ?? []).slice(0,12).map(([price,size])=>({price:Number(price),size:Number(size)})).filter(row=>Number.isFinite(row.price)&&Number.isFinite(row.size)), bids: (depth?.b ?? []).slice(0,12).map(([price,size])=>({price:Number(price),size:Number(size)})).filter(row=>Number.isFinite(row.price)&&Number.isFinite(row.size)), timestamp: Number(depth?.ts) || null, receivedAt: Date.now() },
+      orderbook: { asks: (depth?.a ?? []).slice(0,12).map(([price,size])=>({price:Number(price),size:Number(size)})).filter(row=>Number.isFinite(row.price)&&Number.isFinite(row.size)), bids: (depth?.b ?? []).slice(0,12).map(([price,size])=>({price:Number(price),size:Number(size)})).filter(row=>Number.isFinite(row.price)&&Number.isFinite(row.size)), timestamp: Number(depth?.ts) || null, receivedAt: Date.now(), processingMs: performance.now() - startedAt },
       trades: (fills ?? []).map((trade,index)=>({id:trade.tradeId??trade.execId??String(index),price:Number(trade.price),size:Number(trade.size),side:String(trade.side).toLowerCase()==="buy"?"buy" as const:"sell" as const,timestamp:Number(trade.ts)})).filter(trade=>Number.isFinite(trade.price)&&Number.isFinite(trade.size)&&Number.isFinite(trade.timestamp)).slice(0,30),
     }, { headers: { "Cache-Control": "private, no-store" } });
   } catch {

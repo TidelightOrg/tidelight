@@ -4,9 +4,9 @@ export type ExecutionAction = "open_long" | "open_short" | "close";
 export type PositionDirection = "long" | "short" | null;
 
 /** Advance a server-timestamped snapshot clock by elapsed client time since the request began (a conservative upper bound on response transit). */
-export function serverAnchoredSnapshotNow(serverReceivedAt: number | null | undefined, clientRequestStartedAt: number | null | undefined, clientNow: number) {
+export function serverAnchoredSnapshotNow(serverReceivedAt: number | null | undefined, clientRequestStartedAt: number | null | undefined, clientNow: number, processingMs = 0) {
   if (!Number.isFinite(serverReceivedAt) || !Number.isFinite(clientRequestStartedAt) || !Number.isFinite(clientNow)) return clientNow;
-  return (serverReceivedAt as number) + Math.max(0, clientNow - (clientRequestStartedAt as number));
+  return (serverReceivedAt as number) + Math.max(0, clientNow - (clientRequestStartedAt as number) - (Number.isFinite(processingMs) && processingMs >= 0 ? processingMs : 0));
 }
 
 /** Return only the side(s) implied by the proposed paper action. */
@@ -38,6 +38,7 @@ export function estimateBookSweep(input: {
   bookTimestamp: number | null;
   now?: number;
   maxAgeMs?: number;
+  receivedAt?: number;
 }): BookSweep {
   const now = input.now ?? Date.now();
   const maxAgeMs = input.maxAgeMs ?? 15_000;
@@ -58,9 +59,8 @@ export function estimateBookSweep(input: {
     slippageBps: null,
     bookAgeMs,
   } as const;
-  // Bitget and our server can differ by up to 5 seconds. `now` must be the
-  // server receipt time for this snapshot, not the user's browser clock.
-  if (!Number.isFinite(input.quantity) || input.quantity <= 0 || !base.referencePrice || bookAgeMs === null || bookAgeMs < -5_000 || bookAgeMs > maxAgeMs || validLevels.length === 0 || crossedBook) {
+  // Check venue skew at server receipt; use the advanced server clock for age.
+  if (!Number.isFinite(input.quantity) || input.quantity <= 0 || !base.referencePrice || bookAgeMs === null || input.bookTimestamp! - (input.receivedAt ?? now) > 5_000 || bookAgeMs > maxAgeMs || validLevels.length === 0 || crossedBook) {
     return { ...base, status: "unavailable" };
   }
 

@@ -18,7 +18,7 @@ type Candle=ShareCandle;
 type Depth={price:number;size:number};
 type PublicTrade={id:string;price:number;size:number;side:"buy"|"sell";timestamp:number};
 type LiveAccount={availableUSDT:number;equityUSDT:number;holdMode:string;symbolSetting:{marginMode:string;leverage:string}|null;positions:Array<{symbol:string;side:string;quantity:number;entryPrice:number;markPrice:number;unrealizedPnl:number;leverage:number;marginMode:string}>};
-type MarketPayload={market:{symbol:string;lastPrice:number;change24h:number|null;high24h:number|null;low24h:number|null;open24h:number|null;volume24h:number|null;turnover24h:number|null;providerTimestamp:number|null};funding:{rate:number;nextUpdate:number;intervalHours:number|null}|null;candles:Candle[];orderbook:{asks:Depth[];bids:Depth[];timestamp:number|null;receivedAt:number};trades:PublicTrade[];interval:string};
+type MarketPayload={market:{symbol:string;lastPrice:number;change24h:number|null;high24h:number|null;low24h:number|null;open24h:number|null;volume24h:number|null;turnover24h:number|null;providerTimestamp:number|null};funding:{rate:number;nextUpdate:number;intervalHours:number|null}|null;candles:Candle[];orderbook:{asks:Depth[];bids:Depth[];timestamp:number|null;receivedAt:number;processingMs?:number};trades:PublicTrade[];interval:string};
 const usd=(value:number,decimals=2)=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:decimals,minimumFractionDigits:decimals}).format(value);
 const compact=(value:number)=>new Intl.NumberFormat("en-US",{notation:"compact",maximumFractionDigits:2}).format(value);
 const time=(value:string|number)=>new Intl.DateTimeFormat(undefined,{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}).format(new Date(value));
@@ -47,8 +47,8 @@ function PaperExecutionEstimate({action,quantity,direction,symbol,market,clientR
     const rows=side==="buy"?book?.asks??[]:book?.bids??[];
     return halfDepth?rows.map(level=>({...level,size:level.size*.5})):rows;
   };
-  const snapshotNow=serverAnchoredSnapshotNow(book?.receivedAt,clientRequestStartedAt,now);
-  const sweep=(side:ExecutionSide|null,stress=false)=>side?estimateBookSweep({levels:levels(side,stress),side,quantity,referencePrice,oppositeBestPrice:side==="buy"?bestBid:bestAsk,bookTimestamp:validBook?book?.timestamp??null:null,now:snapshotNow}):null;
+  const snapshotNow=serverAnchoredSnapshotNow(book?.receivedAt,clientRequestStartedAt,now,book?.processingMs);
+  const sweep=(side:ExecutionSide|null,stress=false)=>side?estimateBookSweep({levels:levels(side,stress),side,quantity,referencePrice,oppositeBestPrice:side==="buy"?bestBid:bestAsk,bookTimestamp:validBook?book?.timestamp??null:null,receivedAt:book?.receivedAt,now:snapshotNow}):null;
   const entry=sweep(entrySide),exit=sweep(exitSide),stressEntry=sweep(entrySide,true),stressExit=sweep(exitSide,true);
   const validQuantity=Number.isFinite(quantity)&&quantity>0;
   const line=(label:string,result:ReturnType<typeof estimateBookSweep>|null)=><div className="execution-estimate-row"><span>{label}</span>{!validQuantity?<b>Unavailable · enter a valid size</b>:!result||result.status==="unavailable"?<b>Unavailable · fresh book required</b>:<b className={result.status==="estimated"?"":"execution-estimate-warning"}>{result.status==="estimated"?`${result.slippageBps!.toFixed(1)} bps · ${usd(result.averagePrice!,4)}`:`${result.coveragePct.toFixed(0)}% depth · incomplete`}</b>}</div>;
@@ -315,7 +315,7 @@ export default function FuturesTradingStation({signedIn,initialSymbol,researchRu
   }
   const bestAsk=payload?.orderbook.asks[0]?.price,bestBid=payload?.orderbook.bids[0]?.price;
   const spread=bestAsk&&bestBid?((bestAsk-bestBid)/((bestAsk+bestBid)/2))*10000:null;
-  const freshness=payload?.market.providerTimestamp&&marketRequestStartedAt?Math.max(0,Math.floor((marketRequestStartedAt-payload.market.providerTimestamp)/1000)):null;
+  const freshness=payload?.market.providerTimestamp&&marketRequestStartedAt?Math.max(0,Math.floor((serverAnchoredSnapshotNow(payload.orderbook.receivedAt,marketRequestStartedAt,clockNow,payload.orderbook.processingMs)-payload.market.providerTimestamp)/1000)):null;
   const paperReviewQuantity=paperConfirmation==="close"?(activePosition?.quantity??0):(price&&Number(size)>0?Number(size)*leverage/price:0);
   return <div className="content-wrap inner-page futures-station">
     <header className="station-heading"><div><span className="station-eyebrow">TIDELIGHT · {chinese?"BITGET 美股永续合约":"BITGET USDT FUTURES"}</span><h1>{chinese?<>美股 <span>永续交易台</span></>:<>Stocks <span>perpetual desk</span></>}</h1><p>{chinese?"Bitget 实时行情和 10,000 USDT 模拟账户。":"Bitget’s live market data and a funded $10,000 paper account."}{liveOrdersEnabled?(chinese?" 实盘权限需经过审批。":" Live access follows a separate approval flow."):(chinese?" 实盘订单已在此部署全局关闭。":" Live exchange orders are disabled across this deployment.")}</p></div><div className="station-mode"><i/>{liveMode?"LIVE ACCESS APPROVED":"PAPER ACCOUNT"}<span>{liveMode?"LIVE MODE":"SIMULATED EXECUTION"}</span><div className="station-mode-switch" role="group" aria-label="Execution mode"><button type="button" aria-pressed={!liveMode} onClick={()=>setLiveMode(false)}>{chinese?"模拟":"Paper"}</button><button type="button" aria-pressed={liveMode} onClick={switchToLive} disabled={!liveOrdersEnabled} title={!liveOrdersEnabled?"Live exchange execution is disabled":"Request or open approved live access"}>{chinese?"实盘":"Live"}</button></div></div></header>
