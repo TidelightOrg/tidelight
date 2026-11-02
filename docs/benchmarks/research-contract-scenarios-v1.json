@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "metadata": {
+    "name": "Research decision contract scenarios",
+    "suiteVersion": "2026-11-02-v1",
+    "status": "deterministic_fixture_contracts_only",
+    "independentHumanReview": false,
+    "researchQualityScore": null,
+    "notes": "These synthetic fixtures verify deterministic research and safety contracts. They do not score production model answers, establish financial facts, or substitute for the frozen real-event benchmark's two independent reviewers and adjudication. No fixture market values are live."
+  },
+  "scenarios": [
+    { "id": "issuer-earnings-source-only", "category": "issuer_earnings", "kind": "source_only", "input": { "ticker": "NVDA", "headlineCount": 3, "publishers": 2, "tokenizedMarketQuestion": false }, "expected": { "stance": "unclear", "confidence": 0, "directional": false } },
+    { "id": "issuer-source-retrieval-empty", "category": "source_failure", "kind": "source_failure", "input": { "ticker": "AAPL", "headlineCount": 0, "publishers": 0, "tokenizedMarketQuestion": false }, "expected": { "attributableHeadlines": false, "stance": "unclear" } },
+    { "id": "macro-policy-question", "category": "macro", "kind": "macro_classification", "input": { "question": "Explain the September 2026 FOMC decision and stated rationale." }, "expected": { "topic": "monetary_policy" } },
+    { "id": "issuer-question-is-not-rtoken", "category": "instrument_identity", "kind": "instrument_identity", "input": { "issuerQuestion": "Review NVIDIA common shares around earnings.", "tokenQuestion": "Review the rNVDA Reality market.", "tickers": ["NVDA"], "contracts": ["NVDAUSDT"] }, "expected": { "issuerIsToken": false, "tokenIsToken": true, "extractedUnderlying": ["NVDA"] } },
+    { "id": "rtoken-fresh-quote-still-needs-diligence", "category": "instrument_identity", "kind": "token_review", "input": { "ticker": "NVDA", "spotSymbol": "rNVDAUSDT", "spotPrice": 200, "ageMs": 30000 }, "expected": { "quoteStatus": "fresh", "doesNotEstablishTradability": true } },
+    { "id": "rtoken-stale-quote-veto", "category": "freshness", "kind": "token_review", "input": { "ticker": "NVDA", "spotSymbol": "rNVDAUSDT", "spotPrice": 200, "ageMs": 180000 }, "expected": { "quoteStatus": "stale" } },
+    { "id": "rtoken-no-quote-is-not-perp-quote", "category": "instrument_identity", "kind": "token_review", "input": { "ticker": "NVDA", "spotSymbol": null, "spotPrice": null, "ageMs": null, "perpSymbol": "NVDAUSDT" }, "expected": { "quoteStatus": "unavailable", "notEnoughEvidence": true } },
+    { "id": "future-source-cannot-support-confidence", "category": "temporal_integrity", "kind": "future_source", "input": { "futureOffsetMs": 120000 }, "expected": { "stance": "unclear", "confidenceMax": 0.4, "confidenceCapped": true } },
+    { "id": "stale-market-mark-vetoes-trade", "category": "freshness", "kind": "stale_market_gate", "input": { "marketAgeMs": 180000 }, "expected": { "tradeable": false, "staleReason": true } },
+    { "id": "contradictory-evidence-blocks-direction", "category": "contradictions", "kind": "contradiction", "input": {}, "expected": { "stance": "mixed", "tradeable": false } },
+    { "id": "citation-outside-captured-set-is-dropped", "category": "evidence_grounding", "kind": "unsupported_citation", "input": {}, "expected": { "citedUrls": [], "supportingEvidenceCount": 0 } },
+    { "id": "malformed-model-assessment-is-rejected", "category": "provider_failure", "kind": "malformed_assessment", "input": { "payload": { "summary": "Too short", "stance": "bullish", "confidence": 1 } }, "expected": { "assessmentAccepted": false } },
+    { "id": "provider-outage-falls-back-to-uncertain-evidence", "category": "provider_failure", "kind": "provider_outage", "input": { "ticker": "AAPL", "headlineCount": 2, "publishers": 2, "tokenizedMarketQuestion": false }, "expected": { "stance": "unclear", "confidence": 0, "directional": false } }
+  ]
+}
