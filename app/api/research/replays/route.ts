@@ -68,10 +68,12 @@ export async function POST(request: Request) {
       const url = typeof claim.sourceUrl === "string" ? claim.sourceUrl : typeof claim.source_url === "string" ? claim.source_url : "";
       return [{ text: claim.claim.slice(0, 260), quote: claim.quote, citedUrls: url ? [url] : [] }];
     });
-    const validUrls = new Set(sources.map(source => source.url));
-    const points = claims.flatMap(point => point.citedUrls.every(url => validUrls.has(url)) ? [point] : []);
+    // Claim citations are canonicalized and checked against both the asset's
+    // sources and persisted run lineage below; comparing raw URLs here would
+    // reject equivalent forms before that validation can occur.
+    const points = claims;
     const answerStatus = summary.answer_status === "insufficient_evidence" || summary.answer_status === "source_matched_claims" ? summary.answer_status : undefined;
-    return [{ ticker, issuer, summary: String(summary.summary).slice(0, 700), ...(answerStatus ? { answerStatus } : {}), stance: "unclear", confidence: 0, confidenceCapped: true, gateReasons: ["Evidence brief; no trading handoff was assessed."], sources: sources.map(source => source.url), evidenceBalance: { supporting: points.slice(0, 3), counter: [] }, market: { perpSymbol: null, spotSymbol: null, lastPrice: null, providerTimestamp: null }, risks: [], nextCheck: null }];
+    return [{ ticker, issuer, summary: String(summary.summary).slice(0, 700), ...(answerStatus ? { answerStatus } : {}), stance: "unclear", confidence: 0, confidenceCapped: true, gateReasons: ["Evidence brief; no trading handoff was assessed."], sources: sources.map(source => source.url), evidenceBalance: { supporting: points, counter: [] }, market: { perpSymbol: null, spotSymbol: null, lastPrice: null, providerTimestamp: null }, risks: [], nextCheck: null }];
   })() : [];
   if (!summary || rows.length < 1 || rows.length > 3) return NextResponse.json({ error: "This research run does not contain a shareable result." }, { status: 422 });
 
@@ -112,14 +114,17 @@ export async function POST(request: Request) {
     const evidencePoints = (items: unknown) => Array.isArray(items) ? items.flatMap((rawPoint) => {
       const point = object(rawPoint);
       if (!point || typeof point.text !== "string") return [];
-      const citedUrls = Array.isArray(point.citedUrls) ? [...new Set(point.citedUrls.filter((url): url is string => typeof url === "string" && usedSourceSet.has(url)))].slice(0, 3) : [];
+      const citedUrls = Array.isArray(point.citedUrls) ? [...new Set(point.citedUrls.flatMap(url => {
+        const canonical = publicSourceUrl(url, usedSourceSet);
+        return canonical ? [canonical] : [];
+      }))].slice(0, 3) : [];
       if (!citedUrls.length) return [];
       const quote = typeof point.quote === "string" ? point.quote.trim().slice(0, 600) : "";
       const matchedSource = citedUrls.map(url => sourceByUrl.get(url)).find(source => source && typeof source.excerpt === "string" && quote && findQuotePassageSpan(source.excerpt, quote));
       if (!matchedSource || typeof matchedSource.excerpt !== "string") return [{ text: point.text.slice(0, 260), citedUrls }];
       const passageSpan = findQuotePassageSpan(matchedSource.excerpt, quote);
       if (!passageSpan) return [{ text: point.text.slice(0, 260), citedUrls }];
-      return [{ text: point.text.slice(0, 260), citedUrls, quote, quoteMatchStatus: "matched_to_captured_text", claimSupportStatus: "not_independently_verified", passageSpan: { startCodepoint: passageSpan.start_codepoint, endCodepoint: passageSpan.end_codepoint } }];
+      return [{ text: point.text.slice(0, 260), citedUrls, quote, quoteSourceUrl: matchedSource.url, quoteMatchStatus: "matched_to_captured_text", claimSupportStatus: "not_independently_verified", passageSpan: { startCodepoint: passageSpan.start_codepoint, endCodepoint: passageSpan.end_codepoint } }];
     }).slice(0, 3) : [];
     return [{
       ticker,

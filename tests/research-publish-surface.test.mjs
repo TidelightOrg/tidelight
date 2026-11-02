@@ -10,7 +10,7 @@ test("Overview and Research Desk evidence briefs expose public replay publishing
   assert.match(workspace, /ResearchReplayShare researchRunId=\{brief\.research_run_id\}/);
   assert.match(replayRoute, /evidenceBrief/);
   assert.match(replayRoute, /Source-bounded research saved/);
-  assert.match(replayRoute, /validUrls/);
+  assert.match(replayRoute, /publicSourceUrl\(url, usedSourceSet\)/);
 });
 
 test("public evidence replays preserve the explicit unknown answer state", async () => {
@@ -37,6 +37,6 @@ test("public replays only label quotes after matching captured source text", asy
   assert.match(route, /startCodepoint: passageSpan\.start_codepoint/);
   assert.match(page, /QUOTE MATCHED/);
   assert.match(page, /SUPPORT UNVERIFIED/);
-  assert.match(page, /Source passage · \{/);
+  assert.match(page, /Captured excerpt offsets ·/);
   assert.match(css, /\.shared-replay-quote/);
 });

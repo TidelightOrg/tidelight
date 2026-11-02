@@ -271,6 +271,8 @@ test("Research evidence trace labels remain available in Simplified Chinese", as
 
 test("Simplified Chinese covers fixed public research replay copy and preserves evidence verbatim", async () => {
   const source = await readFile(new URL("app/replay/[token]/page.tsx", root), "utf8");
+  assert.equal(translations["Matched source · {publisher} ↗"].replace("{publisher}", "SEC"), "匹配来源 · SEC ↗");
+  assert.equal(translations["Captured excerpt offsets · {start}–{end}"].replace("{start}", "3").replace("{end}", "12"), "捕获摘录的偏移位置 · 3–12");
   const file = ts.createSourceFile("app/replay/[token]/page.tsx", source, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
   const missing = new Set();
   const normalized = (value) => value.replace(/\s+/g, " ").trim();
