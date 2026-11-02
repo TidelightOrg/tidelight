@@ -139,7 +139,7 @@ export async function fetchPublicResearchSource(value: string, company: string, 
   const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
   if (!contentType.startsWith("text/html") && !contentType.startsWith("text/plain")) throw new Error("source-content-type-not-supported");
   const html = await readLimited(response);
-  const parsed = contentType.startsWith("text/html") ? extractPublicPage(html) : { title: "", publicationDate: null, excerpt: cleanText(html) };
+  const parsed = contentType.startsWith("text/html") ? extractPublicPage(html) : { title: "", publicationDate: null, excerpt: cleanText(html).slice(0, maxExcerptLength) };
   if (parsed.excerpt.length < 80) throw new Error("source-text-too-short");
 
   const publisher = currentUrl.hostname;
