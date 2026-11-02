@@ -181,6 +181,24 @@ test("all-long training occupancy initializes the placebo long without future da
   assert.ok(placebo.p05ReturnPct > 0, "all-long training initializes simulated exposure long during holdout");
 });
 
+test("placebo initial exposure follows the stationary training-state probability", () => {
+  const split = 660;
+  const candles = [];
+  let previous = 100;
+  for (let i = 0; i < 1_000; i += 1) {
+    const close = i < split ? 100 + 15 * Math.sin(i / 28) : previous;
+    candles.push({ timestamp: start + i * FOUR_HOURS, open: previous, high: Math.max(previous, close) + 0.1, low: Math.min(previous, close) - 0.1, close, volume: 1_000, turnover: 100_000 });
+    previous = close;
+  }
+  const surge = candles[split].open * 1.4;
+  candles[split] = { ...candles[split], high: surge + 0.1, close: surge };
+  for (let i = split + 1; i < candles.length; i += 1) candles[i] = { ...candles[i], open: surge, close: surge, high: surge + 0.1, low: surge - 0.1 };
+  const placebo = runRandomEntryPlacebo(candles, "4H", Date.now(), "sma_trend_v1", 20, 500);
+  const expected = placebo.trainingEntryRatePerBar / (placebo.trainingEntryRatePerBar + placebo.trainingExitRatePerBar);
+  assert.ok(expected > 0.1 && expected < 0.9);
+  assert.ok(Math.abs(placebo.beatsStrategyPct / 100 - expected) < 0.08, "the first holdout move reveals the initial long share");
+});
+
 test("trend pullback and semiconductor breakout are deterministic, boolean, causal rules", () => {
   const candles = fixture();
   for (const strategy of ["trend_pullback_v1", "semi_breakout_v1"]) {
