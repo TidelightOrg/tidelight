@@ -86,7 +86,11 @@ for (const scenario of suite.scenarios) {
       const result = tokenizedMarketReview({ ticker: input.ticker, spotSymbol: input.spotSymbol, spotPrice: input.spotPrice, spotTimestamp: input.ageMs == null ? null : now - input.ageMs, now });
       assert.equal(result.quoteStatus, expected.quoteStatus);
       if (expected.doesNotEstablishTradability) assert.match(result.verdict, /does not establish.*tradability/i);
-      if (expected.notEnoughEvidence) assert.match(result.verdict, /not enough evidence/i);
+      if (expected.notEnoughEvidence) {
+        assert.match(result.verdict, /not enough evidence/i);
+        const sourceOnly = sourceOnlyAssessment({ ticker: input.ticker, headlineCount: 2, publishers: 2, tokenizedMarketQuestion: true, perpSymbol: input.perpSymbol });
+        assert.match(sourceOnly.summary, /NVDAUSDT is a stock-perpetual reference, not the rToken/i);
+      }
       return;
     }
     if (scenario.kind === "future_source") {
