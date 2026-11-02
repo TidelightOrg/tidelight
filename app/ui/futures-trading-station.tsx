@@ -8,6 +8,7 @@ import ChartShareButton, { type ShareCandle, type ShareMarker } from "@/app/ui/c
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/app/ui/language-provider";
 import { LeverageControl, OrderGuideSheet, OrderTypeControl, TradingToolsButton, type OrderType, type TradePreferences } from "@/app/ui/futures-workshop-panels";
+import { bestExecutableBookPrices, estimateBookSweep, executionSidesForAction, serverAnchoredSnapshotNow, type ExecutionBookLevel, type ExecutionSide } from "@/lib/execution-feasibility";
 
 type PaperPosition={symbol:string;direction:"long"|"short";quantity:number;entry_fill:number;margin:number;entry_fee:number;opened_at:string};
 type Fill={id:string;symbol:string;action:string;direction:string;quantity:number;fill_price:number;notional:number;fee:number;realized_pnl:number;created_at:string};
@@ -17,7 +18,7 @@ type Candle=ShareCandle;
 type Depth={price:number;size:number};
 type PublicTrade={id:string;price:number;size:number;side:"buy"|"sell";timestamp:number};
 type LiveAccount={availableUSDT:number;equityUSDT:number;holdMode:string;symbolSetting:{marginMode:string;leverage:string}|null;positions:Array<{symbol:string;side:string;quantity:number;entryPrice:number;markPrice:number;unrealizedPnl:number;leverage:number;marginMode:string}>};
-type MarketPayload={market:{symbol:string;lastPrice:number;change24h:number|null;high24h:number|null;low24h:number|null;open24h:number|null;volume24h:number|null;turnover24h:number|null;providerTimestamp:number|null};funding:{rate:number;nextUpdate:number;intervalHours:number|null}|null;candles:Candle[];orderbook:{asks:Depth[];bids:Depth[];timestamp:number|null};trades:PublicTrade[];interval:string};
+type MarketPayload={market:{symbol:string;lastPrice:number;change24h:number|null;high24h:number|null;low24h:number|null;open24h:number|null;volume24h:number|null;turnover24h:number|null;providerTimestamp:number|null};funding:{rate:number;nextUpdate:number;intervalHours:number|null}|null;candles:Candle[];orderbook:{asks:Depth[];bids:Depth[];timestamp:number|null;receivedAt:number;processingMs?:number};trades:PublicTrade[];interval:string};
 const usd=(value:number,decimals=2)=>new Intl.NumberFormat("en-US",{style:"currency",currency:"USD",maximumFractionDigits:decimals,minimumFractionDigits:decimals}).format(value);
 const compact=(value:number)=>new Intl.NumberFormat("en-US",{notation:"compact",maximumFractionDigits:2}).format(value);
 const time=(value:string|number)=>new Intl.DateTimeFormat(undefined,{month:"short",day:"numeric",hour:"2-digit",minute:"2-digit"}).format(new Date(value));
@@ -32,6 +33,32 @@ const LIVE_TERMS=[
   {key:"manual_orders",title:"Your order responsibility",body:"You will review each live order and its size before submission. Research, charts and agent analysis are informational and do not guarantee outcomes or make decisions on your behalf."},
 ] as const;
 const tradeSide=(fill:Fill):"B"|"S"=>fill.action==="open_long"||(fill.action==="close"&&fill.direction==="short")?"B":"S";
+
+function PaperExecutionEstimate({action,quantity,direction,symbol,market,clientRequestStartedAt,now,pendingOrder=false}:{action:"open_long"|"open_short"|"close";quantity:number;direction:"long"|"short"|null;symbol:string;market:MarketPayload|null;clientRequestStartedAt:number|null;now:number;pendingOrder?:boolean}){
+  const isClose=action==="close";
+  const {primarySide:entrySide,secondarySide:exitSide}=executionSidesForAction(action,direction);
+  const book=market?.market.symbol===symbol?market.orderbook:undefined;
+  const {bestAsk,bestBid}=bestExecutableBookPrices(book?.asks??[],book?.bids??[]);
+  const validBook=bestAsk!==null&&bestBid!==null&&bestAsk>=bestBid;
+  const referencePrice=validBook?(bestAsk!+bestBid!)/2:null;
+  const levels=(side:ExecutionSide,halfDepth=false):ExecutionBookLevel[]=>{
+    const rows=side==="buy"?book?.asks??[]:book?.bids??[];
+    return halfDepth?rows.map(level=>({...level,size:level.size*.5})):rows;
+  };
+  const snapshotNow=serverAnchoredSnapshotNow(book?.receivedAt,clientRequestStartedAt,now,book?.processingMs);
+  const sweep=(side:ExecutionSide|null,stress=false)=>side?estimateBookSweep({levels:levels(side,stress),side,quantity,referencePrice,oppositeBestPrice:side==="buy"?bestBid:bestAsk,bookTimestamp:validBook?book?.timestamp??null:null,receivedAt:book?.receivedAt,now:snapshotNow}):null;
+  const entry=sweep(entrySide),exit=sweep(exitSide),stressEntry=sweep(entrySide,true),stressExit=sweep(exitSide,true);
+  const validQuantity=Number.isFinite(quantity)&&quantity>0;
+  const line=(label:string,result:ReturnType<typeof estimateBookSweep>|null)=><div className="execution-estimate-row"><span>{label}</span>{!validQuantity?<b>Unavailable · enter a valid size</b>:!result||result.status==="unavailable"?<b>Unavailable · fresh book required</b>:<b className={result.status==="estimated"?"":"execution-estimate-warning"}>{result.status==="estimated"?`${result.slippageBps!.toFixed(1)} bps · ${usd(result.averagePrice!,4)}`:`${result.coveragePct.toFixed(0)}% depth · incomplete`}</b>}</div>;
+  const stressUnavailable=!stressEntry||stressEntry.status==="unavailable"||(!isClose&&(!stressExit||stressExit.status==="unavailable"));
+  const stressIncomplete=stressEntry?.status==="insufficient_depth"||(!isClose&&stressExit?.status==="insufficient_depth");
+  return <section className="execution-estimate" aria-label="Visible order book execution estimate">
+    <header><span>BITGET · VISIBLE BOOK</span><b>{Number.isFinite(quantity)&&quantity>0?`${quantity.toFixed(4)} contract units`:"Size unavailable"}</b></header>
+    {line(isClose?"Close sweep":pendingOrder?"Current-book entry scenario":"Entry sweep",entry)}{isClose?null:line("Exit sweep",exit)}
+    <div className="execution-estimate-stress"><span>50% depth stress</span><b className={stressIncomplete||stressUnavailable?"execution-estimate-warning":""}>{!validQuantity?"Unavailable · enter a valid size":stressUnavailable?"Unavailable · fresh book required":stressIncomplete?"Insufficient visible depth":isClose?`${stressEntry!.slippageBps!.toFixed(1)} bps · close`:`${stressEntry!.slippageBps!.toFixed(1)} / ${stressExit!.slippageBps!.toFixed(1)} bps · entry / exit`}</b></div>
+    <p>{pendingOrder?"A limit or conditional order may execute later against a different book. This is only a current-book scenario, not an estimate of its eventual fill. ":""}Estimated from this contract’s latest visible Bitget levels only. Freshness, hidden liquidity, queue position, fees and funding can change execution; this is not a fill guarantee.</p>
+  </section>;
+}
 
 function CandlestickChart({candles,symbol,lastPrice,interval,fills,position}:{candles:Candle[];symbol:string;lastPrice:number|null;interval:string;fills:Fill[];position:PaperPosition|null}){
   const visible=candles.slice(-96);
@@ -150,7 +177,7 @@ export default function FuturesTradingStation({signedIn,initialSymbol,researchRu
   const [symbol,setSymbol]=useState(initialSymbol??position?.symbol??"NVDAUSDT");
   const [interval,setInterval]=useState<Interval>("15m");
   const [payload,setPayload]=useState<MarketPayload|null>(null);
-  const [marketReceivedAt,setMarketReceivedAt]=useState<number|null>(null);
+  const [marketRequestStartedAt,setMarketRequestStartedAt]=useState<number|null>(null);
   const [clockNow,setClockNow]=useState(0);
   const [dataError,setDataError]=useState("");
   const [depthTab,setDepthTab]=useState<"book"|"trades">("book");
@@ -183,7 +210,8 @@ export default function FuturesTradingStation({signedIn,initialSymbol,researchRu
   const [playbook,setPlaybook]=useState<StrategyKey>(BACKTEST_STRATEGY);
   const activePosition=position?.symbol===symbol?position:null;
   const allTermsAccepted=LIVE_TERMS.every(item=>terms[item.key]);
-  const price=payload?.market.lastPrice??null;
+  const currentPayload=payload?.market.symbol===symbol?payload:null;
+  const price=currentPayload?.market.lastPrice??null;
   const quantity=price?Math.max(0,Number(size)||0)*leverage/price:0;
   const unrealized=activePosition&&price?activePosition.quantity*(price-activePosition.entry_fill)*(activePosition.direction==="long"?1:-1):0;
   const equity=cash+(activePosition?.margin??0)+unrealized;
@@ -192,10 +220,11 @@ export default function FuturesTradingStation({signedIn,initialSymbol,researchRu
     let active=true;const controller=new AbortController();
     const refresh=async()=>{
       try{
+        const requestStartedAt=Date.now();
         const response=await fetch("/api/futures/candles?symbol="+encodeURIComponent(symbol)+"&interval="+encodeURIComponent(interval),{cache:"no-store",signal:controller.signal});
         const next=await response.json() as MarketPayload&{error?:string};
         if(!response.ok)throw new Error(next.error??"Bitget market data is unavailable.");
-        if(active){setPayload(next);setMarketReceivedAt(Date.now());setDataError("");}
+        if(active){setPayload(next);setMarketRequestStartedAt(requestStartedAt);setDataError("");}
       }catch(cause){if(active&&!(cause instanceof DOMException&&cause.name==="AbortError"))setDataError(cause instanceof Error?cause.message:"Bitget market data is unavailable.");}
     };
     void refresh();const timer=window.setInterval(()=>void refresh(),8000);
@@ -230,7 +259,7 @@ export default function FuturesTradingStation({signedIn,initialSymbol,researchRu
   }
   async function place(action:"open_long"|"open_short"|"close"){
     if(!signedIn){router.push("/login");return;}
-    if(!payload?.market.lastPrice){setError("Wait for a verified Bitget quote before placing a paper order.");return;}
+    if(!currentPayload?.market.lastPrice){setError("Wait for a verified Bitget quote for the selected contract before placing a paper order.");return;}
     if(action!=="close"&&(!Number.isFinite(Number(size))||Number(size)<10||Number(size)>250)){setError("Enter a paper margin between $10 and $250 USDT.");return;}
     if(action!=="close"&&!['Market','Limit','Conditional'].includes(orderType)){setError(`${orderType} is available as an execution guide. Tidelight does not run that live or paper execution algorithm.`);return;}
     if(action!=="close"&&orderType==="Limit"&&(!Number.isFinite(Number(limitPrice||price))||Number(limitPrice||price)<=0)){setError("Enter a valid limit price.");return;}
@@ -282,9 +311,10 @@ export default function FuturesTradingStation({signedIn,initialSymbol,researchRu
     catch(cause){setError(cause instanceof Error?cause.message:"Paper control unavailable.");}
     finally{setBusy(false);}
   }
-  const bestAsk=payload?.orderbook.asks[0]?.price,bestBid=payload?.orderbook.bids[0]?.price;
+  const {bestAsk,bestBid}=bestExecutableBookPrices(currentPayload?.orderbook.asks??[],currentPayload?.orderbook.bids??[]);
   const spread=bestAsk&&bestBid?((bestAsk-bestBid)/((bestAsk+bestBid)/2))*10000:null;
-  const freshness=payload?.market.providerTimestamp&&marketReceivedAt?Math.max(0,Math.floor((marketReceivedAt-payload.market.providerTimestamp)/1000)):null;
+  const freshness=currentPayload?.market.providerTimestamp&&marketRequestStartedAt?Math.max(0,Math.floor((serverAnchoredSnapshotNow(currentPayload.orderbook.receivedAt,marketRequestStartedAt,clockNow,currentPayload.orderbook.processingMs)-currentPayload.market.providerTimestamp)/1000)):null;
+  const paperReviewQuantity=paperConfirmation==="close"?(activePosition?.quantity??0):(price&&Number(size)>0?Number(size)*leverage/price:0);
   return <div className="content-wrap inner-page futures-station">
     <header className="station-heading"><div><span className="station-eyebrow">TIDELIGHT · {chinese?"BITGET 美股永续合约":"BITGET USDT FUTURES"}</span><h1>{chinese?<>美股 <span>永续交易台</span></>:<>Stocks <span>perpetual desk</span></>}</h1><p>{chinese?"Bitget 实时行情和 10,000 USDT 模拟账户。":"Bitget’s live market data and a funded $10,000 paper account."}{liveOrdersEnabled?(chinese?" 实盘权限需经过审批。":" Live access follows a separate approval flow."):(chinese?" 实盘订单已在此部署全局关闭。":" Live exchange orders are disabled across this deployment.")}</p></div><div className="station-mode"><i/>{liveMode?"LIVE ACCESS APPROVED":"PAPER ACCOUNT"}<span>{liveMode?"LIVE MODE":"SIMULATED EXECUTION"}</span><div className="station-mode-switch" role="group" aria-label="Execution mode"><button type="button" aria-pressed={!liveMode} onClick={()=>setLiveMode(false)}>{chinese?"模拟":"Paper"}</button><button type="button" aria-pressed={liveMode} onClick={switchToLive} disabled={!liveOrdersEnabled} title={!liveOrdersEnabled?"Live exchange execution is disabled":"Request or open approved live access"}>{chinese?"实盘":"Live"}</button></div></div></header>
     {!liveOrdersEnabled?<section className="station-live-status disabled"><b>Live exchange execution is disabled</b><span>Live access requests and real Bitget orders are blocked server-side. Paper futures continue to work normally.</span></section>:null}
@@ -292,7 +322,7 @@ export default function FuturesTradingStation({signedIn,initialSymbol,researchRu
     {liveStatus==="rejected"?<section className="station-live-status rejected"><b>Live access needs attention</b><span>Review the operator note below, update your Bitget connection if requested, then submit a new request.</span>{liveReviewNote?<small>{liveReviewNote}</small>:null}</section>:null}
     {liveMode?<section className="station-live-status approved"><b>Live trading access approved</b><span>Live orders affect your Bitget account. Review the contract, quantity and estimated margin before each submission.</span><button type="button" onClick={()=>router.push("/settings")}>Connection settings ↗</button></section>:null}
     {termsOpen?<div className="station-modal-backdrop" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget)setTermsOpen(false);}}><section className="station-terms-modal" role="dialog" aria-modal="true" aria-labelledby="live-terms-title"><button className="station-modal-close" type="button" aria-label="Close live access terms" onClick={()=>setTermsOpen(false)}>×</button><span className="station-eyebrow">TIDELIGHT · LIVE ACCESS REVIEW</span><h2 id="live-terms-title">Before you enable live futures</h2><p className="station-terms-intro">Read and acknowledge each item. This requests access; it does not immediately place an order. Your Bitget futures permissions are checked before the request enters review.</p><div className="station-terms-list">{LIVE_TERMS.map(item=><label key={item.key}><input type="checkbox" checked={!!terms[item.key]} onChange={event=>setTerms(value=>({...value,[item.key]:event.target.checked}))}/><span><b>{item.title}</b><small>{item.body}</small></span></label>)}</div><p className="station-terms-note">Live access requires a verified Bitget live connection and operator approval. Approval can take minutes to hours. Your paper account remains available during review.</p>{accessError?<p className="station-error" role="alert">{accessError}</p>:null}<div className="station-terms-actions"><button type="button" className="station-cancel" onClick={()=>setTermsOpen(false)}>Cancel</button><button type="button" className="station-accept" disabled={!allTermsAccepted||accessBusy||liveStatus==="pending"} onClick={()=>void requestLiveAccess()}>{accessBusy?"Checking connection…":"Accept terms & request access"}</button></div></section></div>:null}
-    {paperConfirmation?<div className="station-modal-backdrop" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget){setPaperConfirmation(null);setConfirmationChecked(false);}}}><section className="station-terms-modal workshop-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="paper-confirm-title"><button className="station-modal-close" type="button" aria-label="Cancel paper order" onClick={()=>{setPaperConfirmation(null);setConfirmationChecked(false);}}>×</button><span className="station-eyebrow">TIDELIGHT · SIMULATED EXECUTION</span><h2 id="paper-confirm-title">Review {paperConfirmation==="close"?"position close":paperConfirmation==="open_long"?"long order":"short order"}</h2><div className="workshop-confirm-grid"><div><span>Contract</span><b>{symbol}</b></div><div><span>Order type</span><b>{paperConfirmation==="close"?"Market close":orderType}</b></div><div><span>Reference quote</span><b>{price?usd(price,4)+" USDT":"Waiting"}</b></div><div><span>Margin · leverage</span><b>{paperConfirmation==="close"?"Open position":usd(Number(size))+" · "+leverage+"×"}</b></div><div><span>Estimated notional</span><b>{paperConfirmation==="close"?"Open position":usd(Number(size)*leverage)}</b></div><div><span>Estimated paper fee</span><b>{paperConfirmation==="close"?"Calculated at close":usd(Number(size)*leverage*.001)}</b></div>{orderType==="Limit"&&paperConfirmation!=="close"?<div><span>Limit price</span><b>{usd(Number(limitPrice||price),4)} USDT</b></div>:null}{orderType==="Conditional"&&paperConfirmation!=="close"?<div><span>Trigger price</span><b>{usd(Number(triggerPrice||price),4)} USDT</b></div>:null}</div>{tradePreferences.largeOrderAlert&&Number(size)*leverage>=5000&&paperConfirmation!=="close"?<p className="workshop-large-alert">Large order review · estimated exposure is at least $5,000 USDT.</p>:null}<p className="station-terms-note">This action updates your Tidelight paper account. It does not place an order with Bitget. Paper fees and slippage are estimates; simulated execution cannot reproduce exchange liquidity or liquidation.</p><label className="station-live-check"><input type="checkbox" checked={confirmationChecked} onChange={event=>setConfirmationChecked(event.target.checked)}/><span>I reviewed the direction, contract, size and simulated execution assumptions.</span></label><div className="station-terms-actions"><button type="button" className="station-cancel" onClick={()=>{setPaperConfirmation(null);setConfirmationChecked(false);}}>Back</button><button type="button" className="station-accept" disabled={!confirmationChecked||busy} onClick={()=>{const action=paperConfirmation;setPaperConfirmation(null);setConfirmationChecked(false);if(action)void place(action);}}>{busy?"Submitting…":"Confirm paper order"}</button></div></section></div>:null}
+    {paperConfirmation?<div className="station-modal-backdrop" role="presentation" onMouseDown={event=>{if(event.target===event.currentTarget){setPaperConfirmation(null);setConfirmationChecked(false);}}}><section className="station-terms-modal workshop-confirm-modal" role="dialog" aria-modal="true" aria-labelledby="paper-confirm-title"><button className="station-modal-close" type="button" aria-label="Cancel paper order" onClick={()=>{setPaperConfirmation(null);setConfirmationChecked(false);}}>×</button><span className="station-eyebrow">TIDELIGHT · SIMULATED EXECUTION</span><h2 id="paper-confirm-title">Review {paperConfirmation==="close"?"position close":paperConfirmation==="open_long"?"long order":"short order"}</h2><div className="workshop-confirm-grid"><div><span>Contract</span><b>{symbol}</b></div><div><span>Order type</span><b>{paperConfirmation==="close"?"Market close":orderType}</b></div><div><span>Reference quote</span><b>{price?usd(price,4)+" USDT":"Waiting"}</b></div><div><span>Margin · leverage</span><b>{paperConfirmation==="close"?"Open position":usd(Number(size))+" · "+leverage+"×"}</b></div><div><span>Estimated notional</span><b>{paperConfirmation==="close"?"Open position":usd(Number(size)*leverage)}</b></div><div><span>Estimated paper fee</span><b>{paperConfirmation==="close"?"Calculated at close":usd(Number(size)*leverage*.001)}</b></div>{orderType==="Limit"&&paperConfirmation!=="close"?<div><span>Limit price</span><b>{usd(Number(limitPrice||price),4)} USDT</b></div>:null}{orderType==="Conditional"&&paperConfirmation!=="close"?<div><span>Trigger price</span><b>{usd(Number(triggerPrice||price),4)} USDT</b></div>:null}</div><PaperExecutionEstimate action={paperConfirmation} quantity={paperReviewQuantity} direction={activePosition?.direction??null} symbol={symbol} market={currentPayload} clientRequestStartedAt={marketRequestStartedAt} now={clockNow} pendingOrder={paperConfirmation!=="close"&&orderType!=="Market"}/>{tradePreferences.largeOrderAlert&&Number(size)*leverage>=5000&&paperConfirmation!=="close"?<p className="workshop-large-alert">Large order review · estimated exposure is at least $5,000 USDT.</p>:null}<p className="station-terms-note">This action updates your Tidelight paper account. It does not place an order with Bitget. Paper fees and slippage are estimates; simulated execution cannot reproduce exchange liquidity or liquidation.</p><label className="station-live-check"><input type="checkbox" checked={confirmationChecked} onChange={event=>setConfirmationChecked(event.target.checked)}/><span>I reviewed the direction, contract, size and simulated execution assumptions.</span></label><div className="station-terms-actions"><button type="button" className="station-cancel" onClick={()=>{setPaperConfirmation(null);setConfirmationChecked(false);}}>Back</button><button type="button" className="station-accept" disabled={!confirmationChecked||busy} onClick={()=>{const action=paperConfirmation;setPaperConfirmation(null);setConfirmationChecked(false);if(action)void place(action);}}>{busy?"Submitting…":"Confirm paper order"}</button></div></section></div>:null}
     <section className="station-market-strip">
       <label className="station-symbol"><span>CONTRACT</span><select value={symbol} onChange={event=>setSymbol(event.target.value)}>{STOCK_PERP_UNIVERSE.map(item=><option value={item} key={item}>{item}</option>)}</select></label>
       <div className="station-last"><span>LAST PRICE <small>USDT</small></span><b>{price?usd(price,4):"—"}</b><small className={payload?.market.change24h!==null&&payload?.market.change24h!==undefined&&payload.market.change24h>=0?"positive":"negative"}>{payload?.market.change24h===null||payload?.market.change24h===undefined?"24h change —":(payload.market.change24h>=0?"+":"")+(payload.market.change24h*100).toFixed(2)+"% · 24h"}</small></div>
