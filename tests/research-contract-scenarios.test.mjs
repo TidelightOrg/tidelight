@@ -50,13 +50,15 @@ for (const scenario of suite.scenarios) {
       process.env.GEMINI_API_KEY = "fixture-gemini-key";
       process.env.GEMINI_MODEL = "fixture-gemini";
       const attempts = [];
-      t.mock.method(globalThis, "fetch", async () => new Response("fixture provider unavailable", { status: 503 }));
+      const question = "fixture-only research question";
+      t.mock.method(globalThis, "fetch", async () => new Response(JSON.stringify({ error: { status: "UNAVAILABLE", message: `provider failure for ${question}` } }), { status: 503, headers: { "content-type": "application/json" } }));
       const warnings = [];
       t.mock.method(console, "warn", (...args) => warnings.push(args));
-      await assert.rejects(aiJsonWithFallback([{ role: "user", content: "fixture-only research question" }], () => false, { budgetMs: 5000, onAttempt: attempt => attempts.push(attempt) }));
+      await assert.rejects(aiJsonWithFallback([{ role: "user", content: question }], () => false, { budgetMs: 5000, onAttempt: attempt => attempts.push(attempt) }));
       assert.ok(attempts.length >= 3, "both providers should exhaust bounded failure attempts");
       assert.ok(attempts.every(attempt => attempt.outcome === "http_error" && attempt.httpStatus === 503));
-      assert.ok(warnings.every(warning => !JSON.stringify(warning).includes("fixture-only research question")));
+      assert.ok(warnings.length > 0, "provider failures emit warnings");
+      assert.ok(warnings.every(warning => !JSON.stringify(warning).includes(question)));
       const result = sourceOnlyAssessment(input);
       assert.equal(result.stance, expected.stance);
       assert.equal(result.confidence, expected.confidence);
@@ -78,7 +80,8 @@ for (const scenario of suite.scenarios) {
     if (scenario.kind === "instrument_identity") {
       assert.equal(isTokenizedMarketQuestion(input.issuerQuestion, input.tickers), expected.issuerIsToken);
       assert.equal(isTokenizedMarketQuestion(input.tokenQuestion, input.tickers), expected.tokenIsToken);
-      assert.deepEqual(extractFlowTickers(`${input.tokenQuestion} vs NVDAUSDT`, input.contracts), expected.extractedUnderlying);
+      assert.deepEqual(extractFlowTickers(input.tokenQuestion, input.contracts), expected.extractedUnderlying);
+      assert.deepEqual(extractFlowTickers("NVDAUSDT", input.contracts), expected.extractedUnderlying);
       return;
     }
     if (scenario.kind === "token_review") {
