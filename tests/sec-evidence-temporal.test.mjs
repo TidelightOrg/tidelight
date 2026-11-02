@@ -34,6 +34,12 @@ test("SEC facts retain period and filing dates and omit future information from 
   assert.ok(graph.edges.some(edge => edge.to === facts[0].id && edge.relation === "about"));
 });
 
+test("ineligible SEC facts do not consume the graph fact limit", () => {
+  const fact = { id: "valid", label: "Revenue", value: 10, unit: "USD", periodEnd: "2026-06-30", filedAt: "2026-08-01", form: "10-Q", sourceUrl: "https://www.sec.gov/filing" };
+  const graph = buildEvidenceGraph({ question: "Review filings", asOf: "2026-10-31T20:00:00Z", synthesisMode: "source_only", assets: [{ ticker: "NVDA", issuer: "NVIDIA", summary: "Research only.", stance: "unclear", confidence: 0, sources: [], financialFacts: [...Array.from({ length: 12 }, (_, i) => ({ ...fact, id: `future-${i}`, filedAt: "2026-11-01" })), fact] }] });
+  assert.equal(graph.nodes.filter(node => node.type === "financial_fact").length, 1);
+});
+
 test("SEC period and instant facts select the latest values filed by the as-of date", async t => {
   const originalFetch = globalThis.fetch;
   t.after(() => { globalThis.fetch = originalFetch; });

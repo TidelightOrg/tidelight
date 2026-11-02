@@ -76,12 +76,14 @@ export function buildEvidenceGraph(input: { question: string; assets: EvidenceGr
     addEdge(eventId, issuerId, "about");
     addEdge(hypothesisId, issuerId, "about");
 
-    for (const fact of (asset.financialFacts ?? []).slice(0, 12)) {
+    let eligibleFactCount = 0;
+    for (const fact of asset.financialFacts ?? []) {
       const filedMs = Date.parse(fact.filedAt);
       const periodMs = Date.parse(fact.periodEnd);
       let sourceUrl: URL;
       try { sourceUrl = new URL(fact.sourceUrl); } catch { continue; }
       if (sourceUrl.protocol !== "https:" || !/(^|\.)sec\.gov$/i.test(sourceUrl.hostname) || !isValidDateOnly(fact.filedAt) || !isValidDateOnly(fact.periodEnd) || fact.filedAt >= asOf.slice(0, 10) || !Number.isFinite(filedMs) || !Number.isFinite(periodMs) || filedMs > asOfMs || periodMs > asOfMs || !Number.isFinite(fact.value)) continue;
+      if (eligibleFactCount++ >= 12) break;
       const factId = stableId("financial-fact", `${ticker}\n${fact.id}\n${fact.filedAt}\n${fact.value}`);
       addNode({ id: factId, type: "financial_fact", ticker, label: fact.label.slice(0, 120), value: fact.value, unit: fact.unit.slice(0, 40), periodEnd: new Date(periodMs).toISOString().slice(0, 10), filedAt: new Date(filedMs).toISOString().slice(0, 10), form: fact.form.slice(0, 12), sourceUrl: sourceUrl.toString() });
       addEdge(issuerId, factId, "about");
