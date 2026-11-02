@@ -292,8 +292,8 @@ test("Qwen disables optional thinking for bounded JSON tasks", async t => {
 
 
 test("provider diagnostics redact secrets and discard non-JSON errors", () => {
-  assert.equal(safeProviderError("<html>secret-key</html>", "secret-key"), "Provider returned a non-JSON error.");
+  assert.equal(safeProviderError("<html>secret-key</html>", "secret-key"), "Provider returned a non-success response.");
   const detail = safeProviderError(JSON.stringify({error:{status:"UNAVAILABLE",message:"secret-key at https://example.com?key=secret-key Bearer abcdef"}}), "secret-key");
-  assert.match(detail, /UNAVAILABLE/);
-  assert.doesNotMatch(detail, /secret-key|https:|abcdef/);
+  assert.equal(detail, "Provider returned a non-success response.");
+  assert.doesNotMatch(detail, /UNAVAILABLE|secret-key|https:|abcdef/);
 });
