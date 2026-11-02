@@ -73,7 +73,7 @@ export async function POST(request: Request) {
     // reject equivalent forms before that validation can occur.
     const points = claims;
     const answerStatus = summary.answer_status === "insufficient_evidence" || summary.answer_status === "source_matched_claims" ? summary.answer_status : undefined;
-    return [{ ticker, issuer, summary: String(summary.summary).slice(0, 700), ...(answerStatus ? { answerStatus } : {}), stance: "unclear", confidence: 0, confidenceCapped: true, gateReasons: ["Evidence brief; no trading handoff was assessed."], sources: sources.map(source => source.url), evidenceBalance: { supporting: points.slice(0, 3), counter: [] }, market: { perpSymbol: null, spotSymbol: null, lastPrice: null, providerTimestamp: null }, risks: [], nextCheck: null }];
+    return [{ ticker, issuer, summary: String(summary.summary).slice(0, 700), ...(answerStatus ? { answerStatus } : {}), stance: "unclear", confidence: 0, confidenceCapped: true, gateReasons: ["Evidence brief; no trading handoff was assessed."], sources: sources.map(source => source.url), evidenceBalance: { supporting: points, counter: [] }, market: { perpSymbol: null, spotSymbol: null, lastPrice: null, providerTimestamp: null }, risks: [], nextCheck: null }];
   })() : [];
   if (!summary || rows.length < 1 || rows.length > 3) return NextResponse.json({ error: "This research run does not contain a shareable result." }, { status: 422 });
 
