@@ -4,8 +4,10 @@ export const NextResponse = class extends Response {
 };
 
 export const createClient = async () => globalThis.flowTest;
-export const createAdminClient = () => globalThis.flowTest.admin;
+export const createAdminClient = () => { if (globalThis.flowTest.adminUnavailable) throw new Error('missing server configuration'); return globalThis.flowTest.admin; };
 export const getServerAuthState = async () => ({ user: globalThis.flowTest.user, errorCode: null });
+export const requiresMfa = async () => false;
+export const logSecurityEvent = async () => {};
 
 export const configuredAiProviders = () => ["fixture"];
 export const aiJsonWithFallback = async (messages) => {
@@ -48,6 +50,7 @@ export const aiJsonWithFallback = async (messages) => {
 export const STOCK_PERP_UNIVERSE = ["NVDAUSDT"];
 export const getIssuerName = () => "Synthetic NVIDIA";
 export const getBitgetAsset = (...args) => globalThis.flowTest.asset(...args);
+export const getBitgetRealityTradeQuote = (...args) => globalThis.flowTest.tradeQuote(...args);
 export const getBitgetStockPerp = (...args) => globalThis.flowTest.perp(...args);
 export const getBitgetCandles = (...args) => globalThis.flowTest.candles(...args);
 export const buildSignals = () => Array.from({ length: 80 }, (_, index) => index === 79);

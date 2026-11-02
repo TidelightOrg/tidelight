@@ -28,6 +28,13 @@ export type BitgetTicker = {
   ts?: string;
 };
 
+export type BitgetPublicFill = {
+  price: string;
+  ts: string;
+};
+
+export type BitgetTradeQuote = { price: number; providerTimestamp: number };
+
 export type RealityStockInfo = {
   symbol: string;
   code: string;
@@ -145,7 +152,7 @@ export function getIssuerName(ticker: string): string {
 async function fetchBitget<T>(path: string, revalidate: number, timeoutMs = 9000): Promise<BitgetEnvelope<T>> {
   const response = await fetch(`${API}${path}`, {
     headers: { Accept: "application/json" },
-    next: { revalidate },
+    ...(revalidate > 0 ? { next: { revalidate } } : { cache: "no-store" as const }),
     signal: AbortSignal.timeout(timeoutMs),
   });
   if (!response.ok) throw new Error(`Bitget returned HTTP ${response.status}`);
@@ -306,6 +313,21 @@ export async function getBitgetAsset(symbol: string): Promise<MarketAsset | null
     providerTimestamp: numberOrNull(ticker.ts),
     logoUrl: getLogo(instrument.baseCoin, underlyingTicker, reality),
   };
+}
+
+/** Latest actual Bitget public fill; ticker `ts` only marks ticker generation time. */
+export async function getBitgetRealityTradeQuote(symbol: string): Promise<BitgetTradeQuote | null> {
+  if (!/^[A-Z0-9]{2,24}USDT$/.test(symbol)) return null;
+  const query = new URLSearchParams({ category: "SPOT", symbol, limit: "100" });
+  const response = await fetchBitget<BitgetPublicFill[]>(`/market/fills?${query}`, 0, 5000);
+  let latest: BitgetTradeQuote | null = null;
+  for (const fill of response.data) {
+    const price = numberOrNull(fill.price);
+    const providerTimestamp = numberOrNull(fill.ts);
+    if (price === null || price <= 0 || providerTimestamp === null || providerTimestamp <= 0) continue;
+    if (!latest || providerTimestamp > latest.providerTimestamp) latest = { price, providerTimestamp };
+  }
+  return latest;
 }
 
 /** Futures are a separate verified US-stock contract universe, never inferred from an rToken prefix. */

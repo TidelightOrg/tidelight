@@ -1,0 +1,14 @@
+# Nightwatch paper execution transition
+
+The authenticated Nightwatch tick and manual exit routes are the only repository callers of the manual `nightwatch_tick` and `nightwatch_close_position` RPCs. The scheduled worker uses its existing service-only schedule RPCs. The manual RPCs are also externally callable by authenticated API clients, so their full external usage is unknown. Repository search can confirm first-party callers but cannot identify third-party clients; do not revoke the legacy grants until Data API usage logs and consumer compatibility have been reviewed. Their client-supplied price and signal are not independently verified. Existing records therefore do not establish market-price provenance.
+
+This change adds service-only RPCs with an explicit owner parameter. The server obtains the owner from `auth.getUser()` and passes it with server-retrieved market data. The service-only functions delegate to the existing account-scoped ledger and its existing controls. Manual exits now require the newest valid public Bitget Reality SPOT fill (`price` and fill `ts`) with a timestamp no more than 120 seconds old or five seconds ahead. The 24-hour ticker `ts` is a ticker-generation timestamp, not a last-trade timestamp, and is not accepted as the exit reference. The fill endpoint bypasses response caching. Missing or stale fill timestamps reject the exit. The ledger still models a paper fill from this reference with its configured slippage and fee assumptions; the public fill is not a guaranteed executable price for the user’s paper order. These route checks do not prevent direct use of the legacy RPCs while their authenticated grants remain.
+
+## Staged deployment
+
+1. Apply the additive migration first. It leaves the legacy RPC grants intact and changes no existing data or schedules.
+2. Deploy the application release and verify authenticated tick and manual exit against test accounts, including unavailable secrets and stale quotes. A missing migration or secret fails closed; there is no fallback to client-supplied prices.
+3. Review Data API logs and external consumer compatibility, communicate the change to affected users, then prepare a separately reviewed migration revoking authenticated execution of both public and private legacy tick and exit functions. Confirm new routes and the existing scheduled worker still function after revocation. Until then the provenance bypass remains open.
+4. If rollback is necessary before step 3, restore the prior application deployment. Keep the additive migration in place because it does not change legacy behavior. After any later revocation, restore the old grants before rolling back application code, acknowledging that this reopens the provenance gap.
+
+The paper ledger remains simulated and must not be represented as verified execution. Historical records need separate provenance assessment.

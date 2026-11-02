@@ -36,6 +36,8 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Choose a valid Bitget Reality market." }, { status: 400 });
   }
   if (!/^[A-Z0-9]{2,24}USDT$/.test(symbol)) return NextResponse.json({ error: "Choose a valid Bitget Reality market." }, { status: 400 });
+  let admin: ReturnType<typeof createAdminClient>;
+  try { admin = createAdminClient(); } catch { return NextResponse.json({ error: "Paper execution is temporarily unavailable." }, { status: 503 }); }
 
   try {
     const asset = await getBitgetAsset(symbol);
@@ -68,7 +70,8 @@ export async function POST(request: Request) {
     const aiDecision = await decideNightwatch({ symbol, issuer: asset.name, candles: closed.slice(-90), account, playbookKey: selectedPreferences.playbook_key, research: linkedResearch?.status === "complete" ? { question: linkedResearch.question, summary: linkedResearch.summary } : null }, { budgetMs: 38000, deadlineAt });
     const signal = aiDecision.signal;
     const decision = signal === aiDecision.action ? aiDecision : { ...aiDecision, rationale: aiDecision.rationale + " Confidence was below the 0.66 execution threshold, so the agent held." };
-    const { data, error } = await supabase.rpc("nightwatch_tick", {
+    const { data, error } = await admin.rpc("nightwatch_tick_from_server", {
+      p_user_id: user.id,
       p_symbol: symbol,
       p_as_of_ms: asOfMs,
       p_reference_price: current.close,
@@ -107,7 +110,6 @@ export async function POST(request: Request) {
     if (result?.run_id) {
       if (alerts.length) await supabase.from("nightwatch_alerts").upsert(alerts.map((alert) => ({ user_id: user.id, run_id: result.run_id, ...alert })), { onConflict: "run_id,kind" });
       try {
-        const admin = createAdminClient();
         for (const alert of alerts) await enqueueNightwatchEmail({ admin, userId: user.id, eventKey: `nightwatch:${result.run_id}:${alert.kind}`, kind: alert.kind === "analysis" ? "nightwatch_analysis" : alert.kind === "signal" ? "nightwatch_signal" : "nightwatch_fill", title: alert.title, body: alert.body });
         if (decision.risks.length) await enqueueNightwatchEmail({ admin, userId: user.id, eventKey: `nightwatch:${result.run_id}:risk`, kind: "nightwatch_risk", title: `Risk review · ${symbol}`, body: [...decision.risks.slice(0, 5).map((risk) => `• ${risk}`), decision.invalidation ? `Invalidation: ${decision.invalidation}` : ""].filter(Boolean).join("\n") });
         if (linkedResearch?.status === "complete") await enqueueNightwatchEmail({ admin, userId: user.id, eventKey: `nightwatch:${result.run_id}:research`, kind: "nightwatch_research", title: linkedResearch.question, body: typeof linkedResearch.summary === "string" ? linkedResearch.summary : (JSON.stringify(linkedResearch.summary) ?? "Your linked research brief is available in Tidelight.") });
