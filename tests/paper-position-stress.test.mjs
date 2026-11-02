@@ -24,3 +24,9 @@ test("freshness bounds reject stale and future marks", () => {
   assert.ok(paperPositionStress({ ...base, now: 95_000 }));
   assert.equal(paperPositionStress({ ...base, now: 94_999 }), null);
 });
+
+test("finite inputs cannot produce infinite scenario outputs", () => {
+  const base = { direction: "short", quantity: 0.1, referencePrice: Number.MAX_VALUE, referenceTimestamp: 1000, now: 2000, margin: 1 };
+  assert.equal(paperPositionStress(base), null);
+  assert.equal(paperPositionStress({ ...base, referencePrice: 100, margin: Number.MIN_VALUE }), null);
+});
