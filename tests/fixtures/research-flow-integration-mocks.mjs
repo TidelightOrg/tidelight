@@ -10,6 +10,7 @@ export const getServerAuthState = async () => ({ user: globalThis.flowTest.user,
 export const configuredAiProviders = () => ["fixture"];
 export const aiJsonWithFallback = async (messages) => {
   globalThis.flowTest.aiCalls++;
+  if (globalThis.flowTest.aiUnavailable) throw new Error("fixture-provider-outage");
   const text = messages.map((message) => message.content).join(" ");
   globalThis.flowTest.lastPrompt = text;
   if (/FOMC/.test(text)) return { assets: [{
