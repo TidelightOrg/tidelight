@@ -45,6 +45,8 @@ test("public replay access filters expiry and revocation, with owner-authenticat
   assert.match(page, /notFound\(\)/);
   assert.match(page, /index: false, follow: false/);
   assert.match(page, /Model-reported score, not a calibrated probability/);
+  assert.match(page, /Matched source not recorded/);
+  assert.match(page, /point\.citedUrls\.includes\(point\.quoteSourceUrl\)/);
   assert.doesNotMatch(page, /\b(?:asset|row)\.(?:handoff|portfolio|credentials)\b/i);
 });
 
@@ -144,8 +146,16 @@ test("publishing requires the owning session and serializes only cited public ev
     const legacyEvidencePayload = calls.filter(call => call.table === "public_research_replays").at(-1).values.payload;
     assert.deepEqual(legacyEvidencePayload.assets[0].evidenceBalance.supporting[0].citedUrls, ["https://news.example/story"]);
     assert.equal(legacyEvidencePayload.assets[0].evidenceBalance.supporting[0].quoteMatchStatus, "matched_to_captured_text");
+    assert.equal(legacyEvidencePayload.assets[0].evidenceBalance.supporting[0].quoteSourceUrl, "https://news.example/story");
     assert.equal(legacyEvidencePayload.assets[0].evidenceBalance.supporting[0].claimSupportStatus, "not_independently_verified");
     assert.deepEqual(legacyEvidencePayload.assets[0].evidenceBalance.supporting[0].passageSpan, { startCodepoint: 0, endCodepoint: 30 });
+    context.run.summary = { assets: [{ ticker: "NVDA", issuer: "NVIDIA", summary: "Two sources.", sources: ["https://news.example/story", "https://not-cited.example/story"], evidenceBalance: { supporting: [{ text: "A source-bound claim.", quote: "Other source text.", citedUrls: ["https://news.example/story", "https://not-cited.example/story"] }] } }] };
+    const multiSourceResponse = await route.POST(new Request("https://tidelight.app/api/research/replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ researchRunId: token }) }));
+    assert.equal(multiSourceResponse.status, 200);
+    const multiSourcePayload = calls.filter(call => call.table === "public_research_replays").at(-1).values.payload;
+    assert.equal(multiSourcePayload.assets[0].evidenceBalance.supporting[0].quoteSourceUrl, "https://not-cited.example/story", "the quote points to the source that actually matched, not the first citation");
+    assert.equal(multiSourcePayload.sources.some(source => "excerpt" in source), false);
+    context.run.summary = { summary: "An evidence-first public brief.", sources: [{ url: "https://news.example/story" }], claims: [] };
     context.run.summary = { ...context.run.summary, claims: [{ claim: "A fabricated source-linked claim.", quote: "This quotation was not present in the captured source excerpt.", source_url: "https://news.example/story" }] };
     const unmatchedEvidenceResponse = await route.POST(new Request("https://tidelight.app/api/research/replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ researchRunId: token }) }));
     assert.equal(unmatchedEvidenceResponse.status, 200);

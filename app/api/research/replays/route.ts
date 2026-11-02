@@ -119,7 +119,7 @@ export async function POST(request: Request) {
       if (!matchedSource || typeof matchedSource.excerpt !== "string") return [{ text: point.text.slice(0, 260), citedUrls }];
       const passageSpan = findQuotePassageSpan(matchedSource.excerpt, quote);
       if (!passageSpan) return [{ text: point.text.slice(0, 260), citedUrls }];
-      return [{ text: point.text.slice(0, 260), citedUrls, quote, quoteMatchStatus: "matched_to_captured_text", claimSupportStatus: "not_independently_verified", passageSpan: { startCodepoint: passageSpan.start_codepoint, endCodepoint: passageSpan.end_codepoint } }];
+      return [{ text: point.text.slice(0, 260), citedUrls, quote, quoteSourceUrl: matchedSource.url, quoteMatchStatus: "matched_to_captured_text", claimSupportStatus: "not_independently_verified", passageSpan: { startCodepoint: passageSpan.start_codepoint, endCodepoint: passageSpan.end_codepoint } }];
     }).slice(0, 3) : [];
     return [{
       ticker,
