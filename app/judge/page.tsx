@@ -68,7 +68,7 @@ export default function JudgePage() {
 
     <nav className="judge-review-nav" aria-label="Judge evidence sections">
       <span>REVIEW PATH</span>
-      <a href="#live-route-test-recording"><i>01</i> Live verification</a>
+      <a href="#live-route-test-recording"><i>01</i> Verification notes</a>
       <a href="#research-title"><i>02</i> Research replays</a>
       <a href="#research-benchmark"><i>03</i> Benchmark</a>
       <a href="#codex-mcp-evidence"><i>04</i> Developer proof</a>
@@ -77,18 +77,18 @@ export default function JudgePage() {
 
     <section className="judge-section judge-test-video" id="live-route-test-recording" aria-labelledby="test-video-title">
       <div className="judge-section-heading">
-        <div><span className="judge-kicker">PUBLIC ROUTE CAPTURE · 24 OCT 2026</span><h2 id="test-video-title">Seven public routes responded.</h2></div>
-        <p>In a signed-out browser check captured on 24 October 2026 at 1280 × 720, all seven public routes below returned HTTP 200.</p>
+        <div><span className="judge-kicker">HISTORICAL ROUTE CHECK · 24 OCT 2026</span><h2 id="test-video-title">What this check covered.</h2></div>
+        <p>A signed-out capture recorded an HTTP response for each listed route. It is a dated availability check, not proof that the research journey completed.</p>
       </div>
-      <div className="judge-route-capture-status" role="status">
-        <span className="judge-route-capture-icon" aria-hidden="true">✓</span>
-        <div><strong>Seven public routes returned HTTP 200 at capture time.</strong><small>Captured 24 October 2026 · Signed-out browser check · 1280 × 720 · machine-readable results linked below</small></div>
-        <span className="judge-route-capture-badge">7 / 7 PASS</span>
+      <div className="judge-route-capture-status historical" role="note">
+        <span className="judge-route-capture-icon" aria-hidden="true">i</span>
+        <div><strong>Historical HTTP responses only.</strong><small>Captured 24 October 2026 · Signed-out browser check · 1280 × 720 · machine-readable record linked below</small></div>
+        <span className="judge-route-capture-badge">NOT A JOURNEY TEST</span>
       </div>
-      <div className="judge-test-route-list" aria-label="Routes checked">
-        {["/", "/markets", "/research", "/flow", "/strategies", "/nightwatch", "/judge"].map(path => <span key={path}><i aria-hidden="true">200</i><code>{path}</code></span>)}
+      <div className="judge-test-route-list" aria-label="Routes included in the historical availability check">
+        {["/", "/markets", "/research", "/flow", "/strategies", "/nightwatch", "/judge"].map(path => <span key={path}><code>{path}</code></span>)}
       </div>
-      <p className="judge-section-note">The route-check results are listed below and in the JSON report. The video here is a product walkthrough, not the route-test recording. Signed-in research, publishing, strategy execution, account data, and trading behavior are not represented.</p>
+      <p className="judge-section-note">This capture did not verify page rendering, source retrieval, evidence quality, AI synthesis, sign-in, or paper actions. Use the public research entry above to inspect the live guest workflow and its current evidence and limitations. The video here is a product walkthrough, not a recording of the route check.</p>
       <figure className="judge-test-video-frame judge-product-walkthrough">
         <video controls playsInline preload="metadata" poster="/landing-preview.png" aria-label="Tidelight public product walkthrough for the Bitget AI Base Camp Hackathon">
           <source src="https://media.githubusercontent.com/media/TidelightOrg/tidelight/main/production/tidelight-hackathon-cinematic-demo/deliverables/Tidelight_Hackathon_Cinematic_Demo_1080p.mp4" type="video/mp4" />
