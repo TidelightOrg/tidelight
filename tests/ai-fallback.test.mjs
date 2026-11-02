@@ -140,6 +140,39 @@ test("transient HTTP retries remain bounded before switching provider", async t 
   assert.equal(qwenCalls, 2);
 });
 
+test("non-OK provider bodies are canceled and echoed research content never reaches logs", async t => {
+  configure(t);
+  const privateQuestion = "PRIVATE_RESEARCH_QUESTION_73";
+  const privateSecret = "PROVIDER_ECHO_SECRET_91";
+  const warnings = [];
+  t.mock.method(console, "warn", (...args) => warnings.push(args));
+  let qwenCalls = 0;
+  let canceledBodies = 0;
+  let readBodies = 0;
+  t.mock.method(globalThis, "fetch", async url => {
+    if (url.includes("bitgetops")) {
+      qwenCalls++;
+      const body = new ReadableStream({
+        pull(controller) { readBodies++; controller.enqueue(new TextEncoder().encode(`${privateQuestion} ${privateSecret}`)); controller.close(); },
+        cancel() { canceledBodies++; },
+      }, { highWaterMark: 0 });
+      return new Response(body, { status: 503 });
+    }
+    return gemini([{ text: JSON.stringify(answer) }]);
+  });
+
+  assert.deepEqual(await aiJsonWithFallback([
+    { role: "system", content: "Return JSON" },
+    { role: "user", content: privateQuestion },
+  ], valid), answer);
+  assert.equal(qwenCalls, 2, "transient HTTP failures retain their bounded same-provider retry");
+  assert.equal(canceledBodies, 2, "each provider error stream is canceled");
+  assert.equal(readBodies, 0, "provider error content is never consumed");
+  assert.equal(JSON.stringify(warnings).includes(privateQuestion), false);
+  assert.equal(JSON.stringify(warnings).includes(privateSecret), false);
+  assert.ok(warnings.every(([, details]) => details?.detail === "Provider returned a non-success response."));
+});
+
 test("stalled Qwen response body is aborted and leaves time for Gemini", async t => {
   configure(t);
   let qwenSignal;
