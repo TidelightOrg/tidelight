@@ -61,6 +61,8 @@ Current implementation supports up to three fetched public sources in Mini and u
 
 Copy `docs/benchmarks/research-benchmark-template.json`, replace the example with the frozen event set, and preserve two independent reviewer labels plus the resolved adjudication for every claim. Include exact captured passages when a source was accessible. The scorer rejects incomplete review sets and does not convert an empty denominator into a 0% score.
 
+Reviewer identifiers must be nonempty and distinct after trimming whitespace. An adjudicated `exact` quote must appear verbatim in the accessible captured source text; use a different reviewer label where the passage is paraphrased or unavailable. These checks validate the record, but cannot establish reviewers' real-world independence or verify a source's truth.
+
 Run it with:
 
 ```sh

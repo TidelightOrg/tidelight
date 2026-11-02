@@ -199,7 +199,7 @@ export function scoreBenchmark(benchmark) {
       try { if (typeof claim.sourceUrl === "string") canonicalClaimUrl = new URL(claim.sourceUrl, "https://invalid.local").href; } catch { /* Report a schema error below; malformed input must not crash scoring. */ }
       if (!canonicalClaimUrl || !sourceUrls.has(canonicalClaimUrl)) errors.push(`${claimLabel}.sourceUrl must match one captured source URL.`);
       const reviewers = Array.isArray(claim.reviewers) ? claim.reviewers : [];
-      const reviewerIds = new Set(reviewers.map((reviewer) => reviewer?.reviewerId).filter((id) => typeof id === "string"));
+      const reviewerIds = new Set(reviewers.map((reviewer) => typeof reviewer?.reviewerId === "string" ? reviewer.reviewerId.trim() : "").filter(Boolean));
       if (reviewers.length < 2 || reviewerIds.size < 2) errors.push(`${claimLabel} needs independent labels from two reviewers.`);
       for (const reviewer of reviewers) {
         if (!QUOTE_MATCH.has(reviewer?.quoteMatch) || !ENTAILMENT.has(reviewer?.entailment) || !SOURCE_FIT.has(reviewer?.sourceFit) || !INTERPRETATION.has(reviewer?.interpretationBoundary)) {
@@ -211,9 +211,13 @@ export function scoreBenchmark(benchmark) {
         errors.push(`${claimLabel}.resolution must contain the adjudicated reviewer labels.`);
         continue;
       }
+      const capturedSource = canonicalClaimUrl ? normalizedSources.find((item) => canonicalClaimUrl === item.url) : null;
+      if (resolution.quoteMatch === "exact" && (!capturedSource?.accessible || typeof capturedSource.capturedText !== "string" || !capturedSource.capturedText.includes(quote) || !quote.trim())) {
+        errors.push(`${claimLabel} has an exact quote label but the quote is absent from the accessible captured source.`);
+      }
       if (claim.kind !== "factual") continue;
       factualClaims += 1;
-      const source = canonicalClaimUrl ? normalizedSources.find((item) => canonicalClaimUrl === item.url) : null;
+      const source = capturedSource;
       const sourceClass = source?.sourceClass;
       const sourceStats = sourceClassTotals[sourceClass];
       if (sourceStats) sourceStats.factualClaims += 1;
