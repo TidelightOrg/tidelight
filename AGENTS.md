@@ -10,6 +10,8 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Project handoff
 
-Before continuing Tidelight Intelligence Cloud or broader Tidelight product work, read [the Codex project handoff](docs/CODEX_HANDOFF.md). It records the verified repository baseline, completed milestones, outstanding production evidence, external dependencies, and prioritized roadmap. Resume from its **Next session: exact continuation point** section; do not repeat milestones marked complete without a specific regression or new evidence.
+; do not repeat milestones marked complete without a specific regression or new evidence.
 
 Avoid unnecessary secondary labels and descriptions. Let the layout do the explaining.
+
+I want this to be as perfect as Linear's website or Apple Notes: simple purpose, simple architecture, simple design, simple implementation. Cut taglines, helper text and secondary labels. If a screen needs them to make sense, fix the layout. Every decision should elevate the user experience (UX), developer experience (DX) and agent experience (AX) at once, without breaking anything. keep aria-labels intact.
