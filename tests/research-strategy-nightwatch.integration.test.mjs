@@ -277,7 +277,7 @@ test("SEC facts prioritize a requested fiscal year outside the default period wi
   globalThis.flowTest.manySecPeriods = true;
   globalThis.flowTest.aiCalls = 0;
   const response = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
-    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: "Summarize NVDA FY2019 reported revenue and net income from SEC filings" }),
+    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: "Compare NVDA FY2019 and FY2018 reported revenue and net income from SEC filings" }),
   }));
   assert.equal(response.status, 200);
   const events = (await response.text()).split("\n\n").filter(Boolean).map(frame => JSON.parse(frame.split("\ndata: ")[1]));
@@ -286,8 +286,29 @@ test("SEC facts prioritize a requested fiscal year outside the default period wi
   const prompt = JSON.parse(globalThis.flowTest.lastPrompt.slice(globalThis.flowTest.lastPrompt.indexOf('{"question"')));
   const facts = prompt.assets[0].financialFacts;
   assert.ok(facts.some(fact => fact.label.includes("Period ended 2019-12-31 Revenue")), "the requested FY2019 appears within the bounded synthesis facts although it is older than six annual periods");
+  assert.ok(facts.some(fact => fact.label.includes("Period ended 2018-12-31 Revenue")), "all requested comparison years are retained before default comparisons");
   assert.equal(facts[0].label, "Period ended 2019-12-31 Revenue", "the requested annual period is placed before newer comparisons");
+  assert.equal(facts[1].label, "Period ended 2018-12-31 Revenue", "requested comparison periods are interleaved by metric before the fact cap");
   assert.ok(result.evidenceGraph.nodes.some(node => node.type === "financial_fact" && node.label.includes("Period ended 2019-12-31 Revenue")));
+  globalThis.flowTest.emptyIssuerNews = false;
+  globalThis.flowTest.manySecPeriods = false;
+});
+
+test("SEC facts match a fiscal quarter by SEC fiscal metadata instead of calendar quarter", async () => {
+  globalThis.flowTest.emptyIssuerNews = true;
+  globalThis.flowTest.manySecPeriods = true;
+  globalThis.flowTest.aiCalls = 0;
+  const response = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
+    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: "Summarize NVDA Q1 FY2025 reported revenue from SEC filings" }),
+  }));
+  assert.equal(response.status, 200);
+  const events = (await response.text()).split("\n\n").filter(Boolean).map(frame => JSON.parse(frame.split("\ndata: ")[1]));
+  const result = events.findLast(frame => frame.researchRunId);
+  assert.ok(result);
+  const prompt = JSON.parse(globalThis.flowTest.lastPrompt.slice(globalThis.flowTest.lastPrompt.indexOf('{"question"')));
+  const facts = prompt.assets[0].financialFacts;
+  assert.equal(facts[0].label, "Period ended 2024-12-31 Revenue", "Q1 FY2025 fiscal-period facts outrank the later calendar Q3 data");
+  assert.ok(result.evidenceGraph.nodes.some(node => node.type === "financial_fact" && node.label.includes("Period ended 2024-12-31 Revenue")));
   globalThis.flowTest.emptyIssuerNews = false;
   globalThis.flowTest.manySecPeriods = false;
 });

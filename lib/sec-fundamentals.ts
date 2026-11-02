@@ -97,11 +97,6 @@ function instantValue(facts: CompanyFacts, tags: string[], end: string, form: "1
   return latestFact(facts, tags, "USD", item => item.end === end && item.form === form && !item.start && Boolean(item.filed) && filedBeforeAsOfDay(item.filed, asOfDate, includeSameDay) && item.end <= asOfDate).sort((a, b) => b.filed.localeCompare(a.filed))[0];
 }
 
-function quarterLabel(end: string) {
-  const date = new Date(`${end}T00:00:00Z`);
-  return `Q${Math.ceil((date.getUTCMonth() + 1) / 3)} ${date.getUTCFullYear()}`;
-}
-
 function buildPeriods(facts: CompanyFacts, duration: "quarter" | "annual", asOfDate: string, includeSameDay: boolean) {
   const form = duration === "quarter" ? "10-Q" : "10-K";
   const revenues = periodValues(facts, ["RevenueFromContractWithCustomerExcludingAssessedTax", "Revenues", "SalesRevenueNet"], form, duration, asOfDate, includeSameDay);
@@ -116,7 +111,9 @@ function buildPeriods(facts: CompanyFacts, duration: "quarter" | "annual", asOfD
     const totalAssets = instantValue(facts, ["Assets"], end, formForInstant, asOfDate, includeSameDay);
     const totalLiabilities = instantValue(facts, ["Liabilities"], end, formForInstant, asOfDate, includeSameDay);
     return {
-      period: duration === "quarter" ? quarterLabel(end) : `FY ${new Date(`${end}T00:00:00Z`).getUTCFullYear()}`,
+      period: duration === "quarter"
+        ? (/^Q[1-4]$/.test(basis?.fp ?? "") && Number.isSafeInteger(basis?.fy) ? `${basis!.fp} FY${basis!.fy}` : `Period ended ${end}`)
+        : (basis?.fp === "FY" && Number.isSafeInteger(basis.fy) ? `FY ${basis.fy}` : `Year ended ${end}`),
       periodEnd: end,
       filed: basis?.filed ?? "",
       form: formForInstant,

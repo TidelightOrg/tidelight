@@ -77,7 +77,10 @@ export const getSecCompanyResearch = async (ticker) => ({
     operatingCashFlow: 20,
     capitalExpenditure: 5,
     filedByMetric: { revenue: "2026-10-25", netIncome: "2026-10-26", totalAssets: "2026-10-25", totalLiabilities: "2026-10-25", operatingCashFlow: "2026-10-26", capitalExpenditure: "2026-10-26" },
-  }, ...(globalThis.flowTest.manySecPeriods ? ["2026-06-30", "2026-03-31", "2025-12-31", "2025-09-30", "2025-06-30"].map(periodEnd => ({ period: periodEnd, periodEnd, filed: "2026-10-25", form: "10-Q", revenue: 123, netIncome: 12, totalAssets: 345, totalLiabilities: 67, operatingCashFlow: 89, capitalExpenditure: 10, filedByMetric: {} })) : [])], annual: globalThis.flowTest.manySecPeriods ? Array.from({ length: 11 }, (_, index) => 2025 - index).map(year => ({ period: `FY ${year}`, periodEnd: `${year}-12-31`, filed: `${year + 1}-02-20`, form: "10-K", revenue: year, netIncome: year / 10, totalAssets: year * 2, totalLiabilities: year, operatingCashFlow: year / 2, capitalExpenditure: year / 4, filedByMetric: {} })) : [] },
+  }, ...(globalThis.flowTest.manySecPeriods ? [
+    ...["2026-06-30", "2026-03-31", "2025-12-31", "2025-09-30", "2025-06-30"].map(periodEnd => ({ period: periodEnd, periodEnd, filed: "2026-10-25", form: "10-Q", revenue: 123, netIncome: 12, totalAssets: 345, totalLiabilities: 67, operatingCashFlow: 89, capitalExpenditure: 10, filedByMetric: {} })),
+    { period: "Q1 FY2025", periodEnd: "2024-12-31", filed: "2025-02-20", form: "10-Q", revenue: 2025, netIncome: 202.5, totalAssets: 4050, totalLiabilities: 2025, operatingCashFlow: 1012.5, capitalExpenditure: 506.25, filedByMetric: {} },
+  ] : [])], annual: globalThis.flowTest.manySecPeriods ? Array.from({ length: 11 }, (_, index) => 2025 - index).map(year => ({ period: `FY ${year}`, periodEnd: `${year}-12-31`, filed: `${year + 1}-02-20`, form: "10-K", revenue: year, netIncome: year / 10, totalAssets: year * 2, totalLiabilities: year, operatingCashFlow: year / 2, capitalExpenditure: year / 4, filedByMetric: {} })) : [] },
   dividends: [],
   analystTargets: { status: "not_configured" },
 });
