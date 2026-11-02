@@ -6220,6 +6220,8 @@
   "Source passage ·": "来源段落 ·",
   "Captured excerpt offsets ·": "捕获摘录的偏移位置 ·",
   "Matched source ·": "匹配来源 ·",
+  "Captured excerpt offsets · {start}–{end}": "捕获摘录的偏移位置 · {start}–{end}",
+  "Matched source · {publisher} ↗": "匹配来源 · {publisher} ↗",
   "Matched source not recorded": "未记录匹配来源",
   "INSUFFICIENT EVIDENCE": "证据不足",
   "The answer remains unknown from the supplied passages; this does not establish either side.": "根据所提供的段落，答案仍然未知；这并不证明任何一方。",
