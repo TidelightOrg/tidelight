@@ -1,13 +1,16 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useLanguage } from "@/app/ui/language-provider";
 import { paperPositionStress } from "@/lib/paper-position-stress";
 
 export default function PaperPositionStress({ direction, quantity, margin, mark, markAsOf }: { direction: "long" | "short"; quantity: number; margin: number; mark: number | null; markAsOf: number | null }) {
   const { language } = useLanguage();
+  const [now, setNow] = useState(0);
+  useEffect(() => { setNow(Date.now()); const timer = window.setInterval(() => setNow(Date.now()), 1000); return () => window.clearInterval(timer); }, []);
   const zh = language === "zh-CN";
-  const scenarios = paperPositionStress({ direction, quantity: Number(quantity), margin: Number(margin), referencePrice: mark ?? NaN, referenceTimestamp: markAsOf ?? NaN });
-  if (!scenarios) return <p className="futures-method">{zh ? "价格压力情景不可用：需要带时间戳的参考价格、有效数量和保证金。" : "Price stress unavailable: a timestamped reference price, valid quantity and margin are required."}</p>;
+  const scenarios = paperPositionStress({ direction, quantity: Number(quantity), margin: Number(margin), referencePrice: mark ?? NaN, referenceTimestamp: markAsOf ?? NaN, now });
+  if (!scenarios) return <p className="futures-method">{zh ? "价格压力情景不可用：需要最近 60 秒内的参考价格、有效数量和保证金。" : "Price stress unavailable: a reference price from the last 60 seconds, valid quantity and margin are required."}</p>;
   const money = (value: number) => new Intl.NumberFormat(undefined, { style: "currency", currency: "USD" }).format(value);
   return <div className="futures-method" aria-label={zh ? "模拟仓位价格压力情景" : "Paper position price stress scenarios"}>
     <strong>{zh ? "不利价格情景" : "Adverse price scenarios"}</strong>
