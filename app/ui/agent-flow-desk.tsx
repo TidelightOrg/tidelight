@@ -331,7 +331,7 @@ export default function AgentFlowDesk({ initialQuestion, initialMonitorId = null
       })}{busy && stages.length === 0 ? <div className="flow-wait" role="listitem"><i aria-hidden="true" /><span>{busySeconds < 8 ? "Opening the research path…" : "Connecting market and evidence sources"}{busySeconds >= 15 ? <small>Checking coverage and verified market data.</small> : <small>Market context · evidence coverage · corroboration · risk gates</small>}</span><time dateTime={`PT${busySeconds}S`}>{busySeconds}s</time></div> : null}</div>
     </section> : null}
 
-    {clearError ? <div className="flow-error" role="alert"><b>Session result could not be cleared</b><span>Clear this site’s browser storage to remove the session result.</span><button type="button" onClick={() => setClearError(!clearJudgeResult())}>Retry clearing ↗</button></div> : null}
+    {clearError ? <div className="flow-error" role="alert"><b>Session result could not be cleared</b><span>Clear this site’s browser storage to remove the session result.</span><button type="button" onClick={() => { const cleared = clearJudgeResult(); setClearError(!cleared); if (cleared) setGuestStored(false); }}>Retry clearing ↗</button></div> : null}
     {error ? <div className="flow-error" role="alert"><b>Research paused</b><span>{error}</span>{error.toLowerCase().includes("sign in") ? <Link href="/login">Sign in ↗</Link> : <button type="button" onClick={() => void runFlow()} disabled={busy}>Try again ↗</button>}</div> : null}
 
 
