@@ -56,6 +56,11 @@ for (const scenario of suite.scenarios) {
       t.mock.method(console, "warn", (...args) => warnings.push(args));
       await assert.rejects(aiJsonWithFallback([{ role: "user", content: question }], () => false, { budgetMs: 5000, onAttempt: attempt => attempts.push(attempt) }));
       assert.ok(attempts.length >= 3, "both providers should exhaust bounded failure attempts");
+      assert.deepEqual([...new Set(attempts.map(attempt => attempt.provider))].sort(), ["gemini", "qwen"]);
+      for (const provider of ["qwen", "gemini"]) {
+        const count = attempts.filter(attempt => attempt.provider === provider).length;
+        assert.ok(count >= 1 && count <= 2, `${provider} must remain within its retry bound`);
+      }
       assert.ok(attempts.every(attempt => attempt.outcome === "http_error" && attempt.httpStatus === 503));
       assert.ok(warnings.length > 0, "provider failures emit warnings");
       assert.ok(warnings.every(warning => !JSON.stringify(warning).includes(question)));
