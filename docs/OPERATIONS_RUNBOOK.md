@@ -34,3 +34,7 @@ No production restore has been performed. Before calling recovery rehearsed, use
 4. If a market source is stale or unavailable, stop manual checks until current completed candles return.
 5. Preserve the research run, candle fingerprint, Nightwatch decision and operator action IDs before changing configuration.
 6. For account isolation or unexpected paper-ledger writes, disable the scheduled secret in Vercel and inspect the corresponding Supabase audit records before resuming.
+
+### Research provider health telemetry
+
+Provider routing reads recent health events with a 300 ms deadline. If the store is unavailable or the read does not settle, routing keeps the configured provider order. Health-event writes have a 1.5 second deadline and cannot prevent a research result from saving. The deadline also aborts the store request; a transport that ignores cancellation may still finish later, so these events are operational observations rather than a transactional audit log.

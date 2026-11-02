@@ -13,6 +13,21 @@ export const PROVIDER_CIRCUIT_FAILURE_WINDOW_MS = 120_000;
 export const PROVIDER_CIRCUIT_COOLDOWN_MS = 60_000;
 export const PROVIDER_HEALTH_READ_TIMEOUT_MS = 300;
 
+// Abort asks the transport to stop; racing a deadline also bounds callers when
+// an adapter ignores the signal or never settles.
+async function withinTelemetryDeadline<T>(timeoutMs: number, operation: (signal: AbortSignal) => PromiseLike<T>): Promise<T> {
+  const controller = new AbortController();
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([
+      Promise.resolve(operation(controller.signal)),
+      new Promise<never>((_, reject) => { timer = setTimeout(() => { controller.abort(); reject(new Error("provider-health-deadline")); }, timeoutMs); }),
+    ]);
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 /** Apply only a short circuit from recent operational events; this never labels a provider healthy. */
 export function classifyProviderRouting(
   providers: ProviderHealthLabel[],
@@ -49,22 +64,16 @@ export async function getProviderRoutingDecision(providers: ProviderHealthLabel[
   if (providers.length < 2) return { status: "available", skippedProviders: [] };
   try {
     const admin = createAdminClient();
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), PROVIDER_HEALTH_READ_TIMEOUT_MS);
-    try {
-      const rows = await Promise.all(providers.map(provider => admin.from("research_provider_health_events")
+    const rows = await withinTelemetryDeadline(PROVIDER_HEALTH_READ_TIMEOUT_MS, signal => Promise.all(providers.map(provider => admin.from("research_provider_health_events")
         .select("provider,outcome,occurred_at")
         .eq("provider", provider)
         .gte("occurred_at", new Date(now - PROVIDER_CIRCUIT_FAILURE_WINDOW_MS).toISOString())
         .lte("occurred_at", new Date(now).toISOString())
         .order("occurred_at", { ascending: false })
         .limit(10)
-        .abortSignal(controller.signal)));
-      if (rows.some(({ error, data }) => error || !Array.isArray(data))) return { status: "unavailable", skippedProviders: [] };
-      return classifyProviderRouting(providers, rows.flatMap(({ data }) => data as ProviderHealthEvent[]), now);
-    } finally {
-      clearTimeout(timer);
-    }
+        .abortSignal(signal))));
+    if (rows.some(({ error, data }) => error || !Array.isArray(data))) return { status: "unavailable", skippedProviders: [] };
+    return classifyProviderRouting(providers, rows.flatMap(({ data }) => data as ProviderHealthEvent[]), now);
   } catch {
     return { status: "unavailable", skippedProviders: [] };
   }
@@ -84,17 +93,11 @@ export async function recordProviderHealth(attempts: ProviderAttempt[]) {
       duration_ms: Math.max(0, Math.min(120_000, Math.round(durationMs))),
       ...(httpStatus === undefined ? {} : { http_status: httpStatus }),
     }));
-    const controller = new AbortController();
-    const deadline = setTimeout(() => controller.abort(), 1_500);
-    try {
-      const { error } = await admin
+    const { error } = await withinTelemetryDeadline(1_500, signal => admin
         .from("research_provider_health_events")
         .insert(rows)
-        .abortSignal(controller.signal);
-      if (error) console.warn("provider-health-write-unavailable", error.code);
-    } finally {
-      clearTimeout(deadline);
-    }
+        .abortSignal(signal));
+    if (error) console.warn("provider-health-write-unavailable", error.code);
   } catch {
     // Operations telemetry must never prevent a user's research result from saving.
     console.warn("provider-health-write-unavailable");
