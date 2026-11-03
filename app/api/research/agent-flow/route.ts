@@ -304,9 +304,9 @@ export async function POST(request: Request) {
           const capturedFacts = boundedSecFacts(financialFacts);
           stage("SEC filings", sec.status === "fulfilled" && capturedFacts.length ? "complete" : "blocked", sec.status === "fulfilled" ? `${ticker}: ${capturedFacts.length} filed facts` : `${ticker}: SEC facts unavailable`, capturedFacts.length ? `${capturedFacts.length} dated reported values from SEC company facts are available.` : "No eligible SEC facts were retrieved; missing financials are not inferred.", ticker);
           const evidenceCandidates = [...new Map([...feedEvidence, ...liveEvidence].map(source => [source.url, source])).values()];
-          const evidence = evidenceCandidates.filter(source => source.url.length <= 4_096)
-            .sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? "")).slice(0, 40);
-          const omittedLongUrls = evidenceCandidates.length - evidence.length;
+          const persistableEvidence = evidenceCandidates.filter(source => source.url.length <= 4_096);
+          const omittedLongUrls = evidenceCandidates.length - persistableEvidence.length;
+          const evidence = persistableEvidence.sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? "")).slice(0, 40);
           stage(
             "Evidence search",
             liveEvidence.length || feedEvidence.length ? "complete" : "blocked",

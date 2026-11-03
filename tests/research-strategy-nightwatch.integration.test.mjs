@@ -97,8 +97,9 @@ test("oversized issuer and macro source URLs are excluded before persistence", a
   const longIssuer = { ...sourceRows[0], url: `https://fixture.example/${"i".repeat(5_000)}` };
   const longMacro = { ...macroRows[0], url: `https://fixture.example/${"m".repeat(5_000)}` };
   sourceRows.push(longIssuer);
+  sourceRows.push(...Array.from({ length: 45 }, (_, index) => ({ ...sourceRows[0], title: `Additional fixture ${index}`, url: `https://fixture.example/extra-${index}`, publisher: `Additional Fixture ${index}` })));
   macroRows.push(longMacro);
-  t.after(() => { sourceRows.pop(); macroRows.pop(); captures.research.length = 0; });
+  t.after(() => { sourceRows.length = 2; macroRows.length = 2; captures.research.length = 0; });
 
   captures.research.length = 0;
   const issuerResponse = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
@@ -107,6 +108,7 @@ test("oversized issuer and macro source URLs are excluded before persistence", a
   assert.equal(issuerResponse.status, 200);
   const issuerEvents = (await issuerResponse.text()).split("\n\n").filter(Boolean).map(frame => JSON.parse(frame.split("\ndata: ")[1]));
   const issuerResult = issuerEvents.findLast(frame => frame.researchRunId);
+  assert.ok(issuerEvents.some(frame => frame.agent === "Evidence search" && frame.detail.includes("Omitted 1 source link")), "the storage limitation count excludes valid items outside the normal forty-source research cap");
   assert.ok(issuerResult.researchCoverage.limitations.some(limit => limit.includes("longer than 4,096 characters")));
   assert.ok(issuerResult.assets.flatMap(asset => asset.sources).every(source => source.url.length <= 4_096));
   assert.ok(captures.research.filter(row => row.table === "research_sources").flatMap(row => row.rows).every(source => source.url.length <= 4_096));
