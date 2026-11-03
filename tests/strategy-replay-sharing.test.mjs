@@ -9,7 +9,7 @@ const candles = [
   { timestamp: 1_800_014_400_000, open: 101, high: 103, low: 100, close: 102, volume: 22, turnover: 2244 },
 ];
 const { createBacktestExperimentManifest } = await import("../lib/backtest-manifest.ts");
-const experimentManifest = createBacktestExperimentManifest({ symbol: "RAAPLUSDT", marketCategory: "SPOT", interval: "4H", assetName: "Apple Inc.", assetKind: "Reality rToken", strategyKey: "sma_trend_v1", candles, splitIndex: 1, capturedAt: 1_800_020_000_000, providerTimestamp: 1_800_019_000_000, feeBpsPerSide: 10, slippageBpsPerSide: 5, initialEquity: 10_000, sourceRevision: "a".repeat(40) });
+const experimentManifest = createBacktestExperimentManifest({ symbol: "RAAPLUSDT", marketCategory: "SPOT", interval: "4H", assetName: "Apple Inc.", assetKind: "Reality rToken", strategyKey: "sma_trend_v1", candles, splitIndex: 1, trainStart: candles[0].timestamp, capturedAt: 1_800_020_000_000, providerTimestamp: 1_800_019_000_000, feeBpsPerSide: 10, slippageBpsPerSide: 5, initialEquity: 10_000, sourceRevision: "a".repeat(40) });
 
 test("strategy replay publish serializes an owned reproducible run and strips private route context", async () => {
   const calls = [];
@@ -73,7 +73,7 @@ test("strategy replay publish serializes an owned reproducible run and strips pr
     let insertCount = calls.filter(call => call.operation === "insert" && call.table === "public_strategy_replays").length;
     const longAssetName = `Apple ${"X".repeat(180)}`;
     run.parameters.assetName = longAssetName;
-    run.parameters.experimentManifest = createBacktestExperimentManifest({ symbol: "RAAPLUSDT", marketCategory: "SPOT", interval: "4H", assetName: longAssetName, assetKind: "Reality rToken", strategyKey: "sma_trend_v1", candles, splitIndex: 1, capturedAt: 1_800_020_000_000, providerTimestamp: 1_800_019_000_000, feeBpsPerSide: 10, slippageBpsPerSide: 5, initialEquity: 10_000, sourceRevision: "a".repeat(40) });
+    run.parameters.experimentManifest = createBacktestExperimentManifest({ symbol: "RAAPLUSDT", marketCategory: "SPOT", interval: "4H", assetName: longAssetName, assetKind: "Reality rToken", strategyKey: "sma_trend_v1", candles, splitIndex: 1, trainStart: candles[0].timestamp, capturedAt: 1_800_020_000_000, providerTimestamp: 1_800_019_000_000, feeBpsPerSide: 10, slippageBpsPerSide: 5, initialEquity: 10_000, sourceRevision: "a".repeat(40) });
     const longName = await route.POST(new Request("https://tidelight.app/api/strategy-replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ runId }) }));
     assert.equal(longName.status, 200);
     assert.equal(calls.filter(call => call.operation === "insert" && call.table === "public_strategy_replays").at(-1).values.payload.asset.name, longAssetName.slice(0, 160));
