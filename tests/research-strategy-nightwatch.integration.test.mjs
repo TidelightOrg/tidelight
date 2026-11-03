@@ -96,6 +96,7 @@ hooks.deregister();
 test("provider outage produces a source-only research result and blocks trade handoff", async t => {
   globalThis.flowTest.aiUnavailable = true;
   t.after(() => { globalThis.flowTest.aiUnavailable = false; });
+  t.after(() => { captures.research.length = 0; });
   const response = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
     method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: "Review NVDA using synthetic test fixture sources" }),
   }));
@@ -111,6 +112,7 @@ test("provider outage produces a source-only research result and blocks trade ha
 });
 
 test("synthetic positive handoff preserves lineage through Research → paper Strategy → Nightwatch without live execution", async () => {
+  captures.research.length = 0;
   const researchResponse = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
     method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: "Review NVDA using synthetic test fixture sources" }),
   }));
