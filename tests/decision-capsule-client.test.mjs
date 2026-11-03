@@ -44,3 +44,12 @@ test("rejects success responses without valid capsule integrity metadata", async
     /invalid integrity receipt/,
   );
 });
+
+test("rejects malformed and impossible capsule timestamps", async () => {
+  for (const created_at of ["November 3, 2026", "2026-02-30T10:00:00Z", "2026-11-03T25:00:00.000Z", "2026-11-03T10:00:00"]) {
+    await assert.rejects(
+      createDecisionCapsule(capsule.id, async () => new Response(JSON.stringify({ capsule: { ...capsule, created_at }, integrity: "valid" }), { status: 201 })),
+      /invalid integrity receipt/,
+    );
+  }
+});
