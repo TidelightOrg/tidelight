@@ -22,7 +22,7 @@ export type QwenBrief = {
 
 type EvidenceSource = { url: string; excerpt: string };
 
-function normalizeQuote(value: string) {
+export function normalizeQuote(value: string) {
   return value.toLowerCase().replace(/\s+/g, " ").trim();
 }
 

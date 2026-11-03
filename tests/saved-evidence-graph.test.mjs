@@ -69,14 +69,33 @@ test("quote reproduction follows brief normalization but preserves the original 
 });
 
 test("long whitespace spans are not reported as reproduced when the complete passage exceeds the output bound", () => {
-  const excerpt = `Revenue${"\n".repeat(1_300)}grew 8 percent.`;
+  const excerpt = `Revenue${" ".repeat(1_500)}grew 8 percent.`;
   const quote = "Revenue grew 8 percent.";
   const graph = buildSavedEvidenceGraph({ run, sources: [{ ...sources[0], excerpt }], evidence: [{
     ...evidence[0], supporting_quote: quote, passage_start_codepoint: 0, passage_end_codepoint: Array.from(excerpt).length,
   }] });
   const claim = graph.nodes.find(node => node.type === "claim");
-  assert.equal(claim.quoteMatchStatus, "recorded_match_not_reproduced");
-  assert.equal(graph.nodes.some(node => node.type === "passage"), false);
+  assert.equal(claim.quoteMatchStatus, "matched_to_captured_text");
+  const passage = graph.nodes.find(node => node.type === "passage");
+  assert.ok(passage);
+  assert.equal(passage.text, excerpt, "the whole captured span is returned, including whitespace normalized for matching");
+  assert.equal(passage.text.toLowerCase().replace(/\s+/g, " ").trim(), quote.toLowerCase());
+});
+
+test("publication metadata accepts only complete valid dates or timezone-qualified timestamps", () => {
+  const invalid = ["2026-10", "2026-10-31T23:00:00", "2026-02-30", "2026-10-31T25:00:00Z"];
+  const graph = buildSavedEvidenceGraph({
+    run: { ...run, summary: { sources: invalid.map((publication_date, index) => ({ url: `https://example.com/invalid-${index}`, publication_date })) } },
+    sources: invalid.map((_, index) => ({ ...sources[0], id: `20000000-0000-4000-8000-${String(index + 10).padStart(12, "0")}`, url: `https://example.com/invalid-${index}`, published_at: null })),
+    evidence: [],
+  });
+  assert.equal(graph.nodes.filter(node => node.type === "source").length, 0);
+});
+
+test("retrieval timestamps require RFC3339 timezones", () => {
+  assert.throws(() => buildSavedEvidenceGraph({ run: { ...run, completed_at: "2026-10-31T20:00:00" }, sources: [], evidence: [] }), /invalid-asof/);
+  const graph = buildSavedEvidenceGraph({ run, sources: [{ ...sources[0], retrieved_at: "2026-10-31T19:10:00" }], evidence: [] });
+  assert.equal(graph.nodes.some(node => node.type === "source"), false);
 });
 
 test("invalid run as-of time is rejected", () => {
