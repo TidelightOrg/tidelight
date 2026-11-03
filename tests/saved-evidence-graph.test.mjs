@@ -99,6 +99,19 @@ test("publication metadata accepts only complete valid dates or timezone-qualifi
   assert.equal(graph.nodes.filter(node => node.type === "source").length, 0);
 });
 
+test("publication metadata lookup is not truncated by deleted source rows", () => {
+  const remainingUrl = "https://example.com/remaining";
+  const graph = buildSavedEvidenceGraph({
+    run: { ...run, summary: { sources: [
+      { url: "https://example.com/deleted", publication_date: "2026-10-30" },
+      { url: remainingUrl, publication_date: "2026-11-01" },
+    ] } },
+    sources: [{ ...sources[0], url: remainingUrl, published_at: null }],
+    evidence: [],
+  });
+  assert.equal(graph.nodes.some(node => node.type === "source" && node.url === remainingUrl), false);
+});
+
 test("RFC3339 publication timestamps accept lowercase t and z", () => {
   const graph = buildSavedEvidenceGraph({
     run: { ...run, summary: { sources: [{ url: sources[0].url, publication_date: "2026-10-30t12:00:00z" }] } },

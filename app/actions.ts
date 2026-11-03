@@ -136,7 +136,7 @@ export async function createEvidenceBrief(input: { question: string; sourceTitle
     if (!brief) throw new Error("invalid-evidence-response");
 
     const { data: savedSources, error: sourceError } = await supabase.from("research_sources").insert(validSources.map((source) => ({
-      research_run_id: run.id, url: source.url, title: source.title, publisher: provenance.get(source.url)?.publisher ?? new URL(source.url).hostname, source_type: provenance.get(source.url)?.sourceType ?? "user_note", excerpt: source.excerpt,
+      research_run_id: run.id, url: source.url, title: source.title, publisher: (provenance.get(source.url)?.publisher ?? new URL(source.url).hostname).slice(0, 120), source_type: provenance.get(source.url)?.sourceType ?? "user_note", excerpt: source.excerpt,
     }))).select("id, url, publisher, retrieved_at");
     if (sourceError || !savedSources?.length) throw new Error("source-save-failed");
 

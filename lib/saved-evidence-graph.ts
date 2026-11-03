@@ -27,6 +27,7 @@ export const SAVED_GRAPH_INPUT_LIMITS = {
   evidenceClaimCodeUnits: 2_000,
   evidenceQuoteCodeUnits: 600,
   passageCodeUnits: 6_000,
+  summarySourceEntries: 500,
   totalTextCodeUnits: 2_000_000,
 } as const;
 
@@ -183,7 +184,7 @@ export function buildSavedEvidenceGraph(input: { run: SavedGraphRun; sources: Sa
   const exposures = Array.isArray(summary?.exposure) ? summary.exposure : [];
   const savedBriefSources = new Map<string, Record<string, unknown>>();
   if (Array.isArray(summary?.sources)) {
-    for (const candidate of summary.sources.slice(0, input.sources.length)) {
+    for (const candidate of summary.sources.slice(0, SAVED_GRAPH_INPUT_LIMITS.summarySourceEntries)) {
       const savedSource = stringRecord(candidate);
       if (savedSource && typeof savedSource.url === "string") savedBriefSources.set(savedSource.url, savedSource);
     }

@@ -20,4 +20,5 @@ test("normalized research evidence records quote status and exclusive Unicode pa
   assert.match(actions, /claim_support_status: claim\.claim_support_status/);
   assert.match(actions, /passage_start_codepoint: claim\.passage_span\.start_codepoint/);
   assert.match(actions, /passage_end_codepoint: claim\.passage_span\.end_codepoint/);
+  assert.match(actions, /publisher: \(provenance\.get\(source\.url\)\?\.publisher \?\? new URL\(source\.url\)\.hostname\)\.slice\(0, 120\)/);
 });
