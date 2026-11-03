@@ -180,7 +180,8 @@ test("manual paper exit uses the verified user and rejects stale quotes", async 
     assert.equal(call.name, "nightwatch_close_from_server");
     assert.equal(call.args.p_user_id, user.id);
     assert.equal(call.args.p_reference_price, 101);
-    assert.equal(call.args.p_reference_price === globalThis.flowTest.asset("RNVDAUSDT").lastPrice, false);
+    const ticker = await globalThis.flowTest.asset("RNVDAUSDT");
+    assert.notEqual(call.args.p_reference_price, ticker.lastPrice);
   } finally {
     globalThis.flowTest.asset = originalAsset;
     globalThis.flowTest.tradeQuote = originalTradeQuote;
