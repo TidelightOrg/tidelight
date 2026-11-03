@@ -107,7 +107,7 @@ function stableId(kind: string, recordId: string) {
 function validInstant(value: string | null | undefined): number | null {
   if (!value) return null;
   const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
-  const timestamp = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(Z|[+-]\d{2}:\d{2})$/.exec(value);
+  const timestamp = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.\d+)?(Z|[+-]\d{2}:\d{2})$/i.exec(value);
   if (!dateOnly && !timestamp) return null;
   const [year, month, day] = (dateOnly ?? timestamp)!.slice(1, 4).map(Number);
   const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
@@ -116,9 +116,10 @@ function validInstant(value: string | null | undefined): number | null {
     const [, , , , hour, minute, second] = timestamp;
     if (Number(hour) > 23 || Number(minute) > 59 || Number(second) > 59) return null;
     const zone = timestamp[7];
-    if (zone !== "Z" && (Number(zone.slice(1, 3)) > 23 || Number(zone.slice(4, 6)) > 59)) return null;
+    if (zone.toUpperCase() !== "Z" && (Number(zone.slice(1, 3)) > 23 || Number(zone.slice(4, 6)) > 59)) return null;
   }
-  const parsed = Date.parse(value);
+  const normalizedValue = value.replace(/t/i, "T").replace(/z$/i, "Z");
+  const parsed = Date.parse(normalizedValue);
   return Number.isFinite(parsed) ? parsed : null;
 }
 
@@ -158,9 +159,20 @@ export function buildSavedEvidenceGraph(input: { run: SavedGraphRun; sources: Sa
   const asOf = new Date(asOfMs).toISOString();
   const nodes = new Map<string, SavedEvidenceGraphNode>();
   const edges = new Map<string, SavedEvidenceGraphEdge>();
-  const addNode = (node: SavedEvidenceGraphNode) => nodes.set(node.id, node);
+  let responseTextCodeUnits = input.run.id.length + "saved_research_run".length;
+  const addText = (values: unknown[]) => {
+    responseTextCodeUnits += values.reduce((total, value) => total + (typeof value === "string" ? value.length : 0), 0);
+    if (responseTextCodeUnits > SAVED_GRAPH_INPUT_LIMITS.totalTextCodeUnits) {
+      throw new Error("saved-evidence-graph-response-too-large");
+    }
+  };
+  const addNode = (node: SavedEvidenceGraphNode) => {
+    addText(Object.values(node));
+    nodes.set(node.id, node);
+  };
   const addEdge = (from: string, to: string, relation: SavedEvidenceGraphEdge["relation"]) => {
     const id = stableId("edge", `${from}\n${relation}\n${to}`);
+    addText([id, from, to, relation]);
     edges.set(id, { id, from, to, relation });
   };
 
@@ -248,6 +260,12 @@ export function buildSavedEvidenceGraph(input: { run: SavedGraphRun; sources: Sa
     }
   }
 
+  const limitations = [
+    "These links preserve saved research provenance; they do not independently verify claim truth or source reliability.",
+    "A matched quote means text matched a captured excerpt; it does not establish that the claim is supported.",
+    "Sources captured after the completed run and date-only sources from the snapshot day are excluded to avoid future leakage.",
+  ];
+  addText([asOf, ...limitations]);
   return {
     version: 1,
     scope: "saved_research_run",
@@ -255,11 +273,7 @@ export function buildSavedEvidenceGraph(input: { run: SavedGraphRun; sources: Sa
     asOf,
     nodes: [...nodes.values()],
     edges: [...edges.values()],
-    limitations: [
-      "These links preserve saved research provenance; they do not independently verify claim truth or source reliability.",
-      "A matched quote means text matched a captured excerpt; it does not establish that the claim is supported.",
-      "Sources captured after the completed run and date-only sources from the snapshot day are excluded to avoid future leakage.",
-    ],
+    limitations,
   };
 }
 import { normalizeQuote } from "@/lib/evidence";

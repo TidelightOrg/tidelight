@@ -99,6 +99,17 @@ test("publication metadata accepts only complete valid dates or timezone-qualifi
   assert.equal(graph.nodes.filter(node => node.type === "source").length, 0);
 });
 
+test("RFC3339 publication timestamps accept lowercase t and z", () => {
+  const graph = buildSavedEvidenceGraph({
+    run: { ...run, summary: { sources: [{ url: sources[0].url, publication_date: "2026-10-30t12:00:00z" }] } },
+    sources: [{ ...sources[0], published_at: null, retrieved_at: "2026-10-31t19:10:00.000z" }],
+    evidence: [],
+  });
+  const source = graph.nodes.find(node => node.type === "source");
+  assert.equal(source.publishedAt, "2026-10-30T12:00:00.000Z");
+  assert.equal(source.retrievedAt, "2026-10-31T19:10:00.000Z");
+});
+
 test("retrieval timestamps require RFC3339 timezones", () => {
   assert.throws(() => buildSavedEvidenceGraph({ run: { ...run, completed_at: "2026-10-31T20:00:00" }, sources: [], evidence: [] }), /invalid-asof/);
   const graph = buildSavedEvidenceGraph({ run, sources: [{ ...sources[0], retrieved_at: "2026-10-31T19:10:00" }], evidence: [] });

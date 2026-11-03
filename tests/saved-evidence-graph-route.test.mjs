@@ -175,6 +175,28 @@ test("oversized source and evidence text returns 413 without partial nodes", asy
   }
 });
 
+test("repeated complete passages cannot exceed the response text budget", async () => {
+  const state = setup("owner");
+  const excerpt = `Revenue${" ".repeat(5_960)}grew 8 percent.`;
+  state.rows.research_sources[0].excerpt = excerpt;
+  state.rows.research_evidence = Array.from({ length: 400 }, (_, index) => ({
+    ...state.rows.research_evidence[0],
+    id: `30000000-0000-4000-8000-${String(index + 10).padStart(12, "0")}`,
+    claim: "Revenue grew eight percent for the period.",
+    supporting_quote: "Revenue grew 8 percent.",
+    passage_start_codepoint: 0,
+    passage_end_codepoint: Array.from(excerpt).length,
+  }));
+  const hooks = registerHooks({ resolve(specifier, _context, nextResolve) { if (specifier === "@/lib/saved-evidence-graph") return { url: new URL("../lib/saved-evidence-graph.ts", import.meta.url).href, shortCircuit: true }; if (specifier === "@/lib/evidence") return { url: new URL("../lib/evidence.ts", import.meta.url).href, shortCircuit: true }; if (mocks[specifier]) return { url: `data:text/javascript,${encodeURIComponent(mocks[specifier])}`, shortCircuit: true }; return nextResolve(specifier); } });
+  try {
+    const route = await import(`../app/api/research/evidence-graph/[runId]/route.ts?test=saved-graph-output-text-limit`);
+    const response = await route.GET(new Request(`https://tidelight.app/api/research/evidence-graph/${runId}`), { params: Promise.resolve({ runId }) });
+    assert.equal(response.status, 413);
+    assert.equal(response.headers.get("cache-control"), "private, no-store");
+    assert.equal(Object.hasOwn(await response.json(), "nodes"), false);
+  } finally { hooks.deregister(); delete globalThis.savedEvidenceGraphTest; }
+});
+
 test("invalid completion timestamps return 422 without partial nodes", async () => {
   const state = setup("owner");
   state.rows.research_runs.completed_at = null;

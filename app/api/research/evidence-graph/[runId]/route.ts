@@ -40,7 +40,8 @@ export async function GET(_request: Request, { params }: { params: Promise<{ run
   try {
     const graph = buildSavedEvidenceGraph({ run: run as SavedGraphRun, sources: boundedSources, evidence: boundedEvidence });
     return NextResponse.json(graph, { headers: noStore });
-  } catch {
+  } catch (error) {
+    if (error instanceof Error && error.message === "saved-evidence-graph-response-too-large") return NextResponse.json({ error: "This complete evidence graph exceeds the safe response text budget; no partial graph was returned." }, { status: 413, headers: noStore });
     return NextResponse.json({ error: "The saved research record cannot be represented as a complete graph." }, { status: 422, headers: noStore });
   }
 }
