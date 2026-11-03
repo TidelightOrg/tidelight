@@ -78,6 +78,7 @@ export async function createEvidenceBrief(input: { question: string; sourceTitle
   const sourceList = input.sources?.length ? input.sources : [{ title: input.sourceTitle ?? "", url: input.sourceUrl ?? "", excerpt: input.excerpt ?? "" }];
   if (!question || question.length > 500) return { error: "Enter a question under 500 characters." };
   if (sourceList.length > 5) return { error: "Use up to five sources per brief." };
+  if (sourceList.some((source) => typeof source.url !== "string" || source.url.length > 4_096)) return { error: "Source links must be 4,096 characters or shorter." };
   const company = input.company?.toUpperCase() ?? "";
   if (input.fetchSource && (sourceList.length < 1 || sourceList.length > 3 || sourceList.some((source) => !validatePublicSourceUrl(source.url, company)))) {
     return { error: "Use one to three HTTPS links from the selected company, SEC, or a supported public publisher. For other sources, switch to Pro and paste a passage." };
@@ -89,6 +90,7 @@ export async function createEvidenceBrief(input: { question: string; sourceTitle
   if (sources.some((source) => !source || (!input.fetchSource && (!source.title || source.title.length > 200 || source.excerpt.length < 80 || source.excerpt.length > 6000)))) {
     return { error: input.fetchSource ? "Enter a supported HTTPS source link." : "Each source needs a title and an excerpt between 80 and 6,000 characters." };
   }
+  if (sources.some((source) => source && source.url.length > 4_096)) return { error: "Source links must be 4,096 characters or shorter." };
   const validSources: Array<{ title: string; url: string; excerpt: string }> = sources as Array<{ title: string; url: string; excerpt: string }>;
   if (new Set(validSources.map((source) => source.url)).size !== validSources.length) return { error: "Each source needs a different link so evidence can be traced clearly." };
 

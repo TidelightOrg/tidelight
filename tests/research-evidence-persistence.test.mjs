@@ -21,4 +21,6 @@ test("normalized research evidence records quote status and exclusive Unicode pa
   assert.match(actions, /passage_start_codepoint: claim\.passage_span\.start_codepoint/);
   assert.match(actions, /passage_end_codepoint: claim\.passage_span\.end_codepoint/);
   assert.match(actions, /publisher: \(provenance\.get\(source\.url\)\?\.publisher \?\? new URL\(source\.url\)\.hostname\)\.slice\(0, 120\)/);
+  assert.match(actions, /sourceList\.some\(\(source\) => typeof source\.url !== "string" \|\| source\.url\.length > 4_096\)/);
+  assert.match(actions, /sources\.some\(\(source\) => source && source\.url\.length > 4_096\)/);
 });
