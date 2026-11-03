@@ -139,6 +139,7 @@ test("saved graph text limits accept writer-sized excerpts and reject oversized 
   const boundedSource = { ...sources[0], excerpt: "x".repeat(SAVED_GRAPH_INPUT_LIMITS.sourceExcerptCodeUnits) };
   assert.equal(savedGraphInputsWithinLimits([boundedSource], evidence), true);
   assert.equal(savedGraphInputsWithinLimits([{ ...boundedSource, url: "u".repeat(SAVED_GRAPH_INPUT_LIMITS.sourceUrlCodeUnits + 1) }], evidence), false);
+  assert.equal(savedGraphInputsWithinLimits([{ ...boundedSource, url: `https://example.com/${"é".repeat(1_000)}` }], evidence), false);
   assert.equal(savedGraphInputsWithinLimits([{ ...boundedSource, title: "t".repeat(SAVED_GRAPH_INPUT_LIMITS.sourceTitleCodeUnits + 1) }], evidence), false);
   assert.equal(savedGraphInputsWithinLimits([{ ...boundedSource, publisher: "p".repeat(SAVED_GRAPH_INPUT_LIMITS.sourcePublisherCodeUnits + 1) }], evidence), false);
   assert.equal(savedGraphInputsWithinLimits([{ ...boundedSource, content_hash: "h".repeat(SAVED_GRAPH_INPUT_LIMITS.sourceContentHashCodeUnits + 1) }], []), false);

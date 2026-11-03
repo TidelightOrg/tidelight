@@ -1,3 +1,6 @@
+import { isPersistableResearchSourceUrl } from "./research-source-limits.js";
+import { normalizeQuote } from "@/lib/evidence";
+
 export type SavedGraphRun = {
   id: string;
   question: string;
@@ -80,7 +83,7 @@ export function savedGraphInputsWithinLimits(sources: SavedGraphSource[], eviden
         (source.publisher !== null && typeof source.publisher !== "string") ||
         (source.excerpt !== null && typeof source.excerpt !== "string") ||
         (source.content_hash !== null && typeof source.content_hash !== "string")) return false;
-    if (source.url.length > SAVED_GRAPH_INPUT_LIMITS.sourceUrlCodeUnits ||
+    if (!isPersistableResearchSourceUrl(source.url) || source.url.length > SAVED_GRAPH_INPUT_LIMITS.sourceUrlCodeUnits ||
         source.title.length > SAVED_GRAPH_INPUT_LIMITS.sourceTitleCodeUnits ||
         (source.publisher?.length ?? 0) > SAVED_GRAPH_INPUT_LIMITS.sourcePublisherCodeUnits ||
         (source.content_hash?.length ?? 0) > SAVED_GRAPH_INPUT_LIMITS.sourceContentHashCodeUnits ||
@@ -277,4 +280,3 @@ export function buildSavedEvidenceGraph(input: { run: SavedGraphRun; sources: Sa
     limitations,
   };
 }
-import { normalizeQuote } from "@/lib/evidence";

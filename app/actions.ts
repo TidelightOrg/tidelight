@@ -9,6 +9,7 @@ import { mapResearchExposure } from "@/lib/exposure-map";
 import { validateBrief } from "@/lib/evidence";
 import { fetchPublicResearchSource, validatePublicSourceUrl, type RetrievedPublicSource } from "@/lib/public-source";
 import { getServerAuthState } from "@/lib/supabase/auth-user";
+import { isPersistableResearchSourceUrl } from "@/lib/research-source-limits";
 
 export async function signOut() {
   const supabase = await createClient();
@@ -92,6 +93,7 @@ export async function createEvidenceBrief(input: { question: string; sourceTitle
   }
   if (sources.some((source) => source && source.url.length > 4_096)) return { error: "Source links must be 4,096 characters or shorter." };
   const validSources: Array<{ title: string; url: string; excerpt: string }> = sources as Array<{ title: string; url: string; excerpt: string }>;
+  if (validSources.some((source) => !isPersistableResearchSourceUrl(source.url))) return { error: "Each source link must fit the 2,000-byte research storage limit." };
   if (new Set(validSources.map((source) => source.url)).size !== validSources.length) return { error: "Each source needs a different link so evidence can be traced clearly." };
 
   const auth = await getServerAuthState();
@@ -122,7 +124,7 @@ export async function createEvidenceBrief(input: { question: string; sourceTitle
   try {
     if (input.fetchSource) {
       const fetchedSources = await Promise.all(validSources.map((source) => fetchPublicResearchSource(source.url, company)));
-      if (fetchedSources.some((source) => source.url.length > 4_096)) throw new Error("source-url-too-long");
+      if (fetchedSources.some((source) => !isPersistableResearchSourceUrl(source.url))) throw new Error("source-url-too-long");
       if (new Set(fetchedSources.map((source) => source.url)).size !== fetchedSources.length) throw new Error("duplicate-final-source");
       fetchedSources.forEach((fetched, index) => {
         validSources[index] = { title: fetched.title, url: fetched.url, excerpt: fetched.excerpt };

@@ -84,6 +84,7 @@ const mockSpecifiers = new Set([
 
 const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
   if (specifier === "server-only" || mockSpecifiers.has(specifier)) return { url: new URL("./fixtures/research-flow-integration-mocks.mjs", import.meta.url).href, shortCircuit: true };
+  if (specifier === "@/lib/research-source-limits") return { url: new URL("../lib/research-source-limits.js", import.meta.url).href, shortCircuit: true };
   if (specifier === "@/lib/agent-flow-policy") return { url: new URL("../lib/agent-flow-policy.ts", import.meta.url).href, shortCircuit: true };
   if (specifier === "@/lib/evidence-graph") return { url: new URL("../lib/evidence-graph.ts", import.meta.url).href, shortCircuit: true };
   return nextResolve(specifier, context);

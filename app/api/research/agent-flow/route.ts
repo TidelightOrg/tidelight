@@ -11,6 +11,7 @@ import { extractFlowTickers, gateFlowTrade, isTokenizedMarketQuestion, normalize
 import { buildIssuerNewsQueries, gatherIssuerEvidence, issuerEvidenceLookbackDays, type FlowEvidence } from "@/lib/agent-flow-sources";
 import { agentKeyIssuerEvidence } from "@/lib/agentkey-flow-sources";
 import { buildMacroNewsQueries, classifyMacroQuestion, gatherMacroEvidence, macroResearchLookbackDays, type MacroEvidence, type MacroTopic } from "@/lib/macro-research-sources";
+import { filterPersistableResearchSources } from "@/lib/research-source-limits";
 import { recordProviderHealth } from "@/lib/provider-health";
 import { getSecCompanyResearch } from "@/lib/sec-fundamentals";
 
@@ -208,12 +209,11 @@ export async function POST(request: Request) {
           stage("Coordinator", "complete", "Macro research question framed", `Researching ${topicLabel} as an information-only macro brief. No stock quote, derivative, candle, or trading provider is used.`);
           stage("Macro evidence", "running", "Finding official and independent sources", "Checking Federal Reserve or BLS coverage alongside bounded independent reporting for the requested period.");
           const macroCandidates: MacroEvidence[] = await settleWithin(gatherMacroEvidence(question), 18_000);
-          const macroSources = macroCandidates.filter(source => source.url.length <= 4_096);
-          const omittedMacroSources = macroCandidates.length - macroSources.length;
+          const { items: macroSources, omittedOversizedLinks: omittedMacroSources } = filterPersistableResearchSources(macroCandidates);
           const sourceByMacro: Record<string, FlowSource[]> = { MACRO: macroSources.map(source => ({ title: source.title, url: source.url, publisher: source.publisher, publishedAt: source.publishedAt, via: source.sourceKind === "official" ? "Official source" : "Independent reporting" })) };
           const officialCount = macroSources.filter(source => source.sourceKind === "official").length;
           const independentCount = macroSources.filter(source => source.sourceKind === "independent_reporting").length;
-          stage("Macro evidence", macroSources.length ? "complete" : "blocked", `${macroSources.length} macro sources collected`, `${macroSources.length ? `${officialCount} official Fed/BLS source${officialCount === 1 ? "" : "s"} and ${independentCount} independent report${independentCount === 1 ? "" : "s"} matched the request. Each source remains linked below.` : "No attributable Federal Reserve/BLS or allowlisted independent coverage matched this dated question."}${omittedMacroSources ? ` Omitted ${omittedMacroSources} source link${omittedMacroSources === 1 ? "" : "s"} longer than the 4,096-character storage limit.` : ""}`);
+          stage("Macro evidence", macroSources.length ? "complete" : "blocked", `${macroSources.length} macro sources collected`, `${macroSources.length ? `${officialCount} official Fed/BLS source${officialCount === 1 ? "" : "s"} and ${independentCount} independent report${independentCount === 1 ? "" : "s"} matched the request. Each source remains linked below.` : "No attributable Federal Reserve/BLS or allowlisted independent coverage matched this dated question."}${omittedMacroSources ? ` Omitted ${omittedMacroSources} source link${omittedMacroSources === 1 ? "" : "s"} outside the database-safe 2,000-byte / 4,096-character URL limit.` : ""}`);
           const allSources = user ? macroSources.map(source => ({ research_run_id: runId, url: source.url, title: source.title.slice(0, 300), publisher: source.publisher.slice(0, 120), published_at: source.publishedAt, source_type: "web", excerpt: source.snippet.slice(0, 3_500) })) : [];
           if (allSources.length) {
             const { error } = await supabase.from("research_sources").upsert(allSources, { onConflict: "research_run_id,url", ignoreDuplicates: true });
@@ -304,8 +304,7 @@ export async function POST(request: Request) {
           const capturedFacts = boundedSecFacts(financialFacts);
           stage("SEC filings", sec.status === "fulfilled" && capturedFacts.length ? "complete" : "blocked", sec.status === "fulfilled" ? `${ticker}: ${capturedFacts.length} filed facts` : `${ticker}: SEC facts unavailable`, capturedFacts.length ? `${capturedFacts.length} dated reported values from SEC company facts are available.` : "No eligible SEC facts were retrieved; missing financials are not inferred.", ticker);
           const evidenceCandidates = [...new Map([...feedEvidence, ...liveEvidence].map(source => [source.url, source])).values()];
-          const persistableEvidence = evidenceCandidates.filter(source => source.url.length <= 4_096);
-          const omittedLongUrls = evidenceCandidates.length - persistableEvidence.length;
+          const { items: persistableEvidence, omittedOversizedLinks: omittedLongUrls } = filterPersistableResearchSources(evidenceCandidates);
           const evidence = persistableEvidence.sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? "")).slice(0, 40);
           stage(
             "Evidence search",
@@ -319,7 +318,7 @@ export async function POST(request: Request) {
               ? "AgentKey returned dated article links; public feeds were checked alongside it."
               : feedEvidence.length
                 ? "No attributable AgentKey headlines were available for this search. Public-feed results are shown below."
-                : "AgentKey and public feeds returned no recent, attributable article links."}${omittedLongUrls ? ` Omitted ${omittedLongUrls} source link${omittedLongUrls === 1 ? "" : "s"} longer than the 4,096-character storage limit.` : ""}`,
+              : "AgentKey and public feeds returned no recent, attributable article links."}${omittedLongUrls ? ` Omitted ${omittedLongUrls} source link${omittedLongUrls === 1 ? "" : "s"} outside the database-safe 2,000-byte / 4,096-character URL limit.` : ""}`,
             ticker,
           );
           return { ticker, issuer: market?.name ?? spotAsset?.name ?? ticker, secStatus: sec.status === "fulfilled" ? "available" as const : "unavailable" as const, financialFacts: capturedFacts, perp: market, spot: spotAsset,

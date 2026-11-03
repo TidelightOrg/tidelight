@@ -4,7 +4,7 @@
 alter table public.research_sources
   add constraint research_sources_graph_text_limits_check
   check (
-    char_length(url) <= 4096 and octet_length(url) <= 16384
+    char_length(url) <= 4096 and octet_length(url) <= 2000
     and char_length(title) <= 300 and octet_length(title) <= 1200
     and (publisher is null or (char_length(publisher) <= 120 and octet_length(publisher) <= 480))
     and (content_hash is null or (char_length(content_hash) <= 128 and octet_length(content_hash) <= 512))
