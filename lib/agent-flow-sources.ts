@@ -1,4 +1,5 @@
 import type { FlowSource } from "./agent-flow-policy";
+import { isPersistableResearchSourceUrl } from "./research-source-limits.js";
 
 export type FlowEvidence = FlowSource & { snippet: string };
 const issuerNames: Record<string, string> = { NVDA: "NVIDIA", TSLA: "Tesla", AAPL: "Apple", AMD: "Advanced Micro Devices", MSFT: "Microsoft", META: "Meta", AMZN: "Amazon", GOOGL: "Alphabet", INTC: "Intel", ASML: "ASML", QCOM: "Qualcomm", MU: "Micron" };
@@ -184,7 +185,7 @@ export function buildIssuerNewsQueries(ticker: string, issuer: string, question 
     `"${name}" OR "${ticker}" (industry OR supply chain OR market)`,
   ];
 }
-export async function gatherIssuerEvidence(ticker: string, issuer: string, question = ""): Promise<FlowEvidence[]> {
+export async function gatherIssuerEvidence(ticker: string, issuer: string, question = "", onOmittedUrl?: () => void): Promise<FlowEvidence[]> {
   const name = issuerNames[ticker] ?? issuer;
   const context = historicalSearchContext(question);
   const queries = buildIssuerNewsQueries(ticker, issuer, question);
@@ -204,6 +205,7 @@ export async function gatherIssuerEvidence(ticker: string, issuer: string, quest
   for (const result of results) {
     if (result.status !== "fulfilled") continue;
     for (const item of result.value) {
+      if (!isPersistableResearchSourceUrl(item.url)) { onOmittedUrl?.(); continue; }
       const headline = `${item.title} ${item.snippet}`;
       const relevant = new RegExp(`(^|[^a-z0-9])${ticker}([^a-z0-9]|$)`, "i").test(headline) ||
         (name.length >= 4 && headline.toLowerCase().includes(name.toLowerCase()));

@@ -14,6 +14,8 @@ test("Overview token pulse stores news and community items using an allowed rese
   assert.match(route, /researchRunId/);
   assert.ok(route.indexOf("filterPersistableTokenPulseSources(gathered)") < route.indexOf("const unique = new Map"));
   assert.match(route, /omittedOversizedLinks/);
+  assert.match(route, /No eligible recent sources remain[\s\S]*?omittedOversizedLinks/);
+  assert.match(route, /2,000 UTF-8 bytes or 4,096 characters/);
 });
 
 test("an oversized Token Pulse source link is omitted while valid evidence remains persistable", () => {

@@ -262,6 +262,7 @@ export async function POST(request: Request) {
         const tokenizedMarketQuestion = isTokenizedMarketQuestion(question, tickers);
         stage("Coordinator", "complete", "Question framed", `${tokenizedMarketQuestion ? "Researching issuer evidence and the explicitly requested tokenized market." : "Researching issuer and stock-perpetual context only."} A question-focused discovery pass and complementary bounded news searches per issuer, followed by corroboration and risk gates.${workspaceContext ? ` Opened from ${workspaceContext}.` : ""}`);
         stage("Market scout", "running", "Mapping current market and coverage", tokenizedMarketQuestion ? "Checking issuer evidence, the requested tokenized instrument, and market context. Headlines remain discovery references until reviewed." : "Checking issuer coverage and relevant stock-perpetual context. Headlines remain discovery references until reviewed.");
+        const oversizedIssuerLinks = new Map<string, number>();
         const snapshots: MarketSnapshot[] = await Promise.all(tickers.map(async ticker => {
           const symbol = `${ticker}USDT`;
           // Bound each independent provider call so one stalled feed cannot consume the
@@ -270,7 +271,7 @@ export async function POST(request: Request) {
             settleWithin(getBitgetStockPerp(symbol), 18_000),
             tokenizedMarketQuestion ? settleWithin(getBitgetAsset(`R${ticker}USDT`), 18_000) : Promise.resolve(null),
             settleWithin(getBitgetCandles(symbol, "4H", 100, "USDT-FUTURES"), 18_000),
-            settleWithin(gatherIssuerEvidence(ticker, getIssuerName(ticker), question), 18_000),
+            settleWithin(gatherIssuerEvidence(ticker, getIssuerName(ticker), question, () => oversizedIssuerLinks.set(ticker, (oversizedIssuerLinks.get(ticker) ?? 0) + 1)), 18_000),
             settleWithin(agentKeyIssuerEvidence(ticker, getIssuerName(ticker)), 12_000),
             settleWithin(getSecCompanyResearch(ticker, null, { asOf: researchAsOf, includeAnalystTargets: false }), 18_000),
           ]);
@@ -304,7 +305,8 @@ export async function POST(request: Request) {
           const capturedFacts = boundedSecFacts(financialFacts);
           stage("SEC filings", sec.status === "fulfilled" && capturedFacts.length ? "complete" : "blocked", sec.status === "fulfilled" ? `${ticker}: ${capturedFacts.length} filed facts` : `${ticker}: SEC facts unavailable`, capturedFacts.length ? `${capturedFacts.length} dated reported values from SEC company facts are available.` : "No eligible SEC facts were retrieved; missing financials are not inferred.", ticker);
           const evidenceCandidates = [...new Map([...feedEvidence, ...liveEvidence].map(source => [source.url, source])).values()];
-          const { items: persistableEvidence, omittedOversizedLinks: omittedLongUrls } = filterPersistableResearchSources(evidenceCandidates);
+          const { items: persistableEvidence, omittedOversizedLinks: postEnrichmentOmissions } = filterPersistableResearchSources(evidenceCandidates);
+          const omittedLongUrls = postEnrichmentOmissions + (oversizedIssuerLinks.get(ticker) ?? 0);
           const evidence = persistableEvidence.sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? "")).slice(0, 40);
           stage(
             "Evidence search",
