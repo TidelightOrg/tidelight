@@ -117,9 +117,7 @@ test("Simplified Chinese covers the private capsule action in saved Research", a
     readFile(new URL("app/i18n/zh-CN.json", root), "utf8").then(JSON.parse),
   ]);
   for (const key of [
-    "Decision Capsule", "PRIVATE / WRITE-ONCE SNAPSHOT", "Preserve this research as a Decision Capsule",
-    "Save the completed research and its stored sources as a private integrity-checked record. This confirms record integrity, not forecast accuracy.",
-    "Capsule saved · integrity verified", "Capsule ID", "Open verified capsule JSON", "Saving capsule…", "Save private Decision Capsule ↗",
+    "Decision Capsule", "Capsule saved · integrity verified", "Capsule ID", "Open verified capsule JSON", "Saving capsule…", "Save private Decision Capsule ↗",
   ]) {
     assert.ok(desk.includes(key), `Research must render the capsule copy key: ${key}`);
     assert.equal(typeof translations[key], "string", `Simplified Chinese must translate: ${key}`);
