@@ -6257,5 +6257,14 @@
   "no temporally valid source": "没有时间有效的来源",
   "Retrieved excerpt": "检索摘录",
   "exact quote not verified": "逐字引文未经核验",
-  "No model-linked evidence points were recorded. The captured source references remain available below.": "未记录关联模型判断的证据要点。下方仍可查看已捕获的来源。"
+  "No model-linked evidence points were recorded. The captured source references remain available below.": "未记录关联模型判断的证据要点。下方仍可查看已捕获的来源。",
+  "Decision Capsule": "决策胶囊",
+  "PRIVATE / WRITE-ONCE SNAPSHOT": "私人 / 一次写入快照",
+  "Preserve this research as a Decision Capsule": "将此研究保存为决策胶囊",
+  "Save the completed research and its stored sources as a private integrity-checked record. This confirms record integrity, not forecast accuracy.": "将已完成的研究及其已保存来源记录为私密且经过完整性校验的档案。此校验确认记录完整性，不代表预测准确。",
+  "Capsule saved · integrity verified": "胶囊已保存 · 完整性已验证",
+  "Capsule ID": "胶囊 ID",
+  "Open verified capsule JSON": "打开已验证的胶囊 JSON",
+  "Saving capsule…": "正在保存胶囊…",
+  "Save private Decision Capsule ↗": "保存私人决策胶囊 ↗"
 }
