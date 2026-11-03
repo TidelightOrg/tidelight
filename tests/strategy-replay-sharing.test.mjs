@@ -14,8 +14,8 @@ const experimentManifest = createBacktestExperimentManifest({ symbol: "RAAPLUSDT
 test("strategy replay publish serializes an owned reproducible run and strips private route context", async () => {
   const calls = [];
   const run = {
-    id: runId, symbol: "RAAPLUSDT", interval: "4h", strategy_key: "trend_sma_20_50",
-    parameters: { fast: 20, slow: 50, candleHash: "a".repeat(64), researchRunId: "private-research-run", assetName: "Apple Inc.", assetKind: "Reality rToken", experimentManifest },
+    id: runId, symbol: "RAAPLUSDT", interval: "4H", strategy_key: "sma_trend_v1",
+    parameters: { fast: 20, slow: 50, initialEquity: 10_000, feeBpsPerSide: 10, slippageBpsPerSide: 5, marketCategory: "SPOT", candleHash: "a".repeat(64), researchRunId: "private-research-run", assetName: "Apple Inc.", assetKind: "Reality rToken", experimentManifest },
     train_metrics: { totalReturnPct: 4.2 }, test_metrics: { totalReturnPct: -0.58, benchmarkReturnPct: 2.02 },
     data_start: "2026-07-26T00:00:00Z", data_end: "2026-10-24T00:00:00Z", candle_count: 525,
     candles, created_at: "2026-10-24T00:00:00Z",
@@ -71,6 +71,11 @@ test("strategy replay publish serializes an owned reproducible run and strips pr
     assert.ok(Date.parse(insert.values.expires_at) <= Date.now() + 30 * 86_400_000 + 1000);
 
     const insertCount = calls.filter(call => call.operation === "insert" && call.table === "public_strategy_replays").length;
+    run.strategy_key = "different_strategy";
+    const mismatchedIdentity = await route.POST(new Request("https://tidelight.app/api/strategy-replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ runId }) }));
+    assert.equal(mismatchedIdentity.status, 422);
+    assert.equal(calls.filter(call => call.operation === "insert" && call.table === "public_strategy_replays").length, insertCount);
+    run.strategy_key = "sma_trend_v1";
     run.candles = candles.map((candle, index) => index === 1 ? { ...candle, close: candle.close + 1 } : candle);
     const tampered = await route.POST(new Request("https://tidelight.app/api/strategy-replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ runId }) }));
     assert.equal(tampered.status, 422);

@@ -27,6 +27,20 @@ export async function POST(request: Request) {
   if (!candles.length || candles.length > 1000 || typeof params.candleHash !== "string" || !/^[0-9a-f]{64}$/i.test(params.candleHash)) return NextResponse.json({ error: "This run does not contain a complete reproducible candle archive." }, { status: 422 });
   const experimentManifest = params.experimentManifest ?? null;
   if (experimentManifest !== null && !verifyBacktestExperimentManifest(experimentManifest, candles)) return NextResponse.json({ error: "The archived candles do not match this experiment manifest." }, { status: 422 });
+  if (experimentManifest !== null) {
+    const manifestIdentity = experimentManifest as { instrument?: { symbol?: unknown; marketCategory?: unknown; interval?: unknown; assetName?: unknown; assetKind?: unknown }; strategy?: { key?: unknown }; execution?: { initialEquity?: unknown; feeBpsPerSide?: unknown; slippageBpsPerSide?: unknown } };
+    if (manifestIdentity.instrument?.symbol !== run.symbol
+      || String(manifestIdentity.instrument?.interval).toUpperCase() !== String(run.interval).toUpperCase()
+      || manifestIdentity.strategy?.key !== run.strategy_key
+      || manifestIdentity.instrument?.marketCategory !== params.marketCategory
+      || manifestIdentity.instrument?.assetName !== params.assetName
+      || manifestIdentity.instrument?.assetKind !== params.assetKind
+      || manifestIdentity.execution?.initialEquity !== params.initialEquity
+      || manifestIdentity.execution?.feeBpsPerSide !== params.feeBpsPerSide
+      || manifestIdentity.execution?.slippageBpsPerSide !== params.slippageBpsPerSide) {
+      return NextResponse.json({ error: "The saved strategy run identity does not match its experiment manifest." }, { status: 422 });
+    }
+  }
   const payload = {
     schemaVersion: 1,
     run: { id: run.id, symbol: run.symbol, interval: run.interval, strategyKey: run.strategy_key, parameters: publicParameters, dataStart: run.data_start, dataEnd: run.data_end, candleCount: run.candle_count, candleHash: params.candleHash, createdAt: run.created_at },
