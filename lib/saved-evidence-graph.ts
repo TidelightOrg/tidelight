@@ -264,7 +264,7 @@ export function buildSavedEvidenceGraph(input: { run: SavedGraphRun; sources: Sa
   const limitations = [
     "These links preserve saved research provenance; they do not independently verify claim truth or source reliability.",
     "A matched quote means text matched a captured excerpt; it does not establish that the claim is supported.",
-    "Sources captured after the completed run and date-only sources from the snapshot day are excluded to avoid future leakage.",
+    "Sources captured after the completed run, sources with future, invalid, or ambiguous publication dates, and date-only sources from the snapshot day are excluded with their cited claims to avoid future leakage.",
   ];
   addText([asOf, ...limitations]);
   return {

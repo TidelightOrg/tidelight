@@ -122,6 +122,7 @@ export async function createEvidenceBrief(input: { question: string; sourceTitle
   try {
     if (input.fetchSource) {
       const fetchedSources = await Promise.all(validSources.map((source) => fetchPublicResearchSource(source.url, company)));
+      if (fetchedSources.some((source) => source.url.length > 4_096)) throw new Error("source-url-too-long");
       if (new Set(fetchedSources.map((source) => source.url)).size !== fetchedSources.length) throw new Error("duplicate-final-source");
       fetchedSources.forEach((fetched, index) => {
         validSources[index] = { title: fetched.title, url: fetched.url, excerpt: fetched.excerpt };

@@ -41,6 +41,7 @@ test("saved graph preserves existing UUIDs, source links, quote match and counte
   assert.equal(byId.get(`source:${sources[2].id}`), undefined);
   assert.equal(byId.get(`source:${sources[3].id}`), undefined);
   assert.ok(graph.limitations.some(item => item.includes("do not independently verify claim truth")));
+  assert.ok(graph.limitations.some(item => item.includes("future, invalid, or ambiguous publication dates") && item.includes("cited claims")));
 });
 
 test("a database match whose captured span no longer equals the quote is not upgraded", () => {
