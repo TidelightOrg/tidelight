@@ -75,7 +75,7 @@ test("quote reproduction follows brief normalization but preserves the original 
   assert.equal(passage.text, "Revenue\n GREW\t8 percent.");
 });
 
-test("long whitespace spans are not reported as reproduced when the complete passage exceeds the output bound", () => {
+test("long whitespace spans return the complete reproduced passage within the excerpt bound", () => {
   const excerpt = `Revenue${" ".repeat(1_500)}grew 8 percent.`;
   const quote = "Revenue grew 8 percent.";
   const graph = buildSavedEvidenceGraph({ run, sources: [{ ...sources[0], excerpt }], evidence: [{
@@ -116,10 +116,12 @@ test("saved graph text limits accept writer-sized excerpts and reject oversized 
   assert.equal(savedGraphInputsWithinLimits([{ ...boundedSource, url: "u".repeat(SAVED_GRAPH_INPUT_LIMITS.sourceUrlCodeUnits + 1) }], evidence), false);
   assert.equal(savedGraphInputsWithinLimits([{ ...boundedSource, title: "t".repeat(SAVED_GRAPH_INPUT_LIMITS.sourceTitleCodeUnits + 1) }], evidence), false);
   assert.equal(savedGraphInputsWithinLimits([{ ...boundedSource, publisher: "p".repeat(SAVED_GRAPH_INPUT_LIMITS.sourcePublisherCodeUnits + 1) }], evidence), false);
+  assert.equal(savedGraphInputsWithinLimits([{ ...boundedSource, content_hash: "h".repeat(SAVED_GRAPH_INPUT_LIMITS.sourceContentHashCodeUnits + 1) }], []), false);
   assert.equal(savedGraphInputsWithinLimits([{ ...boundedSource, excerpt: "x".repeat(SAVED_GRAPH_INPUT_LIMITS.sourceExcerptCodeUnits + 1) }], evidence), false);
   assert.equal(savedGraphInputsWithinLimits(sources, [{ ...evidence[0], claim: "x".repeat(SAVED_GRAPH_INPUT_LIMITS.evidenceClaimCodeUnits + 1) }]), false);
   assert.equal(savedGraphInputsWithinLimits(sources, [{ ...evidence[0], supporting_quote: "x".repeat(SAVED_GRAPH_INPUT_LIMITS.evidenceQuoteCodeUnits + 1) }]), false);
   assert.equal(savedGraphInputsWithinLimits([{ ...boundedSource, url: undefined }], []), false);
+  assert.equal(savedGraphInputsWithinLimits([{ ...boundedSource, content_hash: 123 }], []), false);
   const maxRows = Array.from({ length: 90 }, () => ({ ...sources[0], url: "u".repeat(4_096), title: "t".repeat(300), publisher: "p".repeat(120), excerpt: "e".repeat(6_000) }));
   const maxEvidence = Array.from({ length: 500 }, (_, index) => ({ ...evidence[0], id: `30000000-0000-4000-8000-${String(index).padStart(12, "0")}`, claim: "c".repeat(2_000), supporting_quote: "q".repeat(600) }));
   assert.equal(savedGraphInputsWithinLimits(maxRows, maxEvidence), false);

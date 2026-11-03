@@ -53,7 +53,7 @@ test("verifier outages return 503 while invalid credentials return 401", async (
   const state = setup(null);
   state.auth.errorName = "AuthRetryableFetchError";
   state.auth.errorStatus = null;
-  const hooks = registerHooks({ resolve(specifier, _context, nextResolve) { if (specifier === "@/lib/saved-evidence-graph") return { url: new URL("../lib/saved-evidence-graph.ts", import.meta.url).href, shortCircuit: true }; if (mocks[specifier]) return { url: `data:text/javascript,${encodeURIComponent(mocks[specifier])}`, shortCircuit: true }; return nextResolve(specifier); } });
+  const hooks = registerHooks({ resolve(specifier, _context, nextResolve) { if (specifier === "@/lib/saved-evidence-graph") return { url: new URL("../lib/saved-evidence-graph.ts", import.meta.url).href, shortCircuit: true }; if (specifier === "@/lib/evidence") return { url: new URL("../lib/evidence.ts", import.meta.url).href, shortCircuit: true }; if (mocks[specifier]) return { url: `data:text/javascript,${encodeURIComponent(mocks[specifier])}`, shortCircuit: true }; return nextResolve(specifier); } });
   try {
     const route = await import("../app/api/research/evidence-graph/[runId]/route.ts?test=saved-graph-auth-outage");
     const outage = await route.GET(new Request(`https://tidelight.app/api/research/evidence-graph/${runId}`), { params: Promise.resolve({ runId }) });
@@ -74,7 +74,7 @@ test("verifier outages return 503 while invalid credentials return 401", async (
 
 test("private graph requires a user and never queries before auth", async () => {
   const state = setup(null);
-  const hooks = registerHooks({ resolve(specifier, _context, nextResolve) { if (specifier === "@/lib/saved-evidence-graph") return { url: new URL("../lib/saved-evidence-graph.ts", import.meta.url).href, shortCircuit: true }; if (mocks[specifier]) return { url: `data:text/javascript,${encodeURIComponent(mocks[specifier])}`, shortCircuit: true }; return nextResolve(specifier); } });
+  const hooks = registerHooks({ resolve(specifier, _context, nextResolve) { if (specifier === "@/lib/saved-evidence-graph") return { url: new URL("../lib/saved-evidence-graph.ts", import.meta.url).href, shortCircuit: true }; if (specifier === "@/lib/evidence") return { url: new URL("../lib/evidence.ts", import.meta.url).href, shortCircuit: true }; if (mocks[specifier]) return { url: `data:text/javascript,${encodeURIComponent(mocks[specifier])}`, shortCircuit: true }; return nextResolve(specifier); } });
   try {
     const route = await import("../app/api/research/evidence-graph/[runId]/route.ts?test=saved-graph-auth");
     const response = await route.GET(new Request(`https://tidelight.app/api/research/evidence-graph/${runId}`), { params: Promise.resolve({ runId }) });
@@ -85,7 +85,7 @@ test("private graph requires a user and never queries before auth", async () => 
 
 test("private graph scopes the run to the verified owner and returns linked persisted records", async () => {
   const state = setup("owner");
-  const hooks = registerHooks({ resolve(specifier, _context, nextResolve) { if (specifier === "@/lib/saved-evidence-graph") return { url: new URL("../lib/saved-evidence-graph.ts", import.meta.url).href, shortCircuit: true }; if (mocks[specifier]) return { url: `data:text/javascript,${encodeURIComponent(mocks[specifier])}`, shortCircuit: true }; return nextResolve(specifier); } });
+  const hooks = registerHooks({ resolve(specifier, _context, nextResolve) { if (specifier === "@/lib/saved-evidence-graph") return { url: new URL("../lib/saved-evidence-graph.ts", import.meta.url).href, shortCircuit: true }; if (specifier === "@/lib/evidence") return { url: new URL("../lib/evidence.ts", import.meta.url).href, shortCircuit: true }; if (mocks[specifier]) return { url: `data:text/javascript,${encodeURIComponent(mocks[specifier])}`, shortCircuit: true }; return nextResolve(specifier); } });
   try {
     const route = await import("../app/api/research/evidence-graph/[runId]/route.ts?test=saved-graph-owner");
     const response = await route.GET(new Request(`https://tidelight.app/api/research/evidence-graph/${runId}`), { params: Promise.resolve({ runId }) });
@@ -106,7 +106,7 @@ test("private graph scopes the run to the verified owner and returns linked pers
 
 test("another owner's run is not discoverable", async () => {
   const state = setup("other-owner");
-  const hooks = registerHooks({ resolve(specifier, _context, nextResolve) { if (specifier === "@/lib/saved-evidence-graph") return { url: new URL("../lib/saved-evidence-graph.ts", import.meta.url).href, shortCircuit: true }; if (mocks[specifier]) return { url: `data:text/javascript,${encodeURIComponent(mocks[specifier])}`, shortCircuit: true }; return nextResolve(specifier); } });
+  const hooks = registerHooks({ resolve(specifier, _context, nextResolve) { if (specifier === "@/lib/saved-evidence-graph") return { url: new URL("../lib/saved-evidence-graph.ts", import.meta.url).href, shortCircuit: true }; if (specifier === "@/lib/evidence") return { url: new URL("../lib/evidence.ts", import.meta.url).href, shortCircuit: true }; if (mocks[specifier]) return { url: `data:text/javascript,${encodeURIComponent(mocks[specifier])}`, shortCircuit: true }; return nextResolve(specifier); } });
   try {
     const route = await import("../app/api/research/evidence-graph/[runId]/route.ts?test=saved-graph-other-owner");
     const response = await route.GET(new Request(`https://tidelight.app/api/research/evidence-graph/${runId}`), { params: Promise.resolve({ runId }) });
@@ -125,7 +125,7 @@ test("non-brief research records are not represented by the saved-brief graph AP
     return builder;
   })(state.db.from.bind(state.db));
   globalThis.savedEvidenceGraphTestRun = { id: runId, question: "Review NVDA filing", created_at: "2026-10-31T19:00:00.000Z", completed_at: "2026-10-31T20:00:00.000Z", status: "complete", summary: {} };
-  const hooks = registerHooks({ resolve(specifier, _context, nextResolve) { if (specifier === "@/lib/saved-evidence-graph") return { url: new URL("../lib/saved-evidence-graph.ts", import.meta.url).href, shortCircuit: true }; if (mocks[specifier]) return { url: `data:text/javascript,${encodeURIComponent(mocks[specifier])}`, shortCircuit: true }; return nextResolve(specifier); } });
+  const hooks = registerHooks({ resolve(specifier, _context, nextResolve) { if (specifier === "@/lib/saved-evidence-graph") return { url: new URL("../lib/saved-evidence-graph.ts", import.meta.url).href, shortCircuit: true }; if (specifier === "@/lib/evidence") return { url: new URL("../lib/evidence.ts", import.meta.url).href, shortCircuit: true }; if (mocks[specifier]) return { url: `data:text/javascript,${encodeURIComponent(mocks[specifier])}`, shortCircuit: true }; return nextResolve(specifier); } });
   try {
     const route = await import("../app/api/research/evidence-graph/[runId]/route.ts?test=saved-graph-ineligible");
     const response = await route.GET(new Request(`https://tidelight.app/api/research/evidence-graph/${runId}`), { params: Promise.resolve({ runId }) });
@@ -140,7 +140,7 @@ test("oversized source and evidence graphs return 413 without partial nodes", as
     const state = setup("owner");
     const template = state.rows[table][0];
     state.rows[table] = Array.from({ length: amount }, (_, index) => ({ ...template, id: `${String(index + 1).padStart(8, "0")}-0000-4000-8000-000000000001` }));
-    const hooks = registerHooks({ resolve(specifier, _context, nextResolve) { if (specifier === "@/lib/saved-evidence-graph") return { url: new URL("../lib/saved-evidence-graph.ts", import.meta.url).href, shortCircuit: true }; if (mocks[specifier]) return { url: `data:text/javascript,${encodeURIComponent(mocks[specifier])}`, shortCircuit: true }; return nextResolve(specifier); } });
+    const hooks = registerHooks({ resolve(specifier, _context, nextResolve) { if (specifier === "@/lib/saved-evidence-graph") return { url: new URL("../lib/saved-evidence-graph.ts", import.meta.url).href, shortCircuit: true }; if (specifier === "@/lib/evidence") return { url: new URL("../lib/evidence.ts", import.meta.url).href, shortCircuit: true }; if (mocks[specifier]) return { url: `data:text/javascript,${encodeURIComponent(mocks[specifier])}`, shortCircuit: true }; return nextResolve(specifier); } });
     try {
       const route = await import(`../app/api/research/evidence-graph/[runId]/route.ts?test=saved-graph-limit-${table}`);
       const response = await route.GET(new Request(`https://tidelight.app/api/research/evidence-graph/${runId}`), { params: Promise.resolve({ runId }) });
@@ -156,6 +156,7 @@ test("oversized source and evidence text returns 413 without partial nodes", asy
     ["source-url", state => { state.rows.research_sources[0].url = `https://example.com/${"x".repeat(4_097)}`; }],
     ["source-title", state => { state.rows.research_sources[0].title = "x".repeat(301); }],
     ["source-publisher", state => { state.rows.research_sources[0].publisher = "x".repeat(121); }],
+    ["source-content-hash", state => { state.rows.research_sources[0].content_hash = "x".repeat(3_000_000); }],
     ["source-excerpt", state => { state.rows.research_sources[0].excerpt = "x".repeat(6_001); }],
     ["evidence-claim", state => { state.rows.research_evidence[0].claim = "x".repeat(2_001); }],
     ["evidence-quote", state => { state.rows.research_evidence[0].supporting_quote = "x".repeat(601); }],
@@ -163,7 +164,7 @@ test("oversized source and evidence text returns 413 without partial nodes", asy
   for (const [label, mutate] of cases) {
     const state = setup("owner");
     mutate(state);
-    const hooks = registerHooks({ resolve(specifier, _context, nextResolve) { if (specifier === "@/lib/saved-evidence-graph") return { url: new URL("../lib/saved-evidence-graph.ts", import.meta.url).href, shortCircuit: true }; if (mocks[specifier]) return { url: `data:text/javascript,${encodeURIComponent(mocks[specifier])}`, shortCircuit: true }; return nextResolve(specifier); } });
+    const hooks = registerHooks({ resolve(specifier, _context, nextResolve) { if (specifier === "@/lib/saved-evidence-graph") return { url: new URL("../lib/saved-evidence-graph.ts", import.meta.url).href, shortCircuit: true }; if (specifier === "@/lib/evidence") return { url: new URL("../lib/evidence.ts", import.meta.url).href, shortCircuit: true }; if (mocks[specifier]) return { url: `data:text/javascript,${encodeURIComponent(mocks[specifier])}`, shortCircuit: true }; return nextResolve(specifier); } });
     try {
       const route = await import(`../app/api/research/evidence-graph/[runId]/route.ts?test=saved-graph-text-limit-${label}`);
       const response = await route.GET(new Request(`https://tidelight.app/api/research/evidence-graph/${runId}`), { params: Promise.resolve({ runId }) });
@@ -177,7 +178,7 @@ test("oversized source and evidence text returns 413 without partial nodes", asy
 test("invalid completion timestamps return 422 without partial nodes", async () => {
   const state = setup("owner");
   state.rows.research_runs.completed_at = null;
-  const hooks = registerHooks({ resolve(specifier, _context, nextResolve) { if (specifier === "@/lib/saved-evidence-graph") return { url: new URL("../lib/saved-evidence-graph.ts", import.meta.url).href, shortCircuit: true }; if (mocks[specifier]) return { url: `data:text/javascript,${encodeURIComponent(mocks[specifier])}`, shortCircuit: true }; return nextResolve(specifier); } });
+  const hooks = registerHooks({ resolve(specifier, _context, nextResolve) { if (specifier === "@/lib/saved-evidence-graph") return { url: new URL("../lib/saved-evidence-graph.ts", import.meta.url).href, shortCircuit: true }; if (specifier === "@/lib/evidence") return { url: new URL("../lib/evidence.ts", import.meta.url).href, shortCircuit: true }; if (mocks[specifier]) return { url: `data:text/javascript,${encodeURIComponent(mocks[specifier])}`, shortCircuit: true }; return nextResolve(specifier); } });
   try {
     const route = await import("../app/api/research/evidence-graph/[runId]/route.ts?test=saved-graph-invalid-asof-route");
     const response = await route.GET(new Request(`https://tidelight.app/api/research/evidence-graph/${runId}`), { params: Promise.resolve({ runId }) });

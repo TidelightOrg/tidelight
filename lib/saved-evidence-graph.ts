@@ -23,6 +23,7 @@ export const SAVED_GRAPH_INPUT_LIMITS = {
   sourceTitleCodeUnits: 300,
   sourcePublisherCodeUnits: 120,
   sourceExcerptCodeUnits: 6_000,
+  sourceContentHashCodeUnits: 128,
   evidenceClaimCodeUnits: 2_000,
   evidenceQuoteCodeUnits: 600,
   passageCodeUnits: 6_000,
@@ -76,12 +77,14 @@ export function savedGraphInputsWithinLimits(sources: SavedGraphSource[], eviden
   for (const source of sources) {
     if (!source || typeof source.url !== "string" || typeof source.title !== "string" ||
         (source.publisher !== null && typeof source.publisher !== "string") ||
-        (source.excerpt !== null && typeof source.excerpt !== "string")) return false;
+        (source.excerpt !== null && typeof source.excerpt !== "string") ||
+        (source.content_hash !== null && typeof source.content_hash !== "string")) return false;
     if (source.url.length > SAVED_GRAPH_INPUT_LIMITS.sourceUrlCodeUnits ||
         source.title.length > SAVED_GRAPH_INPUT_LIMITS.sourceTitleCodeUnits ||
         (source.publisher?.length ?? 0) > SAVED_GRAPH_INPUT_LIMITS.sourcePublisherCodeUnits ||
+        (source.content_hash?.length ?? 0) > SAVED_GRAPH_INPUT_LIMITS.sourceContentHashCodeUnits ||
         (source.excerpt?.length ?? 0) > SAVED_GRAPH_INPUT_LIMITS.sourceExcerptCodeUnits) return false;
-    totalTextCodeUnits += source.url.length + source.title.length + (source.publisher?.length ?? 0) + (source.excerpt?.length ?? 0);
+    totalTextCodeUnits += source.url.length + source.title.length + (source.publisher?.length ?? 0) + (source.content_hash?.length ?? 0) + (source.excerpt?.length ?? 0);
     if (totalTextCodeUnits > SAVED_GRAPH_INPUT_LIMITS.totalTextCodeUnits) return false;
   }
   for (const item of evidence) {
