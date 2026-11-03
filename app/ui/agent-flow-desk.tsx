@@ -10,6 +10,7 @@ import { localizeResearchSuggestion } from "@/lib/research-question-localization
 import type { EvidenceGraph, EvidenceGraphNode } from "@/lib/evidence-graph";
 import { JUDGE_SESSION_KEY, storeJudgeResult, clearJudgeResult } from "@/lib/judge-session";
 import { createDecisionCapsule, type DecisionCapsuleReceipt } from "@/lib/decision-capsule-client";
+import { isCurrentDecisionCapsuleSave } from "@/lib/decision-capsule-save-scope";
 
 type StageEvent = { id: string; agent: string; status: "running" | "complete" | "blocked"; title: string; detail: string; at: string; durationMs?: number; asset?: string };
 type Destination = { mode: "paper_futures" | "live_spot"; label: string; href: string };
@@ -217,16 +218,16 @@ export default function AgentFlowDesk({ initialQuestion, initialMonitorId = null
     setCapsuleErrorRunId(null);
     try {
       const receipt = await createDecisionCapsule(runId);
-      if (generation !== researchGeneration.current) return;
+      if (!isCurrentDecisionCapsuleSave({ currentGeneration: researchGeneration.current, requestGeneration: generation, currentRunId: result?.researchRunId, requestRunId: runId })) return;
       setCapsuleReceipt(receipt);
       setCapsuleReceiptRunId(runId);
     } catch (cause) {
-      if (generation === researchGeneration.current) {
+      if (isCurrentDecisionCapsuleSave({ currentGeneration: researchGeneration.current, requestGeneration: generation, currentRunId: result?.researchRunId, requestRunId: runId })) {
         setCapsuleError(cause instanceof Error ? cause.message : "The private decision capsule could not be saved. Try again shortly.");
         setCapsuleErrorRunId(runId);
       }
     } finally {
-      if (generation === researchGeneration.current) setCapsuleSaving(false);
+      if (isCurrentDecisionCapsuleSave({ currentGeneration: researchGeneration.current, requestGeneration: generation, currentRunId: result?.researchRunId, requestRunId: runId })) setCapsuleSaving(false);
     }
   }
 
