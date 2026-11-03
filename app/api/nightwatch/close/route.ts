@@ -21,7 +21,7 @@ export async function POST(request: Request) {
   const quote = asset?.isReality ? await getBitgetRealityTradeQuote(symbol).catch(() => null) : null;
   if (!quote || !isFreshNightwatchExitQuote(quote.price, quote.providerTimestamp)) return NextResponse.json({ error: "A current, timestamped Bitget Reality fill is required for this paper exit." }, { status: 422 });
   const reason = typeof body.reason === "string" ? body.reason.slice(0, 240) : "Manual paper exit";
-  const { data, error } = await admin.rpc("nightwatch_close_from_server", { p_user_id: user.id, p_symbol: symbol, p_reference_price: quote.price, p_reason: reason });
+  const { data, error } = await admin.rpc("nightwatch_close_from_server", { p_user_id: user.id, p_symbol: symbol, p_reference_price: quote.price, p_reason: reason, p_quote_timestamp: new Date(quote.providerTimestamp).toISOString() });
   if (error) return NextResponse.json({ error: error.message.includes("No open") ? error.message : "Could not close the paper position." }, { status: 409 });
   await logSecurityEvent(supabase, user.id, "paper_exit", { symbol });
   return NextResponse.json({ result: data, price: quote.price, quoteTimestamp: quote.providerTimestamp });

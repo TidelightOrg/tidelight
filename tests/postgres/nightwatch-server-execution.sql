@@ -4,7 +4,9 @@ insert into auth.users values ('00000000-0000-4000-8000-000000000001'), ('000000
 do $$
 begin
   if has_function_privilege('anon', 'public.nightwatch_tick_from_server(uuid,text,bigint,numeric,numeric,numeric,text,jsonb)', 'EXECUTE') or has_function_privilege('authenticated', 'public.nightwatch_tick_from_server(uuid,text,bigint,numeric,numeric,numeric,text,jsonb)', 'EXECUTE') or not has_function_privilege('service_role', 'public.nightwatch_tick_from_server(uuid,text,bigint,numeric,numeric,numeric,text,jsonb)', 'EXECUTE') then raise exception 'Tick service boundary incorrect'; end if;
-  if has_function_privilege('anon', 'public.nightwatch_close_from_server(uuid,text,numeric,text)', 'EXECUTE') or has_function_privilege('authenticated', 'public.nightwatch_close_from_server(uuid,text,numeric,text)', 'EXECUTE') or not has_function_privilege('service_role', 'public.nightwatch_close_from_server(uuid,text,numeric,text)', 'EXECUTE') then raise exception 'Exit service boundary incorrect'; end if;
+  if has_function_privilege('anon', 'public.nightwatch_close_from_server(uuid,text,numeric,text,timestamptz)', 'EXECUTE') or has_function_privilege('authenticated', 'public.nightwatch_close_from_server(uuid,text,numeric,text,timestamptz)', 'EXECUTE') or not has_function_privilege('service_role', 'public.nightwatch_close_from_server(uuid,text,numeric,text,timestamptz)', 'EXECUTE') then raise exception 'Exit service boundary incorrect'; end if;
+  if to_regprocedure('public.nightwatch_close_position(text,numeric,text)') is null or to_regprocedure('nightwatch_private.nightwatch_close_position(text,numeric,text)') is null then raise exception 'Legacy close signatures must remain unchanged'; end if;
+  if has_function_privilege('anon', 'nightwatch_private.nightwatch_close_position_with_quote(text,numeric,text,timestamptz)', 'EXECUTE') or has_function_privilege('authenticated', 'nightwatch_private.nightwatch_close_position_with_quote(text,numeric,text,timestamptz)', 'EXECUTE') then raise exception 'Timestamp-aware helper must not be browser-callable'; end if;
 end $$;
 select set_config('request.jwt.claim.role', 'service_role', true);
 select set_config('request.jwt.claim.sub', '00000000-0000-4000-8000-000000000002', true);
@@ -16,7 +18,18 @@ begin
   if r->>'outcome' <> 'executed' then raise exception 'Expected paper buy: %', r; end if;
   r := public.nightwatch_tick_from_server(owner_id, 'RAAPLUSDT', candle_ms, 100, 101, 99, 'buy', '{}');
   if r->>'idempotent' <> 'true' then raise exception 'Retry must remain idempotent'; end if;
-  r := public.nightwatch_close_from_server(owner_id, 'RAAPLUSDT', 100, 'Test exit');
+  begin
+    perform public.nightwatch_close_from_server(owner_id, 'RAAPLUSDT', 100, 'Stale test exit', clock_timestamp() - interval '121 seconds');
+    raise exception 'A quote stale after lock acquisition must be rejected';
+  exception when invalid_parameter_value then null;
+  end;
+  if (select count(*) from public.nightwatch_orders where user_id = owner_id) <> 1 then raise exception 'Rejected stale quote must not write an exit order'; end if;
+  begin
+    perform public.nightwatch_close_from_server(owner_id, 'RAAPLUSDT', 100, 'Future test exit', clock_timestamp() + interval '6 seconds');
+    raise exception 'A future quote must be rejected';
+  exception when invalid_parameter_value then null;
+  end;
+  r := public.nightwatch_close_from_server(owner_id, 'RAAPLUSDT', 100, 'Test exit', clock_timestamp());
   if r->>'outcome' <> 'executed' then raise exception 'Expected paper exit: %', r; end if;
   begin perform public.nightwatch_tick_from_server(null, 'RAAPLUSDT', candle_ms, 100, 101, 99, 'hold', '{}'); raise exception 'Null owner accepted'; exception when insufficient_privilege then null; end;
 end $$;

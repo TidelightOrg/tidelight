@@ -172,7 +172,8 @@ test("manual paper exit uses the verified user and rejects stale quotes", async 
     globalThis.flowTest.tradeQuote = async () => ({ price: 101, providerTimestamp: Date.now() - 120_001 });
     assert.equal((await closeRoute.POST(request())).status, 422, "stale actual fills veto exits even when ticker data is otherwise present");
     assert.equal(captures.rpc.length, count);
-    globalThis.flowTest.tradeQuote = async () => ({ price: 101, providerTimestamp: Date.now() });
+    const freshQuoteTimestamp = Date.now();
+    globalThis.flowTest.tradeQuote = async () => ({ price: 101, providerTimestamp: freshQuoteTimestamp });
     const response = await closeRoute.POST(request());
     assert.equal(response.status, 200);
     assert.equal((await response.json()).price, 101, "exit result reports the actual fill price, not the ticker last price");
@@ -180,6 +181,7 @@ test("manual paper exit uses the verified user and rejects stale quotes", async 
     assert.equal(call.name, "nightwatch_close_from_server");
     assert.equal(call.args.p_user_id, user.id);
     assert.equal(call.args.p_reference_price, 101);
+    assert.equal(Date.parse(call.args.p_quote_timestamp), freshQuoteTimestamp, "the server passes the provider fill timestamp into the ledger check");
     const ticker = await globalThis.flowTest.asset("RNVDAUSDT");
     assert.notEqual(call.args.p_reference_price, ticker.lastPrice);
   } finally {
