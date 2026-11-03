@@ -111,6 +111,23 @@ test("Simplified Chinese covers the Judge evaluation path and public evidence di
   ]) assert.equal(typeof translations[key], "string", `Missing Simplified Chinese entry for ${key}`);
 });
 
+test("Simplified Chinese covers the private capsule action in saved Research", async () => {
+  const [desk, translations] = await Promise.all([
+    readFile(new URL("app/ui/agent-flow-desk.tsx", root), "utf8"),
+    readFile(new URL("app/i18n/zh-CN.json", root), "utf8").then(JSON.parse),
+  ]);
+  for (const key of [
+    "Decision Capsule", "Capsule saved · integrity verified", "Capsule ID", "Open verified capsule JSON", "Saving capsule…", "Save private Decision Capsule ↗",
+  ]) {
+    assert.ok(desk.includes(key), `Research must render the capsule copy key: ${key}`);
+    assert.equal(typeof translations[key], "string", `Simplified Chinese must translate: ${key}`);
+  }
+  assert.match(desk, /result\.researchRunId \? <section className="flow-capsule"/);
+  assert.match(desk, /const runId = result\.researchRunId;[\s\S]*createDecisionCapsule\(runId\)/);
+  assert.match(desk, /capsuleReceiptRunId === result\.researchRunId/);
+  assert.match(desk, /capsuleErrorRunId === result\.researchRunId/);
+});
+
 test("developer pages expose a language toggle and share the language preference across Tidelight subdomains", async () => {
   const [nav, docs, provider] = await Promise.all([
     readFile(new URL("app/developers/platform-nav.tsx", root), "utf8"),

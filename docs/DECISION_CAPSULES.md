@@ -9,6 +9,8 @@ Decision Capsules preserve an immutable, private snapshot of a completed researc
 - `GET /api/decision-capsules/<capsule-id>` requires the owning signed-in user. It recomputes the canonical SHA-256 over `original_snapshot` and returns the snapshot only when the digest matches.
 - Both endpoints are private and `no-store`. There is no public lookup, share token, capsule revocation, outcome record, or calibration claim in v1.
 
+Completed authenticated Research results now offer a **Save private Decision Capsule** action. It submits only the saved research run ID; the server retrieves and snapshots the owner-scoped sources and claims. Guest Judge results do not expose the action because they have no persisted account run. The Research interface displays the integrity hash and links to the owner-authenticated verification response after the API confirms the SHA-256. Repeating a save uses the existing idempotent owner/run contract. This captures research provenance only and does not create a forecast, paper order, or outcome assessment.
+
 The server constructs the snapshot from database records; clients cannot provide snapshot JSON or a claimed digest. `service_role` is used only in server routes and has table-level `SELECT`/`INSERT`, with no `UPDATE` or `DELETE`. Browser roles receive no table grants. A composite foreign key prevents linking a run owned by another user.
 
 ## Integrity boundary
