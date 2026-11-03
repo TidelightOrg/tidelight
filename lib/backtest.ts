@@ -48,6 +48,7 @@ export type BacktestResult = {
   dataEnd: number;
   candleCount: number;
   splitIndex: number;
+  trainStart: number;
   validation: BacktestValidation;
 };
 
@@ -326,6 +327,7 @@ export function runBacktest(symbol: string, interval: CandleInterval, input: Mar
     dataEnd: candles.at(-1)!.timestamp,
     candleCount: candles.length,
     splitIndex,
+    trainStart: candles[warmup].timestamp,
     validation: { trainingDays, holdoutDays, holdoutExcessReturnPct, verdict },
   };
 }

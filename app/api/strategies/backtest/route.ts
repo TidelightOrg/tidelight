@@ -1,12 +1,14 @@
 import { createHash } from "node:crypto";
 import { getBitgetAsset, getBitgetCandles, getBitgetStockPerp, type AlphaMarketCategory, type CandleInterval } from "@/lib/bitget-market";
 import { ALPHA_STRATEGIES, prepareBacktestCandles, runBacktest, runCostSensitivity, runRandomEntryPlacebo, runWalkForward, type StrategyKey, type WalkForwardResult } from "@/lib/backtest";
+import { createBacktestExperimentManifest } from "@/lib/backtest-manifest";
 import { createClient } from "@/lib/supabase/server";
 import { getServerAuthState } from "@/lib/supabase/auth-user";
 
 const intervals = new Set<CandleInterval>(["1H", "4H", "1D"]);
 const symbolPattern = /^[A-Z0-9]{2,32}$/;
 
+/** Run a server-authenticated backtest and persist its reproducibility manifest. */
 export async function POST(request: Request) {
   let body: { symbol?: unknown; interval?: unknown; marketCategory?: unknown; researchRunId?: unknown; strategyKey?: unknown; hypothesis?: unknown };
   try { body = await request.json() as typeof body; } catch { return Response.json({ error: "Send a valid JSON request." }, { status: 400 }); }
@@ -63,13 +65,31 @@ export async function POST(request: Request) {
       randomEntry: runRandomEntryPlacebo(candles, interval, evaluatedAt, strategyKey, result.test.totalReturnPct),
     };
     const candleHash = createHash("sha256").update(JSON.stringify(candles)).digest("hex");
-    const replayParameters = { ...result.parameters, marketCategory, ...(hypothesis ? { hypothesis } : {}) };
+    const assetKind = marketCategory === "SPOT" ? asset.kind : "stock-perpetual";
+    const experimentManifest = createBacktestExperimentManifest({
+      symbol,
+      marketCategory,
+      interval,
+      assetName: asset.name,
+      assetKind,
+      strategyKey: result.strategyKey,
+      candles,
+      splitIndex: result.splitIndex,
+      trainStart: result.trainStart,
+      capturedAt: evaluatedAt,
+      providerTimestamp: asset.providerTimestamp,
+      feeBpsPerSide: result.parameters.feeBpsPerSide,
+      slippageBpsPerSide: result.parameters.slippageBpsPerSide,
+      initialEquity: result.parameters.initialEquity,
+      sourceRevision: process.env.VERCEL_GIT_COMMIT_SHA ?? null,
+    });
+    const replayParameters = { ...result.parameters, marketCategory, experimentManifest, ...(hypothesis ? { hypothesis } : {}) };
     const { data, error } = await supabase.from("strategy_backtest_runs").insert({
       user_id: user.id,
       symbol,
       interval,
       strategy_key: result.strategyKey,
-      parameters: { ...replayParameters, candleHash, assetName: asset.name, assetKind: marketCategory === "SPOT" ? asset.kind : "stock-perpetual", walkForward, walkForwardStatus, costSensitivity, benchmarks, researchRunId },
+      parameters: { ...replayParameters, candleHash, assetName: asset.name, assetKind, walkForward, walkForwardStatus, costSensitivity, benchmarks, researchRunId },
       train_metrics: result.train,
       test_metrics: result.test,
       data_start: new Date(result.dataStart).toISOString(),
@@ -81,7 +101,7 @@ export async function POST(request: Request) {
       console.error("Backtest persistence failed", error.code);
       return Response.json({ error: "The run completed, but could not be saved. Please try again." }, { status: 503 });
     }
-    return Response.json({ run: { ...result, parameters: replayParameters, id: data.id, runId: data.id, createdAt: data.created_at, assetName: asset.name, assetKind: marketCategory === "SPOT" ? asset.kind : "stock-perpetual", candleHash, candles, walkForward, walkForwardStatus, costSensitivity, benchmarks, researchRunId, providerTimestamp: asset.providerTimestamp, sessionHours: asset.tradingSessions, weekendTradable: asset.weekendTradable } }, { headers: { "Cache-Control": "no-store" } });
+    return Response.json({ run: { ...result, parameters: replayParameters, id: data.id, runId: data.id, createdAt: data.created_at, assetName: asset.name, assetKind, candleHash, candles, walkForward, walkForwardStatus, costSensitivity, benchmarks, researchRunId, providerTimestamp: asset.providerTimestamp, experimentManifest, sessionHours: asset.tradingSessions, weekendTradable: asset.weekendTradable } }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Backtest unavailable.";
     const status = /At least|too short/.test(message) ? 422 : 503;

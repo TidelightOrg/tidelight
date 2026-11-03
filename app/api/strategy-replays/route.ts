@@ -2,10 +2,12 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getServerAuthState } from "@/lib/supabase/auth-user";
+import { verifyBacktestExperimentManifest } from "@/lib/backtest-manifest";
 
 export const dynamic = "force-dynamic";
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+/** Publish an owner-scoped replay only after validating its archived dataset and manifest. */
 export async function POST(request: Request) {
   const auth = await getServerAuthState();
   if (auth.errorCode) return NextResponse.json({ error: "Tidelight could not verify your sign-in just now. Please retry shortly." }, { status: 503 });
@@ -23,9 +25,29 @@ export async function POST(request: Request) {
   delete publicParameters.researchRunId;
   const candles = Array.isArray(run.candles) ? run.candles : [];
   if (!candles.length || candles.length > 1000 || typeof params.candleHash !== "string" || !/^[0-9a-f]{64}$/i.test(params.candleHash)) return NextResponse.json({ error: "This run does not contain a complete reproducible candle archive." }, { status: 422 });
+  const experimentManifest = params.experimentManifest ?? null;
+  if (experimentManifest !== null && !verifyBacktestExperimentManifest(experimentManifest, candles)) return NextResponse.json({ error: "The archived candles do not match this experiment manifest." }, { status: 422 });
+  if (experimentManifest !== null) {
+    const manifestIdentity = experimentManifest as { instrument?: { symbol?: unknown; marketCategory?: unknown; interval?: unknown; assetName?: unknown; assetKind?: unknown }; strategy?: { key?: unknown }; execution?: { initialEquity?: unknown; feeBpsPerSide?: unknown; slippageBpsPerSide?: unknown } };
+    if (manifestIdentity.instrument?.symbol !== run.symbol
+      || String(manifestIdentity.instrument?.interval).toUpperCase() !== String(run.interval).toUpperCase()
+      || manifestIdentity.strategy?.key !== run.strategy_key
+      || manifestIdentity.instrument?.marketCategory !== params.marketCategory
+      || manifestIdentity.instrument?.assetName !== (typeof params.assetName === "string" ? params.assetName.slice(0, 160) : run.symbol)
+      || manifestIdentity.instrument?.assetKind !== params.assetKind
+      || manifestIdentity.execution?.initialEquity !== params.initialEquity
+      || manifestIdentity.execution?.feeBpsPerSide !== params.feeBpsPerSide
+      || manifestIdentity.execution?.slippageBpsPerSide !== params.slippageBpsPerSide
+      || run.candle_count !== (experimentManifest as { dataset: { rowCount: number } }).dataset.rowCount
+      || Date.parse(run.data_start) !== (experimentManifest as { dataset: { firstTimestamp: number } }).dataset.firstTimestamp
+      || Date.parse(run.data_end) !== (experimentManifest as { dataset: { lastTimestamp: number } }).dataset.lastTimestamp) {
+      return NextResponse.json({ error: "The saved strategy run identity does not match its experiment manifest." }, { status: 422 });
+    }
+  }
   const payload = {
     schemaVersion: 1,
     run: { id: run.id, symbol: run.symbol, interval: run.interval, strategyKey: run.strategy_key, parameters: publicParameters, dataStart: run.data_start, dataEnd: run.data_end, candleCount: run.candle_count, candleHash: params.candleHash, createdAt: run.created_at },
+    experimentManifest,
     asset: { name: typeof params.assetName === "string" ? params.assetName.slice(0, 160) : run.symbol, kind: typeof params.assetKind === "string" ? params.assetKind.slice(0, 48) : "unknown" },
     train: run.train_metrics,
     holdout: run.test_metrics,
