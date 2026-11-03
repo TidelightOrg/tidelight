@@ -16,3 +16,7 @@ The server constructs the snapshot from database records; clients cannot provide
 Canonical JSON sorts object keys recursively, retains array order, and hashes UTF-8 bytes with SHA-256. This detects snapshot changes when checked against the stored digest. It does **not** prove that research claims are true, that the hash was independently witnessed, or that a model forecast was accurate. The original snapshot contains no fabricated prediction or outcome. Future amendments and outcomes must be modeled as separate append-only records.
 
 Snapshots are limited to 240 KiB by the application (the database enforces a 256 KiB JSONB limit). The migration is additive and is not automatically applied by the API.
+
+## Production deployment record
+
+The private table migration was applied to production Supabase on 2026-11-03 and recorded as `20261103060730_private_decision_capsules`. A read-only post-migration check confirmed RLS is enabled, `anon` and `authenticated` have no table access, and `service_role` has `SELECT` and `INSERT` without `UPDATE` or `DELETE`. The table had no rows at verification time. Supabase's security advisor reports the expected informational `rls_enabled_no_policy` notice: this table intentionally has no user-role policies because the API uses the service role after checking the authenticated owner. No authenticated capsule create/read journey was exercised during this schema verification.
