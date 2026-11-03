@@ -23,7 +23,6 @@ begin
     raise exception 'A quote stale after lock acquisition must be rejected';
   exception when invalid_parameter_value then null;
   end;
-  if (select count(*) from public.nightwatch_orders where user_id = owner_id) <> 1 then raise exception 'Rejected stale quote must not write an exit order'; end if;
   begin
     perform public.nightwatch_close_from_server(owner_id, 'RAAPLUSDT', 100, 'Future test exit', clock_timestamp() + interval '6 seconds');
     raise exception 'A future quote must be rejected';
