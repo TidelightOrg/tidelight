@@ -237,6 +237,16 @@ jobs:
       - name: Test custom schedules, RLS, leases, daily budgets, and paper ledger
         run: psql -v ON_ERROR_STOP=1 -d nightwatch_custom_test -f tests/postgres/nightwatch-custom.sql
 
+      - name: Test server-only Nightwatch execution wrappers
+        run: |
+          createdb nightwatch_server_test
+          psql -v ON_ERROR_STOP=1 -d nightwatch_server_test -f tests/postgres/nightwatch-custom-prerequisites.sql
+          psql -v ON_ERROR_STOP=1 -d nightwatch_server_test -f supabase/migrations/20261004194506_nightwatch_paper_agent.sql
+          psql -v ON_ERROR_STOP=1 -d nightwatch_server_test -f supabase/migrations/20261004194718_nightwatch_rpc_hardening.sql
+          psql -v ON_ERROR_STOP=1 -d nightwatch_server_test -f supabase/migrations/20261005044500_nightwatch_manual_exit.sql
+          psql -v ON_ERROR_STOP=1 -d nightwatch_server_test -f supabase/migrations/20261102060210_nightwatch_server_execution.sql
+          psql -v ON_ERROR_STOP=1 -d nightwatch_server_test -f tests/postgres/nightwatch-server-execution.sql
+
   advisor-remediation-database:
     runs-on: ubuntu-latest
     services:

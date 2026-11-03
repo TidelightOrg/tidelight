@@ -45,6 +45,7 @@ globalThis.flowTest = {
   from: queryFor,
   rpc: async (...args) => globalThis.flowTest.admin.rpc(...args),
   asset: async (symbol) => { captures.marketCalls++; return ({ symbol, isReality: true, underlyingTicker: "NVDA", name: "Synthetic NVIDIA fixture", lastPrice: 100, providerTimestamp: Date.now() }); },
+  tradeQuote: async () => ({ price: 101, providerTimestamp: Date.now() }),
   perp: async (symbol) => { captures.marketCalls++; return ({ symbol, name: "Synthetic NVDA perpetual fixture", lastPrice: 100, providerTimestamp: Date.now() }); },
   candles: async () => { captures.marketCalls++; return candles; },
   admin: {
@@ -65,6 +66,8 @@ const mockSpecifiers = new Set([
   "next/server",
   "@/lib/supabase/server",
   "@/lib/supabase/admin",
+  "@/lib/supabase/aal",
+  "@/lib/supabase/security-events",
   "@/lib/supabase/auth-user",
   "@/lib/ai-fallback",
   "@/lib/provider-health",
@@ -86,11 +89,13 @@ const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
   if (specifier === "server-only" || mockSpecifiers.has(specifier)) return { url: new URL("./fixtures/research-flow-integration-mocks.mjs", import.meta.url).href, shortCircuit: true };
   if (specifier === "@/lib/agent-flow-policy") return { url: new URL("../lib/agent-flow-policy.ts", import.meta.url).href, shortCircuit: true };
   if (specifier === "@/lib/evidence-graph") return { url: new URL("../lib/evidence-graph.ts", import.meta.url).href, shortCircuit: true };
+  if (specifier === "@/lib/nightwatch-exit-quote") return { url: new URL("../lib/nightwatch-exit-quote.ts", import.meta.url).href, shortCircuit: true };
   return nextResolve(specifier, context);
 } });
 const researchRoute = await import("../app/api/research/agent-flow/route.ts");
 const strategyRoute = await import("../app/api/futures/paper/route.ts");
 const nightwatchRoute = await import("../app/api/nightwatch/tick/route.ts");
+const closeRoute = await import("../app/api/nightwatch/close/route.ts");
 hooks.deregister();
 
 test("provider outage produces a source-only research result and blocks trade handoff", async t => {
@@ -150,10 +155,79 @@ test("synthetic positive handoff preserves lineage through Research → paper St
   }));
   assert.equal(nightwatchResponse.status, 200);
   assert.equal(globalThis.flowTest.nightwatch.research.question, "Synthetic NVDA evidence fixture");
-  const nightwatchCommit = captures.rpc.find(call => call.name === "nightwatch_tick");
+  const nightwatchCommit = captures.rpc.find(call => call.name === "nightwatch_tick_from_server");
   assert.equal(nightwatchCommit.args.p_snapshot.researchRunId, researchId);
+  assert.equal(nightwatchCommit.args.p_user_id, user.id);
   assert.equal(nightwatchCommit.args.p_signal, "hold");
   assert.deepEqual(captures.orders, ["hold"], "the fixture did not create a paper fill or any live order");
+});
+
+test("manual paper exit uses the verified user and rejects stale quotes", async () => {
+  const originalAsset = globalThis.flowTest.asset;
+  const originalTradeQuote = globalThis.flowTest.tradeQuote;
+  try {
+    globalThis.flowTest.asset = async symbol => ({ symbol, isReality: true, lastPrice: 100, providerTimestamp: Date.now() - 120_001 });
+    const request = () => new Request("https://tidelight.app/api/nightwatch/close", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ symbol: "RNVDAUSDT", userId: "attacker-controlled" }) });
+    const count = captures.rpc.length;
+    globalThis.flowTest.tradeQuote = async () => ({ price: 101, providerTimestamp: Date.now() - 120_001 });
+    assert.equal((await closeRoute.POST(request())).status, 422, "stale actual fills veto exits even when ticker data is otherwise present");
+    assert.equal(captures.rpc.length, count);
+    const freshQuoteTimestamp = Date.now();
+    globalThis.flowTest.tradeQuote = async () => ({ price: 101, providerTimestamp: freshQuoteTimestamp });
+    const response = await closeRoute.POST(request());
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).price, 101, "exit result reports the actual fill price, not the ticker last price");
+    const call = captures.rpc.at(-1);
+    assert.equal(call.name, "nightwatch_close_from_server");
+    assert.equal(call.args.p_user_id, user.id);
+    assert.equal(call.args.p_reference_price, 101);
+    assert.equal(Date.parse(call.args.p_quote_timestamp), freshQuoteTimestamp, "the server passes the provider fill timestamp into the ledger check");
+    const ticker = await globalThis.flowTest.asset("RNVDAUSDT");
+    assert.notEqual(call.args.p_reference_price, ticker.lastPrice);
+  } finally {
+    globalThis.flowTest.asset = originalAsset;
+    globalThis.flowTest.tradeQuote = originalTradeQuote;
+  }
+});
+
+test("manual paper exit reports missing server configuration before market lookups", async () => {
+  const originalAsset = globalThis.flowTest.asset;
+  const originalTradeQuote = globalThis.flowTest.tradeQuote;
+  const marketCalls = captures.marketCalls;
+  const rpcCalls = captures.rpc.length;
+  let fillCalls = 0;
+  globalThis.flowTest.asset = async () => { captures.marketCalls++; return null; };
+  globalThis.flowTest.tradeQuote = async () => { fillCalls++; return null; };
+  globalThis.flowTest.adminUnavailable = true;
+  try {
+    const response = await closeRoute.POST(new Request("https://tidelight.app/api/nightwatch/close", {
+      method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ symbol: "RNVDAUSDT" }),
+    }));
+    assert.equal(response.status, 503);
+    assert.match((await response.json()).error, /temporarily unavailable/);
+    assert.equal(captures.marketCalls, marketCalls);
+    assert.equal(fillCalls, 0);
+    assert.equal(captures.rpc.length, rpcCalls);
+  } finally {
+    globalThis.flowTest.adminUnavailable = false;
+    globalThis.flowTest.asset = originalAsset;
+    globalThis.flowTest.tradeQuote = originalTradeQuote;
+  }
+});
+
+test("Nightwatch reports missing server execution configuration before market or AI work", async () => {
+  const marketCalls = captures.marketCalls;
+  const priorDecision = globalThis.flowTest.nightwatch;
+  globalThis.flowTest.adminUnavailable = true;
+  try {
+    const response = await nightwatchRoute.POST(new Request("https://tidelight.app/api/nightwatch/tick", {
+      method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ symbol: "RNVDAUSDT" }),
+    }));
+    assert.equal(response.status, 503);
+    assert.match((await response.json()).error, /temporarily unavailable/);
+    assert.equal(captures.marketCalls, marketCalls);
+    assert.equal(globalThis.flowTest.nightwatch, priorDecision);
+  } finally { globalThis.flowTest.adminUnavailable = false; }
 });
 
 test("macro-only research saves a source-bound brief and bypasses stock providers and trade handoff", async () => {
