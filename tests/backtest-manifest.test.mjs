@@ -44,6 +44,19 @@ test("archive or manifest edits fail integrity verification", () => {
   assert.equal(verifyBacktestExperimentManifest({ ...manifest, dataset: { ...manifest.dataset, fingerprint: { ...manifest.dataset.fingerprint, value: "f".repeat(64) } } }, candles), false);
 });
 
+test("invalid archived candle structure fails verification even when its fingerprint is recomputed", () => {
+  const malformed = [
+    candles.map((candle, index) => index === 0 ? { ...candle, high: 99 } : candle),
+    candles.map((candle, index) => index === 0 ? { ...candle, close: Number.NaN } : candle),
+    candles.map((candle, index) => index === 0 ? { ...candle, volume: -1 } : candle),
+    candles.map((candle, index) => index === 1 ? { ...candle, timestamp: candles[0].timestamp } : candle),
+  ];
+  for (const archived of malformed) {
+    const manifest = createBacktestExperimentManifest({ ...input, candles: archived });
+    assert.equal(verifyBacktestExperimentManifest(manifest, archived), false);
+  }
+});
+
 test("spot assumptions do not inherit stock perpetual funding or leverage", () => {
   const spot = createBacktestExperimentManifest({ ...input, marketCategory: "SPOT", assetKind: "rtoken" });
   assert.deepEqual(spot.execution, { initialEquity: 10_000, feeBpsPerSide: 10, slippageBpsPerSide: 5, positionModel: "long_cash", leverage: 1, funding: "not_applicable" });

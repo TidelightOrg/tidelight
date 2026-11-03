@@ -8,6 +8,7 @@ import { getServerAuthState } from "@/lib/supabase/auth-user";
 const intervals = new Set<CandleInterval>(["1H", "4H", "1D"]);
 const symbolPattern = /^[A-Z0-9]{2,32}$/;
 
+/** Run a server-authenticated backtest and persist its reproducibility manifest. */
 export async function POST(request: Request) {
   let body: { symbol?: unknown; interval?: unknown; marketCategory?: unknown; researchRunId?: unknown; strategyKey?: unknown; hypothesis?: unknown };
   try { body = await request.json() as typeof body; } catch { return Response.json({ error: "Send a valid JSON request." }, { status: 400 }); }

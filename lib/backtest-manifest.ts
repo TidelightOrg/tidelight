@@ -46,6 +46,7 @@ type ManifestInput = {
   sourceRevision: string | null;
 };
 
+/** Convert candles into the stable OHLCV field order used by dataset fingerprints. */
 function canonicalRows(candles: MarketCandle[]) {
   return candles.map((candle) => [
     candle.timestamp,
@@ -58,6 +59,7 @@ function canonicalRows(candles: MarketCandle[]) {
   ]);
 }
 
+/** Serialize plain JSON values with sorted object keys for reproducible digests. */
 function stableJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
   if (value && typeof value === "object") {
@@ -67,14 +69,17 @@ function stableJson(value: unknown): string {
   return JSON.stringify(value) ?? "null";
 }
 
+/** Return the SHA-256 fingerprint for an ordered set of archived OHLCV candles. */
 export function fingerprintBacktestCandles(candles: MarketCandle[]) {
   return createHash("sha256").update(JSON.stringify(canonicalRows(candles))).digest("hex");
 }
 
+/** Hash the manifest fields that precede its integrity record. */
 function digestManifest(manifest: Omit<BacktestExperimentManifest, "integrity">) {
   return createHash("sha256").update(stableJson(manifest)).digest("hex");
 }
 
+/** Capture the strategy, market, holdout split, costs, and dataset provenance for one run. */
 export function createBacktestExperimentManifest(input: ManifestInput): BacktestExperimentManifest {
   if (input.candles.length < 2 || input.splitIndex < 1 || input.splitIndex >= input.candles.length) throw new Error("The experiment manifest needs a valid training and holdout split.");
   if (!Number.isSafeInteger(input.capturedAt) || input.capturedAt <= 0) throw new Error("The experiment capture time is invalid.");
@@ -111,19 +116,28 @@ export function createBacktestExperimentManifest(input: ManifestInput): Backtest
   return { ...manifest, integrity: { algorithm: "SHA-256", manifestDigest: digestManifest(manifest) } };
 }
 
-/** Verify the archived inputs and manifest digest before publishing a new replay. */
+/** Verify candle validity, dataset identity, manifest assumptions, and digest before replay publication. */
 export function verifyBacktestExperimentManifest(value: unknown, candles: MarketCandle[]): value is BacktestExperimentManifest {
   if (!value || typeof value !== "object" || Array.isArray(value) || candles.length < 2 || candles.length > 1000) return false;
+  for (let index = 0; index < candles.length; index += 1) {
+    const candle = candles[index];
+    if (!candle || !Number.isSafeInteger(candle.timestamp) || candle.timestamp <= 0 || [candle.open, candle.high, candle.low, candle.close].some(price => !Number.isFinite(price) || price <= 0)) return false;
+    if (candle.high < Math.max(candle.open, candle.close, candle.low) || candle.low > Math.min(candle.open, candle.close, candle.high)) return false;
+    if ((candle.volume !== null && (!Number.isFinite(candle.volume) || candle.volume < 0)) || (candle.turnover !== null && (!Number.isFinite(candle.turnover) || candle.turnover < 0))) return false;
+    if (index > 0 && candle.timestamp <= candles[index - 1].timestamp) return false;
+  }
   const manifest = value as Partial<BacktestExperimentManifest>;
-  if (manifest.schemaVersion !== 1 || !manifest.engine?.version || manifest.dataset?.rowCount !== candles.length) return false;
+  if (manifest.schemaVersion !== 1 || manifest.engine?.name !== "tidelight-alpha-backtest" || !/^alpha-backtest-v\d+$/.test(manifest.engine.version) || manifest.dataset?.rowCount !== candles.length || manifest.dataset.provider !== "Bitget") return false;
+  if (manifest.engine.sourceRevision !== null && (typeof manifest.engine.sourceRevision !== "string" || !/^[0-9a-f]{7,64}$/i.test(manifest.engine.sourceRevision))) return false;
   if (manifest.dataset.fingerprint?.encoding !== "ohlcv-v1" || manifest.dataset.fingerprint.algorithm !== "SHA-256") return false;
   if (!manifest.strategy || typeof manifest.strategy.key !== "string" || manifest.strategy.version !== manifest.strategy.key) return false;
-  if (!manifest.instrument || typeof manifest.instrument.symbol !== "string" || !["SPOT", "USDT-FUTURES"].includes(manifest.instrument.marketCategory) || !["1H", "4H", "1D"].includes(manifest.instrument.interval)) return false;
+  if (!manifest.instrument || typeof manifest.instrument.symbol !== "string" || !["SPOT", "USDT-FUTURES"].includes(manifest.instrument.marketCategory) || !["1H", "4H", "1D"].includes(manifest.instrument.interval) || typeof manifest.instrument.assetName !== "string" || typeof manifest.instrument.assetKind !== "string") return false;
   if (!manifest.dataset || !Number.isSafeInteger(manifest.dataset.capturedAt) || manifest.dataset.capturedAt! <= 0) return false;
+  if (manifest.dataset.providerTimestamp !== null && (!Number.isSafeInteger(manifest.dataset.providerTimestamp) || manifest.dataset.providerTimestamp! <= 0)) return false;
   if (manifest.dataset.firstTimestamp !== candles[0].timestamp || manifest.dataset.lastTimestamp !== candles.at(-1)?.timestamp) return false;
   if (!manifest.split || !Number.isSafeInteger(manifest.split.splitIndex) || manifest.split.splitIndex < 1 || manifest.split.splitIndex >= candles.length) return false;
-  if (manifest.split.trainEnd !== candles[manifest.split.splitIndex - 1].timestamp || manifest.split.holdoutStart !== candles[manifest.split.splitIndex].timestamp || manifest.split.holdoutEnd !== candles.at(-1)?.timestamp) return false;
-  if (!manifest.execution || ![manifest.execution.initialEquity, manifest.execution.feeBpsPerSide, manifest.execution.slippageBpsPerSide].every(Number.isFinite) || manifest.execution.leverage !== 1) return false;
+  if (manifest.split.trainStart !== candles[0].timestamp || manifest.split.trainEnd !== candles[manifest.split.splitIndex - 1].timestamp || manifest.split.holdoutStart !== candles[manifest.split.splitIndex].timestamp || manifest.split.holdoutEnd !== candles.at(-1)?.timestamp) return false;
+  if (!manifest.execution || ![manifest.execution.initialEquity, manifest.execution.feeBpsPerSide, manifest.execution.slippageBpsPerSide].every(Number.isFinite) || manifest.execution.initialEquity <= 0 || manifest.execution.feeBpsPerSide < 0 || manifest.execution.slippageBpsPerSide < 0 || manifest.execution.positionModel !== "long_cash" || manifest.execution.leverage !== 1) return false;
   if (manifest.execution.funding !== (manifest.instrument.marketCategory === "USDT-FUTURES" ? "excluded" : "not_applicable")) return false;
   try {
     if (manifest.dataset.fingerprint.value !== fingerprintBacktestCandles(candles)) return false;

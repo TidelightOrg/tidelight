@@ -7,6 +7,7 @@ import { verifyBacktestExperimentManifest } from "@/lib/backtest-manifest";
 export const dynamic = "force-dynamic";
 const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
+/** Publish an owner-scoped replay only after validating its archived dataset and manifest. */
 export async function POST(request: Request) {
   const auth = await getServerAuthState();
   if (auth.errorCode) return NextResponse.json({ error: "Tidelight could not verify your sign-in just now. Please retry shortly." }, { status: 503 });
