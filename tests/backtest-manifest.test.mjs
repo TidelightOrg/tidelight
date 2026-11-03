@@ -59,7 +59,7 @@ test("invalid archived candle structure fails verification even when its fingerp
     candles.map((candle, index) => index === 1 ? { ...candle, timestamp: candles[0].timestamp } : candle),
   ];
   for (const archived of malformed) {
-    const manifest = createBacktestExperimentManifest({ ...input, candles: archived });
+    const manifest = createBacktestExperimentManifest({ ...input, candles: archived, trainStart: archived[0].timestamp });
     assert.equal(verifyBacktestExperimentManifest(manifest, archived), false);
   }
 });

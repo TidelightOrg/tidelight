@@ -138,7 +138,8 @@ export function verifyBacktestExperimentManifest(value: unknown, candles: Market
   if (manifest.dataset.providerTimestamp !== null && (!Number.isSafeInteger(manifest.dataset.providerTimestamp) || manifest.dataset.providerTimestamp! <= 0)) return false;
   if (manifest.dataset.firstTimestamp !== candles[0].timestamp || manifest.dataset.lastTimestamp !== candles.at(-1)?.timestamp) return false;
   if (!manifest.split || !Number.isSafeInteger(manifest.split.splitIndex) || manifest.split.splitIndex < 1 || manifest.split.splitIndex >= candles.length) return false;
-  if (!candles.slice(0, manifest.split.splitIndex).some(candle => candle.timestamp === manifest.split.trainStart) || manifest.split.trainEnd !== candles[manifest.split.splitIndex - 1].timestamp || manifest.split.holdoutStart !== candles[manifest.split.splitIndex].timestamp || manifest.split.holdoutEnd !== candles.at(-1)?.timestamp) return false;
+  const split = manifest.split;
+  if (!candles.slice(0, split.splitIndex).some(candle => candle.timestamp === split.trainStart) || split.trainEnd !== candles[split.splitIndex - 1].timestamp || split.holdoutStart !== candles[split.splitIndex].timestamp || split.holdoutEnd !== candles.at(-1)?.timestamp) return false;
   if (!manifest.execution || ![manifest.execution.initialEquity, manifest.execution.feeBpsPerSide, manifest.execution.slippageBpsPerSide].every(Number.isFinite) || manifest.execution.initialEquity <= 0 || manifest.execution.feeBpsPerSide < 0 || manifest.execution.slippageBpsPerSide < 0 || manifest.execution.positionModel !== "long_cash" || manifest.execution.leverage !== 1) return false;
   if (manifest.execution.funding !== (manifest.instrument.marketCategory === "USDT-FUTURES" ? "excluded" : "not_applicable")) return false;
   try {
