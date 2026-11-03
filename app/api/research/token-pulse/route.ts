@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { aiJsonWithFallback, configuredAiProviders } from "@/lib/ai-fallback";
+import { filterPersistableTokenPulseSources } from "@/lib/token-pulse-sources";
 
 export const maxDuration = 60;
 type SearchItem = { title: string; url: string; publisher: string; publishedAt: string | null; snippet: string; channel: "News" | "Community" };
@@ -61,11 +62,12 @@ async function getCommunity(query: string): Promise<SearchItem[]> {
 }
 async function savePulseReplaySource(db: Awaited<ReturnType<typeof createClient>>, userId: string, question: string, token: string, items: SearchItem[], analysis: Record<string, unknown>) {
   const stance = analysis.mood === "positive" ? "bullish" : analysis.mood === "negative" ? "bearish" : analysis.mood === "mixed" ? "mixed" : "unclear";
-  const sources = items.map(item => ({ title: item.title, url: item.url, publisher: item.publisher, publishedAt: item.publishedAt, via: item.channel }));
+  const { items: persistableItems } = filterPersistableTokenPulseSources(items);
+  const sources = persistableItems.map(item => ({ title: item.title, url: item.url, publisher: item.publisher, publishedAt: item.publishedAt, via: item.channel }));
   const summary = { schemaVersion: 1, question, capturedAt: new Date().toISOString(), assets: [{ ticker: token, issuer: issuerAliases[token]?.[0] ?? token, summary: String(analysis.overview ?? "Public research snapshot."), stance, confidence: Math.max(0, Math.min(1, Number(analysis.confidence) || 0)), confidenceCapped: Number(analysis.confidence) < 0.4, tradeable: false, gateReasons: ["Token pulse is a research snapshot; it does not qualify a trading handoff."], sources, evidenceBalance: { supporting: [], counter: [] }, market: { spotSymbol: null, perpSymbol: null, lastPrice: null, providerTimestamp: null }, risks: Array.isArray(analysis.risks) ? analysis.risks : [], nextCheck: Array.isArray(analysis.watch_next) ? analysis.watch_next.join(" ") : null }], trace: [{ id: crypto.randomUUID(), agent: "Token Pulse", status: "complete", title: "Public news and community snapshot collected", at: new Date().toISOString() }] };
   const { data: run, error } = await db.from("research_runs").insert({ user_id: userId, question, status: "complete", event_type: "agent_flow", summary, completed_at: new Date().toISOString() }).select("id").single();
   if (error || !run) return null;
-  const { error: sourceError } = await db.from("research_sources").upsert(items.map(item => ({ research_run_id: run.id, url: item.url, title: item.title.slice(0, 300), publisher: item.publisher.slice(0, 120), published_at: item.publishedAt, source_type: "web", excerpt: item.snippet.slice(0, 1000) })), { onConflict: "research_run_id,url", ignoreDuplicates: true });
+  const { error: sourceError } = await db.from("research_sources").upsert(persistableItems.map(item => ({ research_run_id: run.id, url: item.url, title: item.title.slice(0, 300), publisher: item.publisher.slice(0, 120), published_at: item.publishedAt, source_type: "web", excerpt: item.snippet.slice(0, 1000) })), { onConflict: "research_run_id,url", ignoreDuplicates: true });
   if (sourceError) { await db.from("research_runs").delete().eq("id", run.id).eq("user_id", userId); return null; }
   return run.id as string;
 }
@@ -101,7 +103,8 @@ export async function POST(request: Request) {
     const key = headline.replace(/[^a-z0-9]+/g, " ").trim();
     if (key && !unique.has(key)) unique.set(key, item);
   }
-  const items = [...unique.values()]
+  const { items: persistableItems, omittedOversizedLinks } = filterPersistableTokenPulseSources([...unique.values()]);
+  const items = persistableItems
     .filter((item) => !item.publishedAt || Date.now() - Date.parse(item.publishedAt) < 14 * 86400000)
     .filter((item) => {
       if (!looksLikeEquity) return true;
@@ -122,9 +125,10 @@ export async function POST(request: Request) {
       const value = entry as Record<string, unknown>;
       return { headline: String(value.headline ?? "").slice(0, 180), what_it_means: String(value.what_it_means ?? "").slice(0, 400), source_urls: Array.isArray(value.source_urls) ? value.source_urls.filter((url): url is string => typeof url === "string" && sourceUrls.has(url)).slice(0, 3) : [] };
     }).filter((item) => item.headline && item.source_urls.length > 0) : [];
-    const pulseAnalysis = { overview: String(analysis.overview ?? "").slice(0, 600), mood: ["positive", "mixed", "negative", "unclear"].includes(String(analysis.mood)) ? analysis.mood : "unclear", mood_explanation: String(analysis.mood_explanation ?? "").slice(0, 300), notable_developments: developments, risks: Array.isArray(analysis.risks) ? analysis.risks.slice(0, 4).map((item) => String(item).slice(0, 260)) : [], watch_next: Array.isArray(analysis.watch_next) ? analysis.watch_next.slice(0, 3).map((item) => String(item).slice(0, 220)) : [], confidence: Math.min(items.length < 3 ? 0.3 : items.length < 5 ? 0.5 : 1, Math.max(0, Number(analysis.confidence) || 0)), limitations: String(analysis.limitations ?? "This pulse summarizes public sources and may miss relevant information.").slice(0, 300) };
+    const linkLimitNote = omittedOversizedLinks ? ` ${omittedOversizedLinks} source link${omittedOversizedLinks === 1 ? " was" : "s were"} omitted because it exceeded the 4,096-character saved-link limit.` : "";
+    const pulseAnalysis = { overview: String(analysis.overview ?? "").slice(0, 600), mood: ["positive", "mixed", "negative", "unclear"].includes(String(analysis.mood)) ? analysis.mood : "unclear", mood_explanation: String(analysis.mood_explanation ?? "").slice(0, 300), notable_developments: developments, risks: Array.isArray(analysis.risks) ? analysis.risks.slice(0, 4).map((item) => String(item).slice(0, 260)) : [], watch_next: Array.isArray(analysis.watch_next) ? analysis.watch_next.slice(0, 3).map((item) => String(item).slice(0, 220)) : [], confidence: Math.min(items.length < 3 ? 0.3 : items.length < 5 ? 0.5 : 1, Math.max(0, Number(analysis.confidence) || 0)), limitations: `${String(analysis.limitations ?? "This pulse summarizes public sources and may miss relevant information.").slice(0, 260)}${linkLimitNote}` };
     const researchRunId = await savePulseReplaySource(supabase, user.id, `Token pulse: ${token}`, token, items, pulseAnalysis);
-    return NextResponse.json({ token, researchRunId, collectedAt: new Date().toISOString(), coverage: { news: items.filter((item) => item.channel === "News").length, community: items.filter((item) => item.channel === "Community").length }, sources: items, analysis: pulseAnalysis });
+    return NextResponse.json({ token, researchRunId, collectedAt: new Date().toISOString(), coverage: { news: items.filter((item) => item.channel === "News").length, community: items.filter((item) => item.channel === "Community").length, omittedOversizedLinks }, sources: items, analysis: pulseAnalysis });
   } catch (cause) {
     console.error("token-pulse-analysis-failed", cause instanceof Error ? cause.message : "unknown");
     const fallbackAnalysis = {
@@ -133,9 +137,9 @@ export async function POST(request: Request) {
       notable_developments: items.slice(0, 4).map((item) => ({ headline: item.title, what_it_means: "Headline only. Read the linked source for its evidence and full context.", source_urls: [item.url] })),
       risks: ["Headlines can be incomplete, duplicated, or unrelated to the token market."],
       watch_next: ["Check the issuer’s latest filing or release.", "Compare the token’s live price and liquidity with the underlying stock."],
-      confidence: 0, limitations: "Source-only mode: no AI synthesis or trade signal was generated. Try again later for an interpreted pulse.", sourceOnly: true,
+      confidence: 0, limitations: `Source-only mode: no AI synthesis or trade signal was generated. Try again later for an interpreted pulse.${omittedOversizedLinks ? ` ${omittedOversizedLinks} source link${omittedOversizedLinks === 1 ? " was" : "s were"} omitted because it exceeded the 4,096-character saved-link limit.` : ""}`, sourceOnly: true,
     };
     const researchRunId = await savePulseReplaySource(supabase, user.id, `Token pulse: ${token}`, token, items, fallbackAnalysis);
-    return NextResponse.json({ token, researchRunId, collectedAt: new Date().toISOString(), coverage: { news: items.filter((item) => item.channel === "News").length, community: items.filter((item) => item.channel === "Community").length }, sources: items, analysis: fallbackAnalysis }, { headers: { "Cache-Control": "no-store" } });
+    return NextResponse.json({ token, researchRunId, collectedAt: new Date().toISOString(), coverage: { news: items.filter((item) => item.channel === "News").length, community: items.filter((item) => item.channel === "Community").length, omittedOversizedLinks }, sources: items, analysis: fallbackAnalysis }, { headers: { "Cache-Control": "no-store" } });
   }
 }
