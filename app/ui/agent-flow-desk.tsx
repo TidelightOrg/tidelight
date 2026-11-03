@@ -129,7 +129,9 @@ export default function AgentFlowDesk({ initialQuestion, initialMonitorId = null
   const [stages, setStages] = useState<StageEvent[]>([]);
   const [result, setResult] = useState<FlowResult | null>(null);
   const [capsuleReceipt, setCapsuleReceipt] = useState<DecisionCapsuleReceipt | null>(null);
+  const [capsuleReceiptRunId, setCapsuleReceiptRunId] = useState<string | null>(null);
   const [capsuleError, setCapsuleError] = useState("");
+  const [capsuleErrorRunId, setCapsuleErrorRunId] = useState<string | null>(null);
   const [capsuleSaving, setCapsuleSaving] = useState(false);
   const [error, setError] = useState("");
   const [guestStored, setGuestStored] = useState(false);
@@ -142,6 +144,7 @@ export default function AgentFlowDesk({ initialQuestion, initialMonitorId = null
   const [activeSuggestion, setActiveSuggestion] = useState(0);
   const [suggestionOffset, setSuggestionOffset] = useState(0);
   const controller = useRef<AbortController | null>(null);
+  const researchGeneration = useRef(0);
   const restoreFrame = useRef<number | null>(null);
   const stageStartedAt = useRef(new Map<string, number>());
   const handoffRef = useRef<HTMLDivElement>(null);
@@ -207,15 +210,23 @@ export default function AgentFlowDesk({ initialQuestion, initialMonitorId = null
 
   async function saveDecisionCapsule() {
     if (!result?.researchRunId || capsuleSaving) return;
+    const runId = result.researchRunId;
+    const generation = researchGeneration.current;
     setCapsuleSaving(true);
     setCapsuleError("");
+    setCapsuleErrorRunId(null);
     try {
-      const receipt = await createDecisionCapsule(result.researchRunId);
+      const receipt = await createDecisionCapsule(runId);
+      if (generation !== researchGeneration.current) return;
       setCapsuleReceipt(receipt);
+      setCapsuleReceiptRunId(runId);
     } catch (cause) {
-      setCapsuleError(cause instanceof Error ? cause.message : "The private decision capsule could not be saved. Try again shortly.");
+      if (generation === researchGeneration.current) {
+        setCapsuleError(cause instanceof Error ? cause.message : "The private decision capsule could not be saved. Try again shortly.");
+        setCapsuleErrorRunId(runId);
+      }
     } finally {
-      setCapsuleSaving(false);
+      if (generation === researchGeneration.current) setCapsuleSaving(false);
     }
   }
 
@@ -223,12 +234,14 @@ export default function AgentFlowDesk({ initialQuestion, initialMonitorId = null
     event?.preventDefault();
     const submitted = question.trim();
     if (submitted.length < 4) { setError("Ask about a US stock, its tokenized market, or a dated Fed/BLS release."); return; }
+    researchGeneration.current += 1;
+    setCapsuleSaving(false);
     if (restoreFrame.current !== null) { window.cancelAnimationFrame(restoreFrame.current); restoreFrame.current = null; }
     if (evaluatorMode) { const cleared = clearJudgeResult(); setClearError(!cleared); setGuestStored(false); }
     controller.current?.abort();
     const request = new AbortController();
     controller.current = request;
-    setBusy(true); setBusySince(Date.now()); setBusySeconds(0); setError(""); setResult(null); setCapsuleReceipt(null); setCapsuleError(""); setStages([]); stageStartedAt.current.clear();
+    setBusy(true); setBusySince(Date.now()); setBusySeconds(0); setError(""); setResult(null); setCapsuleReceipt(null); setCapsuleReceiptRunId(null); setCapsuleError(""); setCapsuleErrorRunId(null); setStages([]); stageStartedAt.current.clear();
     let completed = false;
     try {
       const response = await fetch("/api/research/agent-flow", {
@@ -361,7 +374,7 @@ export default function AgentFlowDesk({ initialQuestion, initialMonitorId = null
           <b>{translate("Preserve this research as a Decision Capsule")}</b>
           <p>{translate("Save the completed research and its stored sources as a private integrity-checked record. This confirms record integrity, not forecast accuracy.")}</p>
         </div>
-        {capsuleReceipt ? <div className="flow-capsule-receipt" role="status" aria-live="polite">
+        {capsuleReceipt && capsuleReceiptRunId === result.researchRunId ? <div className="flow-capsule-receipt" role="status" aria-live="polite">
           <b>{translate("Capsule saved · integrity verified")}</b>
           <span>{translate("Capsule ID")} · <code>{capsuleReceipt.id}</code></span>
           <span>SHA-256 · <code>{capsuleReceipt.integrityHash}</code></span>
@@ -369,7 +382,7 @@ export default function AgentFlowDesk({ initialQuestion, initialMonitorId = null
         </div> : <button type="button" onClick={() => void saveDecisionCapsule()} disabled={capsuleSaving} aria-busy={capsuleSaving}>
           {capsuleSaving ? translate("Saving capsule…") : translate("Save private Decision Capsule ↗")}
         </button>}
-        {capsuleError ? <p className="flow-capsule-error" role="alert">{capsuleError}</p> : null}
+        {capsuleError && capsuleErrorRunId === result.researchRunId ? <p className="flow-capsule-error" role="alert">{capsuleError}</p> : null}
       </section> : null}
       <div className="flow-asset-grid">{result.researchType === "macro" ? result.assets.map((asset) => <MacroAssessmentCard key={asset.ticker} asset={asset} />) : null}{result.researchType !== "macro" ? result.assets.map((asset) => <article key={asset.ticker} className="flow-asset-card"><header><div><span className="flow-kicker">{asset.ticker} / {asset.issuer}</span><h3>{asset.issuer}</h3></div><span className={`flow-verdict ${asset.tradeable ? "flow-verdict-ready" : ""}`}>{asset.tradeable ? "REVIEW AVAILABLE" : "NO TRADE HANDOFF"}</span></header><p>{asset.summary}</p>{asset.tokenizedMarketReview ? <section className="flow-token-verdict" aria-label="Tokenized market finding"><span className="flow-kicker">R TOKEN / MARKET FINDING</span><b>{asset.tokenizedMarketReview.verdict}</b><span className={`flow-token-quote flow-token-quote-${asset.tokenizedMarketReview.quoteStatus}`}>Token quote freshness: {asset.tokenizedMarketReview.quoteStatus}</span><ul>{asset.tokenizedMarketReview.limitations.map((limitation) => <li key={limitation}>{limitation}</li>)}</ul></section> : null}<div className="flow-asset-meta"><span>Read <b>{asset.stance}</b></span><span>Model confidence <b>{Math.round(asset.confidence * 100)}%</b></span></div><section className="flow-market-references" aria-label={`${asset.ticker} instrument checks`}><b>Instrument checks</b>{asset.tokenizedMarketReview ? <span>Tokenized spot · {asset.market.spotSymbol ?? `R${asset.ticker}USDT`} · {asset.market.spotLastPrice != null ? `${asset.market.spotLastPrice.toLocaleString()}` : "No verified quote"}{asset.market.spotProviderTimestamp ? ` · ${new Date(asset.market.spotProviderTimestamp).toLocaleString()}` : " · freshness unverified"}</span> : null}<span>Stock perpetual · {asset.market.perpSymbol ?? `${asset.ticker}USDT`} · {asset.market.perpLastPrice != null ? `$${asset.market.perpLastPrice.toLocaleString()}` : "No verified quote"}{asset.market.perpProviderTimestamp ? ` · ${new Date(asset.market.perpProviderTimestamp).toLocaleString()}` : " · freshness unverified"} · derivative reference</span></section><p className="flow-confidence-note" role="note">{asset.confidenceCapped ? "Evidence is limited: the score is capped until two recent, distinct publishers support the assessment. " : ""}Model-reported score, not a calibrated probability.</p><QuoteFreshness market={asset.market} now={quoteNow} />{asset.evidenceBalance && (asset.evidenceBalance.supporting.length > 0 || asset.evidenceBalance.counter.length > 0) ? <section className="flow-evidence-balance" aria-label={`${asset.ticker} evidence balance`}><header><b>Evidence balance</b><span>Source-linked points only</span></header><div className="flow-evidence-columns">{([["Supports this reading", asset.evidenceBalance.supporting], ["Challenges this reading", asset.evidenceBalance.counter]] as const).map(([label, points]) => <section className="flow-evidence-side" key={label}><h4>{label}</h4>{points.length ? <ul>{points.map((point, index) => <li key={index}><p>{point.text}</p><div>{point.citedUrls.map((url) => { const source = asset.sources.find((item) => item.url === url); return source ? <a key={url} href={url} target="_blank" rel="noopener noreferrer">{source.publisher} ↗</a> : null; })}</div></li>)}</ul> : <p className="flow-evidence-empty">No source-linked points were established for this side.</p>}</section>)}</div></section> : null}{asset.gateReasons?.length ? <div className="flow-gates"><b>Decision gates</b><ul>{asset.gateReasons.map((reason, index) => <li key={index}>{reason}</li>)}</ul></div> : null}<details className="flow-sources"><summary>Inspect {asset.sources.length} {asset.sources.length === 1 ? "source" : "sources"}</summary>{asset.sources.length ? <ul>{asset.sources.map((source, index) => <li key={`${source.url}-${index}`}><span>{source.publisher}{source.publishedAt ? ` · ${new Date(source.publishedAt).toLocaleDateString()}` : ""}{source.via ? <em className="flow-source-via"> · {source.via}</em> : null}</span><a href={source.url} target="_blank" rel="noopener noreferrer">{source.title} ↗</a></li>)}</ul> : <p>No source links were returned; the trading gate remains closed.</p>}</details></article>) : null}</div>
       {tradeableAssets.length ? <div className="flow-handoff" ref={handoffRef} tabIndex={-1} role="region" aria-label="Choose a trading review desk"><div className="flow-handoff-intro"><span className="flow-kicker">NEXT / YOUR DECISION</span><h2>Review the market before acting.</h2><p>The research gates found a scenario worth inspecting. Choose paper futures, or review a Bitget tokenized stock spot order in demo or live account mode. You can review both desks. Every order still requires your own approval and risk checks.</p></div><div className="flow-handoff-list">{tradeableAssets.map((asset) => <div className="flow-handoff-asset" key={asset.ticker}><div><b>{asset.ticker}</b><span>{asset.handoff?.reason}</span></div><div className="flow-handoff-actions">{asset.handoff?.destinations.flatMap((destination) => { const href = safeDeskLink(destination); if (!href) return []; if (destination.mode === "paper_futures") return [<Link key="paper" href={href} onClick={() => setMode("pro")}>Review paper futures <span>↗</span></Link>]; const demo = `${href}${href.includes("?") ? "&" : "?"}intent=demo`; const live = `${href}${href.includes("?") ? "&" : "?"}intent=live`; return [<Link key="demo" href={demo} onClick={() => setMode("pro")}>Review Bitget demo spot <span>↗</span></Link>, <Link key="live" href={live} onClick={() => setMode("pro")}>Review Bitget live spot <span>↗</span></Link>]; })}</div></div>)}</div><small>Research can be uncertain. A review link never places a trade or switches your account into live mode.{mode === "mini" ? " Trade reviews open the Pro workspace controls." : ""}</small></div> : result.researchType === "macro" ? <div className="flow-no-handoff"><span className="flow-kicker">MACRO / RESEARCH ONLY</span><b>No instrument or trading decision is generated.</b><p>This brief covers public economic evidence and its stated limits.</p></div> : <div className="flow-no-handoff"><span className="flow-kicker">RISK GATE / HOLD</span><b>No trading handoff for this read.</b><p>Review the sources and decision gates above. You can return when fresher or stronger evidence is available.</p><Link href="/markets">Explore the market map ↗</Link></div>}

@@ -125,7 +125,9 @@ test("Simplified Chinese covers the private capsule action in saved Research", a
     assert.equal(typeof translations[key], "string", `Simplified Chinese must translate: ${key}`);
   }
   assert.match(desk, /result\.researchRunId \? <section className="flow-capsule"/);
-  assert.match(desk, /createDecisionCapsule\(result\.researchRunId\)/);
+  assert.match(desk, /const runId = result\.researchRunId;[\s\S]*createDecisionCapsule\(runId\)/);
+  assert.match(desk, /capsuleReceiptRunId === result\.researchRunId/);
+  assert.match(desk, /capsuleErrorRunId === result\.researchRunId/);
 });
 
 test("developer pages expose a language toggle and share the language preference across Tidelight subdomains", async () => {
