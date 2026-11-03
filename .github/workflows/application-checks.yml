@@ -127,7 +127,7 @@ jobs:
       - name: Prepare isolated capsule schema
         run: psql -v ON_ERROR_STOP=1 -f tests/postgres/decision-capsules-prerequisites.sql
       - name: Apply private capsule migration
-        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261102120000_private_decision_capsules.sql
+        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261103060730_private_decision_capsules.sql
       - name: Test capsule ownership, write-once grants, and RLS
         run: psql -v ON_ERROR_STOP=1 -f tests/postgres/decision-capsules.sql
 
