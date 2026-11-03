@@ -11,6 +11,7 @@ const MAX_EVIDENCE = 500;
 
 /** Return a bounded, owner-scoped provenance graph for an eligible saved brief. */
 export async function GET(_request: Request, { params }: { params: Promise<{ runId: string }> }) {
+ try {
   const auth = await getServerAuthState();
   const authUnavailable = auth.errorName === "AuthRetryableFetchError" || auth.errorStatus === 429 || (auth.errorStatus !== null && auth.errorStatus >= 500) || (auth.errorName !== null && auth.errorStatus === null && auth.errorName !== "AuthSessionMissingError" && auth.errorCode === null);
   if (authUnavailable) return NextResponse.json({ error: "Tidelight could not verify your sign-in just now. Please retry shortly." }, { status: 503, headers: noStore });
@@ -44,4 +45,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ run
     if (error instanceof Error && error.message === "saved-evidence-graph-response-too-large") return NextResponse.json({ error: "This complete evidence graph exceeds the safe response text budget; no partial graph was returned." }, { status: 413, headers: noStore });
     return NextResponse.json({ error: "The saved research record cannot be represented as a complete graph." }, { status: 422, headers: noStore });
   }
+ } catch (error) {
+   const errorName = error instanceof Error && /^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(error.name) ? error.name : "unknown_error";
+   console.error("Saved evidence graph request failed", errorName);
+   return NextResponse.json({ error: "Saved evidence is temporarily unavailable." }, { status: 503, headers: noStore });
+ }
 }

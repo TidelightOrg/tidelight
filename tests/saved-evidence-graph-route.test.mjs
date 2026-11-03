@@ -39,15 +39,31 @@ function setup(userId) {
       return builder;
     },
   };
-  globalThis.savedEvidenceGraphTest = { auth: { user: userId ? { id: userId } : null, errorCode: null, errorName: null, errorStatus: null }, db, reads, rows };
+  globalThis.savedEvidenceGraphTest = { auth: { user: userId ? { id: userId } : null, errorCode: null, errorName: null, errorStatus: null }, authError: null, db, reads, rows };
   return globalThis.savedEvidenceGraphTest;
 }
 
 const mocks = {
   "next/server": "export const NextResponse=class extends Response { static json(data,init={}) { return Response.json(data,init); } };",
   "@/lib/supabase/admin": "export const createAdminClient=()=>globalThis.savedEvidenceGraphTest.db;",
-  "@/lib/supabase/auth-user": "export const getServerAuthState=async()=>globalThis.savedEvidenceGraphTest.auth;",
+  "@/lib/supabase/auth-user": "export const getServerAuthState=async()=>{if(globalThis.savedEvidenceGraphTest.authError)throw globalThis.savedEvidenceGraphTest.authError;return globalThis.savedEvidenceGraphTest.auth;};",
 };
+
+test("authentication infrastructure exceptions return private JSON 503", async () => {
+  const state = setup(null);
+  state.authError = new Error("Supabase is not configured.");
+  const hooks = registerHooks({ resolve(specifier, _context, nextResolve) { if (specifier === "@/lib/saved-evidence-graph") return { url: new URL("../lib/saved-evidence-graph.ts", import.meta.url).href, shortCircuit: true }; if (specifier === "@/lib/evidence") return { url: new URL("../lib/evidence.ts", import.meta.url).href, shortCircuit: true }; if (mocks[specifier]) return { url: `data:text/javascript,${encodeURIComponent(mocks[specifier])}`, shortCircuit: true }; return nextResolve(specifier); } });
+  const originalError = console.error;
+  console.error = () => {};
+  try {
+    const route = await import("../app/api/research/evidence-graph/[runId]/route.ts?test=saved-graph-auth-throw");
+    const response = await route.GET(new Request(`https://tidelight.app/api/research/evidence-graph/${runId}`), { params: Promise.resolve({ runId }) });
+    assert.equal(response.status, 503);
+    assert.equal(response.headers.get("cache-control"), "private, no-store");
+    assert.match((await response.json()).error, /temporarily unavailable/i);
+    assert.equal(state.reads.length, 0);
+  } finally { console.error = originalError; hooks.deregister(); delete globalThis.savedEvidenceGraphTest; }
+});
 
 test("verifier outages return 503 while invalid credentials return 401", async () => {
   const state = setup(null);
