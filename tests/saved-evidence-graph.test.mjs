@@ -1,7 +1,14 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { buildSavedEvidenceGraph, savedGraphInputsWithinLimits, SAVED_GRAPH_INPUT_LIMITS } from "../lib/saved-evidence-graph.ts";
+import { registerHooks } from "node:module";
 import { findQuotePassageSpan } from "../lib/evidence.ts";
+
+const graphHooks = registerHooks({ resolve(specifier, _context, nextResolve) {
+  if (specifier === "@/lib/evidence") return { url: new URL("../lib/evidence.ts", import.meta.url).href, shortCircuit: true };
+  return nextResolve(specifier);
+} });
+const { buildSavedEvidenceGraph, savedGraphInputsWithinLimits, SAVED_GRAPH_INPUT_LIMITS } = await import("../lib/saved-evidence-graph.ts");
+graphHooks.deregister();
 
 const asOf = "2026-10-31T20:00:00.000Z";
 const run = { id: "10000000-0000-4000-8000-000000000001", question: "Review NVDA filing", created_at: "2026-10-31T19:00:00.000Z", completed_at: asOf, summary: { exposure: [{ ticker: "NVDA", issuer: "NVIDIA Corporation", realityPair: "RNVDAUSDT" }], sources: [{ url: "https://example.com/future", publication_date: "2026-11-01" }, { url: "https://example.com/day", publication_date: "2026-10-31" }] } };
