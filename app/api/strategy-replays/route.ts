@@ -33,11 +33,14 @@ export async function POST(request: Request) {
       || String(manifestIdentity.instrument?.interval).toUpperCase() !== String(run.interval).toUpperCase()
       || manifestIdentity.strategy?.key !== run.strategy_key
       || manifestIdentity.instrument?.marketCategory !== params.marketCategory
-      || manifestIdentity.instrument?.assetName !== params.assetName
+      || manifestIdentity.instrument?.assetName !== (typeof params.assetName === "string" ? params.assetName.slice(0, 160) : run.symbol)
       || manifestIdentity.instrument?.assetKind !== params.assetKind
       || manifestIdentity.execution?.initialEquity !== params.initialEquity
       || manifestIdentity.execution?.feeBpsPerSide !== params.feeBpsPerSide
-      || manifestIdentity.execution?.slippageBpsPerSide !== params.slippageBpsPerSide) {
+      || manifestIdentity.execution?.slippageBpsPerSide !== params.slippageBpsPerSide
+      || run.candle_count !== (experimentManifest as { dataset: { rowCount: number } }).dataset.rowCount
+      || Date.parse(run.data_start) !== (experimentManifest as { dataset: { firstTimestamp: number } }).dataset.firstTimestamp
+      || Date.parse(run.data_end) !== (experimentManifest as { dataset: { lastTimestamp: number } }).dataset.lastTimestamp) {
       return NextResponse.json({ error: "The saved strategy run identity does not match its experiment manifest." }, { status: 422 });
     }
   }

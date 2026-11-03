@@ -17,7 +17,7 @@ test("strategy replay publish serializes an owned reproducible run and strips pr
     id: runId, symbol: "RAAPLUSDT", interval: "4H", strategy_key: "sma_trend_v1",
     parameters: { fast: 20, slow: 50, initialEquity: 10_000, feeBpsPerSide: 10, slippageBpsPerSide: 5, marketCategory: "SPOT", candleHash: "a".repeat(64), researchRunId: "private-research-run", assetName: "Apple Inc.", assetKind: "Reality rToken", experimentManifest },
     train_metrics: { totalReturnPct: 4.2 }, test_metrics: { totalReturnPct: -0.58, benchmarkReturnPct: 2.02 },
-    data_start: "2026-07-26T00:00:00Z", data_end: "2026-10-24T00:00:00Z", candle_count: 525,
+    data_start: new Date(candles[0].timestamp).toISOString(), data_end: new Date(candles.at(-1).timestamp).toISOString(), candle_count: candles.length,
     candles, created_at: "2026-10-24T00:00:00Z",
   };
   const query = (table) => ({
@@ -70,7 +70,20 @@ test("strategy replay publish serializes an owned reproducible run and strips pr
     assert.ok(Date.parse(insert.values.expires_at) > Date.now() + 29 * 86_400_000);
     assert.ok(Date.parse(insert.values.expires_at) <= Date.now() + 30 * 86_400_000 + 1000);
 
-    const insertCount = calls.filter(call => call.operation === "insert" && call.table === "public_strategy_replays").length;
+    let insertCount = calls.filter(call => call.operation === "insert" && call.table === "public_strategy_replays").length;
+    const longAssetName = `Apple ${"X".repeat(180)}`;
+    run.parameters.assetName = longAssetName;
+    run.parameters.experimentManifest = createBacktestExperimentManifest({ symbol: "RAAPLUSDT", marketCategory: "SPOT", interval: "4H", assetName: longAssetName, assetKind: "Reality rToken", strategyKey: "sma_trend_v1", candles, splitIndex: 1, capturedAt: 1_800_020_000_000, providerTimestamp: 1_800_019_000_000, feeBpsPerSide: 10, slippageBpsPerSide: 5, initialEquity: 10_000, sourceRevision: "a".repeat(40) });
+    const longName = await route.POST(new Request("https://tidelight.app/api/strategy-replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ runId }) }));
+    assert.equal(longName.status, 200);
+    assert.equal(calls.filter(call => call.operation === "insert" && call.table === "public_strategy_replays").at(-1).values.payload.asset.name, longAssetName.slice(0, 160));
+    insertCount = calls.filter(call => call.operation === "insert" && call.table === "public_strategy_replays").length;
+    run.parameters.assetName = "Apple Inc.";
+    run.parameters.experimentManifest = experimentManifest;
+    run.candle_count += 1;
+    const mismatchedDataset = await route.POST(new Request("https://tidelight.app/api/strategy-replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ runId }) }));
+    assert.equal(mismatchedDataset.status, 422);
+    run.candle_count = candles.length;
     run.strategy_key = "different_strategy";
     const mismatchedIdentity = await route.POST(new Request("https://tidelight.app/api/strategy-replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ runId }) }));
     assert.equal(mismatchedIdentity.status, 422);
