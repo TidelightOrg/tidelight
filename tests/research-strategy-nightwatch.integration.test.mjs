@@ -93,6 +93,36 @@ const strategyRoute = await import("../app/api/futures/paper/route.ts");
 const nightwatchRoute = await import("../app/api/nightwatch/tick/route.ts");
 hooks.deregister();
 
+test("oversized issuer and macro source URLs are excluded before persistence", async t => {
+  const longIssuer = { ...sourceRows[0], url: `https://fixture.example/${"i".repeat(5_000)}` };
+  const longMacro = { ...macroRows[0], url: `https://fixture.example/${"m".repeat(5_000)}` };
+  sourceRows.push(longIssuer);
+  macroRows.push(longMacro);
+  t.after(() => { sourceRows.pop(); macroRows.pop(); captures.research.length = 0; });
+
+  captures.research.length = 0;
+  const issuerResponse = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
+    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: "Review NVDA using synthetic test fixture sources" }),
+  }));
+  assert.equal(issuerResponse.status, 200);
+  const issuerEvents = (await issuerResponse.text()).split("\n\n").filter(Boolean).map(frame => JSON.parse(frame.split("\ndata: ")[1]));
+  const issuerResult = issuerEvents.findLast(frame => frame.researchRunId);
+  assert.ok(issuerResult.researchCoverage.limitations.some(limit => limit.includes("longer than 4,096 characters")));
+  assert.ok(issuerResult.assets.flatMap(asset => asset.sources).every(source => source.url.length <= 4_096));
+  assert.ok(captures.research.filter(row => row.table === "research_sources").flatMap(row => row.rows).every(source => source.url.length <= 4_096));
+
+  captures.research.length = 0;
+  const macroResponse = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
+    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: "Explain the September 16, 2026 FOMC decision and the evidence relevant to its stated rationale." }),
+  }));
+  assert.equal(macroResponse.status, 200);
+  const macroEvents = (await macroResponse.text()).split("\n\n").filter(Boolean).map(frame => JSON.parse(frame.split("\ndata: ")[1]));
+  const macroResult = macroEvents.findLast(frame => frame.researchRunId);
+  assert.ok(macroResult.researchCoverage.limitations.some(limit => limit.includes("longer than 4,096 characters")));
+  assert.ok(macroResult.assets.flatMap(asset => asset.sources).every(source => source.url.length <= 4_096));
+  assert.ok(captures.research.filter(row => row.table === "research_sources").flatMap(row => row.rows).every(source => source.url.length <= 4_096));
+});
+
 test("provider outage produces a source-only research result and blocks trade handoff", async t => {
   globalThis.flowTest.aiUnavailable = true;
   t.after(() => { globalThis.flowTest.aiUnavailable = false; });
