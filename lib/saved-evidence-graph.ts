@@ -162,7 +162,7 @@ export function buildSavedEvidenceGraph(input: { run: SavedGraphRun; sources: Sa
   const edges = new Map<string, SavedEvidenceGraphEdge>();
   let responseTextCodeUnits = input.run.id.length + "saved_research_run".length;
   const addText = (values: unknown[]) => {
-    responseTextCodeUnits += values.reduce((total, value) => total + (typeof value === "string" ? value.length : 0), 0);
+    responseTextCodeUnits += values.reduce<number>((total, value) => total + (typeof value === "string" ? value.length : 0), 0);
     if (responseTextCodeUnits > SAVED_GRAPH_INPUT_LIMITS.totalTextCodeUnits) {
       throw new Error("saved-evidence-graph-response-too-large");
     }
