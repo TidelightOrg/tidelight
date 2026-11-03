@@ -91,3 +91,21 @@ test("macro feed response bodies are bounded even without a Content-Length heade
     assert.deepEqual(evidence, []);
   } finally { globalThis.fetch = previousFetch; }
 });
+
+test("macro evidence excludes oversized duplicate links before choosing representatives", async () => {
+  const previousFetch = globalThis.fetch;
+  const date = new Date().toUTCString();
+  globalThis.fetch = async input => {
+    const query = new URL(input).searchParams.get("q") ?? "";
+    const rows = query.includes("federalreserve.gov") ? [
+      item({ title: "Federal Reserve issues FOMC statement for September 2026", link: `https://news.google.com/rss/articles/${"x".repeat(4_100)}`, source: "federalreserve.gov", date, snippet: "Long invalid link." }),
+      item({ title: "Federal Reserve issues FOMC statement for September 2026", link: "https://news.google.com/rss/articles/valid", source: "federalreserve.gov", date, snippet: "Usable official story." }),
+    ] : [];
+    return new Response(`<rss><channel>${rows.join("")}</channel></rss>`, { status: 200, headers: { "content-type": "application/rss+xml" } });
+  };
+  try {
+    const evidence = await gatherMacroEvidence("Explain the September 2026 FOMC decision.");
+    assert.equal(evidence.length, 1);
+    assert.equal(evidence[0].url, "https://news.google.com/rss/articles/valid");
+  } finally { globalThis.fetch = previousFetch; }
+});

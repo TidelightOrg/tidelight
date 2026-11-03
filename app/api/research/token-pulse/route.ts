@@ -95,16 +95,16 @@ export async function POST(request: Request) {
     ...newsResults.flatMap((result) => result.status === "fulfilled" ? result.value : []),
     ...community,
   ];
+  const { items: eligibleCandidates, omittedOversizedLinks } = filterPersistableTokenPulseSources(gathered);
   const unique = new Map<string, SearchItem>();
-  for (const item of gathered) {
+  for (const item of eligibleCandidates) {
     const lower = item.title.toLowerCase();
     const publisherSuffix = ` - ${item.publisher.toLowerCase()}`;
     const headline = lower.endsWith(publisherSuffix) ? lower.slice(0, -publisherSuffix.length) : lower;
     const key = headline.replace(/[^a-z0-9]+/g, " ").trim();
     if (key && !unique.has(key)) unique.set(key, item);
   }
-  const { items: persistableItems, omittedOversizedLinks } = filterPersistableTokenPulseSources([...unique.values()]);
-  const items = persistableItems
+  const items = [...unique.values()]
     .filter((item) => !item.publishedAt || Date.now() - Date.parse(item.publishedAt) < 14 * 86400000)
     .filter((item) => {
       if (!looksLikeEquity) return true;

@@ -165,6 +165,7 @@ export async function gatherMacroEvidence(question: string): Promise<MacroEviden
       const via = officialSource ? "official" : "independent_reporting";
       const evidence: MacroEvidence = { title: row.title, url: row.link, publisher: row.publisher, publisherDomain: row.host, publishedAt: row.publishedAt, snippet: row.snippet, sourceKind: via };
       if (!matchesPeriod(evidence, question, now)) continue;
+      if (row.link.length > 4_096 || new TextEncoder().encode(row.link).byteLength > 2_000) continue;
       const url = new URL(row.link);
       if (!newsHosts.has(url.hostname) && !official.some(host => isHostOrSubdomain(url.hostname, host)) && !independentHosts.some(host => isHostOrSubdomain(url.hostname, host))) continue;
       const key = `${row.host}:${row.title.toLowerCase().replace(/[^a-z0-9]/g, "")}`;
