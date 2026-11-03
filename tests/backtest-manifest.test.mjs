@@ -9,7 +9,7 @@ const candles = [
 ];
 const input = {
   symbol: "NVDAUSDT", marketCategory: "USDT-FUTURES", interval: "4H", assetName: "NVIDIA", assetKind: "stock-perpetual",
-  strategyKey: "sma_trend_v1", candles, splitIndex: 2, capturedAt: 1_800_030_000_000, providerTimestamp: 1_800_029_000_000,
+  strategyKey: "sma_trend_v1", candles, splitIndex: 2, trainStart: candles[1].timestamp, capturedAt: 1_800_030_000_000, providerTimestamp: 1_800_029_000_000,
   feeBpsPerSide: 10, slippageBpsPerSide: 5, initialEquity: 10_000, sourceRevision: "c".repeat(40),
 };
 
@@ -22,10 +22,17 @@ test("manifest captures the exact engine, strategy, market, dataset, split and c
   assert.deepEqual(manifest.instrument, { symbol: "NVDAUSDT", marketCategory: "USDT-FUTURES", interval: "4H", assetName: "NVIDIA", assetKind: "stock-perpetual" });
   assert.equal(manifest.dataset.provider, "Bitget");
   assert.equal(manifest.dataset.rowCount, candles.length);
-  assert.deepEqual(manifest.split, { trainStart: candles[0].timestamp, trainEnd: candles[1].timestamp, holdoutStart: candles[2].timestamp, holdoutEnd: candles[2].timestamp, splitIndex: 2 });
+  assert.deepEqual(manifest.split, { trainStart: candles[1].timestamp, trainEnd: candles[1].timestamp, holdoutStart: candles[2].timestamp, holdoutEnd: candles[2].timestamp, splitIndex: 2 });
+  assert.equal(manifest.dataset.firstTimestamp, candles[0].timestamp, "the full archived dataset boundary remains distinct from evaluated training start");
   assert.deepEqual(manifest.execution, { initialEquity: 10_000, feeBpsPerSide: 10, slippageBpsPerSide: 5, positionModel: "long_cash", leverage: 1, funding: "excluded" });
   assert.match(manifest.integrity.manifestDigest, /^[0-9a-f]{64}$/);
   assert.equal(verifyBacktestExperimentManifest(manifest, candles), true);
+});
+
+test("training start must be an archived candle inside the pre-holdout training split", () => {
+  assert.throws(() => createBacktestExperimentManifest({ ...input, trainStart: candles[2].timestamp }), /training candle within the archive/);
+  const manifest = createBacktestExperimentManifest(input);
+  assert.equal(verifyBacktestExperimentManifest({ ...manifest, split: { ...manifest.split, trainStart: candles[0].timestamp }, integrity: manifest.integrity }, candles), false, "the signed training start cannot be moved without recomputing a matching digest");
 });
 
 test("fingerprints are stable to object-key order and change when an OHLCV value changes", () => {

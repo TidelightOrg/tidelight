@@ -75,6 +75,7 @@ export async function POST(request: Request) {
       strategyKey: result.strategyKey,
       candles,
       splitIndex: result.splitIndex,
+      trainStart: result.trainStart,
       capturedAt: evaluatedAt,
       providerTimestamp: asset.providerTimestamp,
       feeBpsPerSide: result.parameters.feeBpsPerSide,

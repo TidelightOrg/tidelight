@@ -38,6 +38,7 @@ type ManifestInput = {
   strategyKey: string;
   candles: MarketCandle[];
   splitIndex: number;
+  trainStart: number;
   capturedAt: number;
   providerTimestamp: number | null;
   feeBpsPerSide: number;
@@ -89,6 +90,7 @@ export function createBacktestExperimentManifest(input: ManifestInput): Backtest
   const trainEnd = ordered[input.splitIndex - 1];
   const holdoutStart = ordered[input.splitIndex];
   const sourceRevision = typeof input.sourceRevision === "string" && /^[0-9a-f]{7,64}$/i.test(input.sourceRevision) ? input.sourceRevision : null;
+  if (!Number.isSafeInteger(input.trainStart) || !ordered.slice(0, input.splitIndex).some(candle => candle.timestamp === input.trainStart)) throw new Error("The experiment manifest training start must be a training candle within the archive.");
   const manifest = {
     schemaVersion: 1 as const,
     engine: { name: "tidelight-alpha-backtest" as const, version: BACKTEST_ENGINE_VERSION, sourceRevision },
@@ -103,7 +105,7 @@ export function createBacktestExperimentManifest(input: ManifestInput): Backtest
       capturedAt: input.capturedAt,
       providerTimestamp: Number.isSafeInteger(input.providerTimestamp) && input.providerTimestamp! > 0 ? input.providerTimestamp : null,
     },
-    split: { trainStart: first.timestamp, trainEnd: trainEnd.timestamp, holdoutStart: holdoutStart.timestamp, holdoutEnd: last.timestamp, splitIndex: input.splitIndex },
+    split: { trainStart: input.trainStart, trainEnd: trainEnd.timestamp, holdoutStart: holdoutStart.timestamp, holdoutEnd: last.timestamp, splitIndex: input.splitIndex },
     execution: {
       initialEquity: input.initialEquity,
       feeBpsPerSide: input.feeBpsPerSide,
@@ -136,7 +138,7 @@ export function verifyBacktestExperimentManifest(value: unknown, candles: Market
   if (manifest.dataset.providerTimestamp !== null && (!Number.isSafeInteger(manifest.dataset.providerTimestamp) || manifest.dataset.providerTimestamp! <= 0)) return false;
   if (manifest.dataset.firstTimestamp !== candles[0].timestamp || manifest.dataset.lastTimestamp !== candles.at(-1)?.timestamp) return false;
   if (!manifest.split || !Number.isSafeInteger(manifest.split.splitIndex) || manifest.split.splitIndex < 1 || manifest.split.splitIndex >= candles.length) return false;
-  if (manifest.split.trainStart !== candles[0].timestamp || manifest.split.trainEnd !== candles[manifest.split.splitIndex - 1].timestamp || manifest.split.holdoutStart !== candles[manifest.split.splitIndex].timestamp || manifest.split.holdoutEnd !== candles.at(-1)?.timestamp) return false;
+  if (!candles.slice(0, manifest.split.splitIndex).some(candle => candle.timestamp === manifest.split.trainStart) || manifest.split.trainEnd !== candles[manifest.split.splitIndex - 1].timestamp || manifest.split.holdoutStart !== candles[manifest.split.splitIndex].timestamp || manifest.split.holdoutEnd !== candles.at(-1)?.timestamp) return false;
   if (!manifest.execution || ![manifest.execution.initialEquity, manifest.execution.feeBpsPerSide, manifest.execution.slippageBpsPerSide].every(Number.isFinite) || manifest.execution.initialEquity <= 0 || manifest.execution.feeBpsPerSide < 0 || manifest.execution.slippageBpsPerSide < 0 || manifest.execution.positionModel !== "long_cash" || manifest.execution.leverage !== 1) return false;
   if (manifest.execution.funding !== (manifest.instrument.marketCategory === "USDT-FUTURES" ? "excluded" : "not_applicable")) return false;
   try {
