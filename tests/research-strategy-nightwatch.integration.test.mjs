@@ -93,7 +93,26 @@ const strategyRoute = await import("../app/api/futures/paper/route.ts");
 const nightwatchRoute = await import("../app/api/nightwatch/tick/route.ts");
 hooks.deregister();
 
+test("provider outage produces a source-only research result and blocks trade handoff", async t => {
+  globalThis.flowTest.aiUnavailable = true;
+  t.after(() => { globalThis.flowTest.aiUnavailable = false; });
+  t.after(() => { captures.research.length = 0; });
+  const response = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
+    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: "Review NVDA using synthetic test fixture sources" }),
+  }));
+  assert.equal(response.status, 200);
+  const events = (await response.text()).split("\n\n").filter(Boolean).map(frame => JSON.parse(frame.split("\ndata: ")[1]));
+  const result = events.findLast(frame => frame.researchRunId);
+  assert.ok(result, "the route emits a persisted result even when synthesis fails");
+  assert.equal(result.synthesis.mode, "source_only");
+  assert.equal(result.tradeable, false);
+  assert.equal(result.assets[0].stance, "unclear");
+  assert.equal(result.assets[0].confidence, 0);
+  assert.match(result.assets[0].summary, /AI synthesis is unavailable/i);
+});
+
 test("synthetic positive handoff preserves lineage through Research → paper Strategy → Nightwatch without live execution", async () => {
+  captures.research.length = 0;
   const researchResponse = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
     method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: "Review NVDA using synthetic test fixture sources" }),
   }));

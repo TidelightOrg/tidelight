@@ -62,3 +62,13 @@ node scripts/score-research-benchmark.mjs path/to/research-benchmark.json
 ```
 
 JSON 报告包括原始计数、比率、源类总数、不同域/源类平均值、任务时间中位数和范围以及完成门。完整的分数需要来自三个类别的至少 10 个事件、有效的源捕获元数据以及两名审阅者以及对每个显示的声明的裁决。如果基准输入包含未发布的评论注释，请将其保密；仅发布已解决的报告和方法。
+
+## 确定性契约场景
+
+`docs/benchmarks/research-contract-scenarios-v1.json` 和 `tests/research-contract-scenarios.test.mjs` 检查确定性产品契约，包括发行人财报的仅来源行为、宏观问题分类、普通股/rToken/股票永续合约身份、报价时效、未来时间证据、相互矛盾的证据、不受支持的引用、格式错误的评估以及提供商或来源故障。运行：
+
+```sh
+node --test tests/research-contract-scenarios.test.mjs
+```
+
+这些是明确标记的合成测试样例，不是经过独立审阅的生产答案，也不是研究质量分数。它们使用构造输入验证策略行为；不能证明事实正确性、实时检索的引用支持，也不能证明 95% 的质量门控完成率。实际生产基准仍等待人工审阅，直至真实展示的主张获得两份独立标签和裁决。

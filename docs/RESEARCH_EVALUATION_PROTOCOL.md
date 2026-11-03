@@ -70,3 +70,13 @@ node scripts/score-research-benchmark.mjs path/to/research-benchmark.json
 ```
 
 The JSON report includes raw counts, rates, source-class totals, distinct-domain/source-class averages, task-time median and range when measured, operational observations, and a review-completion gate. Use `null` for `askedAt` or `taskTimeSeconds` only when the value was not recorded; the report labels task time `not_measured` when no valid measurements are present. A complete claim-quality score requires at least 10 events from three categories, valid source capture metadata, and two reviewers plus adjudication for each displayed claim. Missing task-time data is reported as a limitation and does not block the claim-quality score. Keep the benchmark input private if it contains unpublished review notes; publish only the resolved report and methodology.
+
+## Deterministic contract scenarios
+
+`docs/benchmarks/research-contract-scenarios-v1.json` and `tests/research-contract-scenarios.test.mjs` exercise deterministic product contracts for issuer earnings source-only behavior, macro question classification, common-stock/rToken/perpetual identity, quote freshness, future-dated evidence, contradictory evidence, unsupported citations, malformed assessments, and provider/source failures. Run them with:
+
+```sh
+node --test tests/research-contract-scenarios.test.mjs
+```
+
+These are explicitly synthetic fixture checks, not independently reviewed production answers and not a research-quality score. They verify policy behavior against constructed inputs; they do not establish factual correctness, citation support across live retrieval, or a 95% quality-gated completion rate. The frozen production benchmark remains human-review-pending until actual displayed claims receive two independent labels and adjudication.
