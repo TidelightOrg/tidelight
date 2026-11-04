@@ -42,6 +42,8 @@ class ClientTests(unittest.TestCase):
         self.assertTrue(verify_public_decision_capsule(payload))
         tampered = {**payload, "integrityHash": "0" * 64}
         self.assertFalse(verify_public_decision_capsule(tampered))
+        null_digest = hashlib.sha256(b"null").hexdigest()
+        self.assertFalse(verify_public_decision_capsule({"hashAlgorithm": "sha256", "integrityHash": null_digest}))
         with self.assertRaises(ValueError):
             client.get_public_decision_capsule("bad/token")
         public_only = get_public_decision_capsule("a" * 43, opener=opener)
@@ -66,6 +68,19 @@ class ClientTests(unittest.TestCase):
             get_public_decision_capsule("a" * 43, opener=opener, max_retries=0)
         self.assertEqual(caught.exception.status, 404)
         self.assertEqual(str(caught.exception), "Public capsule not found.")
+
+    def test_public_capsule_truncated_error_body_remains_an_api_error(self):
+        class TruncatedErrorBody(io.BytesIO):
+            def read(self, *args, **kwargs):
+                raise IncompleteRead(b'{"error":', 20)
+
+        def opener(request, timeout):
+            raise HTTPError(request.full_url, 503, "Unavailable", {}, TruncatedErrorBody(b""))
+
+        with self.assertRaises(ApiError) as caught:
+            get_public_decision_capsule("a" * 43, opener=opener, max_retries=0)
+        self.assertEqual(caught.exception.status, 503)
+        self.assertEqual(caught.exception.code, "public_capsule_error")
 
     def test_public_capsule_malformed_success_body_becomes_api_error(self):
         class MalformedResponse(io.BytesIO):

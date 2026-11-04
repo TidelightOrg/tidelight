@@ -93,6 +93,8 @@ def _canonical_json(value: Any) -> str:
 
 def verify_public_decision_capsule(publication: dict[str, Any]) -> bool:
     """Check the disclosed snapshot digest; this does not establish source truth or authorship."""
+    if not isinstance(publication, dict) or not isinstance(publication.get("snapshot"), dict):
+        return False
     if publication.get("hashAlgorithm") != "sha256":
         return False
     expected = publication.get("integrityHash")
@@ -140,7 +142,7 @@ def get_public_decision_capsule(token: str, *, public_base_url: str = "https://t
                     details = {"message": details}
                 if not isinstance(details, dict):
                     details = {}
-            except (ValueError, AttributeError):
+            except (ValueError, AttributeError, OSError, IncompleteRead):
                 details = {}
             if error.code in {429, 502, 503, 504} and attempt < max_retries:
                 pause(min(5.0, float(error.headers.get("Retry-After", 0) or 0)) if str(error.headers.get("Retry-After", "")).isdigit() else min(2.0, 0.25 * 2 ** attempt))
