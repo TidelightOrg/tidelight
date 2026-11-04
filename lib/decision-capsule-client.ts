@@ -6,6 +6,29 @@ export type DecisionCapsuleReceipt = {
   schemaVersion: 1;
 };
 
+export type SavedDecisionCapsule = Pick<DecisionCapsuleReceipt, "id" | "createdAt" | "integrityHash"> & { question: string };
+
+export async function getSavedDecisionCapsules(fetcher: typeof fetch = fetch): Promise<SavedDecisionCapsule[]> {
+  const response = await fetcher("/api/decision-capsules", { cache: "no-store", headers: { Accept: "application/json" } });
+  const payload: unknown = await response.json().catch(() => null);
+  if (!response.ok) {
+    const message = payload && typeof payload === "object" && "error" in payload && typeof payload.error === "string" ? payload.error : "Private decision capsules could not be loaded.";
+    throw new Error(message);
+  }
+  if (!payload || typeof payload !== "object" || !("integrity" in payload) || payload.integrity !== "valid" || !("capsules" in payload) || !Array.isArray(payload.capsules) || payload.capsules.length > 50) {
+    throw new Error("Saved capsules returned an invalid response.");
+  }
+  return payload.capsules.map((capsule) => {
+    if (!capsule || typeof capsule !== "object" || !("id" in capsule) || typeof capsule.id !== "string" || !(/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(capsule.id))
+      || !("createdAt" in capsule) || typeof capsule.createdAt !== "string" || !isStrictIsoTimestamp(capsule.createdAt)
+      || !("integrityHash" in capsule) || typeof capsule.integrityHash !== "string" || !/^[a-f0-9]{64}$/i.test(capsule.integrityHash)
+      || !("question" in capsule) || typeof capsule.question !== "string" || capsule.question.length > 500) {
+      throw new Error("A saved capsule returned invalid details.");
+    }
+    return { id: capsule.id, createdAt: capsule.createdAt, integrityHash: capsule.integrityHash.toLowerCase(), question: capsule.question };
+  });
+}
+
 export type DecisionCapsuleHistoryEvent = {
   id: string;
   sequence: number;
