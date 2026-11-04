@@ -158,7 +158,7 @@ test("capsule outcome diagnostics remain labeled as user-reported and sample-gat
     readFile(new URL("app/ui/decision-capsule-history.tsx", root), "utf8"),
     readFile(new URL("app/i18n/zh-CN.json", root), "utf8").then(JSON.parse),
   ]);
-  for (const key of ["Observed outcome summary", "Outcome hit rate", "Mean Brier", "scored outcomes", "Exploratory calibration gap", "Requires 20 scored forecasts", "Based on user-reported outcomes; source authenticity is not verified.", "Reported source"]) {
+  for (const key of ["Observed outcome summary", "Outcome hit rate", "Mean Brier", "scored outcomes", "Exploratory calibration gap", "Requires 20 scored forecasts", "Based on user-reported outcomes; source authenticity is not verified.", "Reported source", "Threshold reached", "Threshold not reached", "User reported"]) {
     assert.ok(component.includes(key), `Outcome diagnostics must render: ${key}`);
     assert.equal(typeof translations[key], "string", `Simplified Chinese must translate: ${key}`);
   }
