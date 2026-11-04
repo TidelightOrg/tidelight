@@ -21,6 +21,7 @@ export default function ProductQuickActions() {
   const [position, setPosition] = useState<{ left: number; top: number } | null>(null);
   const [footerVisible, setFooterVisible] = useState(false);
   const denseWorkspace = pathname === "/futures" || pathname === "/trading" || pathname === "/flow" || pathname === "/markets";
+  const publicCapsule = pathname.startsWith("/capsule/public/");
   const requestId = useRef(crypto.randomUUID());
 
   useEffect(() => {
@@ -147,7 +148,7 @@ export default function ProductQuickActions() {
       onClickCapture={(event) => { if (suppressClick.current) { event.preventDefault(); event.stopPropagation(); } }}
     >
       <button ref={triggerRef} type="button" onClick={() => { setOpen(true); setStatus(""); }} aria-label="Share feedback" title="Share feedback"><span aria-hidden="true">💡</span></button>
-      <button type="button" onClick={askForHelp} aria-label="Get help" title="Get help"><span aria-hidden="true">?</span></button>
+      {!publicCapsule ? <button type="button" onClick={askForHelp} aria-label="Get help" title="Get help"><span aria-hidden="true">?</span></button> : null}
     </nav>
     {open ? <div className="feedback-scrim" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget && !busy) setOpen(false); }}>
       <section className="feedback-dialog" role="dialog" aria-modal="true" aria-labelledby="feedback-title" aria-describedby="feedback-description" onKeyDown={keepFocusInside}>

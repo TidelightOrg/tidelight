@@ -6284,6 +6284,8 @@
   "Record outcome for": "记录此预测的结果",
   "Record outcome": "记录结果",
   "Observed price": "观测价格",
+  "Met": "达成",
+  "Not met": "未达成",
   "Observed at": "观测时间",
   "Source URL": "来源网址",
   "Source timestamp": "来源时间戳",

@@ -7,6 +7,8 @@ const { sanitizeFeedbackPage } = await import("../lib/feedback-page.ts");
 test("feedback emails receive a route template instead of public capsule bearer tokens", async () => {
   const token = "a".repeat(43);
   assert.equal(sanitizeFeedbackPage(`/capsule/public/${token}`), "/capsule/public/[token]");
+  assert.equal(sanitizeFeedbackPage(`/capsule/public/${token}/`), "/capsule/public/[token]");
+  assert.equal(sanitizeFeedbackPage(`/capsule/public/${token}/nested/path`), "/capsule/public/[token]");
   assert.equal(sanitizeFeedbackPage(`/capsule/public/${token}?private=1`), "/");
   const route = await readFile(new URL("../app/api/feedback/route.ts", import.meta.url), "utf8");
   assert.match(route, /sanitizeFeedbackPage\(body\.page\)/);

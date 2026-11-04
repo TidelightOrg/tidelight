@@ -80,7 +80,7 @@ test("public capsule bearer tokens are redacted from support provider context", 
     assert.match(messages[0].content, /CURRENT PAGE: \/capsule\/public\/\[token\]/);
     return { answer: "The public record shows its disclosed source history and integrity status.", linkHrefs: [] };
   };
-  const response = await ask("What is on this page?", { pathname: `/capsule/public/${token}` });
+  const response = await ask("What is on this page?", { pathname: `/capsule/public/${token}/` });
   assert.equal(response.status, 200);
   assert.equal((await response.json()).source, "ai");
 });
