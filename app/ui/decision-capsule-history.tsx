@@ -18,13 +18,14 @@ function localDateTime(value: Date) {
   return new Date(value.getTime() - offset).toISOString().slice(0, 16);
 }
 
-function formatPayload(event: DecisionCapsuleHistoryEvent) {
+function formatPayload(event: DecisionCapsuleHistoryEvent, translate: (key: string) => string) {
   const payload = event.payload;
   if (event.type === "forecast") {
     const instrument = payload.instrument as { type?: string; symbol?: string } | undefined;
     return `${instrument?.symbol ?? "Instrument"} · ${instrument?.type?.replaceAll("_", " ") ?? ""} · ${payload.direction === "up" ? "↑" : "↓"} ${payload.thresholdPercent}% from ${payload.referencePrice}`;
   }
-  return `${payload.forecastMet ? "Threshold reached" : "Threshold not reached"} · ${Number(payload.actualReturnPercent).toFixed(2)}% · user reported`;
+  const score = typeof payload.brierScore === "number" ? ` · ${translate("Brier")} ${payload.brierScore.toFixed(3)} ${translate("(one outcome)")}` : "";
+  return `${payload.forecastMet ? "Threshold reached" : "Threshold not reached"} · ${Number(payload.actualReturnPercent).toFixed(2)}%${score} · user reported`;
 }
 
 export default function DecisionCapsuleHistory({ capsuleId }: { capsuleId: string }) {
@@ -107,7 +108,7 @@ export default function DecisionCapsuleHistory({ capsuleId }: { capsuleId: strin
     {!loading && events.length ? <ol aria-label={translate("Verified capsule events")}>
       {events.map(event => <li key={event.id}>
         <span className="flow-capsule-event-type">{translate(event.type === "forecast" ? "Forecast" : "Outcome")}</span>
-        <span>{formatPayload(event)}</span>
+        <span>{formatPayload(event, translate)}</span>
         <time dateTime={event.createdAt}>{new Date(event.createdAt).toLocaleString()}</time>
         {event.type === "forecast" ? (() => {
           const horizon = Date.parse(String(event.payload.horizonAt));

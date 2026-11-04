@@ -139,7 +139,7 @@ test("Simplified Chinese covers the capsule forecast and outcome controls", asyn
   assert.match(desk, /<DecisionCapsuleHistory key=\{capsuleReceipt\.id\}/);
   for (const key of [
     "Decision history", "Refresh capsule history", "Record forecast", "Instrument type", "US equity", "Reality token",
-    "US-stock perpetual", "Reference price", "Threshold %", "Horizon", "Probability (0–1)", "Record outcome",
+    "US-stock perpetual", "Reference price", "Threshold %", "Horizon", "Probability (0–1)", "Brier", "(one outcome)", "Record outcome",
     "Observed price", "Source URL", "Source timestamp", "Save forecast", "Save outcome", "Reload history",
   ]) {
     assert.ok(component.includes(key), `Capsule history must render the copy key: ${key}`);
