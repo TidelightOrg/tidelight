@@ -62,7 +62,7 @@ test("research-only disclosure preserves evidence-brief narrative without source
     upside: "Demand improved",
     downside: "Margins remain uncertain",
     catalysts: ["Next earnings"],
-    what_would_change: "A revised filing",
+    what_would_change: ["A revised filing", "Check https://example.com/internal before the next report"],
     research_run_id: "90000000-0000-4000-8000-000000000001",
     claims: [{ claim: "private" }],
     sources: [{ url: "https://example.com/private" }],
@@ -73,7 +73,7 @@ test("research-only disclosure preserves evidence-brief narrative without source
   assert.equal(projection.research.summary.upside, "Demand improved");
   assert.equal(projection.research.summary.downside, "Margins remain uncertain");
   assert.deepEqual(projection.research.summary.catalysts, ["Next earnings"]);
-  assert.equal(projection.research.summary.what_would_change, "A revised filing");
+  assert.deepEqual(projection.research.summary.what_would_change, ["A revised filing", "Check [source link omitted] before the next report"]);
   assert.equal("research_run_id" in projection.research.summary, false);
   assert.equal("claims" in projection.research.summary, false);
   assert.equal("sources" in projection.research.summary, false);
