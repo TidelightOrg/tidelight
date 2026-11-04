@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { useLanguage } from "@/app/ui/language-provider";
 import { appendDecisionCapsuleEvent, getDecisionCapsuleEvents, type DecisionCapsuleHistoryEvent } from "@/lib/decision-capsule-client";
+import { summarizeCapsuleOutcomes } from "@/lib/decision-capsule-outcomes";
 
 type Forecast = {
   instrument: { type: "us_equity" | "reality_token" | "us_stock_perpetual"; symbol: string };
@@ -22,12 +23,14 @@ function formatPayload(event: DecisionCapsuleHistoryEvent, translate: (key: stri
   const payload = event.payload;
   if (event.type === "forecast") {
     const instrument = payload.instrument as { type?: string; symbol?: string } | undefined;
-    return `${instrument?.symbol ?? "Instrument"} · ${instrument?.type?.replaceAll("_", " ") ?? ""} · ${payload.direction === "up" ? "↑" : "↓"} ${payload.thresholdPercent}% from ${payload.referencePrice}`;
+    const instrumentType = instrument?.type === "us_equity" ? "US equity" : instrument?.type === "reality_token" ? "Reality token" : instrument?.type === "us_stock_perpetual" ? "US-stock perpetual" : "Instrument";
+    return `${instrument?.symbol ?? "Instrument"} · ${translate(instrumentType)} · ${payload.direction === "up" ? "↑" : "↓"} ${payload.thresholdPercent}% @ ${payload.referencePrice}`;
   }
   const score = typeof payload.brierScore === "number" ? ` · ${translate("Brier")} ${payload.brierScore.toFixed(3)} ${translate("(one outcome)")}` : "";
   const instrument = forecast?.payload.instrument as { type?: string; symbol?: string } | undefined;
-  const identity = instrument?.symbol ? `${instrument.symbol} · ${instrument.type?.replaceAll("_", " ") ?? ""} · ` : "";
-  return `${identity}${payload.forecastMet ? "Threshold reached" : "Threshold not reached"} · ${Number(payload.actualReturnPercent).toFixed(2)}%${score} · user reported`;
+  const instrumentType = instrument?.type === "us_equity" ? "US equity" : instrument?.type === "reality_token" ? "Reality token" : instrument?.type === "us_stock_perpetual" ? "US-stock perpetual" : "Instrument";
+  const identity = instrument?.symbol ? `${instrument.symbol} · ${translate(instrumentType)} · ` : "";
+  return `${identity}${translate(payload.forecastMet ? "Threshold reached" : "Threshold not reached")} · ${Number(payload.actualReturnPercent).toFixed(2)}%${score} · ${translate("User reported")}`;
 }
 
 export default function DecisionCapsuleHistory({ capsuleId }: { capsuleId: string }) {
@@ -49,6 +52,7 @@ export default function DecisionCapsuleHistory({ capsuleId }: { capsuleId: strin
   const [observedAt, setObservedAt] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
   const [sourceTimestamp, setSourceTimestamp] = useState("");
+  const outcomeSummary = useMemo(() => summarizeCapsuleOutcomes(events), [events]);
   const forecastRetryKey = useRef<{ payload: string; key: string } | null>(null);
   const resetOutcomeDraft = () => { setOutcomeForecast(null); setObservedPrice(""); setObservedAt(""); setSourceUrl(""); setSourceTimestamp(""); };
 
@@ -112,11 +116,18 @@ export default function DecisionCapsuleHistory({ capsuleId }: { capsuleId: strin
   return <section className="flow-capsule-history" aria-label={translate("Decision capsule event history")}>
     <header><h3>{translate("Decision history")}</h3><div><span>{loading ? translate("Loading") : `${events.length} / 500`}</span><button type="button" aria-label={translate("Refresh capsule history")} onClick={() => void refresh()} disabled={loading}>↻</button></div></header>
     {error ? <div className="flow-capsule-error" role="alert"><span>{translate(error)}</span><button type="button" onClick={() => void refresh()} disabled={loading}>{translate("Reload history")}</button></div> : null}
+    {!loading && outcomeSummary.outcomeCount ? <section className="flow-capsule-outcome-summary" aria-label={translate("Observed outcome summary")}>
+      <div><span>{translate("Outcome hit rate")}</span><b>{Math.round((outcomeSummary.thresholdHitRate ?? 0) * 100)}% <small>{outcomeSummary.thresholdHits}/{outcomeSummary.outcomeCount}</small></b></div>
+      {outcomeSummary.meanBrierScore !== null ? <div><span>{translate("Mean Brier")}</span><b>{outcomeSummary.meanBrierScore.toFixed(3)} <small>{outcomeSummary.scoredCount} {translate("scored outcomes")}</small></b></div> : null}
+      <div><span>{translate("Exploratory calibration gap")}</span><b>{outcomeSummary.calibrationGap === null ? translate("Requires 20 scored forecasts") : outcomeSummary.calibrationGap.toFixed(3)}</b></div>
+      <small>{translate("Based on user-reported outcomes; source authenticity is not verified.")}</small>
+    </section> : null}
     {!loading && events.length ? <ol aria-label={translate("Verified capsule events")}>
       {events.map(event => <li key={event.id}>
         <span className="flow-capsule-event-type">{translate(event.type === "forecast" ? "Forecast" : "Outcome")}</span>
         <span>{formatPayload(event, translate, event.type === "outcome" ? events.find(item => item.id === event.payload.forecastEventId && item.type === "forecast") : undefined)}</span>
         <time dateTime={event.createdAt}>{new Date(event.createdAt).toLocaleString()}</time>
+        {event.type === "outcome" && typeof event.payload.sourceUrl === "string" && typeof event.payload.sourceTimestamp === "string" ? <a className="flow-capsule-outcome-source" href={event.payload.sourceUrl} target="_blank" rel="noopener noreferrer">{translate("Reported source")} · <time dateTime={event.payload.sourceTimestamp}>{new Date(event.payload.sourceTimestamp).toLocaleString()}</time> ↗</a> : null}
         {event.type === "forecast" ? (() => {
           const horizon = Date.parse(String(event.payload.horizonAt));
           const hasOutcome = events.some(item => item.type === "outcome" && item.payload.forecastEventId === event.id);
