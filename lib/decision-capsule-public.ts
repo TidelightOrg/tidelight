@@ -21,8 +21,8 @@ function safeHttps(value: unknown): string | null {
   if (typeof value !== "string" || value.length > 2_048) return null;
   try {
     const url = new URL(value);
-    const sensitiveQuery = /^(?:access[_-]?token|token|api[_-]?key|secret|signature|sig|session(?:id)?|auth(?:orization)?|password|passwd|x-amz-(?:credential|signature|security-token)|x-goog-(?:credential|signature))$/i;
-    if (url.protocol !== "https:" || !url.hostname || url.username || url.password) return null;
+    const sensitiveQuery = /^(?:key|client[_-]?secret|access[_-]?token|token|api[_-]?key|secret|signature|sig|session(?:id)?|auth(?:orization)?|password|passwd|x-amz-(?:credential|signature|security-token)|x-goog-(?:credential|signature))$/i;
+    if (url.protocol !== "https:" || !url.hostname || url.username || url.password || url.hash) return null;
     if ([...url.searchParams.keys()].some(key => sensitiveQuery.test(key))) return null;
     return url.toString();
   } catch { return null; }
@@ -40,7 +40,7 @@ function publicText(value: unknown, limit = 2_000): string | null {
   return value.slice(0, limit)
     .replace(/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/gi, "[private identifier omitted]")
     .replace(/https?:\/\/[^\s)\]}>,]+/gi, "[source link omitted]")
-    .replace(/\b[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}\b/gi, "[email omitted]");
+    .replace(/\b[A-Z0-9._%+-]{1,64}@[A-Z0-9-]{1,63}(?:\.[A-Z0-9-]{1,63})*\.[A-Z]{2,63}\b/gi, "[email omitted]");
 }
 
 function publicResearchSummary(value: unknown): JsonValue {

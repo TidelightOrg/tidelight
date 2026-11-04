@@ -57,6 +57,9 @@ test("research-only disclosure allowlists nested Agent Flow fields and strips pr
 test("evidence projection omits non-HTTPS sources and never publishes internal source IDs", () => {
   const sourceWithSecretUrl = structuredClone(privateSnapshot);
   sourceWithSecretUrl.sources.push({ id: "private-signed-source", url: "https://files.example.com/filing?X-Amz-Signature=private-secret", title: "Signed filing", publisher: "Issuer", publishedAt: null, retrievedAt: "2026-11-01T00:01:00.000Z", sourceType: "primary", excerpt: "private", contentHash: null });
+  sourceWithSecretUrl.sources.push({ id: "private-key-source", url: "https://files.example.com/key?key=private-secret", title: "Key URL", publisher: "Issuer", publishedAt: null, retrievedAt: "2026-11-01T00:01:00.000Z", sourceType: "primary", excerpt: "private", contentHash: null });
+  sourceWithSecretUrl.sources.push({ id: "private-client-secret-source", url: "https://files.example.com/client?client_secret=private-secret", title: "Client secret URL", publisher: "Issuer", publishedAt: null, retrievedAt: "2026-11-01T00:01:00.000Z", sourceType: "primary", excerpt: "private", contentHash: null });
+  sourceWithSecretUrl.sources.push({ id: "private-fragment-source", url: "https://files.example.com/filing#access_token=private-secret", title: "Fragment URL", publisher: "Issuer", publishedAt: null, retrievedAt: "2026-11-01T00:01:00.000Z", sourceType: "primary", excerpt: "private", contentHash: null });
   const snapshot = buildPublicCapsuleSnapshot({ originalSnapshot: sourceWithSecretUrl, capsuleIntegrityHash: "c".repeat(64), events: [], selection: { research: false, evidence: true, events: false } });
   assert.equal(snapshot.evidence.sources.length, 1);
   assert.equal(snapshot.evidence.sources[0].url, "https://example.com/filing");
@@ -157,7 +160,7 @@ test("event provenance with credential-bearing URLs is redacted without making a
       forecastEventId: forecast.id,
       observedPrice: 106,
       observedAt: "2026-11-03T00:00:00.000Z",
-      sourceUrl: "https://prices.example/nvda?X-Amz-Signature=private-secret",
+      sourceUrl: "https://prices.example/nvda#access_token=private-secret",
       sourceTimestamp: "2026-11-03T00:01:00.000Z",
       reportedBy: "user",
       actualReturnPercent: 6,
@@ -176,6 +179,24 @@ test("event provenance with credential-bearing URLs is redacted without making a
   const tampered = structuredClone(snapshot);
   tampered.events[0].payload.referenceSourceUrlRedacted = false;
   assert.equal(verifyPublicCapsuleSnapshot(tampered), false);
+});
+
+test("common credential query names are redacted from event provenance", () => {
+  const forecast = {
+    ...event,
+    payload: {
+      ...event.payload,
+      referenceSourceUrl: "https://prices.example/nvda?key=private-secret&client_secret=also-private",
+      referenceSourceTimestamp: "2026-11-01T00:01:00.000Z",
+      referenceReportedBy: "user",
+    },
+  };
+  const snapshot = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [forecast], selection: { research: false, evidence: false, events: true } });
+  assert.equal(snapshot.events[0].payload.referenceSourceUrl, null);
+  assert.equal(snapshot.events[0].payload.referenceSourceUrlRedacted, true);
+  assert.equal(JSON.stringify(snapshot).includes("private-secret"), false);
+  assert.equal(JSON.stringify(snapshot).includes("also-private"), false);
+  assert.equal(verifyPublicCapsuleSnapshot(snapshot), true);
 });
 
 test("publication tokens are hashed before storage and empty projections are rejected", () => {
