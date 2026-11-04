@@ -63,7 +63,7 @@ class ResearchJob:
 
 def _canonical_json(value: Any) -> str:
     if value is None or isinstance(value, (str, bool)):
-        return json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+        return _canonical_json_string(value)
     if isinstance(value, int):
         return str(value)
     if isinstance(value, float):
@@ -85,10 +85,30 @@ def _canonical_json(value: Any) -> str:
         return "[" + ",".join(_canonical_json(item) for item in value) + "]"
     if isinstance(value, dict) and all(isinstance(key, str) for key in value):
         return "{" + ",".join(
-            json.dumps(key, ensure_ascii=False) + ":" + _canonical_json(value[key])
+            _canonical_json_string(key) + ":" + _canonical_json(value[key])
             for key in sorted(value)
         ) + "}"
     raise ValueError("Public capsule snapshots must contain JSON values only.")
+
+
+def _canonical_json_string(value: str | bool | None) -> str:
+    rendered = json.dumps(value, ensure_ascii=False, separators=(",", ":"))
+    result: list[str] = []
+    index = 0
+    while index < len(rendered):
+        codepoint = ord(rendered[index])
+        if 0xD800 <= codepoint <= 0xDBFF and index + 1 < len(rendered):
+            low = ord(rendered[index + 1])
+            if 0xDC00 <= low <= 0xDFFF:
+                result.append(chr(0x10000 + ((codepoint - 0xD800) << 10) + low - 0xDC00))
+                index += 2
+                continue
+        if 0xD800 <= codepoint <= 0xDFFF:
+            result.append(f"\\u{codepoint:04x}")
+        else:
+            result.append(rendered[index])
+        index += 1
+    return "".join(result)
 
 
 def verify_public_decision_capsule(publication: dict[str, Any]) -> bool:

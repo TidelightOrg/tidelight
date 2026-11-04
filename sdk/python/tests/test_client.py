@@ -60,6 +60,16 @@ class ClientTests(unittest.TestCase):
         self.assertEqual(_canonical_json(shared), '{"a":{"micro":0.000001,"near":123000000000000000000,"prob":0.7,"tiny":1e-7,"unicode":"NVIDIA ™","whole":1},"items":[true,null,3],"z":0}')
         self.assertTrue(verify_public_decision_capsule({"snapshot": shared, "hashAlgorithm": "sha256", "integrityHash": "d9e3e417a7e61eaeeb90ce493e07e959ee65d4801282f69c559aa8f9bf55dc98"}))
 
+    def test_python_public_capsule_canonical_json_matches_javascript_surrogate_escaping(self):
+        from tidelight.client import _canonical_json
+
+        value = {"split": "a" * 3999 + "\ud83d", "emoji": "😀", "pair": "\ud83d\ude00", "literal": r"\ud83d"}
+        expected = '{"emoji":"😀","literal":"\\\\ud83d","pair":"😀","split":"' + "a" * 3999 + r"\ud83d" + '"}'
+        canonical = _canonical_json(value)
+        self.assertEqual(canonical, expected)
+        publication = {"snapshot": value, "hashAlgorithm": "sha256", "integrityHash": hashlib.sha256(canonical.encode("utf-8")).hexdigest()}
+        self.assertTrue(verify_public_decision_capsule(publication))
+
     def test_public_capsule_http_string_error_becomes_api_error(self):
         def opener(request, timeout):
             raise HTTPError(request.full_url, 404, "Not found", {}, io.BytesIO(b'{"error":"Public capsule not found."}'))
