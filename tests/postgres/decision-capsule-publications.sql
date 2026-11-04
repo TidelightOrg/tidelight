@@ -20,6 +20,9 @@ do $$ begin
     or not has_function_privilege('service_role', 'public.publish_decision_capsule_publication(uuid,uuid,integer,text,text,jsonb,text)', 'EXECUTE') then
     raise exception 'only the service role may publish through the atomic history check';
   end if;
+  if not (select prosecdef from pg_proc where oid = 'public.publish_decision_capsule_publication(uuid,uuid,integer,text,text,jsonb,text)'::regprocedure) then
+    raise exception 'publication creation must use the narrowly granted security-definer function';
+  end if;
 end $$;
 
 do $$ begin
