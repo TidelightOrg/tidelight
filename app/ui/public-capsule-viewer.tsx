@@ -53,7 +53,7 @@ function Evidence({ value, translate }: { value: unknown; translate: (value: str
       {source.excerpt ? <blockquote>{stringValue(source.excerpt)}</blockquote> : null}
     </li>)}</ul> : null}
     {claims.length ? <ul className="public-capsule-claims">{claims.map((claim, index) => <li key={index}>
-      <header><b>{translate(claim.stance === "supporting" ? "Supports" : "Challenges")}</b>{typeof claim.confidence === "number" ? <span>{Math.round(claim.confidence * 100)}%</span> : null}</header>
+      <header><b>{translate(claim.stance === "supports" ? "Supports" : claim.stance === "contradicts" ? "Challenges" : "Context")}</b>{typeof claim.confidence === "number" ? <span>{Math.round(claim.confidence * 100)}%</span> : null}</header>
       <p>{stringValue(claim.claim)}</p>
       {claim.supportingQuote ? <blockquote>{stringValue(claim.supportingQuote)}</blockquote> : null}
       {typeof claim.sourceUrl === "string" && claim.sourceUrl.startsWith("https://") ? <a href={claim.sourceUrl} target="_blank" rel="noopener noreferrer">{translate("Open source")} ↗</a> : null}
@@ -64,15 +64,23 @@ function Evidence({ value, translate }: { value: unknown; translate: (value: str
 
 function CapsuleEvents({ value, translate }: { value: unknown; translate: (value: string) => string }) {
   if (!Array.isArray(value)) return null;
+  const events = value.filter(isRecord);
+  const forecasts = new Map<number, JsonRecord>();
+  for (const event of events) if (event.type === "forecast" && typeof event.sequence === "number" && isRecord(event.payload)) forecasts.set(event.sequence, event.payload);
   return <section className="public-capsule-section">
     <h2>{translate("Forecast history")}</h2>
-    {value.length ? <ol className="public-capsule-events">{value.filter(isRecord).map((event, index) => {
+    {events.length ? <ol className="public-capsule-events">{events.map((event, index) => {
       const payload = isRecord(event.payload) ? event.payload : {};
       const instrument = isRecord(payload.instrument) ? payload.instrument : {};
+      const isOutcome = event.type === "outcome";
+      const forecastSequence = isOutcome && typeof event.forecastSequence === "number" ? event.forecastSequence : null;
+      const referencedForecast = forecastSequence === null ? null : forecasts.get(forecastSequence) ?? null;
+      const referencedInstrument = isRecord(referencedForecast?.instrument) ? referencedForecast.instrument : {};
+      const symbol = stringValue(isOutcome ? referencedInstrument.symbol : instrument.symbol);
       return <li key={index}>
-        <header><strong>{translate(event.type === "outcome" ? "Outcome" : "Forecast")}</strong><time>{dateValue(event.createdAt) ?? "—"}</time></header>
-        {event.type === "forecast" ? <p>{stringValue(instrument.symbol)} · {stringValue(payload.direction)} · {translate("Reference price")} {typeof payload.referencePrice === "number" ? payload.referencePrice.toLocaleString() : "—"} · {typeof payload.thresholdPercent === "number" ? `${payload.thresholdPercent}%` : "—"}</p> : <p>{translate("Observed price")} {typeof payload.observedPrice === "number" ? payload.observedPrice.toLocaleString() : "—"} · {typeof payload.actualReturnPercent === "number" ? `${payload.actualReturnPercent.toFixed(2)}%` : "—"}</p>}
-        {event.type === "outcome" ? <span className="public-capsule-reported">{translate("Reported by user")}</span> : payload.horizonAt ? <span>{translate("Horizon")} · {dateValue(payload.horizonAt) ?? "—"}</span> : null}
+        <header><strong>{isOutcome ? `${translate("Outcome")} · ${translate("Forecast")} #${forecastSequence ?? "—"}` : `${translate("Forecast")} #${typeof event.sequence === "number" ? event.sequence : index + 1}`}</strong><time>{dateValue(event.createdAt) ?? "—"}</time></header>
+        {isOutcome ? <p>{symbol ? `${symbol} · ` : ""}{referencedForecast ? `${translate("Forecast")}: ${stringValue(referencedForecast.direction)} ${typeof referencedForecast.thresholdPercent === "number" ? `${referencedForecast.thresholdPercent}%` : ""} · ` : ""}{translate("Observed price")} {typeof payload.observedPrice === "number" ? payload.observedPrice.toLocaleString() : "—"} · {typeof payload.actualReturnPercent === "number" ? `${payload.actualReturnPercent.toFixed(2)}%` : "—"}</p> : <p>{stringValue(instrument.symbol)} · {stringValue(payload.direction)} · {translate("Reference price")} {typeof payload.referencePrice === "number" ? payload.referencePrice.toLocaleString() : "—"} · {typeof payload.thresholdPercent === "number" ? `${payload.thresholdPercent}%` : "—"}</p>}
+        {isOutcome ? <span className="public-capsule-reported">{translate("Reported by user")}</span> : payload.horizonAt ? <span>{translate("Horizon")} · {dateValue(payload.horizonAt) ?? "—"}</span> : null}
       </li>;
     })}</ol> : <p>{translate("No forecast history was included.")}</p>}
   </section>;
