@@ -9,8 +9,9 @@ import { useLanguage } from "@/app/ui/language-provider";
 import { localizeResearchSuggestion } from "@/lib/research-question-localization";
 import type { EvidenceGraph, EvidenceGraphNode } from "@/lib/evidence-graph";
 import { JUDGE_SESSION_KEY, storeJudgeResult, clearJudgeResult } from "@/lib/judge-session";
-import { createDecisionCapsule, type DecisionCapsuleReceipt } from "@/lib/decision-capsule-client";
+import { createDecisionCapsule, getSavedDecisionCapsules, type DecisionCapsuleReceipt, type SavedDecisionCapsule } from "@/lib/decision-capsule-client";
 import { isCurrentDecisionCapsuleSave } from "@/lib/decision-capsule-save-scope";
+import DecisionCapsuleHistory from "@/app/ui/decision-capsule-history";
 
 type StageEvent = { id: string; agent: string; status: "running" | "complete" | "blocked"; title: string; detail: string; at: string; durationMs?: number; asset?: string };
 type Destination = { mode: "paper_futures" | "live_spot"; label: string; href: string };
@@ -111,6 +112,41 @@ function EvidenceGraphPanel({ graph }: { graph: EvidenceGraph }) {
   const passagesFor = (claimId: string) => graph.edges.filter(edge => edge.from === claimId && edge.relation === "cites").map(edge => nodesById.get(edge.to)).filter((node): node is Extract<EvidenceGraphNode, { type: "passage" }> => node?.type === "passage");
   const sourcesFor = (claim: Extract<EvidenceGraphNode, { type: "claim" }>) => claim.sourceIds.map(id => nodesById.get(id)).filter((node): node is Extract<EvidenceGraphNode, { type: "source" }> => node?.type === "source");
   return <details className="flow-evidence-graph"><summary>{translate("Evidence trace")} · {graph.nodes.length} {translate("records")} / {graph.edges.length} {translate("links")}</summary><div className="flow-evidence-graph-body"><p>{translate("Snapshot as of")} <time dateTime={graph.asOf}>{new Date(graph.asOf).toLocaleString()}</time>. {translate("Source linkage shows provenance; it does not independently verify claim support.")} {translate("Retrieved excerpts are not quote-verified.")}</p>{hypotheses.map(hypothesis => <section className="flow-graph-hypothesis" key={hypothesis.id}><header><b>{hypothesis.ticker} {translate("hypothesis")} · {translate(hypothesis.stance)}</b><span>{hypothesis.confidenceOrigin === "model_reported" && hypothesis.reportedConfidence !== null ? `${translate("Model-reported")} ${Math.round(hypothesis.reportedConfidence * 100)}%` : hypothesis.confidenceOrigin === "application_calibrated" && hypothesis.reportedConfidence !== null ? `${translate("Application-capped")} ${Math.round(hypothesis.reportedConfidence * 100)}%` : translate("No model confidence recorded")}</span></header>{hypothesis.riskConsiderations.length ? <p>{translate("Risk considerations:")} {hypothesis.riskConsiderations.join(" · ")}</p> : null}</section>)}{instruments.length ? <div className="flow-graph-instruments"><b>{translate("Distinct market identities")}</b>{instruments.map(instrument => <span key={instrument.id}>{translate(instrument.marketType === "reality_tokenized_spot" ? "Reality tokenized spot" : "U.S. stock perpetual")} · {instrument.symbol} · {instrument.availability === "observed" && instrument.observedAt ? `${translate("observed at")} ${new Date(instrument.observedAt).toLocaleString()}` : translate("Observation unavailable or outside snapshot")}</span>)}</div> : null}<div className="flow-graph-claims">{claims.map(claim => <article className="flow-graph-claim" key={claim.id}><header><b>{translate(claim.polarity === "supporting" ? "Supports" : "Challenges")} · {claim.ticker}</b><span>{translate(claim.citationStatus.replaceAll("_", " "))}</span></header><p>{claim.text}</p>{sourcesFor(claim).map(source => <div className="flow-graph-source-passage" key={source.id}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.publisher} · {source.title} ↗</a>{passagesFor(claim.id).filter(passage => passage.sourceId === source.id).map(passage => <blockquote key={passage.id}><span>{translate("Retrieved excerpt")} · {translate("exact quote not verified")}</span><p>{passage.text}</p></blockquote>)}</div>)}</article>)}</div>{!claims.length ? <section className="flow-graph-empty"><p>{translate("No model-linked evidence points were recorded. The captured source references remain available below.")}</p>{sources.length ? <ul>{sources.map(source => <li key={source.id}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.publisher} · {source.title} ↗</a></li>)}</ul> : null}</section> : null}</div></details>;
+}
+
+function SavedDecisionCapsules() {
+  const { translate } = useLanguage();
+  const [capsules, setCapsules] = useState<SavedDecisionCapsule[]>([]);
+  const [selected, setSelected] = useState<SavedDecisionCapsule | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const refresh = useMemo(() => async () => {
+    setLoading(true); setError("");
+    try { setCapsules(await getSavedDecisionCapsules()); }
+    catch (cause) {
+      const message = cause instanceof Error ? cause.message : "Private decision capsules could not be loaded.";
+      if (!message.toLowerCase().includes("sign in")) setError(message);
+    } finally { setLoading(false); }
+  }, []);
+  useEffect(() => {
+    let active = true;
+    getSavedDecisionCapsules().then(items => { if (active) setCapsules(items); }).catch(cause => {
+      const message = cause instanceof Error ? cause.message : "Private decision capsules could not be loaded.";
+      if (active && !message.toLowerCase().includes("sign in")) setError(message);
+    }).finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
+  if (!capsules.length && !error) return null;
+  return <section className="flow-capsule-library" aria-label={translate("Saved decision capsules")}>
+    <header><h3>{translate("Saved capsules")}</h3><button type="button" aria-label={translate("Refresh saved capsules")} onClick={() => void refresh()} disabled={loading}>↻</button></header>
+    {error ? <p role="alert">{translate(error)}</p> : null}
+    {capsules.length ? <ul>{capsules.map(capsule => <li key={capsule.id}>
+      <button type="button" onClick={() => setSelected(capsule)} aria-pressed={selected?.id === capsule.id}>
+        <span>{capsule.question}</span><time dateTime={capsule.createdAt}>{new Date(capsule.createdAt).toLocaleDateString()}</time>
+      </button>
+    </li>)}</ul> : null}
+    {selected ? <div className="flow-capsule-library-detail"><div className="flow-capsule-receipt"><b>{translate("Capsule saved · integrity verified")}</b><span>{translate("Capsule ID")} · <code>{selected.id}</code></span><span>SHA-256 · <code>{selected.integrityHash}</code></span><a href={`/api/decision-capsules/${selected.id}`} target="_blank" rel="noopener noreferrer">{translate("Open verified capsule JSON")} ↗</a><a href={`/api/decision-capsules/${selected.id}?download=1`} target="_blank" rel="noopener noreferrer">{translate("Download verified capsule evidence")} ↓</a></div><DecisionCapsuleHistory key={selected.id} capsuleId={selected.id} /></div> : null}
+  </section>;
 }
 
 function safeDeskLink(destination: Destination) {
@@ -344,6 +380,8 @@ export default function AgentFlowDesk({ initialQuestion, initialMonitorId = null
       <div className="flow-orbit" aria-hidden="true"><div className="flow-orbit-ring"><span>EVENT</span><span>EVIDENCE</span><span>EXPOSURE</span><span>DECISION</span></div><div className="flow-orbit-core"><Image src="/tidelight-mark.svg" alt="" width={42} height={42} /><small>TIDELIGHT</small></div></div>
     </section>
 
+    {!evaluatorMode ? <SavedDecisionCapsules /> : null}
+
     {(busy || stages.length > 0) ? <section className="flow-work-thread" aria-label="Research activity" aria-busy={busy}>
       <div className="flow-thread-head">
         <span className={`flow-agent-mark ${busy ? "flow-agent-mark-live" : ""}`} aria-hidden="true"><Image src="/tidelight-mark.svg" alt="" width={21} height={21} /></span>
@@ -370,13 +408,16 @@ export default function AgentFlowDesk({ initialQuestion, initialMonitorId = null
 
     {result ? <section className="flow-results flow-reply" aria-label="Research response">{result.guestSessionResult ? <aside className="flow-guest-result" role="note"><b>Public judge research · browser session</b><span>{guestStored ? "This result is stored in this tab session, not in an account." : "Browser storage is unavailable or the result is too large. This result will be lost if you leave or reload this page."}</span><Link href="/login">Sign in to save future research ↗</Link><button type="button" onClick={() => { const cleared = clearJudgeResult(); setResult(null); setGuestStored(false); setClearError(!cleared); }}>Clear this result</button></aside> : null}<div className="flow-reply-head"><span className="flow-agent-mark" aria-hidden="true">t</span><div><b>Research assessment</b><span>{result.synthesis?.mode === "model" && result.synthesis.provider ? `${result.synthesis.provider} synthesis · ` : "Source-based reading · "}{result.researchType === "macro" ? "macro brief" : `${result.assets.length} ${result.assets.length === 1 ? "issuer" : "issuers"}`}{busySeconds > 0 ? ` · ${busySeconds}s` : ""}</span></div><span className={`flow-method-pill ${result.synthesis?.mode === "model" ? "flow-method-model" : ""}`}>{result.synthesis?.mode === "model" ? "MODEL REVIEWED" : "SOURCE ONLY"}</span></div><div className="flow-user-prompt"><span>Research question</span><p>{result.question}</p></div>{result.researchCoverage?.limitations?.length ? <div className="flow-gates" role="note"><b>Research coverage limits</b><ul>{result.researchCoverage.limitations.map((limit, index) => <li key={index}>{limit}</li>)}</ul></div> : null}{result.evidenceGraph ? <EvidenceGraphPanel graph={result.evidenceGraph} /> : null}<div className="flow-reply-intro"><h2>Findings</h2></div>
       {result.researchRunId ? <section className="flow-capsule" aria-label={translate("Decision Capsule")}>
-        {capsuleReceipt && capsuleReceiptRunId === result.researchRunId ? <div className="flow-capsule-receipt" role="status" aria-live="polite">
-          <b>{translate("Capsule saved · integrity verified")}</b>
-          <span>{translate("Capsule ID")} · <code>{capsuleReceipt.id}</code></span>
-          <span>SHA-256 · <code>{capsuleReceipt.integrityHash}</code></span>
-          <a href={`/api/decision-capsules/${capsuleReceipt.id}`} target="_blank" rel="noopener noreferrer">{translate("Open verified capsule JSON")} ↗</a>
-          <a href={`/api/decision-capsules/${capsuleReceipt.id}?download=1`} target="_blank" rel="noopener noreferrer">{translate("Download verified capsule evidence")} ↓</a>
-        </div> : <button type="button" onClick={() => void saveDecisionCapsule()} disabled={capsuleSaving} aria-busy={capsuleSaving}>
+        {capsuleReceipt && capsuleReceiptRunId === result.researchRunId ? <>
+          <div className="flow-capsule-receipt" role="status" aria-live="polite">
+            <b>{translate("Capsule saved · integrity verified")}</b>
+            <span>{translate("Capsule ID")} · <code>{capsuleReceipt.id}</code></span>
+            <span>SHA-256 · <code>{capsuleReceipt.integrityHash}</code></span>
+            <a href={`/api/decision-capsules/${capsuleReceipt.id}`} target="_blank" rel="noopener noreferrer">{translate("Open verified capsule JSON")} ↗</a>
+            <a href={`/api/decision-capsules/${capsuleReceipt.id}?download=1`} target="_blank" rel="noopener noreferrer">{translate("Download verified capsule evidence")} ↓</a>
+          </div>
+          <DecisionCapsuleHistory key={capsuleReceipt.id} capsuleId={capsuleReceipt.id} />
+        </> : <button type="button" onClick={() => void saveDecisionCapsule()} disabled={capsuleSaving} aria-busy={capsuleSaving}>
           {capsuleSaving ? translate("Saving capsule…") : translate("Save private Decision Capsule ↗")}
         </button>}
         {capsuleError && capsuleErrorRunId === result.researchRunId ? <p className="flow-capsule-error" role="alert">{capsuleError}</p> : null}
