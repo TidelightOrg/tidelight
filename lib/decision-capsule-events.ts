@@ -14,6 +14,9 @@ export type CapsuleInstrumentType = keyof typeof SYMBOLS;
 export type CapsuleForecastPayload = {
   instrument: { type: CapsuleInstrumentType; symbol: string };
   referencePrice: number;
+  referenceSourceUrl: string;
+  referenceSourceTimestamp: string;
+  referenceReportedBy: "user";
   direction: "up" | "down";
   thresholdPercent: number;
   horizonAt: string;
@@ -89,16 +92,27 @@ export function parseCapsuleEventInput(value: unknown, now = Date.now(), options
   if (typeof value.idempotencyKey !== "string" || !CAPSULE_EVENT_UUID.test(value.idempotencyKey)) throw new CapsuleEventValidationError("A valid idempotency key is required.");
   if (value.type === "forecast") {
     const raw = value.payload;
-    if (!isPlainObject(raw) || !exactKeys(raw, ["instrument", "referencePrice", "direction", "thresholdPercent", "horizonAt", ...(Object.hasOwn(raw, "probability") ? ["probability"] : [])])) throw new CapsuleEventValidationError("The forecast fields are incomplete or unsupported.");
+    if (!isPlainObject(raw) || !exactKeys(raw, ["instrument", "referencePrice", "referenceSourceUrl", "referenceSourceTimestamp", "direction", "thresholdPercent", "horizonAt", ...(Object.hasOwn(raw, "probability") ? ["probability"] : [])])) throw new CapsuleEventValidationError("The forecast fields are incomplete or unsupported.");
     const instrument = raw.instrument;
     if (!isPlainObject(instrument) || !exactKeys(instrument, ["type", "symbol"]) || typeof instrument.type !== "string" || !Object.hasOwn(SYMBOLS, instrument.type) || typeof instrument.symbol !== "string" || instrument.symbol !== instrument.symbol.toUpperCase() || !SYMBOLS[instrument.type as CapsuleInstrumentType].test(instrument.symbol)) throw new CapsuleEventValidationError("Use an exact symbol for a supported US equity, Reality token, or US-stock perpetual.");
     if (raw.direction !== "up" && raw.direction !== "down") throw new CapsuleEventValidationError("Choose an upward or downward forecast.");
     const horizonAt = parseTimestamp(raw.horizonAt, "Forecast horizon");
+    if (typeof raw.referenceSourceUrl !== "string" || raw.referenceSourceUrl.length > 2_048) throw new CapsuleEventValidationError("A reference price source URL is required.");
+    let referenceUrl: URL;
+    try { referenceUrl = new URL(raw.referenceSourceUrl); } catch { throw new CapsuleEventValidationError("A reference price source URL is required."); }
+    if (referenceUrl.protocol !== "https:" || !referenceUrl.hostname || referenceUrl.username || referenceUrl.password) throw new CapsuleEventValidationError("Reference price sources must use an HTTPS URL without credentials.");
+    const normalizedReferenceUrl = referenceUrl.toString();
+    if (normalizedReferenceUrl.length > 2_048) throw new CapsuleEventValidationError("Reference source URL must be 2,048 characters or fewer after normalization.");
+    const referenceSourceTimestamp = parseTimestamp(raw.referenceSourceTimestamp, "Reference source timestamp");
+    if (Date.parse(referenceSourceTimestamp) > now + 60_000) throw new CapsuleEventValidationError("Reference source timestamp cannot be in the future.");
     const horizonMs = Date.parse(horizonAt);
     if ((!options.allowPastForecastHorizon && horizonMs <= now) || horizonMs > now + 5 * 366 * 24 * 60 * 60 * 1000) throw new CapsuleEventValidationError("Forecast horizon must be in the future and within five years.");
     const payload: CapsuleForecastPayload = {
       instrument: { type: instrument.type as CapsuleInstrumentType, symbol: instrument.symbol },
       referencePrice: finiteRange(raw.referencePrice, Number.MIN_VALUE, 1e15, "Reference price"),
+      referenceSourceUrl: normalizedReferenceUrl,
+      referenceSourceTimestamp,
+      referenceReportedBy: "user",
       direction: raw.direction,
       thresholdPercent: finiteRange(raw.thresholdPercent, 0.000001, 100, "Threshold"),
       horizonAt,
@@ -166,10 +180,13 @@ export function mapCapsuleEvent(row: CapsuleEventRow): CapsuleEvent | null {
 }
 
 function isForecastPayload(value: unknown): value is CapsuleForecastPayload {
-  if (!isPlainObject(value) || !exactKeys(value, ["instrument", "referencePrice", "direction", "thresholdPercent", "horizonAt", ...(Object.hasOwn(value, "probability") ? ["probability"] : [])])) return false;
+  if (!isPlainObject(value) || !exactKeys(value, ["instrument", "referencePrice", "referenceSourceUrl", "referenceSourceTimestamp", "referenceReportedBy", "direction", "thresholdPercent", "horizonAt", ...(Object.hasOwn(value, "probability") ? ["probability"] : [])])) return false;
   const instrument = value.instrument;
   if (!isPlainObject(instrument) || !exactKeys(instrument, ["type", "symbol"]) || typeof instrument.type !== "string" || !Object.hasOwn(SYMBOLS, instrument.type) || typeof instrument.symbol !== "string" || !SYMBOLS[instrument.type as CapsuleInstrumentType].test(instrument.symbol)) return false;
   if (typeof value.referencePrice !== "number" || !Number.isFinite(value.referencePrice) || value.referencePrice <= 0 || value.referencePrice > 1e15) return false;
+  if (typeof value.referenceSourceUrl !== "string" || value.referenceSourceUrl.length > 2_048 || value.referenceReportedBy !== "user") return false;
+  try { const url = new URL(value.referenceSourceUrl); if (url.protocol !== "https:" || !url.hostname || url.username || url.password || url.toString() !== value.referenceSourceUrl) return false; } catch { return false; }
+  try { parseTimestamp(value.referenceSourceTimestamp, "Reference source timestamp"); } catch { return false; }
   if (value.direction !== "up" && value.direction !== "down") return false;
   if (typeof value.thresholdPercent !== "number" || !Number.isFinite(value.thresholdPercent) || value.thresholdPercent <= 0 || value.thresholdPercent > 100) return false;
   try { parseTimestamp(value.horizonAt, "Forecast horizon"); } catch { return false; }
