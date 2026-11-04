@@ -20,6 +20,9 @@ do $$ begin
     or not has_function_privilege('service_role', 'public.publish_decision_capsule_publication(uuid,uuid,integer,text,text,jsonb,text)', 'EXECUTE') then
     raise exception 'only the service role may publish through the atomic history check';
   end if;
+  if not (select prosecdef from pg_proc where oid = 'public.publish_decision_capsule_publication(uuid,uuid,integer,text,text,jsonb,text)'::regprocedure) then
+    raise exception 'publication creation must use the narrowly granted security-definer function';
+  end if;
 end $$;
 
 do $$ begin
@@ -51,8 +54,11 @@ do $$ begin
     raise exception 'a capsule must have only one active publication';
   exception when unique_violation then null;
   end;
-  update public.decision_capsule_publications set revoked_at = now()
+  update public.decision_capsule_publications set revoked_at = '2000-01-01T00:00:00Z'
     where capsule_id = '50000000-0000-4000-8000-000000000001';
+  if (select revoked_at < created_at or revoked_at <= '2020-01-01T00:00:00Z' from public.decision_capsule_publications where capsule_id = '50000000-0000-4000-8000-000000000001') then
+    raise exception 'revocation timestamp must be assigned by the database clock';
+  end if;
   perform public.publish_decision_capsule_publication(
     '50000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 2,
     repeat('c', 64), repeat('d', 64), '{"schemaVersion":1}', repeat('e', 64)

@@ -36,9 +36,10 @@ language plpgsql
 set search_path = pg_catalog
 as $$
 begin
-  if old.revoked_at is not null or new.revoked_at is null or new.revoked_at < old.created_at then
+  if old.revoked_at is not null or new.revoked_at is null then
     raise exception using errcode = '23514', message = 'capsule_publication_revocation_is_final';
   end if;
+  new.revoked_at := greatest(clock_timestamp(), old.created_at);
   return new;
 end;
 $$;
