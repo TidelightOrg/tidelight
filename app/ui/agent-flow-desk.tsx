@@ -361,8 +361,7 @@ export default function AgentFlowDesk({ initialQuestion, initialMonitorId = null
   return <div className="content-wrap inner-page agent-flow-page">
     {evaluatorMode ? <span className="sr-only" role="status" aria-live="polite">{result?.guestSessionResult ? (guestStored ? "This result is stored in this tab session, not in an account." : "Browser storage is unavailable or the result is too large. This result will be lost if you leave or reload this page.") : ""}</span> : null}
     {evaluatorMode ? <section className="flow-evaluator" aria-label="Evaluator guide">
-      <div><span className="flow-kicker">TIDELIGHT / EVALUATOR VIEW</span><h2>Follow one real question through the gates.</h2><p>This guided run uses the same source-bound workflow as the workspace. Watch the evidence, quote freshness, and confidence gate; a review link appears only when the result qualifies.</p></div>
-      <ol><li><b>Evidence</b><span>Source links and captured publishers</span></li><li><b>Exposure</b><span>Reality instrument and quote timestamp</span></li><li><b>Decision</b><span>Confidence and risk gates stay visible</span></li></ol>
+      <ol><li><b>Evidence</b></li><li><b>Exposure</b></li><li><b>Decision</b></li></ol>
     </section> : null}
     <section className={`flow-hero${busy || stages.length ? " flow-hero-active" : ""}`} aria-labelledby="flow-title">
       <div className="flow-hero-copy"><span className="flow-kicker"><i /> TIDELIGHT / CONNECTED RESEARCH</span>
