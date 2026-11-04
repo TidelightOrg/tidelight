@@ -25,7 +25,7 @@ do $$ begin
   if not exists (
     select 1 from pg_proc p, lateral pg_options_to_table(p.proconfig) option
     where p.oid = 'public.append_decision_capsule_event(uuid,uuid,integer,text,uuid,uuid,jsonb,text,text,timestamptz)'::regprocedure
-      and option.option_name = 'search_path' and option.option_value = ''
+      and option.option_name = 'search_path' and option.option_value in ('', '""')
   ) then
     raise exception 'the locked append function must use an empty search_path';
   end if;
