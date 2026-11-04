@@ -71,6 +71,15 @@ test("public capsule retrieval works without constructing an API-key client", as
   assert.deepEqual(call.init.headers, { Accept: "application/json" });
 });
 
+test("already-aborted public capsule requests never call fetch", async () => {
+  const controller = new AbortController(); controller.abort(new Error("cancelled by caller"));
+  let called = false;
+  await assert.rejects(getPublicDecisionCapsule("d".repeat(43), { signal: controller.signal, fetch: async () => { called = true; return Response.json({}); } }), error => error === controller.signal.reason);
+  const client = new TidelightClient({ apiKey: key, fetch: async () => { called = true; return Response.json({}); } });
+  await assert.rejects(client.getPublicDecisionCapsule("d".repeat(43), { signal: controller.signal }), error => error === controller.signal.reason);
+  assert.equal(called, false);
+});
+
 test("public capsule digest uses the shared canonical JSON format", () => {
   const snapshot = { z: -0, a: { unicode: "NVIDIA ™", tiny: 1e-7, micro: 1e-6, near: 1.23e20, prob: 0.7, whole: 1.0 }, items: [true, null, 3] };
   assert.equal(verifyPublicDecisionCapsule({ snapshot, hashAlgorithm: "sha256", integrityHash: "d9e3e417a7e61eaeeb90ce493e07e959ee65d4801282f69c559aa8f9bf55dc98" }), true);

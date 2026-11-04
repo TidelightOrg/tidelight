@@ -64,6 +64,7 @@ export function verifyPublicDecisionCapsule(publication: Pick<PublicDecisionCaps
 
 export async function getPublicDecisionCapsule(token: string, options: { publicBaseUrl?: string; timeoutMs?: number; maxRetries?: number; signal?: AbortSignal; fetch?: Fetch } = {}): Promise<PublicDecisionCapsule> {
   if (!/^[A-Za-z0-9_-]{43}$/.test(token)) throw new TypeError("Invalid public capsule token.");
+  if (options.signal?.aborted) throw options.signal.reason ?? new DOMException("The operation was aborted.", "AbortError");
   const base = new URL(options.publicBaseUrl ?? "https://tidelight.app");
   if ((base.protocol !== "https:" && !(base.protocol === "http:" && ["localhost", "127.0.0.1"].includes(base.hostname))) || base.username || base.password || base.search || base.hash || base.pathname !== "/") throw new TypeError("publicBaseUrl must be a trusted HTTPS origin without a path, credentials, query, or fragment.");
   const timeoutMs = options.timeoutMs ?? 10000, maxRetries = options.maxRetries ?? 2, transport = options.fetch ?? fetch;

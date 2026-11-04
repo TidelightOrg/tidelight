@@ -117,7 +117,7 @@ def get_public_decision_capsule(token: str, *, public_base_url: str = "https://t
         raise ValueError("Invalid public capsule token.")
     public = urlparse(public_base_url)
     local_public = public.scheme == "http" and public.hostname in {"localhost", "127.0.0.1"}
-    if (public.scheme != "https" and not local_public) or (public.scheme == "https" and public.hostname != "tidelight.app") or public.port not in (None, 443) or public.path not in ("", "/") or public.username or public.password or public.query or public.fragment:
+    if (public.scheme != "https" and not local_public) or (public.scheme == "https" and public.hostname != "tidelight.app") or (public.scheme == "https" and public.port not in (None, 443)) or public.path not in ("", "/") or public.username or public.password or public.query or public.fragment:
         raise ValueError("The public capsule URL must use tidelight.app HTTPS or a local development origin.")
     if not 0.1 <= timeout <= 120 or not isinstance(max_retries, int) or not 0 <= max_retries <= 5:
         raise ValueError("Public capsule timeout or retry limit is out of range.")
@@ -130,7 +130,12 @@ def get_public_decision_capsule(token: str, *, public_base_url: str = "https://t
                 payload = json.load(response)
         except HTTPError as error:
             try:
-                details = json.load(error).get("error", {})
+                body = json.load(error)
+                details = body.get("error", {}) if isinstance(body, dict) else {}
+                if isinstance(details, str):
+                    details = {"message": details}
+                if not isinstance(details, dict):
+                    details = {}
             except (ValueError, AttributeError):
                 details = {}
             if error.code in {429, 502, 503, 504} and attempt < max_retries:
@@ -161,7 +166,7 @@ class Client:
             raise ValueError("The API URL cannot contain credentials, query, or fragment.")
         public = urlparse(public_base_url)
         local_public = public.scheme == "http" and public.hostname in {"localhost", "127.0.0.1"}
-        if (public.scheme != "https" and not local_public) or (public.scheme == "https" and public.hostname != "tidelight.app") or public.port not in (None, 443) or public.path not in ("", "/") or public.username or public.password or public.query or public.fragment:
+        if (public.scheme != "https" and not local_public) or (public.scheme == "https" and public.hostname != "tidelight.app") or (public.scheme == "https" and public.port not in (None, 443)) or public.path not in ("", "/") or public.username or public.password or public.query or public.fragment:
             raise ValueError("The public capsule URL must use tidelight.app HTTPS or a local development origin.")
         if not 0.1 <= timeout <= 120:
             raise ValueError("timeout must be 0.1 to 120 seconds.")

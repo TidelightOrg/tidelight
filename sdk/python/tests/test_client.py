@@ -46,9 +46,22 @@ class ClientTests(unittest.TestCase):
         public_only = get_public_decision_capsule("a" * 43, opener=opener)
         self.assertEqual(public_only["integrity"], "valid")
 
+        local_client = Client(KEY, public_base_url="http://localhost:3000", opener=opener)
+        local_client.get_public_decision_capsule("a" * 43)
+        self.assertTrue(calls[-1][0].startswith("http://localhost:3000/"))
+
         shared = {"z": -0.0, "a": {"unicode": "NVIDIA ™", "tiny": 1e-7, "micro": 1e-6, "near": 1.23e20, "prob": 0.7, "whole": 1.0}, "items": [True, None, 3]}
         self.assertEqual(_canonical_json(shared), '{"a":{"micro":0.000001,"near":123000000000000000000,"prob":0.7,"tiny":1e-7,"unicode":"NVIDIA ™","whole":1},"items":[true,null,3],"z":0}')
         self.assertTrue(verify_public_decision_capsule({"snapshot": shared, "hashAlgorithm": "sha256", "integrityHash": "d9e3e417a7e61eaeeb90ce493e07e959ee65d4801282f69c559aa8f9bf55dc98"}))
+
+    def test_public_capsule_http_string_error_becomes_api_error(self):
+        def opener(request, timeout):
+            raise HTTPError(request.full_url, 404, "Not found", {}, io.BytesIO(b'{"error":"Public capsule not found."}'))
+
+        with self.assertRaises(ApiError) as caught:
+            get_public_decision_capsule("a" * 43, opener=opener, max_retries=0)
+        self.assertEqual(caught.exception.status, 404)
+        self.assertEqual(str(caught.exception), "Public capsule not found.")
 
     def test_research_job_creation_status_and_cancellation(self):
         job_id = "01234567-89ab-4cde-8fab-0123456789ab"
