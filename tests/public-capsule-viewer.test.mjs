@@ -5,10 +5,11 @@ import test from "node:test";
 const root = new URL("../", import.meta.url);
 
 test("public capsule viewer is no-login, no-index, and only loads the public projection", async () => {
-  const [page, viewer, share] = await Promise.all([
+  const [page, viewer, share, support] = await Promise.all([
     readFile(new URL("app/capsule/public/[token]/page.tsx", root), "utf8"),
     readFile(new URL("app/ui/public-capsule-viewer.tsx", root), "utf8"),
     readFile(new URL("app/ui/agent-flow-desk.tsx", root), "utf8"),
+    readFile(new URL("app/ui/support-companion.tsx", root), "utf8"),
   ]);
   assert.match(page, /robots:\s*\{\s*index:\s*false,\s*follow:\s*false\s*\}/);
   assert.match(viewer, /fetch\(`\/api\/decision-capsules\/public\/\$\{token\}`/);
@@ -23,6 +24,9 @@ test("public capsule viewer is no-login, no-index, and only loads the public pro
   assert.match(viewer, /payload\.sourceTimestamp : payload\.referenceSourceTimestamp/);
   assert.match(viewer, /Claim support and truth have not been independently verified/);
   assert.match(viewer, /publicSourceUrl\(claim\.sourceUrl\)/);
+  assert.match(viewer, /formatPublicCapsulePrice\(payload\.observedPrice\)/);
+  assert.match(viewer, /formatPublicCapsulePrice\(payload\.referencePrice\)/);
+  assert.match(support, /pathname\.startsWith\("\/capsule\/public\/"\)/);
   assert.match(viewer, /direction === "up" \? translate\("Up"\) : direction === "down" \? translate\("Down"\)/);
   assert.match(viewer, /directionLabel\(referencedForecast\.direction\)/);
   assert.match(viewer, /directionLabel\(payload\.direction\)/);
