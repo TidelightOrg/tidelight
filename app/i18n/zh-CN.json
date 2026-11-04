@@ -6310,5 +6310,13 @@
   "Refresh saved capsules": "刷新已保存的胶囊",
   "Private decision capsules could not be loaded.": "无法加载私人决策胶囊。",
   "A saved capsule returned invalid details.": "已保存的胶囊返回了无效详情。",
-  "Saved capsules returned an invalid response.": "已保存的胶囊返回了无效响应。"
+  "Saved capsules returned an invalid response.": "已保存的胶囊返回了无效响应。",
+  "Observed outcome summary": "观测结果摘要",
+  "Outcome hit rate": "预测命中率",
+  "Mean Brier": "平均布里尔分数",
+  "scored outcomes": "个已评分结果",
+  "Exploratory calibration gap": "探索性校准差距",
+  "Requires 20 scored forecasts": "需至少 20 个已评分预测",
+  "Based on user-reported outcomes; source authenticity is not verified.": "依据用户报告的结果；来源真实性未经验证。",
+  "Reported source": "用户报告的来源"
 }
