@@ -19,6 +19,9 @@ do $$ begin
     or not has_function_privilege('service_role', 'public.append_decision_capsule_event(uuid,uuid,integer,text,uuid,uuid,jsonb,text,text,timestamptz)', 'EXECUTE') then
     raise exception 'only the service role may append capsule events';
   end if;
+  if not (select prosecdef from pg_proc where oid = 'public.append_decision_capsule_event(uuid,uuid,integer,text,uuid,uuid,jsonb,text,text,timestamptz)'::regprocedure) then
+    raise exception 'the locked append function must write with its owner privilege while direct inserts remain revoked';
+  end if;
 end $$;
 
 set role service_role;
