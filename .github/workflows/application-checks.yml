@@ -126,6 +126,8 @@ jobs:
           persist-credentials: false
       - name: Prepare isolated capsule schema
         run: psql -v ON_ERROR_STOP=1 -f tests/postgres/decision-capsules-prerequisites.sql
+      - name: Apply shared OAuth IP rate limiter migration
+        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261015092907_tic_mcp_oauth.sql
       - name: Apply private capsule migration
         run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261103060730_private_decision_capsules.sql
       - name: Test capsule ownership, write-once grants, and RLS
