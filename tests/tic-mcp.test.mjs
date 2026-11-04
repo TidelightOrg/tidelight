@@ -58,15 +58,19 @@ test("research scope exposes durable start, status, and cancellation tools over 
     operations.push(operation);
     if (operation.operation === "research.start") return Response.json({ job_id: "d475bd46-5035-4ae5-9f19-e2959a4f0734", status: "queued", duplicate: false, request_id: "start-request" }, { status: 202 });
     if (operation.operation === "research.get") return Response.json({ job_id: operation.jobId, ticker: "NVDA", status: "complete", result: { type: "company_snapshot" }, error: null, request_id: "status-request" });
+    if (operation.operation === "capsule.public.get") return Response.json({ integrity: "valid", integrityHash: "a".repeat(64) });
     return Response.json({ job_id: operation.jobId, status: "cancelled", request_id: "cancel-request" }, { status: 202 });
   });
   try {
     const tools = await client.listTools();
-    assert.deepEqual(tools.tools.map(tool => tool.name), ["tidelight_start_company_research", "tidelight_get_research_job", "tidelight_cancel_research_job"]);
+    assert.deepEqual(tools.tools.map(tool => tool.name), ["tidelight_get_public_decision_capsule", "tidelight_start_company_research", "tidelight_get_research_job", "tidelight_cancel_research_job"]);
+    const sharedCapsule = await client.callTool({ name: "tidelight_get_public_decision_capsule", arguments: { token: "a".repeat(43) } });
+    assert.equal(sharedCapsule.structuredContent.integrity, "valid");
+    assert.deepEqual(operations[0], { operation: "capsule.public.get", token: "a".repeat(43) });
     const start = await client.callTool({ name: "tidelight_start_company_research", arguments: { ticker: "NVDA" } });
     const jobId = start.structuredContent.job_id;
     assert.equal(start.structuredContent.status, "queued");
-    assert.match(operations[0].idempotencyKey, /^[A-Za-z0-9._:-]{8,128}$/);
+    assert.match(operations[1].idempotencyKey, /^[A-Za-z0-9._:-]{8,128}$/);
     const status = await client.callTool({ name: "tidelight_get_research_job", arguments: { job_id: jobId } });
     assert.equal(status.isError, undefined);
     assert.equal(status.structuredContent.result.type, "company_snapshot");

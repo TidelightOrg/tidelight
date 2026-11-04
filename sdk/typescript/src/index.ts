@@ -1,3 +1,5 @@
+import { createHash } from "node:crypto";
+
 export type TokenizedEquityInstrument = {
   symbol: string;
   instrument_type: "tokenized_equity_spot";
@@ -40,6 +42,63 @@ export type WebhookDelivery = { id: string; endpoint_id: string; project_id: str
 export type WebhookMutationResponse = { endpoint: WebhookEndpoint; signing_secret?: string; request_id: string };
 export type WebhookEndpointInput = { name: string; url: string; events: WebhookEvent[] };
 export type WebhookEndpointUpdate = { name?: string; url?: string; events?: WebhookEvent[]; enabled?: boolean; rotate_secret?: true };
+export type PublicDecisionCapsule = { schemaVersion: 1; publishedAt: string; snapshot: Record<string, unknown>; integrityHash: string; hashAlgorithm: "sha256"; integrity: "valid" };
+type Fetch = typeof fetch;
+
+function canonicalJson(value: unknown): string {
+  if (value === null || typeof value === "string" || typeof value === "boolean") return JSON.stringify(value);
+  if (typeof value === "number" && Number.isFinite(value)) return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  if (value && typeof value === "object" && Object.getPrototypeOf(value) === Object.prototype) {
+    return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${canonicalJson((value as Record<string, unknown>)[key])}`).join(",")}}`;
+  }
+  throw new TypeError("Public capsule snapshots must contain JSON values only.");
+}
+
+/** Checks that a public copy matches its stated SHA-256; this does not establish source truth or authorship. */
+export function verifyPublicDecisionCapsule(publication: Pick<PublicDecisionCapsule, "snapshot" | "integrityHash" | "hashAlgorithm">): boolean {
+  if (publication.hashAlgorithm !== "sha256" || !/^[a-f0-9]{64}$/.test(publication.integrityHash)) return false;
+  try { return createHash("sha256").update(canonicalJson(publication.snapshot), "utf8").digest("hex") === publication.integrityHash; }
+  catch { return false; }
+}
+
+export async function getPublicDecisionCapsule(token: string, options: { publicBaseUrl?: string; timeoutMs?: number; maxRetries?: number; signal?: AbortSignal; fetch?: Fetch } = {}): Promise<PublicDecisionCapsule> {
+  if (!/^[A-Za-z0-9_-]{43}$/.test(token)) throw new TypeError("Invalid public capsule token.");
+  const base = new URL(options.publicBaseUrl ?? "https://tidelight.app");
+  if ((base.protocol !== "https:" && !(base.protocol === "http:" && ["localhost", "127.0.0.1"].includes(base.hostname))) || base.username || base.password || base.search || base.hash || base.pathname !== "/") throw new TypeError("publicBaseUrl must be a trusted HTTPS origin without a path, credentials, query, or fragment.");
+  const timeoutMs = options.timeoutMs ?? 10000, maxRetries = options.maxRetries ?? 2, transport = options.fetch ?? fetch;
+  if (!Number.isInteger(timeoutMs) || timeoutMs < 100 || timeoutMs > 120000 || !Number.isInteger(maxRetries) || maxRetries < 0 || maxRetries > 5) throw new RangeError("Public capsule timeout or retry limit is out of range.");
+  const url = `${base.origin}/api/decision-capsules/public/${token}`;
+  const pause = (attempt: number, retryAfter?: string | null) => new Promise<void>((resolve, reject) => {
+    const seconds = retryAfter && /^\d+$/.test(retryAfter) ? Number(retryAfter) : null;
+    const timer = setTimeout(done, seconds === null ? Math.min(2000, 250 * 2 ** attempt) : Math.min(5000, seconds * 1000));
+    function done() { options.signal?.removeEventListener("abort", abort); resolve(); }
+    function abort() { clearTimeout(timer); options.signal?.removeEventListener("abort", abort); reject(options.signal?.reason); }
+    if (options.signal?.aborted) abort(); else options.signal?.addEventListener("abort", abort, { once: true });
+  });
+  for (let attempt = 0; ; attempt++) {
+    const controller = new AbortController(); const onAbort = () => controller.abort(options.signal?.reason);
+    const timer = setTimeout(() => controller.abort(), timeoutMs); options.signal?.addEventListener("abort", onAbort, { once: true });
+    let response: Response; let payload: unknown;
+    try {
+      response = await transport(url, { headers: { Accept: "application/json" }, signal: controller.signal, redirect: "error" });
+      try { payload = await response.json(); } catch { payload = null; }
+    } catch (error) {
+      if (options.signal?.aborted) throw error;
+      if (attempt >= maxRetries) throw new TidelightApiError(0, "network_error", "The public capsule could not be reached.", null);
+      await pause(attempt); continue;
+    } finally { clearTimeout(timer); options.signal?.removeEventListener("abort", onAbort); }
+    if (!response.ok) {
+      const detail = payload && typeof payload === "object" && "error" in payload && payload.error && typeof payload.error === "object" ? payload.error as Record<string, unknown> : {};
+      if ([429, 502, 503, 504].includes(response.status) && attempt < maxRetries) { await pause(attempt, response.headers.get("retry-after")); continue; }
+      throw new TidelightApiError(response.status, typeof detail.code === "string" ? detail.code : "public_capsule_error", typeof detail.message === "string" ? detail.message : "Public capsule request failed.", typeof detail.request_id === "string" ? detail.request_id : response.headers.get("x-request-id"));
+    }
+    if (!payload || typeof payload !== "object" || Array.isArray(payload)) throw new TidelightApiError(response.status, "invalid_response", "The public capsule response is invalid.", response.headers.get("x-request-id"));
+    const publication = payload as PublicDecisionCapsule;
+    if (publication.schemaVersion !== 1 || !publication.snapshot || typeof publication.snapshot !== "object" || publication.integrity !== "valid" || !verifyPublicDecisionCapsule(publication)) throw new TidelightApiError(409, "integrity_verification_failed", "Public capsule integrity verification failed.", response.headers.get("x-request-id"));
+    return publication;
+  }
+}
 
 export class TidelightApiError extends Error {
   readonly status: number;
@@ -54,13 +113,13 @@ export class TidelightApiError extends Error {
   }
 }
 
-type Fetch = typeof fetch;
-export type TidelightClientOptions = { apiKey: string; baseUrl?: string; timeoutMs?: number; maxRetries?: number; fetch?: Fetch };
+export type TidelightClientOptions = { apiKey: string; baseUrl?: string; publicBaseUrl?: string; timeoutMs?: number; maxRetries?: number; fetch?: Fetch };
 const DEFAULT_URL = "https://api.tidelight.app/v1";
 
 export class TidelightClient {
   private readonly apiKey: string;
   private readonly baseUrl: string;
+  private readonly publicBaseUrl: string;
   private readonly timeoutMs: number;
   private readonly maxRetries: number;
   private readonly transport: Fetch;
@@ -74,6 +133,9 @@ export class TidelightClient {
     if (!Number.isInteger(options.maxRetries ?? 2) || (options.maxRetries ?? 2) < 0 || (options.maxRetries ?? 2) > 5) throw new TypeError("maxRetries must be 0 to 5.");
     this.apiKey = options.apiKey;
     this.baseUrl = base.toString().replace(/\/$/, "");
+    const publicBase = new URL(options.publicBaseUrl ?? (base.hostname === "api.tidelight.app" ? "https://tidelight.app" : base.origin));
+    if ((publicBase.protocol !== "https:" && !(publicBase.protocol === "http:" && ["localhost", "127.0.0.1"].includes(publicBase.hostname))) || publicBase.username || publicBase.password || publicBase.search || publicBase.hash || publicBase.pathname !== "/") throw new TypeError("publicBaseUrl must be a trusted HTTPS origin without a path, credentials, query, or fragment.");
+    this.publicBaseUrl = publicBase.origin;
     this.timeoutMs = options.timeoutMs ?? 10000;
     this.maxRetries = options.maxRetries ?? 2;
     this.transport = options.fetch ?? fetch;
@@ -120,6 +182,10 @@ export class TidelightClient {
       }
       throw new TidelightApiError(response.status, typeof detail.code === "string" ? detail.code : "api_error", typeof detail.message === "string" ? detail.message : "Tidelight API request failed.", typeof detail.request_id === "string" ? detail.request_id : response.headers.get("x-request-id"));
     }
+  }
+
+  async getPublicDecisionCapsule(token: string, options: { signal?: AbortSignal } = {}): Promise<PublicDecisionCapsule> {
+    return getPublicDecisionCapsule(token, { publicBaseUrl: this.publicBaseUrl, timeoutMs: this.timeoutMs, maxRetries: this.maxRetries, signal: options.signal, fetch: this.transport });
   }
 
   async startCompanyResearch(ticker: string, idempotencyKey: string, options: { signal?: AbortSignal } = {}) {

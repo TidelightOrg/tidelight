@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Add unauthenticated public Decision Capsule retrieval and local SHA-256 verification.
+- Add a read-only public capsule method to the authenticated client.
+
 ## 0.1.2
 
 - Publish the current tested Python client with aligned installation and API availability guidance.

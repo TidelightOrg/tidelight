@@ -1,4 +1,5 @@
 import io
+import hashlib
 import json
 import threading
 import unittest
@@ -6,7 +7,7 @@ from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.error import HTTPError
 from urllib.parse import parse_qs, urlparse
 
-from tidelight import ApiError, Client
+from tidelight import ApiError, Client, get_public_decision_capsule, verify_public_decision_capsule
 
 KEY = "tl_test_" + "a" * 43
 INSTRUMENT = {"symbol": "RNVDAUSDT", "instrument_type": "tokenized_equity_spot", "underlying_ticker": "NVDA", "issuer_name": "NVIDIA", "quote_currency": "USDT", "last_price": 1.0, "change_24h": None, "provider_timestamp": None, "market_session_status": "available", "source": "Bitget Reality spot"}
@@ -20,6 +21,35 @@ class FakeResponse(io.BytesIO):
 
 
 class ClientTests(unittest.TestCase):
+    def test_public_capsule_fetch_verifies_digest_without_api_credentials(self):
+        from tidelight.client import _canonical_json
+
+        snapshot = {"schemaVersion": 1, "integrityScope": "disclosed_public_projection", "research": {"question": "NVDA?", "createdAt": "2026-11-01T00:00:00Z"}}
+        digest = hashlib.sha256(_canonical_json(snapshot).encode()).hexdigest()
+        payload = {"schemaVersion": 1, "publishedAt": "2026-11-01T00:00:00Z", "snapshot": snapshot, "integrityHash": digest, "hashAlgorithm": "sha256", "integrity": "valid"}
+        calls = []
+
+        def opener(request, timeout):
+            calls.append((request.full_url, request.get_header("Authorization")))
+            return FakeResponse(payload)
+
+        client = Client(KEY, opener=opener)
+        result = client.get_public_decision_capsule("a" * 43)
+        self.assertEqual(result["snapshot"]["research"]["question"], "NVDA?")
+        self.assertEqual(calls[0][0], "https://tidelight.app/api/decision-capsules/public/" + "a" * 43)
+        self.assertIsNone(calls[0][1])
+        self.assertTrue(verify_public_decision_capsule(payload))
+        tampered = {**payload, "integrityHash": "0" * 64}
+        self.assertFalse(verify_public_decision_capsule(tampered))
+        with self.assertRaises(ValueError):
+            client.get_public_decision_capsule("bad/token")
+        public_only = get_public_decision_capsule("a" * 43, opener=opener)
+        self.assertEqual(public_only["integrity"], "valid")
+
+        shared = {"z": -0.0, "a": {"unicode": "NVIDIA ™", "tiny": 1e-7, "micro": 1e-6, "near": 1.23e20, "prob": 0.7, "whole": 1.0}, "items": [True, None, 3]}
+        self.assertEqual(_canonical_json(shared), '{"a":{"micro":0.000001,"near":123000000000000000000,"prob":0.7,"tiny":1e-7,"unicode":"NVIDIA ™","whole":1},"items":[true,null,3],"z":0}')
+        self.assertTrue(verify_public_decision_capsule({"snapshot": shared, "hashAlgorithm": "sha256", "integrityHash": "d9e3e417a7e61eaeeb90ce493e07e959ee65d4801282f69c559aa8f9bf55dc98"}))
+
     def test_research_job_creation_status_and_cancellation(self):
         job_id = "01234567-89ab-4cde-8fab-0123456789ab"
         calls = []

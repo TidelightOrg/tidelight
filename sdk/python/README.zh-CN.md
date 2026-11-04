@@ -7,7 +7,7 @@
 
 ---
 
-官方 Python 客户端支持代币化股票行情列表、异步公司研究任务和研究 Webhook。客户端保留数据提供方来源、稳定错误代码和请求 ID，并使用有界超时与重试。
+官方 Python 客户端支持代币化股票行情列表、异步公司研究任务、研究 Webhook 和只读公开决策胶囊验证。客户端保留数据提供方来源、稳定错误代码和请求 ID，并使用有界超时与重试。
 
 ## 安装
 
@@ -37,6 +37,7 @@ for instrument in page.data:
 | 代币化股票现货列表与分页 | `market:read` | `list_tokenized_equities`、`tokenized_equities` |
 | 公司研究快照 | `research:run` | `start_company_research`、`get_research_job`、`cancel_research_job`、`wait_for_research_job` |
 | 研究 Webhook 与投递记录 | `alerts:manage` | `create_webhook`、`update_webhook`、`list_webhooks`、`list_webhook_deliveries` |
+| 公开决策胶囊副本 | 公开持有者链接 | `get_public_decision_capsule`、`verify_public_decision_capsule` |
 
 代币化股票现货交易工具并非直接持有的股票，也不是股票永续合约。当数据提供方条款阻止行情响应时，SDK 会返回 `provider_terms_unconfirmed`，不会自动改用其他数据源。
 
@@ -45,6 +46,8 @@ for instrument in page.data:
 默认请求超时时间为 10 秒。网络错误、`429` 和暂时性 `5xx` 响应最多进行两次有界重试。由于 API 不支持 Webhook 幂等键，Webhook 变更操作不会自动重试。默认传输层会拒绝重定向，并将承载令牌的请求限制到 `api.tidelight.app`。
 
 创建 Webhook 或轮换密钥时会返回一次性签名密钥。**请立即将其保存到获批的密钥管理器中。** 不要打印该密钥；之后无法通过列出端点找回。
+
+公开胶囊链接从 `tidelight.app` 获取，不发送 API 密钥；客户端会在本地根据已公开快照的 SHA-256 摘要进行验证。摘要验证只能检测相对于给定摘要的字节变化，不能证明作者身份、来源真实性或研究质量。
 
 ## 从源代码构建与测试
 

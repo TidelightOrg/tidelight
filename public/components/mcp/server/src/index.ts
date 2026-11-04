@@ -6,7 +6,8 @@ export type TicMcpOperation =
   | { operation: "market.list"; limit: number; underlyingTicker?: string }
   | { operation: "research.start"; ticker: string; idempotencyKey: string }
   | { operation: "research.get"; jobId: string }
-  | { operation: "research.cancel"; jobId: string };
+  | { operation: "research.cancel"; jobId: string }
+  | { operation: "capsule.public.get"; token: string };
 export type TicMcpInvoker = (operation: TicMcpOperation) => Promise<Response>;
 
 export function isTicMcpCredentialActive(credential: { scopes: unknown; revoked_at: string | null; expires_at: string | null }, now = Date.now()) {
@@ -63,6 +64,12 @@ export function createTidelightMcpServer(scopes: ReadonlySet<string>, invoke: Ti
   }
 
   if (scopes.has("research:run")) {
+    server.registerTool("tidelight_get_public_decision_capsule", {
+      title: "Verify a public Decision Capsule",
+      description: "Retrieve a capsule that its owner explicitly published. The result includes a SHA-256 integrity status for the disclosed copy; this does not establish source authenticity, truth, or research skill. The bearer token is private to anyone holding the shared link.",
+      inputSchema: { token: z.string().regex(/^[A-Za-z0-9_-]{43}$/).describe("The 256-bit token from an owner-published Decision Capsule link.") },
+    }, async ({ token }) => asToolResult(await invoke({ operation: "capsule.public.get", token })));
+
     server.registerTool("tidelight_start_company_research", {
       title: "Start company research",
       description: "Queue a durable company snapshot job for a supported US stock. Returns a job ID for polling. Results contain source-labeled market context and headline discovery references; they are not a recommendation or valuation.",

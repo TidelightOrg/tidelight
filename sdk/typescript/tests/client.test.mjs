@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { TidelightApiError, TidelightClient } from "../dist/index.js";
+import { createHash } from "node:crypto";
+import { getPublicDecisionCapsule, TidelightApiError, TidelightClient, verifyPublicDecisionCapsule } from "../dist/index.js";
 
 const key = `tl_test_${"a".repeat(43)}`;
 const jobId = "01234567-89ab-4cde-8fab-0123456789ab";
@@ -39,6 +40,40 @@ test("rejects malformed research input before making a request", async () => {
   const client = new TidelightClient({ apiKey: key, fetch: async () => assert.fail("network should not run") });
   await assert.rejects(client.startCompanyResearch("NVDA", "short"), TypeError);
   await assert.rejects(client.getResearchJob("../secrets"), TypeError);
+});
+
+test("fetches and verifies a public capsule without sending the API key", async () => {
+  const snapshot = { schemaVersion: 1, integrityScope: "disclosed_public_projection", research: { question: "NVDA?", createdAt: "2026-11-01T00:00:00Z" } };
+  const canonical = value => Array.isArray(value) ? `[${value.map(canonical).join(",")}]` : value && typeof value === "object" ? `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${canonical(value[key])}`).join(",")}}` : JSON.stringify(value);
+  const integrityHash = createHash("sha256").update(canonical(snapshot), "utf8").digest("hex");
+  const calls = [];
+  const client = new TidelightClient({ apiKey: key, fetch: async (url, init) => {
+    calls.push({ url: String(url), init });
+    return Response.json({ schemaVersion: 1, publishedAt: "2026-11-01T00:00:00Z", snapshot, integrityHash, hashAlgorithm: "sha256", integrity: "valid" });
+  } });
+  const result = await client.getPublicDecisionCapsule("a".repeat(43));
+  assert.equal(result.snapshot.research.question, "NVDA?");
+  assert.equal(calls[0].url, `https://tidelight.app/api/decision-capsules/public/${"a".repeat(43)}`);
+  assert.equal(calls[0].init.headers.Authorization, undefined);
+  await assert.rejects(client.getPublicDecisionCapsule("bad/token"), TypeError);
+  const tampered = new TidelightClient({ apiKey: key, fetch: async () => Response.json({ schemaVersion: 1, publishedAt: "2026-11-01T00:00:00Z", snapshot, integrityHash: "0".repeat(64), hashAlgorithm: "sha256", integrity: "valid" }) });
+  await assert.rejects(tampered.getPublicDecisionCapsule("b".repeat(43)), error => error instanceof TidelightApiError && error.code === "integrity_verification_failed");
+});
+
+test("public capsule retrieval works without constructing an API-key client", async () => {
+  const snapshot = { research: { question: "NVDA?" } };
+  const canonical = value => Array.isArray(value) ? `[${value.map(canonical).join(",")}]` : value && typeof value === "object" ? `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${canonical(value[key])}`).join(",")}}` : JSON.stringify(value);
+  const integrityHash = createHash("sha256").update(canonical(snapshot), "utf8").digest("hex");
+  let call;
+  const publication = await getPublicDecisionCapsule("c".repeat(43), { fetch: async (url, init) => { call = { url: String(url), init }; return Response.json({ schemaVersion: 1, publishedAt: "2026-11-01T00:00:00Z", snapshot, integrityHash, hashAlgorithm: "sha256", integrity: "valid" }); } });
+  assert.equal(publication.integrity, "valid");
+  assert.equal(call.url, `https://tidelight.app/api/decision-capsules/public/${"c".repeat(43)}`);
+  assert.deepEqual(call.init.headers, { Accept: "application/json" });
+});
+
+test("public capsule digest uses the shared canonical JSON format", () => {
+  const snapshot = { z: -0, a: { unicode: "NVIDIA ™", tiny: 1e-7, micro: 1e-6, near: 1.23e20, prob: 0.7, whole: 1.0 }, items: [true, null, 3] };
+  assert.equal(verifyPublicDecisionCapsule({ snapshot, hashAlgorithm: "sha256", integrityHash: "d9e3e417a7e61eaeeb90ce493e07e959ee65d4801282f69c559aa8f9bf55dc98" }), true);
 });
 
 test("preserves structured API errors", async () => {
