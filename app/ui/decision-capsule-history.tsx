@@ -102,7 +102,7 @@ export default function DecisionCapsuleHistory({ capsuleId }: { capsuleId: strin
   }
 
   return <section className="flow-capsule-history" aria-label={translate("Decision capsule event history")}>
-    <header><h3>{translate("Decision history")}</h3><span>{loading ? translate("Loading") : `${events.length} / 500`}</span></header>
+    <header><h3>{translate("Decision history")}</h3><div><span>{loading ? translate("Loading") : `${events.length} / 500`}</span><button type="button" aria-label={translate("Refresh capsule history")} onClick={() => void refresh()} disabled={loading}>↻</button></div></header>
     {error ? <div className="flow-capsule-error" role="alert"><span>{translate(error)}</span><button type="button" onClick={() => void refresh()} disabled={loading}>{translate("Reload history")}</button></div> : null}
     {!loading && events.length ? <ol aria-label={translate("Verified capsule events")}>
       {events.map(event => <li key={event.id}>
