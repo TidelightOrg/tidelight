@@ -6,7 +6,7 @@ const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
   if (specifier === "@/lib/execution-feasibility") return { url: new URL("../lib/execution-feasibility.ts", import.meta.url).href, shortCircuit: true };
   return nextResolve(specifier, context);
 } });
-const { bestExecutableBookPrices, estimateBookSweep, estimateSizeSensitivity, executionSidesForAction, serverAnchoredSnapshotNow } = await import("@/lib/execution-feasibility");
+const { bestExecutableBookPrices, estimateBookSweep, estimateNextFundingCost, estimateSizeSensitivity, executionSidesForAction, serverAnchoredSnapshotNow } = await import("@/lib/execution-feasibility");
 
 test("best reference prices ignore unusable zero and negative size levels", () => {
   assert.deepEqual(bestExecutableBookPrices(
@@ -92,4 +92,14 @@ test("size sensitivity reuses the same visible book and reports incomplete depth
   assert.equal(large.sweep.requestedQuantity, 3);
   const stale = estimateSizeSensitivity({ levels: [{price: 101, size: 5}], side: "buy", quantity: 1, referencePrice: 100, oppositeBestPrice: 99, bookTimestamp: 1, now: 20_000 });
   assert.ok(stale.every(result => result.sweep.status === "unavailable"));
+});
+
+test("next settlement funding uses venue rate and direction with explicit payer or receiver sign", () => {
+  const base = { notional: 1_000, rate: 0.0001, settlementAt: 90_000, rateReceivedAt: 80_000, now: 85_000 };
+  assert.deepEqual(estimateNextFundingCost({ ...base, direction: "long" }), { status: "estimated", rate: 0.0001, notional: 1_000, cost: 0.1, settlementAt: 90_000 });
+  assert.equal(estimateNextFundingCost({ ...base, direction: "short" }).cost, -0.1);
+  assert.equal(estimateNextFundingCost({ ...base, rate: -0.0002, direction: "long" }).cost, -0.2);
+  assert.equal(estimateNextFundingCost({ ...base, rateReceivedAt: 69_999, direction: "long" }).status, "unavailable");
+  assert.equal(estimateNextFundingCost({ ...base, settlementAt: 85_000, direction: "long" }).status, "unavailable");
+  assert.equal(estimateNextFundingCost({ ...base, rate: null, direction: "long" }).status, "unavailable");
 });
