@@ -7,6 +7,26 @@ export const dynamic = "force-dynamic";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const noStore = { "Cache-Control": "no-store" };
 
+export async function GET() {
+  const { user } = await getServerAuthState();
+  if (!user) return NextResponse.json({ error: "Sign in to open private decision capsules." }, { status: 401, headers: noStore });
+  let admin;
+  try { admin = createAdminClient(); } catch { return NextResponse.json({ error: "Private capsule storage is unavailable." }, { status: 503, headers: noStore }); }
+  const { data, error } = await admin.from("decision_capsules")
+    .select("id,created_at,original_snapshot,integrity_hash,hash_algorithm,schema_version")
+    .eq("user_id", user.id).order("created_at", { ascending: false }).limit(50);
+  if (error) return NextResponse.json({ error: "Private decision capsules could not be loaded." }, { status: 503, headers: noStore });
+  const capsules = [];
+  for (const capsule of data ?? []) {
+    if (capsule.schema_version !== 1 || capsule.hash_algorithm !== "sha256" || !capsuleHashMatches(capsule.original_snapshot, capsule.integrity_hash)) {
+      return NextResponse.json({ error: "A saved capsule failed integrity verification." }, { status: 409, headers: noStore });
+    }
+    const snapshot = capsule.original_snapshot as { research?: { question?: unknown } };
+    capsules.push({ id: capsule.id, createdAt: capsule.created_at, integrityHash: capsule.integrity_hash, question: typeof snapshot.research?.question === "string" ? snapshot.research.question : "Saved research" });
+  }
+  return NextResponse.json({ capsules, integrity: "valid" }, { headers: noStore });
+}
+
 export async function POST(request: Request) {
   const { user } = await getServerAuthState();
   if (!user) return NextResponse.json({ error: "Sign in to save a private decision capsule." }, { status: 401, headers: noStore });
