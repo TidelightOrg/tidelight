@@ -59,7 +59,8 @@ create or replace function public.append_decision_capsule_event(
   p_created_at timestamptz
 ) returns jsonb
 language plpgsql
-set search_path = pg_catalog
+security definer
+set search_path = ''
 as $$
 declare
   v_user_id uuid;
