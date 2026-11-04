@@ -97,6 +97,8 @@ export default function PublicCapsuleViewer({ token }: { token: string }) {
   const tokenValid = /^[A-Za-z0-9_-]{43}$/.test(token);
   useEffect(() => {
     const controller = new AbortController();
+    setPublication(null);
+    setError(null);
     if (!tokenValid) return () => controller.abort();
     fetch(`/api/decision-capsules/public/${token}`, { cache: "no-store", signal: controller.signal })
       .then(async response => {

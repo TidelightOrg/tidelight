@@ -17,6 +17,7 @@ test("public capsule viewer is no-login, no-index, and only loads the public pro
   assert.match(viewer, /verifyPublicCapsulePublication\(value\)/);
   assert.match(viewer, /setError\("unverified"\)/);
   assert.match(viewer, /Capsule could not be verified/);
+  assert.match(viewer, /setPublication\(null\);\s*setError\(null\);\s*if \(!tokenValid\)/);
   assert.match(viewer, /claim\.stance === "supports" \? "Supports" : claim\.stance === "contradicts" \? "Challenges" : "Context"/);
   assert.match(viewer, /forecasts\.get\(forecastSequence\)/);
   assert.match(viewer, /event\.forecastSequence/);
