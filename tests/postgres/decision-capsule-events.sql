@@ -37,7 +37,7 @@ select public.append_decision_capsule_event(
   'forecast',
   '40000000-0000-4000-8000-000000000001',
   null,
-  '{"instrument":{"type":"us_equity","symbol":"NVDA"},"referencePrice":100,"direction":"up","thresholdPercent":5,"horizonAt":"2026-12-01T00:00:00Z"}',
+  '{"instrument":{"type":"us_equity","symbol":"NVDA"},"referencePrice":100,"referenceSourceUrl":"https://prices.example/nvda","referenceSourceTimestamp":"2026-11-04T00:00:00Z","referenceReportedBy":"user","direction":"up","thresholdPercent":5,"horizonAt":"2026-12-01T00:00:00Z"}',
   repeat('a', 64),
   repeat('b', 64),
   '2026-11-04T00:00:00Z'
