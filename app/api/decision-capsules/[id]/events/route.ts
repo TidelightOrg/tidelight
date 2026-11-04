@@ -118,7 +118,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const forecast = events.find(event => event.id === input.forecastEventId);
     if (!forecast || forecast.type !== "forecast") return NextResponse.json({ error: "The referenced forecast is not in this capsule." }, { status: 422, headers: noStore });
     if (events.some(event => event.type === "outcome" && event.forecastEventId === forecast.id)) return NextResponse.json({ error: "This forecast already has a recorded outcome." }, { status: 409, headers: noStore });
-    if (Date.parse(input.payload.observedAt) < Date.parse((forecast.payload as { horizonAt: string }).horizonAt)) return NextResponse.json({ error: "Record an outcome at or after the forecast horizon." }, { status: 422, headers: noStore });
+    const horizonAt = Date.parse((forecast.payload as { horizonAt: string }).horizonAt);
+    if (horizonAt > Date.now() || Date.parse(input.payload.observedAt) < horizonAt) return NextResponse.json({ error: "Record an outcome at or after the forecast horizon." }, { status: 422, headers: noStore });
     try { payload = buildCapsuleOutcomePayload(forecast, input.payload); }
     catch (error) {
       if (error instanceof CapsuleEventValidationError) return NextResponse.json({ error: error.message }, { status: 422, headers: noStore });
