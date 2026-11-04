@@ -23,12 +23,14 @@ function formatPayload(event: DecisionCapsuleHistoryEvent, translate: (key: stri
   const payload = event.payload;
   if (event.type === "forecast") {
     const instrument = payload.instrument as { type?: string; symbol?: string } | undefined;
-    return `${instrument?.symbol ?? "Instrument"} · ${instrument?.type?.replaceAll("_", " ") ?? ""} · ${payload.direction === "up" ? "↑" : "↓"} ${payload.thresholdPercent}% from ${payload.referencePrice}`;
+    const instrumentType = instrument?.type === "us_equity" ? "US equity" : instrument?.type === "reality_token" ? "Reality token" : instrument?.type === "us_stock_perpetual" ? "US-stock perpetual" : "Instrument";
+    return `${instrument?.symbol ?? "Instrument"} · ${translate(instrumentType)} · ${payload.direction === "up" ? "↑" : "↓"} ${payload.thresholdPercent}% @ ${payload.referencePrice}`;
   }
   const score = typeof payload.brierScore === "number" ? ` · ${translate("Brier")} ${payload.brierScore.toFixed(3)} ${translate("(one outcome)")}` : "";
   const instrument = forecast?.payload.instrument as { type?: string; symbol?: string } | undefined;
-  const identity = instrument?.symbol ? `${instrument.symbol} · ${instrument.type?.replaceAll("_", " ") ?? ""} · ` : "";
-  return `${identity}${payload.forecastMet ? "Threshold reached" : "Threshold not reached"} · ${Number(payload.actualReturnPercent).toFixed(2)}%${score} · user reported`;
+  const instrumentType = instrument?.type === "us_equity" ? "US equity" : instrument?.type === "reality_token" ? "Reality token" : instrument?.type === "us_stock_perpetual" ? "US-stock perpetual" : "Instrument";
+  const identity = instrument?.symbol ? `${instrument.symbol} · ${translate(instrumentType)} · ` : "";
+  return `${identity}${translate(payload.forecastMet ? "Threshold reached" : "Threshold not reached")} · ${Number(payload.actualReturnPercent).toFixed(2)}%${score} · ${translate("User reported")}`;
 }
 
 export default function DecisionCapsuleHistory({ capsuleId }: { capsuleId: string }) {
