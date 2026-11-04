@@ -21,6 +21,9 @@ test("public capsule viewer is no-login, no-index, and only loads the public pro
   assert.match(viewer, /claim\.stance === "supports" \? "Supports" : claim\.stance === "contradicts" \? "Challenges" : "Context"/);
   assert.match(viewer, /forecasts\.get\(forecastSequence\)/);
   assert.match(viewer, /event\.forecastSequence/);
+  assert.match(viewer, /instrumentType === "us_equity"/);
+  assert.match(viewer, /instrumentType === "reality_token"/);
+  assert.match(viewer, /instrumentType === "us_stock_perpetual"/);
   assert.match(viewer, /Source link redacted/);
   assert.match(viewer, /sourceUrlRedacted/);
   assert.match(viewer, /payload\.sourceUrl : payload\.referenceSourceUrl/);
@@ -44,7 +47,7 @@ test("public capsule view copy has Simplified Chinese translations", async () =>
     readFile(new URL("app/ui/public-capsule-viewer.tsx", root), "utf8"),
     readFile(new URL("app/i18n/zh-CN.json", root), "utf8").then(JSON.parse),
   ]);
-  for (const key of ["Public record", "Decision Capsule", "Copy integrity verified", "Published", "SHA-256", "Download JSON", "Research", "Evidence", "No disclosed research summary.", "Open source", "Open price source", "Source timestamp", "Claim support and truth have not been independently verified.", "Supports", "Challenges", "Context", "No evidence was included in this public copy.", "Forecast history", "Outcome", "Forecast", "Reference price", "Observed price", "Reported by user", "Horizon", "No forecast history was included.", "Source link redacted", "Capsule unavailable", "Capsule could not be verified", "Loading"]) {
+  for (const key of ["Public record", "Decision Capsule", "Copy integrity verified", "Published", "SHA-256", "Download JSON", "Research", "Evidence", "No disclosed research summary.", "Open source", "Open price source", "Source timestamp", "Claim support and truth have not been independently verified.", "Supports", "Challenges", "Context", "No evidence was included in this public copy.", "Forecast history", "Outcome", "Forecast", "Reference price", "Observed price", "Reported by user", "Horizon", "No forecast history was included.", "Source link redacted", "Capsule unavailable", "Capsule could not be verified", "US equity", "Reality token", "US-stock perpetual", "Loading"]) {
     assert.ok(viewer.includes(key), `Public viewer must render ${key}`);
     assert.equal(typeof translations[key], "string", `Missing Simplified Chinese entry for ${key}`);
   }

@@ -74,11 +74,16 @@ function CapsuleEvents({ value, translate }: { value: unknown; translate: (value
       const referencedForecast = forecastSequence === null ? null : forecasts.get(forecastSequence) ?? null;
       const referencedInstrument = isRecord(referencedForecast?.instrument) ? referencedForecast.instrument : {};
       const symbol = stringValue(isOutcome ? referencedInstrument.symbol : instrument.symbol);
+      const instrumentType = stringValue(isOutcome ? referencedInstrument.type : instrument.type);
+      const instrumentClass = instrumentType === "us_equity" ? translate("US equity")
+        : instrumentType === "reality_token" ? translate("Reality token")
+          : instrumentType === "us_stock_perpetual" ? translate("US-stock perpetual") : "";
+      const instrumentIdentity = symbol ? `${symbol}${instrumentClass ? ` · ${instrumentClass}` : ""} · ` : "";
       const sourceUrl = publicSourceUrl(isOutcome ? payload.sourceUrl : payload.referenceSourceUrl);
       const sourceTimestamp = isOutcome ? payload.sourceTimestamp : payload.referenceSourceTimestamp;
       return <li key={index}>
         <header><strong>{isOutcome ? `${translate("Outcome")} · ${translate("Forecast")} #${forecastSequence ?? "—"}` : `${translate("Forecast")} #${typeof event.sequence === "number" ? event.sequence : index + 1}`}</strong><time>{dateValue(event.createdAt) ?? "—"}</time></header>
-        {isOutcome ? <p>{symbol ? `${symbol} · ` : ""}{referencedForecast ? `${translate("Forecast")}: ${directionLabel(referencedForecast.direction)} ${typeof referencedForecast.thresholdPercent === "number" ? `${referencedForecast.thresholdPercent}%` : ""} · ` : ""}{translate("Observed price")} {formatPublicCapsulePrice(payload.observedPrice)} · {typeof payload.actualReturnPercent === "number" ? `${payload.actualReturnPercent.toFixed(2)}%` : "—"}</p> : <p>{stringValue(instrument.symbol)} · {directionLabel(payload.direction)} · {translate("Reference price")} {formatPublicCapsulePrice(payload.referencePrice)} · {typeof payload.thresholdPercent === "number" ? `${payload.thresholdPercent}%` : "—"}</p>}
+        {isOutcome ? <p>{instrumentIdentity}{referencedForecast ? `${translate("Forecast")}: ${directionLabel(referencedForecast.direction)} ${typeof referencedForecast.thresholdPercent === "number" ? `${referencedForecast.thresholdPercent}%` : ""} · ` : ""}{translate("Observed price")} {formatPublicCapsulePrice(payload.observedPrice)} · {typeof payload.actualReturnPercent === "number" ? `${payload.actualReturnPercent.toFixed(2)}%` : "—"}</p> : <p>{instrumentIdentity}{directionLabel(payload.direction)} · {translate("Reference price")} {formatPublicCapsulePrice(payload.referencePrice)} · {typeof payload.thresholdPercent === "number" ? `${payload.thresholdPercent}%` : "—"}</p>}
         <div className="public-capsule-event-meta">
           {isOutcome ? <span className="public-capsule-reported">{translate("Reported by user")}</span> : payload.horizonAt ? <span>{translate("Horizon")} · {dateValue(payload.horizonAt) ?? "—"}</span> : null}
           {typeof sourceTimestamp === "string" && dateValue(sourceTimestamp) ? <time dateTime={sourceTimestamp}>{translate("Source timestamp")} · {dateValue(sourceTimestamp)}</time> : null}
