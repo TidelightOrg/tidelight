@@ -144,7 +144,7 @@ async function readFeed(url: URL): Promise<Array<{ item: string; title: string; 
 }
 
 /** Bounded public-feed discovery for macro questions; only official Fed/BLS and named publishers are admitted. */
-export async function gatherMacroEvidence(question: string): Promise<MacroEvidence[]> {
+export async function gatherMacroEvidence(question: string, onOmittedUrl?: () => void): Promise<MacroEvidence[]> {
   const topic = classifyMacroQuestion(question);
   if (!topic) return [];
   const urls = buildMacroNewsQueries(question).flatMap(query => {
@@ -166,7 +166,7 @@ export async function gatherMacroEvidence(question: string): Promise<MacroEviden
       const via = officialSource ? "official" : "independent_reporting";
       const evidence: MacroEvidence = { title: row.title, url: row.link, publisher: row.publisher, publisherDomain: row.host, publishedAt: row.publishedAt, snippet: row.snippet, sourceKind: via };
       if (!matchesPeriod(evidence, question, now)) continue;
-      if (!isPersistableResearchSourceUrl(row.link)) continue;
+      if (!isPersistableResearchSourceUrl(row.link)) { onOmittedUrl?.(); continue; }
       const url = new URL(row.link);
       if (!newsHosts.has(url.hostname) && !official.some(host => isHostOrSubdomain(url.hostname, host)) && !independentHosts.some(host => isHostOrSubdomain(url.hostname, host))) continue;
       const key = `${row.host}:${row.title.toLowerCase().replace(/[^a-z0-9]/g, "")}`;

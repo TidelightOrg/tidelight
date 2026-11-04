@@ -96,6 +96,7 @@ test("macro evidence excludes oversized duplicate links before choosing represen
   const previousFetch = globalThis.fetch;
   const date = new Date().toUTCString();
   let requestCount = 0;
+  let omitted = 0;
   globalThis.fetch = async input => {
     const isOfficialQuery = requestCount++ < 2;
     const rows = isOfficialQuery ? [
@@ -105,8 +106,9 @@ test("macro evidence excludes oversized duplicate links before choosing represen
     return new Response(`<rss><channel>${rows.join("")}</channel></rss>`, { status: 200, headers: { "content-type": "application/rss+xml" } });
   };
   try {
-    const evidence = await gatherMacroEvidence("Explain the September 2026 FOMC decision.");
+    const evidence = await gatherMacroEvidence("Explain the September 2026 FOMC decision.", () => omitted++);
     assert.equal(evidence.length, 1);
     assert.equal(evidence[0].url, "https://news.google.com/rss/articles/valid");
+    assert.equal(omitted, 2);
   } finally { globalThis.fetch = previousFetch; }
 });

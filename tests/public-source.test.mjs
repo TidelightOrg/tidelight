@@ -58,7 +58,7 @@ test("truncates plain-text excerpts without splitting a supplementary Unicode ch
   const fetcher = async () => new Response(plainText, { headers: { "content-type": "text/plain" } });
   const result = await fetchPublicResearchSource("https://nvidia.com/news", "NVDA", fetcher);
   assert.equal(result.excerpt.length, 5_999);
-  assert.doesNotMatch(result.excerpt, /[\\uD800-\\uDBFF]$/);
+  assert.doesNotMatch(result.excerpt, /[\uD800-\uDBFF]$/);
 });
 
 test("rejects unsupported response types, oversized pages, and too little article text", async () => {
