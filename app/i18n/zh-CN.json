@@ -6351,5 +6351,14 @@
   "This public projection is too large to publish safely.": "公开副本过大，无法安全发布。",
   "The selected public sections could not be prepared.": "无法准备所选的公开部分。",
   "The public capsule could not be stored.": "无法保存公开胶囊。",
-  "No active public capsule link was found.": "未找到有效的公开胶囊链接。"
+  "No active public capsule link was found.": "未找到有效的公开胶囊链接。",
+  "Public record": "公开记录",
+  "Integrity verified": "完整性已验证",
+  "No disclosed research summary.": "没有公开研究摘要。",
+  "Open source": "打开来源",
+  "No evidence was included in this public copy.": "此公开副本未包含证据。",
+  "Forecast history": "预测历史",
+  "No forecast history was included.": "此副本未包含预测历史。",
+  "Reported by user": "用户报告",
+  "Capsule unavailable": "胶囊不可用"
 }
