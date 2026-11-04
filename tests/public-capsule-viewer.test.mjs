@@ -13,8 +13,7 @@ test("public capsule viewer is no-login, no-index, and only loads the public pro
   assert.match(page, /robots:\s*\{\s*index:\s*false,\s*follow:\s*false\s*\}/);
   assert.match(viewer, /fetch\(`\/api\/decision-capsules\/public\/\$\{token\}`/);
   assert.match(viewer, /integrity !== "valid"/);
-  assert.match(viewer, /crypto\.subtle\.digest\("SHA-256"/);
-  assert.match(viewer, /if \(!await verifyDigest\(value\.snapshot, value\.integrityHash\)\)/);
+  assert.match(viewer, /verifyPublicCapsuleDigest\(value\.snapshot, value\.integrityHash\)/);
   assert.match(viewer, /claim\.stance === "supports" \? "Supports" : claim\.stance === "contradicts" \? "Challenges" : "Context"/);
   assert.match(viewer, /forecasts\.get\(forecastSequence\)/);
   assert.match(viewer, /event\.forecastSequence/);

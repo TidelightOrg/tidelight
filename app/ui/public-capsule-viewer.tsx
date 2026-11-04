@@ -3,24 +3,12 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/app/ui/language-provider";
+import { verifyPublicCapsuleDigest } from "@/lib/public-capsule-integrity";
 
 type JsonRecord = Record<string, unknown>;
 type Publication = { schemaVersion: 1; publishedAt: string; snapshot: JsonRecord; integrityHash: string; hashAlgorithm: "sha256"; integrity: "valid" };
 const isRecord = (value: unknown): value is JsonRecord => Boolean(value && typeof value === "object" && !Array.isArray(value));
 const stringValue = (value: unknown) => typeof value === "string" ? value : "";
-function canonicalJson(value: unknown): string {
-  if (value === null || typeof value === "string" || typeof value === "boolean") return JSON.stringify(value);
-  if (typeof value === "number" && Number.isFinite(value)) return JSON.stringify(value);
-  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
-  if (isRecord(value)) return `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${canonicalJson(value[key])}`).join(",")}}`;
-  throw new TypeError("Snapshot is not canonical JSON.");
-}
-async function verifyDigest(snapshot: JsonRecord, expected: string) {
-  if (!/^[a-f0-9]{64}$/.test(expected) || !globalThis.crypto?.subtle) return false;
-  const digest = await globalThis.crypto.subtle.digest("SHA-256", new TextEncoder().encode(canonicalJson(snapshot)));
-  const actual = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
-  return actual === expected;
-}
 const dateValue = (value: unknown) => {
   if (typeof value !== "string" || !Number.isFinite(Date.parse(value))) return null;
   return new Date(value).toLocaleString();
@@ -100,7 +88,7 @@ export default function PublicCapsuleViewer({ token }: { token: string }) {
         if (!response.ok) throw new Error("unavailable");
         const value: unknown = await response.json();
         if (!isRecord(value) || value.schemaVersion !== 1 || value.integrity !== "valid" || !isRecord(value.snapshot) || typeof value.integrityHash !== "string") throw new Error("invalid");
-        if (!await verifyDigest(value.snapshot, value.integrityHash)) throw new Error("digest-mismatch");
+        if (!await verifyPublicCapsuleDigest(value.snapshot, value.integrityHash)) throw new Error("digest-mismatch");
         setPublication(value as Publication);
       })
       .catch(() => { if (!controller.signal.aborted) setError(true); });
