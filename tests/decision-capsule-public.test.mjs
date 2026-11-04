@@ -54,6 +54,32 @@ test("research-only disclosure allowlists nested Agent Flow fields and strips pr
   assert.equal(verifyPublicCapsuleSnapshot(projection), true);
 });
 
+test("research-only disclosure preserves evidence-brief narrative without sources or private identifiers", () => {
+  const snapshot = structuredClone(privateSnapshot);
+  snapshot.research.summary = {
+    summary: "Revenue growth is reported in the excerpt. 80000000-0000-4000-8000-000000000001 https://example.com/private",
+    answer_status: "source_matched_claims",
+    upside: "Demand improved",
+    downside: "Margins remain uncertain",
+    catalysts: ["Next earnings"],
+    what_would_change: "A revised filing",
+    research_run_id: "90000000-0000-4000-8000-000000000001",
+    claims: [{ claim: "private" }],
+    sources: [{ url: "https://example.com/private" }],
+  };
+  const projection = buildPublicCapsuleSnapshot({ originalSnapshot: snapshot, capsuleIntegrityHash: "c".repeat(64), events: [], selection: { research: true, evidence: false, events: false } });
+  assert.equal(projection.research.summary.summary, "Revenue growth is reported in the excerpt. [private identifier omitted] [source link omitted]");
+  assert.equal(projection.research.summary.answer_status, "source_matched_claims");
+  assert.equal(projection.research.summary.upside, "Demand improved");
+  assert.equal(projection.research.summary.downside, "Margins remain uncertain");
+  assert.deepEqual(projection.research.summary.catalysts, ["Next earnings"]);
+  assert.equal(projection.research.summary.what_would_change, "A revised filing");
+  assert.equal("research_run_id" in projection.research.summary, false);
+  assert.equal("claims" in projection.research.summary, false);
+  assert.equal("sources" in projection.research.summary, false);
+  assert.equal(verifyPublicCapsuleSnapshot(projection), true);
+});
+
 test("evidence projection omits non-HTTPS sources and never publishes internal source IDs", () => {
   const snapshot = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [], selection: { research: false, evidence: true, events: false } });
   assert.equal(snapshot.evidence.sources.length, 1);

@@ -44,6 +44,17 @@ function publicResearchSummary(value: unknown): JsonValue {
   const root = record(value);
   if (!root) return null;
   const summary: Record<string, JsonValue> = {};
+  const narrative = publicText(root.summary, 4_000);
+  if (narrative) summary.summary = narrative;
+  if (root.answer_status === "source_matched_claims" || root.answer_status === "insufficient_evidence") summary.answer_status = root.answer_status;
+  for (const key of ["upside", "downside", "what_would_change"]) {
+    const item = publicText(root[key], 2_000);
+    if (item) summary[key] = item;
+  }
+  if (Array.isArray(root.catalysts)) summary.catalysts = root.catalysts.slice(0, 8).flatMap(item => {
+    const catalyst = publicText(item, 500);
+    return catalyst ? [catalyst] : [];
+  });
   const synthesis = record(root.synthesis);
   if (synthesis && (synthesis.mode === "model" || synthesis.mode === "source_only")) {
     summary.synthesis = { mode: synthesis.mode, provider: publicText(synthesis.provider, 120) };
