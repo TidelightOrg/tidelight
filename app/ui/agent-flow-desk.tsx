@@ -125,11 +125,13 @@ function DecisionCapsuleShare({ capsuleId }: { capsuleId: string }) {
   const [busy, setBusy] = useState(false);
   const [copied, setCopied] = useState(false);
   const [error, setError] = useState("");
+  const localShareChangeRef = useRef(false);
   useEffect(() => {
     let active = true;
+    localShareChangeRef.current = false;
     getCapsulePublicationStatus(capsuleId).then(status => {
-      if (active) { setPublished(status.published); setCreatedAt(status.published ? status.createdAt : null); }
-    }).catch(cause => { if (active) setError(cause instanceof Error ? cause.message : translate("Capsule sharing status could not be loaded.")); });
+      if (active && !localShareChangeRef.current) { setPublished(status.published); setCreatedAt(status.published ? status.createdAt : null); }
+    }).catch(cause => { if (active && !localShareChangeRef.current) setError(cause instanceof Error ? cause.message : translate("Capsule sharing status could not be loaded.")); });
     return () => { active = false; };
   }, [capsuleId, translate]);
   async function preparePreview() {
@@ -143,6 +145,7 @@ function DecisionCapsuleShare({ capsuleId }: { capsuleId: string }) {
     setBusy(true); setError("");
     try {
       const result = await publishDecisionCapsuleShare(capsuleId, selection, preview.integrityHash);
+      localShareChangeRef.current = true;
       setShareUrl(result.url); setCreatedAt(result.createdAt); setPublished(true); setPreview(null); setConfirmed(false);
     } catch (cause) {
       const message = cause instanceof Error ? cause.message : translate("Public capsule could not be published.");
@@ -154,7 +157,7 @@ function DecisionCapsuleShare({ capsuleId }: { capsuleId: string }) {
   }
   async function revoke() {
     setBusy(true); setError("");
-    try { await revokeDecisionCapsuleShare(capsuleId); setPublished(false); setCreatedAt(null); setShareUrl(null); setPreview(null); }
+    try { await revokeDecisionCapsuleShare(capsuleId); localShareChangeRef.current = true; setPublished(false); setCreatedAt(null); setShareUrl(null); setPreview(null); }
     catch (cause) { setError(cause instanceof Error ? cause.message : translate("Public capsule link could not be revoked.")); }
     finally { setBusy(false); }
   }
