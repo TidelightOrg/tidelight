@@ -140,6 +140,8 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261104083300_decision_capsule_publications.sql
       - name: Test public capsule disclosure, token, and revocation storage grants
         run: psql -v ON_ERROR_STOP=1 -f tests/postgres/decision-capsule-publications.sql
+      - name: Test publication rejects an event appended under the shared lock
+        run: bash tests/postgres/decision-capsule-publication-race.sh
 
   saved-evidence-graph-database:
     runs-on: ubuntu-latest
