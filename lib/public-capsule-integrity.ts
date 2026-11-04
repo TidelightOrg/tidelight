@@ -1,5 +1,14 @@
 type JsonRecord = Record<string, unknown>;
 
+export type PublicCapsulePublication = {
+  schemaVersion: 1;
+  publishedAt: string;
+  snapshot: JsonRecord;
+  integrityHash: string;
+  hashAlgorithm: "sha256";
+  integrity: "valid";
+};
+
 const isRecord = (value: unknown): value is JsonRecord => Boolean(value && typeof value === "object" && !Array.isArray(value) && Object.getPrototypeOf(value) === Object.prototype);
 
 /** Canonical JSON shared with the server capsule hash: sorted object keys, ordered arrays. */
@@ -19,4 +28,18 @@ export async function verifyPublicCapsuleDigest(snapshot: JsonRecord, expected: 
     const actual = Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
     return actual === expected;
   } catch { return false; }
+}
+
+/** Validate the public response envelope and verify its disclosed snapshot. */
+export async function verifyPublicCapsulePublication(value: unknown): Promise<PublicCapsulePublication | null> {
+  if (!isRecord(value)
+    || value.schemaVersion !== 1
+    || typeof value.publishedAt !== "string"
+    || value.hashAlgorithm !== "sha256"
+    || value.integrity !== "valid"
+    || !isRecord(value.snapshot)
+    || typeof value.integrityHash !== "string") return null;
+  return await verifyPublicCapsuleDigest(value.snapshot, value.integrityHash)
+    ? value as PublicCapsulePublication
+    : null;
 }

@@ -7,7 +7,7 @@ const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
   return nextResolve(specifier, context);
 } });
 const { hashCapsuleSnapshot } = await import("../lib/decision-capsules.ts");
-const { canonicalPublicCapsuleJson, verifyPublicCapsuleDigest } = await import("../lib/public-capsule-integrity.ts");
+const { canonicalPublicCapsuleJson, verifyPublicCapsuleDigest, verifyPublicCapsulePublication } = await import("../lib/public-capsule-integrity.ts");
 hooks.deregister();
 
 test("browser WebCrypto verifier matches the durable capsule canonical hash", async () => {
@@ -17,4 +17,19 @@ test("browser WebCrypto verifier matches the durable capsule canonical hash", as
   assert.equal(await verifyPublicCapsuleDigest(snapshot, digest), true);
   assert.equal(await verifyPublicCapsuleDigest(snapshot, "0".repeat(64)), false);
   assert.equal(await verifyPublicCapsuleDigest({ ...snapshot, later: undefined }, digest), false);
+});
+
+test("public publication envelope is accepted only when its snapshot matches the published digest", async () => {
+  const snapshot = { event: { direction: "up", price: 123.45 }, evidence: ["source-1"] };
+  const publication = {
+    schemaVersion: 1,
+    publishedAt: "2026-11-04T12:00:00.000Z",
+    snapshot,
+    integrityHash: hashCapsuleSnapshot(snapshot),
+    hashAlgorithm: "sha256",
+    integrity: "valid",
+  };
+  assert.deepEqual(await verifyPublicCapsulePublication(publication), publication);
+  assert.equal(await verifyPublicCapsulePublication({ ...publication, integrityHash: "0".repeat(64) }), null);
+  assert.equal(await verifyPublicCapsulePublication({ ...publication, snapshot: { ...snapshot, event: { direction: "down", price: 123.45 } } }), null);
 });

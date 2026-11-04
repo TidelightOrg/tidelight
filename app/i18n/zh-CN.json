@@ -6364,5 +6364,6 @@
   "No forecast history was included.": "此副本未包含预测历史。",
   "Source link redacted": "来源链接已隐藏",
   "Reported by user": "用户报告",
-  "Capsule unavailable": "胶囊不可用"
+  "Capsule unavailable": "胶囊不可用",
+  "Capsule could not be verified": "无法验证胶囊完整性"
 }

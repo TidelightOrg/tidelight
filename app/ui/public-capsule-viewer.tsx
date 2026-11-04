@@ -4,10 +4,9 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { useLanguage } from "@/app/ui/language-provider";
 import { formatPublicCapsulePrice } from "@/lib/decision-capsule-format";
-import { verifyPublicCapsuleDigest } from "@/lib/public-capsule-integrity";
+import { verifyPublicCapsulePublication, type PublicCapsulePublication } from "@/lib/public-capsule-integrity";
 
 type JsonRecord = Record<string, unknown>;
-type Publication = { schemaVersion: 1; publishedAt: string; snapshot: JsonRecord; integrityHash: string; hashAlgorithm: "sha256"; integrity: "valid" };
 const isRecord = (value: unknown): value is JsonRecord => Boolean(value && typeof value === "object" && !Array.isArray(value));
 const stringValue = (value: unknown) => typeof value === "string" ? value : "";
 const publicSourceUrl = (value: unknown) => {
@@ -93,8 +92,8 @@ function CapsuleEvents({ value, translate }: { value: unknown; translate: (value
 
 export default function PublicCapsuleViewer({ token }: { token: string }) {
   const { translate } = useLanguage();
-  const [publication, setPublication] = useState<Publication | null>(null);
-  const [error, setError] = useState(false);
+  const [publication, setPublication] = useState<PublicCapsulePublication | null>(null);
+  const [error, setError] = useState<"unavailable" | "unverified" | null>(null);
   const tokenValid = /^[A-Za-z0-9_-]{43}$/.test(token);
   useEffect(() => {
     const controller = new AbortController();
@@ -103,15 +102,15 @@ export default function PublicCapsuleViewer({ token }: { token: string }) {
       .then(async response => {
         if (!response.ok) throw new Error("unavailable");
         const value: unknown = await response.json();
-        if (!isRecord(value) || value.schemaVersion !== 1 || value.integrity !== "valid" || !isRecord(value.snapshot) || typeof value.integrityHash !== "string") throw new Error("invalid");
-        if (!await verifyPublicCapsuleDigest(value.snapshot, value.integrityHash)) throw new Error("digest-mismatch");
-        setPublication(value as Publication);
+        const verified = await verifyPublicCapsulePublication(value);
+        if (!verified) { setError("unverified"); return; }
+        setPublication(verified);
       })
-      .catch(() => { if (!controller.signal.aborted) setError(true); });
+      .catch(() => { if (!controller.signal.aborted) setError("unavailable"); });
     return () => controller.abort();
   }, [token, tokenValid]);
 
-  if (error || !tokenValid) return <main className="public-capsule-page"><header className="public-capsule-top"><Link href="/">TIDELIGHT</Link><span>{translate("Public record")}</span></header><section className="public-capsule-empty"><h1>{translate("Capsule unavailable")}</h1></section></main>;
+  if (error || !tokenValid) return <main className="public-capsule-page"><header className="public-capsule-top"><Link href="/">TIDELIGHT</Link><span>{translate("Public record")}</span></header><section className="public-capsule-empty"><h1>{translate(error === "unverified" ? "Capsule could not be verified" : "Capsule unavailable")}</h1></section></main>;
   if (!publication) return <main className="public-capsule-page" aria-busy="true"><header className="public-capsule-top"><Link href="/">TIDELIGHT</Link><span>{translate("Public record")}</span></header><div className="public-capsule-skeleton" aria-label={translate("Loading")}/></main>;
   const snapshot = publication.snapshot;
   const research = isRecord(snapshot.research) ? snapshot.research : null;
