@@ -6318,5 +6318,8 @@
   "Exploratory calibration gap": "探索性校准差距",
   "Requires 20 scored forecasts": "需至少 20 个已评分预测",
   "Based on user-reported outcomes; source authenticity is not verified.": "依据用户报告的结果；来源真实性未经验证。",
-  "Reported source": "用户报告的来源"
+  "Reported source": "用户报告的来源",
+  "Threshold reached": "达到预测阈值",
+  "Threshold not reached": "未达到预测阈值",
+  "User reported": "用户报告"
 }
