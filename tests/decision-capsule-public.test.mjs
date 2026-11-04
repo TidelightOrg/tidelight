@@ -65,6 +65,25 @@ test("evidence projection omits non-HTTPS sources and never publishes internal s
   assert.equal(verifyPublicCapsuleSnapshot(malformed), false);
 });
 
+test("public prose fields redact embedded identifiers and URLs before integrity hashing", () => {
+  const snapshot = structuredClone(privateSnapshot);
+  snapshot.research.question = "Review 80000000-0000-4000-8000-000000000001 https://internal.example/path";
+  snapshot.sources[0].title = "Filing 80000000-0000-4000-8000-000000000002";
+  snapshot.sources[0].publisher = "Issuer https://internal.example/source";
+  snapshot.sources[0].excerpt = "See 80000000-0000-4000-8000-000000000003 and https://internal.example/excerpt";
+  snapshot.evidence[0].claim = "Claim linked to 80000000-0000-4000-8000-000000000004";
+  snapshot.evidence[0].supportingQuote = "Quote https://internal.example/quote";
+  const projection = buildPublicCapsuleSnapshot({ originalSnapshot: snapshot, capsuleIntegrityHash: "c".repeat(64), events: [], selection: { research: true, evidence: true, events: false } });
+  const encoded = JSON.stringify(projection);
+  assert.equal(encoded.includes("internal.example"), false);
+  assert.equal(encoded.includes("80000000-0000-4000-8000-00000000000"), false);
+  assert.match(projection.research.question, /\[private identifier omitted\]/);
+  assert.match(projection.evidence.sources[0].title, /\[private identifier omitted\]/);
+  assert.match(projection.evidence.claims[0].claim, /\[private identifier omitted\]/);
+  assert.equal(verifyPublicCapsuleSnapshot(projection), true);
+  assert.equal(capsulePublicationHash(projection).length, 64);
+});
+
 test("research projection rejects malformed timestamps and non-JSON summary values", () => {
   const snapshot = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [], selection: { research: true, evidence: false, events: false } });
   assert.equal(verifyPublicCapsuleSnapshot(snapshot), true);

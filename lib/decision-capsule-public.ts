@@ -96,7 +96,7 @@ export function buildPublicCapsuleSnapshot(input: {
   };
   if (selection.research) {
     projection.research = {
-      question: text(research.question) ?? "",
+      question: publicText(research.question, 32_000) ?? "",
       createdAt: text(research.createdAt) ?? "",
       completedAt: text(research.completedAt),
       model: text(research.model),
@@ -114,12 +114,12 @@ export function buildPublicCapsuleSnapshot(input: {
       sourceById.set(source.id, source);
       return [{
         url,
-        title: text(source.title) ?? "",
-        publisher: text(source.publisher),
+        title: publicText(source.title, 32_000) ?? "",
+        publisher: publicText(source.publisher, 32_000),
         publishedAt: text(source.publishedAt),
         retrievedAt: text(source.retrievedAt),
         sourceType: text(source.sourceType),
-        excerpt: text(source.excerpt),
+        excerpt: publicText(source.excerpt, 32_000),
       }];
     });
     const evidence = Array.isArray(root.evidence) ? root.evidence : [];
@@ -129,8 +129,8 @@ export function buildPublicCapsuleSnapshot(input: {
       const source = typeof item.sourceId === "string" ? sourceById.get(item.sourceId) : null;
       return [{
         sourceUrl: safeHttps(source?.url),
-        claim: text(item.claim) ?? "",
-        supportingQuote: text(item.supportingQuote),
+        claim: publicText(item.claim, 32_000) ?? "",
+        supportingQuote: publicText(item.supportingQuote, 32_000),
         stance: text(item.stance),
         confidence: typeof item.confidence === "number" && Number.isFinite(item.confidence) ? item.confidence : null,
         recordedAt: text(item.recordedAt),
