@@ -92,12 +92,13 @@ test("public prose fields redact embedded identifiers and URLs before integrity 
 
 test("public prose redacts email addresses without changing explicit source URLs or numeric facts", () => {
   const snapshot = structuredClone(privateSnapshot);
-  snapshot.research.question = "Review NVDA with researcher@example.com and analyst@bücher.de; reference price $100.25";
+  snapshot.research.question = "Review NVDA with researcher@example.com, analyst@bücher.de, and josé@example.org; reference price $100.25";
   snapshot.sources[0].excerpt = "Contact analyst+private@example.org about the filing.";
   const projection = buildPublicCapsuleSnapshot({ originalSnapshot: snapshot, capsuleIntegrityHash: "c".repeat(64), events: [], selection: { research: true, evidence: true, events: false } });
   const encoded = JSON.stringify(projection);
   assert.equal(encoded.includes("researcher@example.com"), false);
   assert.equal(encoded.includes("analyst@bücher.de"), false);
+  assert.equal(encoded.includes("josé@example.org"), false);
   assert.equal(encoded.includes("analyst+private@example.org"), false);
   assert.match(projection.research.question, /\[email omitted\]/);
   assert.match(projection.research.question, /\$100\.25/);
