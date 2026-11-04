@@ -5,15 +5,12 @@ capsule_id='50000000-0000-4000-8000-000000000001'
 user_id='10000000-0000-4000-8000-000000000001'
 tmp_dir="$(mktemp -d)"
 ready_file="$tmp_dir/lock-ready"
+continue_file="$tmp_dir/continue-append"
 
-# Hold the same transaction lock as the append and publisher while the event
-# is added. The marker makes sure the stale publisher starts only after the
-# append session owns the lock.
+# Keep the append transaction open after the append function acquires its lock.
+# The marker makes sure the stale publisher starts only after that lock exists.
 psql -v ON_ERROR_STOP=1 >"$tmp_dir/appender.log" 2>&1 <<SQL &
 begin;
-select pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended('$capsule_id'::text, 0));
-\\! touch $ready_file
-select pg_catalog.pg_sleep(1);
 select public.append_decision_capsule_event(
   '$capsule_id',
   '30000000-0000-4000-8000-000000000005',
@@ -26,6 +23,8 @@ select public.append_decision_capsule_event(
   repeat('d', 64),
   '2026-12-01T00:02:00Z'
 );
+\\! touch $ready_file
+\\! while [ ! -e $continue_file ]; do sleep 0.05; done
 commit;
 SQL
 appender_pid=$!
@@ -40,8 +39,7 @@ if [[ ! -f "$ready_file" ]]; then
   exit 1
 fi
 
-set +e
-publish_output="$(psql -v ON_ERROR_STOP=1 2>&1 <<SQL
+PGAPPNAME=capsule-publication-race-publisher psql -v ON_ERROR_STOP=1 >"$tmp_dir/publisher.log" 2>&1 <<SQL &
 set role service_role;
 select public.publish_decision_capsule_publication(
   '$capsule_id',
@@ -53,14 +51,39 @@ select public.publish_decision_capsule_publication(
   repeat('e', 64)
 );
 SQL
-)"
+publisher_pid=$!
+
+publisher_waiting=false
+for attempt in {1..50}; do
+  wait_state="$(psql -At -v ON_ERROR_STOP=1 -c "select exists (select 1 from pg_catalog.pg_stat_activity where application_name = 'capsule-publication-race-publisher' and wait_event_type = 'Lock' and wait_event = 'advisory')")"
+  if [[ "$wait_state" == "t" ]]; then
+    publisher_waiting=true
+    break
+  fi
+  sleep 0.1
+done
+if [[ "$publisher_waiting" != true ]]; then
+  touch "$continue_file"
+  wait "$appender_pid" || true
+  wait "$publisher_pid" || true
+  cat "$tmp_dir/appender.log" "$tmp_dir/publisher.log"
+  echo "capsule publisher did not block on the held advisory lock" >&2
+  exit 1
+fi
+
+# The publisher is now known to be waiting on the same advisory lock. Allow
+# the appender transaction to append and commit, then inspect the RPC result.
+touch "$continue_file"
+set +e
+wait "$publisher_pid"
 publish_status=$?
 set -e
 
 wait "$appender_pid"
 
-if [[ $publish_status -eq 0 ]] || ! grep -Fq 'capsule_event_head_changed' <<<"$publish_output"; then
-  printf 'Expected stale publication rejection after a concurrent append. Status: %s\n%s\n' "$publish_status" "$publish_output" >&2
+if [[ $publish_status -eq 0 ]] || ! grep -Fq 'capsule_event_head_changed' "$tmp_dir/publisher.log"; then
+  printf 'Expected stale publication rejection after a concurrent append. Status: %s\n' "$publish_status" >&2
+  cat "$tmp_dir/appender.log" "$tmp_dir/publisher.log"
   exit 1
 fi
 
