@@ -21,7 +21,10 @@ function safeHttps(value: unknown): string | null {
   if (typeof value !== "string" || value.length > 2_048) return null;
   try {
     const url = new URL(value);
-    return url.protocol === "https:" && url.hostname && !url.username && !url.password ? url.toString() : null;
+    const sensitiveQuery = /^(?:access[_-]?token|token|api[_-]?key|secret|signature|sig|session(?:id)?|auth(?:orization)?|password|passwd|x-amz-(?:credential|signature|security-token)|x-goog-(?:credential|signature))$/i;
+    if (url.protocol !== "https:" || !url.hostname || url.username || url.password) return null;
+    if ([...url.searchParams.keys()].some(key => sensitiveQuery.test(key))) return null;
+    return url.toString();
   } catch { return null; }
 }
 

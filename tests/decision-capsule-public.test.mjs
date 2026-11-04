@@ -55,11 +55,14 @@ test("research-only disclosure allowlists nested Agent Flow fields and strips pr
 });
 
 test("evidence projection omits non-HTTPS sources and never publishes internal source IDs", () => {
-  const snapshot = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [], selection: { research: false, evidence: true, events: false } });
+  const sourceWithSecretUrl = structuredClone(privateSnapshot);
+  sourceWithSecretUrl.sources.push({ id: "private-signed-source", url: "https://files.example.com/filing?X-Amz-Signature=private-secret", title: "Signed filing", publisher: "Issuer", publishedAt: null, retrievedAt: "2026-11-01T00:01:00.000Z", sourceType: "primary", excerpt: "private", contentHash: null });
+  const snapshot = buildPublicCapsuleSnapshot({ originalSnapshot: sourceWithSecretUrl, capsuleIntegrityHash: "c".repeat(64), events: [], selection: { research: false, evidence: true, events: false } });
   assert.equal(snapshot.evidence.sources.length, 1);
   assert.equal(snapshot.evidence.sources[0].url, "https://example.com/filing");
   assert.equal(snapshot.evidence.claims[0].sourceUrl, "https://example.com/filing");
   assert.equal(JSON.stringify(snapshot).includes(sourceId), false);
+  assert.equal(JSON.stringify(snapshot).includes("private-secret"), false);
   assert.equal(JSON.stringify(snapshot).includes("passageStartCodepoint"), false);
   const malformed = structuredClone(snapshot); malformed.evidence.claims[0].confidence = 1.5;
   assert.equal(verifyPublicCapsuleSnapshot(malformed), false);
