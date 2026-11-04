@@ -84,7 +84,7 @@ function finiteRange(value: unknown, min: number, max: number, label: string) {
   return value;
 }
 
-export function parseCapsuleEventInput(value: unknown, now = Date.now()): CapsuleEventInput {
+export function parseCapsuleEventInput(value: unknown, now = Date.now(), options: { allowPastForecastHorizon?: boolean } = {}): CapsuleEventInput {
   if (!isPlainObject(value) || !exactKeys(value, ["idempotencyKey", "type", "payload"])) throw new CapsuleEventValidationError("Send an idempotency key, event type, and event payload.");
   if (typeof value.idempotencyKey !== "string" || !CAPSULE_EVENT_UUID.test(value.idempotencyKey)) throw new CapsuleEventValidationError("A valid idempotency key is required.");
   if (value.type === "forecast") {
@@ -95,7 +95,7 @@ export function parseCapsuleEventInput(value: unknown, now = Date.now()): Capsul
     if (raw.direction !== "up" && raw.direction !== "down") throw new CapsuleEventValidationError("Choose an upward or downward forecast.");
     const horizonAt = parseTimestamp(raw.horizonAt, "Forecast horizon");
     const horizonMs = Date.parse(horizonAt);
-    if (horizonMs <= now || horizonMs > now + 5 * 366 * 24 * 60 * 60 * 1000) throw new CapsuleEventValidationError("Forecast horizon must be in the future and within five years.");
+    if ((!options.allowPastForecastHorizon && horizonMs <= now) || horizonMs > now + 5 * 366 * 24 * 60 * 60 * 1000) throw new CapsuleEventValidationError("Forecast horizon must be in the future and within five years.");
     const payload: CapsuleForecastPayload = {
       instrument: { type: instrument.type as CapsuleInstrumentType, symbol: instrument.symbol },
       referencePrice: finiteRange(raw.referencePrice, Number.MIN_VALUE, 1e15, "Reference price"),
@@ -105,7 +105,7 @@ export function parseCapsuleEventInput(value: unknown, now = Date.now()): Capsul
       ...(Object.hasOwn(raw, "probability") ? { probability: finiteRange(raw.probability, 0, 1, "Probability") } : {}),
     };
     if (Buffer.byteLength(canonicalJson(payload), "utf8") > MAX_CAPSULE_EVENT_BYTES) throw new CapsuleEventValidationError("The event is too large.");
-    return { idempotencyKey: value.idempotencyKey, type: "forecast", payload, forecastEventId: null };
+    return { idempotencyKey: value.idempotencyKey.toLowerCase(), type: "forecast", payload, forecastEventId: null };
   }
   if (value.type === "outcome") {
     const raw = value.payload;
@@ -119,9 +119,10 @@ export function parseCapsuleEventInput(value: unknown, now = Date.now()): Capsul
     const sourceTimestamp = parseTimestamp(raw.sourceTimestamp, "Source timestamp");
     if (Date.parse(observedAt) > now + 60_000 || Date.parse(sourceTimestamp) > now + 60_000) throw new CapsuleEventValidationError("Outcome timestamps cannot be in the future.");
     const observedPrice = finiteRange(raw.observedPrice, Number.MIN_VALUE, 1e15, "Observed price");
-    const payload = { forecastEventId: raw.forecastEventId, observedPrice, observedAt, sourceUrl: url.toString(), sourceTimestamp, reportedBy: "user" as const };
+    const forecastEventId = raw.forecastEventId.toLowerCase();
+    const payload = { forecastEventId, observedPrice, observedAt, sourceUrl: url.toString(), sourceTimestamp, reportedBy: "user" as const };
     if (Buffer.byteLength(canonicalJson(payload), "utf8") > MAX_CAPSULE_EVENT_BYTES) throw new CapsuleEventValidationError("The event is too large.");
-    return { idempotencyKey: value.idempotencyKey, type: "outcome", payload, forecastEventId: raw.forecastEventId };
+    return { idempotencyKey: value.idempotencyKey.toLowerCase(), type: "outcome", payload, forecastEventId };
   }
   throw new CapsuleEventValidationError("Choose a supported capsule event type.");
 }
@@ -131,9 +132,13 @@ export function buildCapsuleOutcomePayload(forecast: CapsuleEvent, input: Capsul
   if (input.forecastEventId !== forecast.id) throw new CapsuleEventValidationError("Outcome forecast identity does not match.");
   const actualReturnPercent = (input.observedPrice / forecast.payload.referencePrice - 1) * 100;
   if (!Number.isFinite(actualReturnPercent)) throw new CapsuleEventValidationError("Outcome return could not be calculated.");
+  const boundary = forecast.payload.referencePrice * (forecast.payload.direction === "up"
+    ? 1 + forecast.payload.thresholdPercent / 100
+    : 1 - forecast.payload.thresholdPercent / 100);
+  const tolerance = Number.EPSILON * Math.max(forecast.payload.referencePrice, input.observedPrice, Math.abs(boundary), 1) * 8;
   const forecastMet = forecast.payload.direction === "up"
-    ? actualReturnPercent >= forecast.payload.thresholdPercent
-    : actualReturnPercent <= -forecast.payload.thresholdPercent;
+    ? input.observedPrice + tolerance >= boundary
+    : input.observedPrice - tolerance <= boundary;
   const probability = forecast.payload.probability;
   return {
     ...input,

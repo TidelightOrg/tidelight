@@ -66,6 +66,13 @@ test("forecast inputs validate distinct instrument identities and preserve norma
   }, now);
   assert.equal(parsed.type, "forecast");
   assert.equal(parsed.payload.instrument.type, "us_stock_perpetual");
+  const upperUuid = parseCapsuleEventInput({
+    idempotencyKey: key.toUpperCase(), type: "forecast", payload: {
+      instrument: { type: "us_equity", symbol: "NVDA" }, referencePrice: 100,
+      direction: "up", thresholdPercent: 1, horizonAt: "2026-11-05T00:00:00Z",
+    },
+  }, now);
+  assert.equal(upperUuid.idempotencyKey, key);
   assert.throws(() => parseCapsuleEventInput({
     idempotencyKey: key, type: "forecast", payload: {
       instrument: { type: "toString", symbol: "NVDA" }, referencePrice: 100,
@@ -119,4 +126,19 @@ test("outcome scoring rejects non-forecast and mismatched forecast identities", 
   const [forecast, outcome] = chainEvents();
   assert.throws(() => buildCapsuleOutcomePayload(outcome, outcome.payload), /not a forecast/i);
   assert.throws(() => buildCapsuleOutcomePayload(forecast, { ...outcome.payload, forecastEventId: ownerId }), /identity does not match/i);
+});
+
+test("threshold outcomes use a floating-point-safe price boundary", () => {
+  const forecast = {
+    id: forecastId, capsuleId, sequence: 1, type: "forecast", idempotencyKey: key,
+    forecastEventId: null,
+    payload: { instrument: { type: "us_equity", symbol: "NVDA" }, referencePrice: 100, direction: "up", thresholdPercent: 20, horizonAt: "2026-11-05T00:00:00.000Z", probability: 0.9 },
+    previousHash: anchor, integrityHash: "b".repeat(64), createdAt: "2026-11-04T00:01:00.000Z",
+  };
+  const outcome = buildCapsuleOutcomePayload(forecast, {
+    forecastEventId: forecastId, observedPrice: 120, observedAt: "2026-11-05T00:00:00.000Z",
+    sourceUrl: "https://prices.example/nvda", sourceTimestamp: "2026-11-05T00:00:00.000Z",
+  });
+  assert.equal(outcome.forecastMet, true);
+  assert.ok(Math.abs(outcome.brierScore - 0.01) < 1e-12);
 });

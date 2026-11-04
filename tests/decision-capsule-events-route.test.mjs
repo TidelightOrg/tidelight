@@ -4,6 +4,7 @@ import { registerHooks } from "node:module";
 
 const owner = "10000000-0000-4000-8000-000000000001";
 const capsuleId = "e475bd46-5035-4ae5-9f19-e2959a4f0734";
+const idempotencyKey = "0475bd46-5035-4ae5-9f19-e2959a4f0734";
 globalThis.flowTest = { user: { id: owner }, admin: null };
 
 const fixture = new URL("./fixtures/research-flow-integration-mocks.mjs", import.meta.url).href;
@@ -106,6 +107,24 @@ test("forecast append is anchored to the original capsule and retry is idempoten
   assert.deepEqual((await retry.json()).event, saved.event);
   assert.equal(rpcCalls.length, 1);
   const read = await route.GET(new Request(`https://tidelight.app/api/decision-capsules/${capsuleId}/events`), { params: Promise.resolve({ id: capsuleId }) });
+  assert.equal(read.status, 200);
+  assert.equal((await read.json()).integrity, "valid");
+});
+
+test("normalizes UUIDs before hashing and permits an identical retry after its horizon", async () => {
+  reset();
+  const now = Date.now();
+  const requestBody = forecast(idempotencyKey.toUpperCase());
+  requestBody.payload.horizonAt = new Date(now + 1_000).toISOString();
+  const firstRequest = request(requestBody, capsuleId.toUpperCase());
+  const first = await withDateNow(now, () => route.POST(firstRequest, { params: Promise.resolve({ id: capsuleId.toUpperCase() }) }));
+  assert.equal(first.status, 201);
+  assert.equal(rpcCalls[0].args.p_capsule_id, capsuleId);
+  assert.equal(rpcCalls[0].args.p_idempotency_key, idempotencyKey);
+  const retry = await withDateNow(now + 2_000, () => route.POST(request(requestBody, capsuleId.toUpperCase()), { params: Promise.resolve({ id: capsuleId.toUpperCase() }) }));
+  assert.equal(retry.status, 200);
+  assert.equal(rpcCalls.length, 1);
+  const read = await route.GET(new Request(`https://tidelight.app/api/decision-capsules/${capsuleId.toUpperCase()}/events`), { params: Promise.resolve({ id: capsuleId.toUpperCase() }) });
   assert.equal(read.status, 200);
   assert.equal((await read.json()).integrity, "valid");
 });

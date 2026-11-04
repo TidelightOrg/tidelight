@@ -71,8 +71,9 @@ async function readBoundedJson(request: Request): Promise<unknown> {
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { user } = await getServerAuthState();
   if (!user) return NextResponse.json({ error: "Sign in to verify private capsule history." }, { status: 401, headers: noStore });
-  const { id } = await params;
-  if (!UUID.test(id)) return NextResponse.json({ error: "Capsule not found." }, { status: 404, headers: noStore });
+  const { id: rawId } = await params;
+  if (!UUID.test(rawId)) return NextResponse.json({ error: "Capsule not found." }, { status: 404, headers: noStore });
+  const id = rawId.toLowerCase();
   let admin;
   try { admin = createAdminClient(); } catch { return NextResponse.json({ error: "Private capsule storage is unavailable." }, { status: 503, headers: noStore }); }
   const result = await loadChain(admin, user.id, id);
@@ -83,8 +84,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   const { user } = await getServerAuthState();
   if (!user) return NextResponse.json({ error: "Sign in to add to private capsule history." }, { status: 401, headers: noStore });
-  const { id } = await params;
-  if (!UUID.test(id)) return NextResponse.json({ error: "Capsule not found." }, { status: 404, headers: noStore });
+  const { id: rawId } = await params;
+  if (!UUID.test(rawId)) return NextResponse.json({ error: "Capsule not found." }, { status: 404, headers: noStore });
+  const id = rawId.toLowerCase();
   let body: unknown;
   try { body = await readBoundedJson(request); }
   catch (error) {
@@ -92,7 +94,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: tooLarge ? "Capsule event is too large." : "Send a valid capsule event." }, { status: tooLarge ? 413 : 400, headers: noStore });
   }
   let input;
-  try { input = parseCapsuleEventInput(body); }
+  try { input = parseCapsuleEventInput(body, Date.now(), { allowPastForecastHorizon: true }); }
   catch (error) {
     if (error instanceof CapsuleEventValidationError) return NextResponse.json({ error: error.message }, { status: 400, headers: noStore });
     return NextResponse.json({ error: "Send a valid capsule event." }, { status: 400, headers: noStore });
@@ -109,6 +111,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     return NextResponse.json({ error: "That idempotency key belongs to a different capsule event." }, { status: 409, headers: noStore });
   }
   if (events.length >= MAX_CAPSULE_EVENTS) return NextResponse.json({ error: "This capsule has reached its event limit." }, { status: 409, headers: noStore });
+  if (input.type === "forecast" && Date.parse(input.payload.horizonAt) <= Date.now()) return NextResponse.json({ error: "A new forecast horizon must be in the future." }, { status: 400, headers: noStore });
 
   let payload: CapsuleEventPayload;
   if (input.type === "outcome") {
