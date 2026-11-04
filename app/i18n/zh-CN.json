@@ -6310,5 +6310,5 @@
   "Refresh saved capsules": "刷新已保存的胶囊",
   "Private decision capsules could not be loaded.": "无法加载私人决策胶囊。",
   "A saved capsule returned invalid details.": "已保存的胶囊返回了无效详情。",
-  "Saved capsules returned an invalid response.": "已保存的胶囊返回了无效响应。"
-}
+  "Saved capsules returned an invalid response.": "已保存的胶囊返回了无效响应。",
+  "Observed outcome summary": "观测结果摘要",
