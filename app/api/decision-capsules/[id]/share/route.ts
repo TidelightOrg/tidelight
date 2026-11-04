@@ -102,6 +102,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   let publicSnapshot: Record<string, unknown>; let integrityHash: string; let confirmationHash: string; let historyHead: ReturnType<typeof capsuleHistoryHead>;
   try {
     publicSnapshot = buildPublicCapsuleSnapshot({ originalSnapshot: loaded.capsule.original_snapshot, capsuleIntegrityHash: loaded.capsule.integrity_hash, events: loaded.events, selection });
+    if (!verifyPublicCapsuleSnapshot(publicSnapshot)) return NextResponse.json({ error: "The selected public sections could not be prepared." }, { status: 422, headers: noStore });
     integrityHash = capsulePublicationHash(publicSnapshot);
     historyHead = capsuleHistoryHead(loaded.capsule.integrity_hash, loaded.events);
     confirmationHash = capsulePublicationConfirmationHash(publicSnapshot, historyHead);

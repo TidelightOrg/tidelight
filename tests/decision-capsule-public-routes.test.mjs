@@ -39,6 +39,7 @@ const unsigned = {
 };
 const eventHash = eventHelpers.hashCapsuleEvent(unsigned);
 const eventRows = [{ id: unsigned.id, capsule_id: capsuleId, user_id: owner, sequence: 1, event_type: "forecast", idempotency_key: unsigned.idempotencyKey, forecast_event_id: null, payload: unsigned.payload, previous_hash: unsigned.previousHash, integrity_hash: eventHash, created_at: unsigned.createdAt }];
+const firstEventRow = structuredClone(eventRows[0]);
 let publication = null;
 let failCapsuleLookup = false;
 
@@ -103,7 +104,7 @@ function installAdmin() {
     },
   };
 }
-function reset() { publication = null; failCapsuleLookup = false; eventRows.splice(1); globalThis.flowTest.user = { id: owner }; globalThis.flowTest.adminUnavailable = false; globalThis.flowTest.rateLimitAllowed = true; globalThis.flowTest.rateLimitError = false; globalThis.flowTest.rateLimitCalls = []; globalThis.flowTest.beforePublicationRpc = null; installAdmin(); }
+function reset() { publication = null; failCapsuleLookup = false; capsule.original_snapshot = structuredClone(originalSnapshot); capsule.integrity_hash = anchorHash; eventRows.splice(0, eventRows.length, structuredClone(firstEventRow)); globalThis.flowTest.user = { id: owner }; globalThis.flowTest.adminUnavailable = false; globalThis.flowTest.rateLimitAllowed = true; globalThis.flowTest.rateLimitError = false; globalThis.flowTest.rateLimitCalls = []; globalThis.flowTest.beforePublicationRpc = null; installAdmin(); }
 function params(id = capsuleId) { return { params: Promise.resolve({ id }) }; }
 function post(body, id = capsuleId) { return new Request(`https://tidelight.app/api/decision-capsules/${id}/share`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }); }
 
@@ -133,6 +134,17 @@ test("publishing requires an owner, a previewed selection, and an unchanged hist
   assert.match(result.url, /^\/api\/decision-capsules\/public\/[A-Za-z0-9_-]{43}$/);
   assert.equal(publication.token_hash, publicHelpers.hashPublicationToken(result.url.split("/").at(-1)));
   assert.equal(JSON.stringify(publication).includes(result.url.split("/").at(-1)), false);
+});
+
+test("preview refuses any projection that would fail public snapshot verification", async () => {
+  reset();
+  capsule.original_snapshot = structuredClone(originalSnapshot);
+  capsule.original_snapshot.research.completedAt = "not-a-date";
+  capsule.integrity_hash = capsuleHelpers.hashCapsuleSnapshot(capsule.original_snapshot);
+  eventRows.splice(0);
+  const response = await shareRoute.POST(post({ action: "preview", selection: { research: true, evidence: false, events: false } }), params());
+  assert.equal(response.status, 422);
+  assert.equal(publication, null);
 });
 
 test("a private event invalidates a preview even when event details are excluded", async () => {
