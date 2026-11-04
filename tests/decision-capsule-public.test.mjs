@@ -30,7 +30,7 @@ const event = {
 
 test("public capsule projection includes only selected sections and excludes private storage identifiers", () => {
   const researchOnly = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [event], selection: { research: true, evidence: false, events: false } });
-  assert.deepEqual(Object.keys(researchOnly).sort(), ["integrityScope", "research", "schemaVersion", "sourceAuthenticity", "sourceCapsuleIntegrityHash"]);
+  assert.deepEqual(Object.keys(researchOnly).sort(), ["integrityScope", "research", "schemaVersion", "sourceAuthenticity", "sourceCapsuleIntegrityHash", "urlPolicyVersion"]);
   assert.equal(JSON.stringify(researchOnly).includes("80000000-0000-4000-8000-000000000001"), false);
   assert.equal(JSON.stringify(researchOnly).includes("private content hash"), false);
   assert.equal(JSON.stringify(researchOnly).includes("sourceId"), false);
@@ -69,6 +69,17 @@ test("evidence projection omits non-HTTPS sources and never publishes internal s
   assert.equal(JSON.stringify(snapshot).includes("passageStartCodepoint"), false);
   const malformed = structuredClone(snapshot); malformed.evidence.claims[0].confidence = 1.5;
   assert.equal(verifyPublicCapsuleSnapshot(malformed), false);
+});
+
+test("strict URL policy applies to new copies while v1 snapshots retain their original verification rules", () => {
+  const current = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [], selection: { research: false, evidence: true, events: false } });
+  assert.equal(current.urlPolicyVersion, 2);
+  const legacy = structuredClone(current);
+  delete legacy.urlPolicyVersion;
+  legacy.evidence.sources[0].url = "https://example.com/filing#access_token=legacy";
+  legacy.evidence.claims[0].sourceUrl = legacy.evidence.sources[0].url;
+  assert.equal(verifyPublicCapsuleSnapshot(legacy), true);
+  assert.equal(verifyPublicCapsuleSnapshot(current), true);
 });
 
 test("public prose fields redact embedded identifiers and URLs before integrity hashing", () => {
@@ -119,7 +130,7 @@ test("research projection rejects malformed timestamps and non-JSON summary valu
 
 test("event projection re-hashes a verifiable public chain without private capsule and idempotency identifiers", () => {
   const snapshot = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [event], selection: { research: false, evidence: false, events: true } });
-  assert.deepEqual(Object.keys(snapshot).sort(), ["eventAnchorHash", "events", "integrityScope", "schemaVersion", "sourceAuthenticity", "sourceCapsuleIntegrityHash"]);
+  assert.deepEqual(Object.keys(snapshot).sort(), ["eventAnchorHash", "events", "integrityScope", "schemaVersion", "sourceAuthenticity", "sourceCapsuleIntegrityHash", "urlPolicyVersion"]);
   assert.equal(snapshot.events[0].sequence, 1);
   assert.equal("capsuleId" in snapshot.events[0], false);
   assert.equal("idempotencyKey" in snapshot.events[0], false);
