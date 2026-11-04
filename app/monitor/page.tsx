@@ -33,7 +33,7 @@ export default async function MonitorPage({ searchParams }: { searchParams: Prom
   const { data: runs } = runIds.length ? await supabase.from("research_runs").select("id,question,summary,created_at,completed_at").eq("user_id", user.id).in("id", runIds) : { data: [] as Array<Record<string, unknown>> };
   const notice = params.notice;
   return <div className="content-wrap inner-page monitor-page">
-    <header className="monitor-page-head"><div><div className="monitor-eyebrow"><i/> TIDELIGHT / CONTINUOUS RESEARCH</div><h1>Research, with a memory.</h1><p>Follow the thesis, revisit the evidence, and see what changed between reviews. Each run uses the existing research gates; a saved view is not a verified conclusion.</p></div><Link className="monitor-head-link" href="/flow">Open research desk <span>↗</span></Link></header>
+    <header className="monitor-page-head"><h1>Research Monitor</h1><Link className="monitor-head-link" href="/flow">New research <span>↗</span></Link></header>
     {monitorError || archivedError || revisionError || observationError ? <section className="monitor-system-note" role="alert"><b>Your research memory is temporarily unavailable.</b><span>Reload in a moment. Your saved work has not been changed.</span></section> : <ResearchMonitor monitors={[...(monitors ?? []), ...(archivedMonitors ?? [])]} revisions={revisions ?? []} observations={observations ?? []} runs={(runs ?? []) as never[]} notice={notice ?? ""} archivedPage={archivedPage} archivedPageCount={archivedPageCount} />}
   </div>;
 }
