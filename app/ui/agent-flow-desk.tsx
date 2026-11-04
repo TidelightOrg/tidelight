@@ -149,7 +149,7 @@ function DecisionCapsuleShare({ capsuleId }: { capsuleId: string }) {
     if (!preview || !confirmed) return;
     setBusy(true); setError("");
     try {
-      const result = await publishDecisionCapsuleShare(capsuleId, selection, preview.integrityHash);
+      const result = await publishDecisionCapsuleShare(capsuleId, selection, preview.confirmationHash);
       localShareChangeRef.current = true;
       setShareUrl(result.url); setCreatedAt(result.createdAt); setPublished(true); setPreview(null); setConfirmed(false);
     } catch (cause) {

@@ -9,11 +9,16 @@ do $$ begin
     raise exception 'browser roles must not access publication storage directly';
   end if;
   if not has_table_privilege('service_role', 'public.decision_capsule_publications', 'SELECT')
-    or not has_table_privilege('service_role', 'public.decision_capsule_publications', 'INSERT')
+    or has_table_privilege('service_role', 'public.decision_capsule_publications', 'INSERT')
     or not has_column_privilege('service_role', 'public.decision_capsule_publications', 'revoked_at', 'UPDATE')
     or has_column_privilege('service_role', 'public.decision_capsule_publications', 'public_snapshot', 'UPDATE')
     or has_table_privilege('service_role', 'public.decision_capsule_publications', 'DELETE') then
-    raise exception 'service role must only read, create, and revoke publication records';
+    raise exception 'service role must only read and revoke directly; inserts use the atomic publisher';
+  end if;
+  if has_function_privilege('anon', 'public.publish_decision_capsule_publication(uuid,uuid,integer,text,text,jsonb,text)', 'EXECUTE')
+    or has_function_privilege('authenticated', 'public.publish_decision_capsule_publication(uuid,uuid,integer,text,text,jsonb,text)', 'EXECUTE')
+    or not has_function_privilege('service_role', 'public.publish_decision_capsule_publication(uuid,uuid,integer,text,text,jsonb,text)', 'EXECUTE') then
+    raise exception 'only the service role may publish through the atomic history check';
   end if;
 end $$;
 
@@ -25,19 +30,33 @@ do $$ begin
 end $$;
 
 set role service_role;
-insert into public.decision_capsule_publications(capsule_id, user_id, token_hash, public_snapshot, integrity_hash)
-values ('50000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', repeat('a', 64), '{"schemaVersion":1,"research":{"question":"shared"}}', repeat('b', 64));
 do $$ begin
   begin
-    insert into public.decision_capsule_publications(capsule_id, user_id, token_hash, public_snapshot, integrity_hash)
-    values ('50000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', repeat('c', 64), '{"schemaVersion":1}', repeat('d', 64));
+    perform public.publish_decision_capsule_publication(
+      '50000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 1,
+      repeat('b', 64), repeat('a', 64), '{"schemaVersion":1,"research":{"question":"stale"}}', repeat('b', 64)
+    );
+    raise exception 'publication must reject a stale preview history head';
+  exception when serialization_failure then null;
+  end;
+  perform public.publish_decision_capsule_publication(
+    '50000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 2,
+    repeat('c', 64), repeat('a', 64), '{"schemaVersion":1,"research":{"question":"shared"}}', repeat('b', 64)
+  );
+  begin
+    perform public.publish_decision_capsule_publication(
+      '50000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 2,
+      repeat('c', 64), repeat('c', 64), '{"schemaVersion":1}', repeat('d', 64)
+    );
     raise exception 'a capsule must have only one active publication';
   exception when unique_violation then null;
   end;
   update public.decision_capsule_publications set revoked_at = now()
     where capsule_id = '50000000-0000-4000-8000-000000000001';
-  insert into public.decision_capsule_publications(capsule_id, user_id, token_hash, public_snapshot, integrity_hash)
-  values ('50000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', repeat('c', 64), '{"schemaVersion":1}', repeat('d', 64));
+  perform public.publish_decision_capsule_publication(
+    '50000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', 2,
+    repeat('c', 64), repeat('d', 64), '{"schemaVersion":1}', repeat('e', 64)
+  );
   begin
     update public.decision_capsule_publications set revoked_at = null
       where capsule_id = '50000000-0000-4000-8000-000000000001' and token_hash = repeat('a', 64);

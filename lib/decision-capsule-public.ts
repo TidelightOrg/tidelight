@@ -252,6 +252,14 @@ export function verifyPublicCapsuleSnapshot(value: unknown): boolean {
 }
 
 export function capsulePublicationHash(snapshot: unknown): string { return hashCapsuleSnapshot(snapshot); }
+export function capsuleHistoryHead(capsuleIntegrityHash: string, events: CapsuleEvent[]) {
+  const lastEvent = events.at(-1);
+  return lastEvent ? { sequence: lastEvent.sequence, hash: lastEvent.integrityHash } : { sequence: 0, hash: capsuleIntegrityHash };
+}
+/** Bind owner confirmation to disclosed bytes and the private history head, even if events stay private. */
+export function capsulePublicationConfirmationHash(publicSnapshot: unknown, historyHead: { sequence: number; hash: string }) {
+  return capsulePublicationHash({ publicSnapshot, historyHead });
+}
 export function hashPublicationToken(token: string): string { return createHash("sha256").update(token, "utf8").digest("hex"); }
 export const MAX_PUBLIC_CAPSULE_BYTES = 240 * 1024;
 

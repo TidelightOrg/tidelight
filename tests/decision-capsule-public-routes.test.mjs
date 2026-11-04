@@ -42,8 +42,31 @@ const eventRows = [{ id: unsigned.id, capsule_id: capsuleId, user_id: owner, seq
 let publication = null;
 let failCapsuleLookup = false;
 
+function appendFixtureEvent() {
+  const previous = eventRows.at(-1);
+  const next = {
+    id: "a475bd46-5035-4ae5-9f19-e2959a4f0734", capsuleId, sequence: previous.sequence + 1, type: "forecast",
+    idempotencyKey: "b475bd46-5035-4ae5-9f19-e2959a4f0734", forecastEventId: null,
+    payload: { instrument: { type: "us_equity", symbol: "NVDA" }, referencePrice: 101, direction: "up", thresholdPercent: 4, horizonAt: "2026-11-06T00:00:00.000Z" },
+    previousHash: previous.integrity_hash, createdAt: "2026-11-01T00:03:00.000Z",
+  };
+  eventRows.push({ id: next.id, capsule_id: capsuleId, user_id: owner, sequence: next.sequence, event_type: next.type, idempotency_key: next.idempotencyKey, forecast_event_id: null, payload: next.payload, previous_hash: next.previousHash, integrity_hash: eventHelpers.hashCapsuleEvent(next), created_at: next.createdAt });
+}
+
 function installAdmin() {
   globalThis.flowTest.admin = {
+    rpc(name, args) {
+      if (name !== "publish_decision_capsule_publication") return Promise.resolve({ data: null, error: { code: "42883" } });
+      globalThis.flowTest.beforePublicationRpc?.();
+      globalThis.flowTest.beforePublicationRpc = null;
+      const head = eventRows.at(-1);
+      if ((head?.sequence ?? 0) !== args.p_expected_history_sequence || (head?.integrity_hash ?? capsule.integrity_hash) !== args.p_expected_history_hash) {
+        return Promise.resolve({ data: null, error: { code: "40001", message: "capsule_event_head_changed" } });
+      }
+      if (publication && publication.revoked_at === null) return Promise.resolve({ data: null, error: { code: "23505" } });
+      publication = { capsule_id: args.p_capsule_id, user_id: args.p_user_id, token_hash: args.p_token_hash, schema_version: 1, public_snapshot: args.p_public_snapshot, integrity_hash: args.p_integrity_hash, created_at: "2026-11-04T08:00:00.000Z", revoked_at: null };
+      return Promise.resolve({ data: { created_at: publication.created_at }, error: null });
+    },
     from(table) {
       const filters = {}; let operation = "select"; let updateValues; let insertValues;
       const query = {
@@ -80,11 +103,11 @@ function installAdmin() {
     },
   };
 }
-function reset() { publication = null; failCapsuleLookup = false; globalThis.flowTest.user = { id: owner }; globalThis.flowTest.adminUnavailable = false; globalThis.flowTest.rateLimitAllowed = true; globalThis.flowTest.rateLimitError = false; globalThis.flowTest.rateLimitCalls = []; installAdmin(); }
+function reset() { publication = null; failCapsuleLookup = false; eventRows.splice(1); globalThis.flowTest.user = { id: owner }; globalThis.flowTest.adminUnavailable = false; globalThis.flowTest.rateLimitAllowed = true; globalThis.flowTest.rateLimitError = false; globalThis.flowTest.rateLimitCalls = []; globalThis.flowTest.beforePublicationRpc = null; installAdmin(); }
 function params(id = capsuleId) { return { params: Promise.resolve({ id }) }; }
 function post(body, id = capsuleId) { return new Request(`https://tidelight.app/api/decision-capsules/${id}/share`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }); }
 
-test("publishing requires an owner, a previewed selection, and an integrity-hash match", async () => {
+test("publishing requires an owner, a previewed selection, and an unchanged history confirmation", async () => {
   reset();
   assert.equal(capsuleHelpers.capsuleHashMatches(capsule.original_snapshot, capsule.integrity_hash), true);
   globalThis.flowTest.user = null;
@@ -101,10 +124,10 @@ test("publishing requires an owner, a previewed selection, and an integrity-hash
   assert.equal("origin" in preview.preview, false);
   assert.equal(JSON.stringify(preview.preview).includes(owner), false);
   assert.equal(JSON.stringify(preview.preview).includes("contentHash"), false);
-  const stale = await shareRoute.POST(post({ action: "publish", selection, confirmed: true, expectedIntegrityHash: "0".repeat(64) }), params());
+  const stale = await shareRoute.POST(post({ action: "publish", selection, confirmed: true, expectedConfirmationHash: "0".repeat(64) }), params());
   assert.equal(stale.status, 409);
   assert.equal(publication, null);
-  const published = await shareRoute.POST(post({ action: "publish", selection, confirmed: true, expectedIntegrityHash: preview.integrityHash }), params());
+  const published = await shareRoute.POST(post({ action: "publish", selection, confirmed: true, expectedConfirmationHash: preview.confirmationHash }), params());
   assert.equal(published.status, 201);
   const result = await published.json();
   assert.match(result.url, /^\/api\/decision-capsules\/public\/[A-Za-z0-9_-]{43}$/);
@@ -112,11 +135,31 @@ test("publishing requires an owner, a previewed selection, and an integrity-hash
   assert.equal(JSON.stringify(publication).includes(result.url.split("/").at(-1)), false);
 });
 
+test("a private event invalidates a preview even when event details are excluded", async () => {
+  reset();
+  const selection = { research: true, evidence: false, events: false };
+  const preview = await (await shareRoute.POST(post({ action: "preview", selection }), params())).json();
+  appendFixtureEvent();
+  const response = await shareRoute.POST(post({ action: "publish", selection, confirmed: true, expectedConfirmationHash: preview.confirmationHash }), params());
+  assert.equal(response.status, 409);
+  assert.equal(publication, null);
+});
+
+test("the atomic database check rejects a history append racing publication", async () => {
+  reset();
+  const selection = { research: true, evidence: false, events: false };
+  const preview = await (await shareRoute.POST(post({ action: "preview", selection }), params())).json();
+  globalThis.flowTest.beforePublicationRpc = appendFixtureEvent;
+  const response = await shareRoute.POST(post({ action: "publish", selection, confirmed: true, expectedConfirmationHash: preview.confirmationHash }), params());
+  assert.equal(response.status, 409);
+  assert.equal(publication, null);
+});
+
 test("public link serves only the redacted immutable projection and verifies its hash", async () => {
   reset();
   const selection = { research: false, evidence: true, events: true };
   const preview = await (await shareRoute.POST(post({ action: "preview", selection }), params())).json();
-  const response = await shareRoute.POST(post({ action: "publish", selection, confirmed: true, expectedIntegrityHash: preview.integrityHash }), params());
+  const response = await shareRoute.POST(post({ action: "publish", selection, confirmed: true, expectedConfirmationHash: preview.confirmationHash }), params());
   const link = (await response.json()).url;
   const token = link.split("/").at(-1);
   const publicResponse = await publicRoute.GET(new Request(`https://tidelight.app${link}`), { params: Promise.resolve({ token }) });
@@ -138,7 +181,7 @@ test("public reads enforce a per-IP rate gate before database access", async () 
   reset();
   const selection = { research: true, evidence: false, events: false };
   const preview = await (await shareRoute.POST(post({ action: "preview", selection }), params())).json();
-  const result = await (await shareRoute.POST(post({ action: "publish", selection, confirmed: true, expectedIntegrityHash: preview.integrityHash }), params())).json();
+  const result = await (await shareRoute.POST(post({ action: "publish", selection, confirmed: true, expectedConfirmationHash: preview.confirmationHash }), params())).json();
   const token = result.url.split("/").at(-1);
   globalThis.flowTest.adminUnavailable = true;
   globalThis.flowTest.rateLimitAllowed = false;
@@ -156,7 +199,7 @@ test("owner can revoke a public bearer link and revocation takes effect on the n
   reset();
   const selection = { research: true, evidence: false, events: true };
   const preview = await (await shareRoute.POST(post({ action: "preview", selection }), params())).json();
-  const result = await (await shareRoute.POST(post({ action: "publish", selection, confirmed: true, expectedIntegrityHash: preview.integrityHash }), params())).json();
+  const result = await (await shareRoute.POST(post({ action: "publish", selection, confirmed: true, expectedConfirmationHash: preview.confirmationHash }), params())).json();
   const token = result.url.split("/").at(-1);
   const state = await shareRoute.GET(new Request("https://tidelight.app"), params());
   assert.equal((await state.json()).published, true);

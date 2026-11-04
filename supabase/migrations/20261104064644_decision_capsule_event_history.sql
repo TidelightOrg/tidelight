@@ -35,7 +35,9 @@ create index if not exists decision_capsule_events_owner_sequence_idx
 
 alter table public.decision_capsule_events enable row level security;
 revoke all on public.decision_capsule_events from public, anon, authenticated, service_role;
-grant select, insert on public.decision_capsule_events to service_role;
+-- All appends must use the advisory-locked function below. Direct inserts
+-- would bypass the serialized chain-head check used by publication as well.
+grant select on public.decision_capsule_events to service_role;
 
 comment on table public.decision_capsule_events is
   'Append-only forecast and outcome events chained to a private Decision Capsule. Hashes prove record integrity, not truth or independent verification.';

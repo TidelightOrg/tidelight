@@ -9,10 +9,10 @@ do $$ begin
     raise exception 'browser roles must not read or write capsule event storage';
   end if;
   if not has_table_privilege('service_role', 'public.decision_capsule_events', 'SELECT')
-    or not has_table_privilege('service_role', 'public.decision_capsule_events', 'INSERT')
+    or has_table_privilege('service_role', 'public.decision_capsule_events', 'INSERT')
     or has_table_privilege('service_role', 'public.decision_capsule_events', 'UPDATE')
     or has_table_privilege('service_role', 'public.decision_capsule_events', 'DELETE') then
-    raise exception 'service role must only read and append capsule events';
+    raise exception 'service role must read events and append only through the serialized function';
   end if;
   if has_function_privilege('anon', 'public.append_decision_capsule_event(uuid,uuid,integer,text,uuid,uuid,jsonb,text,text,timestamptz)', 'EXECUTE')
     or has_function_privilege('authenticated', 'public.append_decision_capsule_event(uuid,uuid,integer,text,uuid,uuid,jsonb,text,text,timestamptz)', 'EXECUTE')
