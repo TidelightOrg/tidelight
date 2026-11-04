@@ -129,7 +129,7 @@ export default function JudgePage() {
 
       <div className="judge-monitor-summary">
         <div className="judge-monitor-summary-mark" aria-hidden="true">✓</div>
-        <div><span className="judge-monitor-eyebrow">LIVE UI CHECK · PASS</span><h3>Two core research surfaces are ready to review.</h3><p>Monitor opened to its empty-state thesis desk, and Research Flow displayed its question composer and suggested prompts. Both routes loaded without the unavailable-state error.</p></div>
+        <div><h3>Research Monitor · verified live</h3><p>Monitor and Research Flow rendered successfully in signed-in production captures.</p></div>
         <a className="judge-monitor-report-link" href="/evidence/research-monitor-verification-20261026.json">Open full test record <span aria-hidden="true">↗</span></a>
       </div>
 
