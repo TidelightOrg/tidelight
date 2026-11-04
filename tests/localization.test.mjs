@@ -150,6 +150,7 @@ test("Simplified Chinese covers the capsule forecast and outcome controls", asyn
     assert.ok(`${desk}\n${client}`.includes(key), `Saved capsule history must render the copy key: ${key}`);
     assert.equal(typeof translations[key], "string", `Simplified Chinese must translate: ${key}`);
   }
+  assert.match(component, /setInstrumentType\(event\.target\.value as Forecast\["instrument"\]\["type"\]\); setSymbol\(""\); setReferencePrice\(""\)/);
 });
 
 test("developer pages expose a language toggle and share the language preference across Tidelight subdomains", async () => {
