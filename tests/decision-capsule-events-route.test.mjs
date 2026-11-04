@@ -67,6 +67,7 @@ function request(body, id = capsuleId) {
 function forecast(key = "0475bd46-5035-4ae5-9f19-e2959a4f0734") {
   return { idempotencyKey: key, type: "forecast", payload: {
     instrument: { type: "us_equity", symbol: "NVDA" }, referencePrice: 100,
+    referenceSourceUrl: "https://prices.example/nvda", referenceSourceTimestamp: new Date().toISOString(),
     direction: "up", thresholdPercent: 5, horizonAt: new Date(Date.now() + 86_400_000).toISOString(), probability: 0.7,
   } };
 }
