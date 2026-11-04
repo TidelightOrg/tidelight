@@ -133,7 +133,7 @@ export default function DecisionCapsuleHistory({ capsuleId }: { capsuleId: strin
       <label>{translate("Direction")}<select value={direction} onChange={event => setDirection(event.target.value as Forecast["direction"])}><option value="up">{translate("Up")}</option><option value="down">{translate("Down")}</option></select></label>
       <label>{translate("Threshold %")}<input type="number" min="0.000001" max="100" step="any" required value={thresholdPercent} onChange={event => setThresholdPercent(event.target.value)} /></label>
       <label>{translate("Horizon")}<input type="datetime-local" required value={horizonAt} onChange={event => setHorizonAt(event.target.value)} /></label>
-      <label>{translate("Probability") }<input type="number" min="0" max="1" step="any" value={probability} onChange={event => setProbability(event.target.value)} /></label>
+      <label>{translate("Probability (0–1)")}<input type="number" min="0" max="1" step="any" value={probability} onChange={event => setProbability(event.target.value)} /></label>
       <div><button type="submit" disabled={submitting || !symbol || !referencePrice}>{submitting ? translate("Saving") : translate("Save forecast")}</button><button type="button" onClick={() => setExpanded(false)}>{translate("Cancel")}</button></div>
     </form> : null}
     {!expanded && !outcomeForecast ? <button type="button" className="flow-capsule-add-event" onClick={() => setExpanded(true)} disabled={loading || !!error || events.length >= 500}>{translate("Record forecast")}</button> : null}

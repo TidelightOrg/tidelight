@@ -6298,6 +6298,7 @@
   "Threshold %": "阈值 %",
   "Horizon": "期限",
   "Probability": "概率",
+  "Probability (0–1)": "概率 (0–1)",
   "Up": "上涨",
   "Down": "下跌",
   "Save forecast": "保存预测",
