@@ -51,19 +51,30 @@ for (const scenario of suite.scenarios) {
       process.env.GEMINI_MODEL = "fixture-gemini";
       const attempts = [];
       const question = "fixture-only research question";
-      t.mock.method(globalThis, "fetch", async () => new Response(JSON.stringify({ error: { status: "UNAVAILABLE", message: `provider failure for ${question}` } }), { status: 503, headers: { "content-type": "application/json" } }));
+      let reads = 0;
+      let cancellations = 0;
+      let fetchCount = 0;
+      t.mock.method(globalThis, "fetch", async () => {
+        fetchCount += 1;
+        return new Response(new ReadableStream({
+        pull(controller) { reads += 1; controller.enqueue(new TextEncoder().encode(`provider failure for ${question}`)); controller.close(); },
+        cancel() { cancellations += 1; },
+        }, { highWaterMark: 0 }), { status: 503, headers: { "content-type": "application/json" } });
+      });
       const warnings = [];
       t.mock.method(console, "warn", (...args) => warnings.push(args));
       await assert.rejects(aiJsonWithFallback([{ role: "user", content: question }], () => false, { budgetMs: 5000, onAttempt: attempt => attempts.push(attempt) }));
-      assert.ok(attempts.length >= 3, "both providers should exhaust bounded failure attempts");
-      assert.deepEqual([...new Set(attempts.map(attempt => attempt.provider))].sort(), ["gemini", "qwen"]);
-      for (const provider of ["qwen", "gemini"]) {
-        const count = attempts.filter(attempt => attempt.provider === provider).length;
-        assert.ok(count >= 1 && count <= 2, `${provider} must remain within its retry bound`);
-      }
+      const attemptsByProvider = new Map();
+      for (const attempt of attempts) attemptsByProvider.set(attempt.provider, (attemptsByProvider.get(attempt.provider) ?? 0) + 1);
+      assert.deepEqual([...attemptsByProvider.keys()].sort(), ["gemini", "qwen"], "both configured providers should be attempted");
+      assert.ok(attempts.length >= 3, "the fallback should make bounded attempts across both providers");
+      assert.ok([...attemptsByProvider.values()].every(count => count >= 1 && count <= 2), "each provider is limited to two attempts");
       assert.ok(attempts.every(attempt => attempt.outcome === "http_error" && attempt.httpStatus === 503));
       assert.ok(warnings.length > 0, "provider failures emit warnings");
       assert.ok(warnings.every(warning => !JSON.stringify(warning).includes(question)));
+      assert.equal(reads, 0, "provider error bodies are never consumed");
+      assert.equal(cancellations, fetchCount, "every provider error body is canceled");
+      assert.equal(fetchCount, attempts.length, "each provider call produces one recorded attempt");
       const result = sourceOnlyAssessment(input);
       assert.equal(result.stance, expected.stance);
       assert.equal(result.confidence, expected.confidence);
