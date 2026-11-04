@@ -25,6 +25,11 @@ function ResearchSummary({ value, translate }: { value: unknown; translate: (val
   if (typeof value === "string") return <p>{value}</p>;
   if (!isRecord(value)) return <p>{translate("No disclosed research summary.")}</p>;
   const assets = Array.isArray(value.assets) ? value.assets.filter(isRecord) : [];
+  const summary = stringValue(value.summary);
+  const upside = stringValue(value.upside);
+  const downside = stringValue(value.downside);
+  const changeChecks = Array.isArray(value.what_would_change) ? value.what_would_change.filter((item): item is string => typeof item === "string" && item.trim().length > 0) : [];
+  const hasNarrative = Boolean(summary || upside || downside || changeChecks.length);
   return <div className="public-capsule-assets">
     {assets.map((asset, index) => <article key={`${stringValue(asset.ticker)}-${index}`}>
       <header><strong>{stringValue(asset.ticker)}</strong><span>{stringValue(asset.issuer)}</span></header>
@@ -32,7 +37,11 @@ function ResearchSummary({ value, translate }: { value: unknown; translate: (val
       <div>{asset.stance ? <span>{stringValue(asset.stance)}</span> : null}{typeof asset.confidence === "number" ? <span>{Math.round(asset.confidence * 100)}%</span> : null}</div>
       {Array.isArray(asset.risks) && asset.risks.length ? <ul>{asset.risks.map((risk, riskIndex) => <li key={riskIndex}>{stringValue(risk)}</li>)}</ul> : null}
     </article>)}
-    {!assets.length ? <p>{translate("No disclosed research summary.")}</p> : null}
+    {summary ? <p>{summary}</p> : null}
+    {upside ? <p><strong>{translate("Upside")}</strong> · {upside}</p> : null}
+    {downside ? <p><strong>{translate("Downside")}</strong> · {downside}</p> : null}
+    {changeChecks.length ? <div><strong>{translate("What would change")}</strong><ul>{changeChecks.map((check, index) => <li key={index}>{check}</li>)}</ul></div> : null}
+    {!assets.length && !hasNarrative ? <p>{translate("No disclosed research summary.")}</p> : null}
   </div>;
 }
 
