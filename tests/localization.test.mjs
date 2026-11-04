@@ -153,6 +153,18 @@ test("Simplified Chinese covers the capsule forecast and outcome controls", asyn
   assert.match(component, /setInstrumentType\(event\.target\.value as Forecast\["instrument"\]\["type"\]\); setSymbol\(""\); setReferencePrice\(""\)/);
 });
 
+test("capsule outcome diagnostics remain labeled as user-reported and sample-gated", async () => {
+  const [component, translations] = await Promise.all([
+    readFile(new URL("app/ui/decision-capsule-history.tsx", root), "utf8"),
+    readFile(new URL("app/i18n/zh-CN.json", root), "utf8").then(JSON.parse),
+  ]);
+  for (const key of ["Observed outcome summary", "Outcome hit rate", "Mean Brier", "scored outcomes", "Exploratory calibration gap", "Requires 20 scored forecasts", "Based on user-reported outcomes; source authenticity is not verified.", "Reported source", "Threshold reached", "Threshold not reached", "User reported"]) {
+    assert.ok(component.includes(key), `Outcome diagnostics must render: ${key}`);
+    assert.equal(typeof translations[key], "string", `Simplified Chinese must translate: ${key}`);
+  }
+  assert.match(component, /outcomeSummary\.calibrationGap === null \? translate\("Requires 20 scored forecasts"\)/);
+});
+
 test("developer pages expose a language toggle and share the language preference across Tidelight subdomains", async () => {
   const [nav, docs, provider] = await Promise.all([
     readFile(new URL("app/developers/platform-nav.tsx", root), "utf8"),
