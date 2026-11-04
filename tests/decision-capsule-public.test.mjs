@@ -137,6 +137,47 @@ test("public outcome records retain reproducible return, threshold, and Brier ca
   assert.throws(() => buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [forecast, incorrect], selection: { research: false, evidence: false, events: true } }), /projection failed validation/);
 });
 
+test("event provenance with credential-bearing URLs is redacted without making append-only history unshareable", () => {
+  const forecast = {
+    ...event,
+    payload: {
+      ...event.payload,
+      referenceSourceUrl: "https://prices.example/nvda?api_key=private-secret",
+      referenceSourceTimestamp: "2026-11-01T00:01:00.000Z",
+      referenceReportedBy: "user",
+    },
+  };
+  const outcome = {
+    ...event,
+    id: "90000000-0000-4000-8000-000000000002",
+    sequence: 2,
+    type: "outcome",
+    forecastEventId: forecast.id,
+    payload: {
+      forecastEventId: forecast.id,
+      observedPrice: 106,
+      observedAt: "2026-11-03T00:00:00.000Z",
+      sourceUrl: "https://prices.example/nvda?X-Amz-Signature=private-secret",
+      sourceTimestamp: "2026-11-03T00:01:00.000Z",
+      reportedBy: "user",
+      actualReturnPercent: 6,
+      forecastMet: true,
+    },
+    createdAt: "2026-11-03T00:02:00.000Z",
+  };
+  const snapshot = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [forecast, outcome], selection: { research: false, evidence: false, events: true } });
+  assert.equal(snapshot.events[0].payload.referenceSourceUrl, null);
+  assert.equal(snapshot.events[0].payload.referenceSourceUrlRedacted, true);
+  assert.equal(snapshot.events[1].payload.sourceUrl, null);
+  assert.equal(snapshot.events[1].payload.sourceUrlRedacted, true);
+  assert.equal(snapshot.events[0].payload.referenceSourceTimestamp, "2026-11-01T00:01:00.000Z");
+  assert.equal(JSON.stringify(snapshot).includes("private-secret"), false);
+  assert.equal(verifyPublicCapsuleSnapshot(snapshot), true);
+  const tampered = structuredClone(snapshot);
+  tampered.events[0].payload.referenceSourceUrlRedacted = false;
+  assert.equal(verifyPublicCapsuleSnapshot(tampered), false);
+});
+
 test("publication tokens are hashed before storage and empty projections are rejected", () => {
   assert.equal(hashPublicationToken("random-token"), hashPublicationToken("random-token"));
   assert.notEqual(hashPublicationToken("random-token"), "random-token");
