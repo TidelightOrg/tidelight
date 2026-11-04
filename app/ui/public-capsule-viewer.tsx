@@ -9,6 +9,13 @@ type JsonRecord = Record<string, unknown>;
 type Publication = { schemaVersion: 1; publishedAt: string; snapshot: JsonRecord; integrityHash: string; hashAlgorithm: "sha256"; integrity: "valid" };
 const isRecord = (value: unknown): value is JsonRecord => Boolean(value && typeof value === "object" && !Array.isArray(value));
 const stringValue = (value: unknown) => typeof value === "string" ? value : "";
+const publicSourceUrl = (value: unknown) => {
+  if (typeof value !== "string" || value.length > 2_048) return null;
+  try {
+    const url = new URL(value);
+    return url.protocol === "https:" && url.hostname && !url.username && !url.password ? url.toString() : null;
+  } catch { return null; }
+};
 const dateValue = (value: unknown) => {
   if (typeof value !== "string" || !Number.isFinite(Date.parse(value))) return null;
   return new Date(value).toLocaleString();
@@ -37,14 +44,15 @@ function Evidence({ value, translate }: { value: unknown; translate: (value: str
     <h2>{translate("Evidence")}</h2>
     {sources.length ? <ul className="public-capsule-sources">{sources.map((source, index) => <li key={`${stringValue(source.url)}-${index}`}>
       <div><strong>{stringValue(source.title) || stringValue(source.url)}</strong><span>{stringValue(source.publisher)}{dateValue(source.publishedAt) ? ` · ${dateValue(source.publishedAt)}` : ""}</span></div>
-      {typeof source.url === "string" && source.url.startsWith("https://") ? <a href={source.url} target="_blank" rel="noopener noreferrer" aria-label={`${translate("Open source")}: ${stringValue(source.title) || source.url}`}>↗</a> : null}
+      {publicSourceUrl(source.url) ? <a href={publicSourceUrl(source.url) ?? undefined} target="_blank" rel="noopener noreferrer" aria-label={`${translate("Open source")}: ${stringValue(source.title) || source.url}`}>↗</a> : null}
       {source.excerpt ? <blockquote>{stringValue(source.excerpt)}</blockquote> : null}
     </li>)}</ul> : null}
     {claims.length ? <ul className="public-capsule-claims">{claims.map((claim, index) => <li key={index}>
       <header><b>{translate(claim.stance === "supports" ? "Supports" : claim.stance === "contradicts" ? "Challenges" : "Context")}</b>{typeof claim.confidence === "number" ? <span>{Math.round(claim.confidence * 100)}%</span> : null}</header>
       <p>{stringValue(claim.claim)}</p>
       {claim.supportingQuote ? <blockquote>{stringValue(claim.supportingQuote)}</blockquote> : null}
-      {typeof claim.sourceUrl === "string" && claim.sourceUrl.startsWith("https://") ? <a href={claim.sourceUrl} target="_blank" rel="noopener noreferrer">{translate("Open source")} ↗</a> : null}
+      {claim.claimSupportStatus === "not_independently_verified" ? <small className="public-capsule-claim-limit">{translate("Claim support and truth have not been independently verified.")}</small> : null}
+      {publicSourceUrl(claim.sourceUrl) ? <a href={publicSourceUrl(claim.sourceUrl) ?? undefined} target="_blank" rel="noopener noreferrer">{translate("Open source")} ↗</a> : null}
     </li>)}</ul> : null}
     {!sources.length && !claims.length ? <p>{translate("No evidence was included in this public copy.")}</p> : null}
   </section>;
@@ -66,11 +74,15 @@ function CapsuleEvents({ value, translate }: { value: unknown; translate: (value
       const referencedForecast = forecastSequence === null ? null : forecasts.get(forecastSequence) ?? null;
       const referencedInstrument = isRecord(referencedForecast?.instrument) ? referencedForecast.instrument : {};
       const symbol = stringValue(isOutcome ? referencedInstrument.symbol : instrument.symbol);
+      const sourceUrl = publicSourceUrl(isOutcome ? payload.sourceUrl : payload.referenceSourceUrl);
+      const sourceTimestamp = isOutcome ? payload.sourceTimestamp : payload.referenceSourceTimestamp;
       return <li key={index}>
         <header><strong>{isOutcome ? `${translate("Outcome")} · ${translate("Forecast")} #${forecastSequence ?? "—"}` : `${translate("Forecast")} #${typeof event.sequence === "number" ? event.sequence : index + 1}`}</strong><time>{dateValue(event.createdAt) ?? "—"}</time></header>
         {isOutcome ? <p>{symbol ? `${symbol} · ` : ""}{referencedForecast ? `${translate("Forecast")}: ${directionLabel(referencedForecast.direction)} ${typeof referencedForecast.thresholdPercent === "number" ? `${referencedForecast.thresholdPercent}%` : ""} · ` : ""}{translate("Observed price")} {typeof payload.observedPrice === "number" ? payload.observedPrice.toLocaleString() : "—"} · {typeof payload.actualReturnPercent === "number" ? `${payload.actualReturnPercent.toFixed(2)}%` : "—"}</p> : <p>{stringValue(instrument.symbol)} · {directionLabel(payload.direction)} · {translate("Reference price")} {typeof payload.referencePrice === "number" ? payload.referencePrice.toLocaleString() : "—"} · {typeof payload.thresholdPercent === "number" ? `${payload.thresholdPercent}%` : "—"}</p>}
         <div className="public-capsule-event-meta">
           {isOutcome ? <span className="public-capsule-reported">{translate("Reported by user")}</span> : payload.horizonAt ? <span>{translate("Horizon")} · {dateValue(payload.horizonAt) ?? "—"}</span> : null}
+          {typeof sourceTimestamp === "string" && dateValue(sourceTimestamp) ? <time dateTime={sourceTimestamp}>{translate("Source timestamp")} · {dateValue(sourceTimestamp)}</time> : null}
+          {sourceUrl ? <a href={sourceUrl} target="_blank" rel="noopener noreferrer" aria-label={`${translate("Open price source")}: ${symbol || translate("Public record")}`}>{translate("Open price source")} ↗</a> : null}
           {(isOutcome ? payload.sourceUrlRedacted : payload.referenceSourceUrlRedacted) === true ? <span className="public-capsule-source-redacted">{translate("Source link redacted")}</span> : null}
         </div>
       </li>;
@@ -108,7 +120,7 @@ export default function PublicCapsuleViewer({ token }: { token: string }) {
   return <main className="public-capsule-page">
     <header className="public-capsule-top"><Link href="/">TIDELIGHT</Link><span>{translate("Public record")}</span></header>
     <article className="public-capsule-card">
-      <header className="public-capsule-heading"><div><span className="public-capsule-eyebrow">{translate("Decision Capsule")}</span><h1>{researchQuestion || translate("Decision Capsule")}</h1></div><span className="public-capsule-integrity">{translate("Integrity verified")}</span></header>
+      <header className="public-capsule-heading"><div><span className="public-capsule-eyebrow">{translate("Decision Capsule")}</span><h1>{researchQuestion || translate("Decision Capsule")}</h1></div><span className="public-capsule-integrity">{translate("Copy integrity verified")}</span></header>
       <div className="public-capsule-meta"><div><span>{translate("Published")}</span><time>{dateValue(publication.publishedAt) ?? "—"}</time></div><div><span>{translate("SHA-256")}</span><code>{publication.integrityHash}</code></div><a href={`/api/decision-capsules/public/${token}?download=1`}>{translate("Download JSON")} ↗</a></div>
       {research ? <section className="public-capsule-section"><h2>{translate("Research")}</h2><ResearchSummary value={research.summary} translate={translate}/></section> : null}
       <Evidence value={evidence} translate={translate}/>

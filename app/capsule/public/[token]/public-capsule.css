@@ -2,3 +2,4 @@
 @media(max-width:640px){.public-capsule-page{padding:18px 14px 36px}.public-capsule-top{margin-bottom:24px}.public-capsule-heading{display:grid;gap:14px;padding:21px 18px}.public-capsule-heading h1{font-size:25px}.public-capsule-integrity{justify-self:start}.public-capsule-meta{grid-template-columns:minmax(0,1fr);gap:13px;padding:16px 18px}.public-capsule-meta>a{justify-self:start}.public-capsule-section{padding:20px 18px}}
 
 .public-capsule-event-meta{display:flex;flex-wrap:wrap;gap:8px;align-items:center;color:var(--muted);font-size:10px}.public-capsule-source-redacted{padding:3px 7px;border:1px solid var(--line);border-radius:999px;color:var(--muted)}
+.public-capsule-claim-limit{display:block;margin-top:8px;color:var(--muted);font-size:10px;line-height:1.5}
