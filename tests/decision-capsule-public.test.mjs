@@ -57,8 +57,8 @@ test("research-only disclosure allowlists nested Agent Flow fields and strips pr
 test("evidence projection omits non-HTTPS sources and never publishes internal source IDs", () => {
   const sourceWithSecretUrl = structuredClone(privateSnapshot);
   sourceWithSecretUrl.sources.push({ id: "private-signed-source", url: "https://files.example.com/filing?X-Amz-Signature=private-secret", title: "Signed filing", publisher: "Issuer", publishedAt: null, retrievedAt: "2026-11-01T00:01:00.000Z", sourceType: "primary", excerpt: "private", contentHash: null });
-  sourceWithSecretUrl.sources.push({ id: "private-key-source", url: "https://files.example.com/key?key=private-secret", title: "Key URL", publisher: "Issuer", publishedAt: null, retrievedAt: "2026-11-01T00:01:00.000Z", sourceType: "primary", excerpt: "private", contentHash: null });
-  sourceWithSecretUrl.sources.push({ id: "private-client-secret-source", url: "https://files.example.com/client?client_secret=private-secret", title: "Client secret URL", publisher: "Issuer", publishedAt: null, retrievedAt: "2026-11-01T00:01:00.000Z", sourceType: "primary", excerpt: "private", contentHash: null });
+  sourceWithSecretUrl.sources.push({ id: "private-key-source", url: "https://files.example.com/key?KEY=private-secret", title: "Key URL", publisher: "Issuer", publishedAt: null, retrievedAt: "2026-11-01T00:01:00.000Z", sourceType: "primary", excerpt: "private", contentHash: null });
+  sourceWithSecretUrl.sources.push({ id: "private-client-secret-source", url: "https://files.example.com/client?Client_Secret=private-secret", title: "Client secret URL", publisher: "Issuer", publishedAt: null, retrievedAt: "2026-11-01T00:01:00.000Z", sourceType: "primary", excerpt: "private", contentHash: null });
   sourceWithSecretUrl.sources.push({ id: "private-fragment-source", url: "https://files.example.com/filing#access_token=private-secret", title: "Fragment URL", publisher: "Issuer", publishedAt: null, retrievedAt: "2026-11-01T00:01:00.000Z", sourceType: "primary", excerpt: "private", contentHash: null });
   const snapshot = buildPublicCapsuleSnapshot({ originalSnapshot: sourceWithSecretUrl, capsuleIntegrityHash: "c".repeat(64), events: [], selection: { research: false, evidence: true, events: false } });
   assert.equal(snapshot.evidence.sources.length, 1);
@@ -186,7 +186,7 @@ test("common credential query names are redacted from event provenance", () => {
     ...event,
     payload: {
       ...event.payload,
-      referenceSourceUrl: "https://prices.example/nvda?key=private-secret&client_secret=also-private",
+      referenceSourceUrl: "https://prices.example/nvda?KEY=private-secret&Client_Secret=also-private",
       referenceSourceTimestamp: "2026-11-01T00:01:00.000Z",
       referenceReportedBy: "user",
     },
