@@ -68,7 +68,7 @@ test("signed-in AI uses reserved budget and cannot emit unapproved links", async
   assert.deepEqual(reply.links, [{ label: "Open Research", href: "/research" }]);
 });
 
-test("public capsule bearer tokens are redacted from support provider context", async () => {
+test("public capsule bearer tokens are redacted from support provider context across route variants", async () => {
   const token = "a".repeat(43);
   globalThis.supportProviders = [{ label: "qwen" }];
   globalThis.supportDatabase = {
@@ -80,9 +80,11 @@ test("public capsule bearer tokens are redacted from support provider context", 
     assert.match(messages[0].content, /CURRENT PAGE: \/capsule\/public\/\[token\]/);
     return { answer: "The public record shows its disclosed source history and integrity status.", linkHrefs: [] };
   };
-  const response = await ask("What is on this page?", { pathname: `/capsule/public/${token}/` });
-  assert.equal(response.status, 200);
-  assert.equal((await response.json()).source, "ai");
+  for (const pathname of [`/capsule/public/${token}`, `/capsule/public/${token}/`, `/capsule/public/${token}/nested/path`, `/capsule/public/${token}-`, `/flow/capsule/public/${token}`]) {
+    const response = await ask("What is on this page?", { pathname });
+    assert.equal(response.status, 200);
+    assert.equal((await response.json()).source, "ai");
+  }
 });
 
 test("multi-turn product guidance preserves conversation order", async () => {
