@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { appendDecisionCapsuleEvent, createDecisionCapsule, getDecisionCapsuleEvents } from "../lib/decision-capsule-client.ts";
+import { appendDecisionCapsuleEvent, createDecisionCapsule, getDecisionCapsuleEvents, getSavedDecisionCapsules } from "../lib/decision-capsule-client.ts";
 
 const capsule = {
   id: "10000000-0000-4000-8000-000000000001",
@@ -78,4 +78,18 @@ test("appends typed capsule history events without caching and preserves server 
   assert.equal(request.init.cache, "no-store");
   assert.deepEqual(saved, event);
   await assert.rejects(appendDecisionCapsuleEvent(capsule.id, {}, async () => new Response(JSON.stringify({ error: "Capsule event limit reached." }), { status: 409 })), /event limit reached/);
+});
+
+test("reopens owner-scoped saved capsules only from a bounded verified list", async () => {
+  let request;
+  const item = { id: capsule.id, createdAt: capsule.created_at, integrityHash: "a".repeat(64), question: "Review NVDA" };
+  const result = await getSavedDecisionCapsules(async (url, init) => {
+    request = { url, init };
+    return new Response(JSON.stringify({ capsules: [item], integrity: "valid" }), { status: 200 });
+  });
+  assert.equal(request.url, "/api/decision-capsules");
+  assert.equal(request.init.cache, "no-store");
+  assert.deepEqual(result, [item]);
+  await assert.rejects(getSavedDecisionCapsules(async () => new Response(JSON.stringify({ capsules: [{ ...item, integrityHash: "bad" }], integrity: "valid" }), { status: 200 })), /invalid details/);
+  await assert.rejects(getSavedDecisionCapsules(async () => new Response(JSON.stringify({ capsules: Array(51).fill(item), integrity: "valid" }), { status: 200 })), /invalid response/);
 });
