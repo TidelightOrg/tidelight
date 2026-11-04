@@ -40,7 +40,7 @@ function publicText(value: unknown, limit = 2_000): string | null {
   return value.slice(0, limit)
     .replace(/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/gi, "[private identifier omitted]")
     .replace(/https?:\/\/[^\s)\]}>,]+/gi, "[source link omitted]")
-    .replace(/(?<![\p{L}\p{N}._%+-])(?:"(?:[^"\\\r\n]|\\.){1,64}"|[\p{L}\p{N}._%+-]{1,64})@(?:[\p{L}\p{N}](?:[\p{L}\p{N}-]{0,61}[\p{L}\p{N}])?\.)+(?:[\p{L}]{2,63}|xn--[A-Za-z0-9-]{2,59})(?![\p{L}\p{N}._+-])/giu, "[email omitted]");
+    .replace(/(?<![\p{L}\p{N}._%+-])(?:"(?:[^"\\\r\n]|\\.){1,64}"|[\p{L}\p{N}._%+-]{1,64})@(?:[\p{L}\p{N}](?:[\p{L}\p{N}-]{0,61}[\p{L}\p{N}])?\.)+(?:[\p{L}]{2,63}|xn--[A-Za-z0-9-]{2,59})(?![\p{L}\p{N}_+-])/giu, "[email omitted]");
 }
 
 function publicResearchSummary(value: unknown): JsonValue {
