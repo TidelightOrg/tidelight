@@ -6,6 +6,45 @@ export type DecisionCapsuleReceipt = {
   schemaVersion: 1;
 };
 
+export type DecisionCapsuleHistoryEvent = {
+  id: string;
+  sequence: number;
+  type: "forecast" | "outcome";
+  createdAt: string;
+  payload: Record<string, unknown>;
+};
+
+function readApiError(payload: unknown, fallback: string) {
+  return payload && typeof payload === "object" && "error" in payload && typeof payload.error === "string" ? payload.error : fallback;
+}
+
+export async function getDecisionCapsuleEvents(capsuleId: string, fetcher: typeof fetch = fetch): Promise<DecisionCapsuleHistoryEvent[]> {
+  const response = await fetcher(`/api/decision-capsules/${encodeURIComponent(capsuleId)}/events`, { cache: "no-store", headers: { Accept: "application/json" } });
+  const payload: unknown = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(readApiError(payload, "Capsule history could not be loaded."));
+  if (!payload || typeof payload !== "object" || !("integrity" in payload) || payload.integrity !== "valid" || !("events" in payload) || !Array.isArray(payload.events) || payload.events.length > 500) {
+    throw new Error("Capsule history did not pass verification.");
+  }
+  const events = payload.events as unknown[];
+  if (events.some(event => !event || typeof event !== "object" || !("id" in event) || typeof event.id !== "string" || !("sequence" in event) || !Number.isSafeInteger(event.sequence) || !("type" in event) || !["forecast", "outcome"].includes(String(event.type)) || !("createdAt" in event) || typeof event.createdAt !== "string" || !Number.isFinite(Date.parse(event.createdAt)) || !("payload" in event) || !event.payload || typeof event.payload !== "object" || Array.isArray(event.payload))) {
+    throw new Error("Capsule history contains an invalid event.");
+  }
+  return events as DecisionCapsuleHistoryEvent[];
+}
+
+export async function appendDecisionCapsuleEvent(capsuleId: string, event: Record<string, unknown>, fetcher: typeof fetch = fetch): Promise<DecisionCapsuleHistoryEvent> {
+  const response = await fetcher(`/api/decision-capsules/${encodeURIComponent(capsuleId)}/events`, {
+    method: "POST", cache: "no-store", headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify(event),
+  });
+  const payload: unknown = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(readApiError(payload, "Capsule event could not be saved."));
+  if (!payload || typeof payload !== "object" || !("integrity" in payload) || payload.integrity !== "valid" || !("event" in payload) || !payload.event || typeof payload.event !== "object") {
+    throw new Error("Capsule event could not be verified.");
+  }
+  return payload.event as DecisionCapsuleHistoryEvent;
+}
+
 function isStrictIsoTimestamp(value: string) {
   const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,9}))?(Z|[+-]\d{2}:\d{2})$/.exec(value);
   if (!match) return false;

@@ -11,6 +11,7 @@ import type { EvidenceGraph, EvidenceGraphNode } from "@/lib/evidence-graph";
 import { JUDGE_SESSION_KEY, storeJudgeResult, clearJudgeResult } from "@/lib/judge-session";
 import { createDecisionCapsule, type DecisionCapsuleReceipt } from "@/lib/decision-capsule-client";
 import { isCurrentDecisionCapsuleSave } from "@/lib/decision-capsule-save-scope";
+import DecisionCapsuleHistory from "@/app/ui/decision-capsule-history";
 
 type StageEvent = { id: string; agent: string; status: "running" | "complete" | "blocked"; title: string; detail: string; at: string; durationMs?: number; asset?: string };
 type Destination = { mode: "paper_futures" | "live_spot"; label: string; href: string };
@@ -370,13 +371,16 @@ export default function AgentFlowDesk({ initialQuestion, initialMonitorId = null
 
     {result ? <section className="flow-results flow-reply" aria-label="Research response">{result.guestSessionResult ? <aside className="flow-guest-result" role="note"><b>Public judge research · browser session</b><span>{guestStored ? "This result is stored in this tab session, not in an account." : "Browser storage is unavailable or the result is too large. This result will be lost if you leave or reload this page."}</span><Link href="/login">Sign in to save future research ↗</Link><button type="button" onClick={() => { const cleared = clearJudgeResult(); setResult(null); setGuestStored(false); setClearError(!cleared); }}>Clear this result</button></aside> : null}<div className="flow-reply-head"><span className="flow-agent-mark" aria-hidden="true">t</span><div><b>Research assessment</b><span>{result.synthesis?.mode === "model" && result.synthesis.provider ? `${result.synthesis.provider} synthesis · ` : "Source-based reading · "}{result.researchType === "macro" ? "macro brief" : `${result.assets.length} ${result.assets.length === 1 ? "issuer" : "issuers"}`}{busySeconds > 0 ? ` · ${busySeconds}s` : ""}</span></div><span className={`flow-method-pill ${result.synthesis?.mode === "model" ? "flow-method-model" : ""}`}>{result.synthesis?.mode === "model" ? "MODEL REVIEWED" : "SOURCE ONLY"}</span></div><div className="flow-user-prompt"><span>Research question</span><p>{result.question}</p></div>{result.researchCoverage?.limitations?.length ? <div className="flow-gates" role="note"><b>Research coverage limits</b><ul>{result.researchCoverage.limitations.map((limit, index) => <li key={index}>{limit}</li>)}</ul></div> : null}{result.evidenceGraph ? <EvidenceGraphPanel graph={result.evidenceGraph} /> : null}<div className="flow-reply-intro"><h2>Findings</h2></div>
       {result.researchRunId ? <section className="flow-capsule" aria-label={translate("Decision Capsule")}>
-        {capsuleReceipt && capsuleReceiptRunId === result.researchRunId ? <div className="flow-capsule-receipt" role="status" aria-live="polite">
-          <b>{translate("Capsule saved · integrity verified")}</b>
-          <span>{translate("Capsule ID")} · <code>{capsuleReceipt.id}</code></span>
-          <span>SHA-256 · <code>{capsuleReceipt.integrityHash}</code></span>
-          <a href={`/api/decision-capsules/${capsuleReceipt.id}`} target="_blank" rel="noopener noreferrer">{translate("Open verified capsule JSON")} ↗</a>
-          <a href={`/api/decision-capsules/${capsuleReceipt.id}?download=1`} target="_blank" rel="noopener noreferrer">{translate("Download verified capsule evidence")} ↓</a>
-        </div> : <button type="button" onClick={() => void saveDecisionCapsule()} disabled={capsuleSaving} aria-busy={capsuleSaving}>
+        {capsuleReceipt && capsuleReceiptRunId === result.researchRunId ? <>
+          <div className="flow-capsule-receipt" role="status" aria-live="polite">
+            <b>{translate("Capsule saved · integrity verified")}</b>
+            <span>{translate("Capsule ID")} · <code>{capsuleReceipt.id}</code></span>
+            <span>SHA-256 · <code>{capsuleReceipt.integrityHash}</code></span>
+            <a href={`/api/decision-capsules/${capsuleReceipt.id}`} target="_blank" rel="noopener noreferrer">{translate("Open verified capsule JSON")} ↗</a>
+            <a href={`/api/decision-capsules/${capsuleReceipt.id}?download=1`} target="_blank" rel="noopener noreferrer">{translate("Download verified capsule evidence")} ↓</a>
+          </div>
+          <DecisionCapsuleHistory key={capsuleReceipt.id} capsuleId={capsuleReceipt.id} />
+        </> : <button type="button" onClick={() => void saveDecisionCapsule()} disabled={capsuleSaving} aria-busy={capsuleSaving}>
           {capsuleSaving ? translate("Saving capsule…") : translate("Save private Decision Capsule ↗")}
         </button>}
         {capsuleError && capsuleErrorRunId === result.researchRunId ? <p className="flow-capsule-error" role="alert">{capsuleError}</p> : null}

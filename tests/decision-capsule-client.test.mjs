@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createDecisionCapsule } from "../lib/decision-capsule-client.ts";
+import { appendDecisionCapsuleEvent, createDecisionCapsule, getDecisionCapsuleEvents } from "../lib/decision-capsule-client.ts";
 
 const capsule = {
   id: "10000000-0000-4000-8000-000000000001",
@@ -52,4 +52,30 @@ test("rejects malformed and impossible capsule timestamps", async () => {
       /invalid integrity receipt/,
     );
   }
+});
+
+test("loads only a bounded event list returned with a verified chain status", async () => {
+  const event = { id: capsule.id, sequence: 1, type: "forecast", createdAt: capsule.created_at, payload: { direction: "up" } };
+  let request;
+  const events = await getDecisionCapsuleEvents(capsule.id, async (url, init) => {
+    request = { url, init };
+    return new Response(JSON.stringify({ capsuleId: capsule.id, events: [event], integrity: "valid" }), { status: 200 });
+  });
+  assert.equal(request.url, `/api/decision-capsules/${capsule.id}/events`);
+  assert.equal(request.init.cache, "no-store");
+  assert.deepEqual(events, [event]);
+  await assert.rejects(getDecisionCapsuleEvents(capsule.id, async () => new Response(JSON.stringify({ events: [event], integrity: "invalid" }), { status: 200 })), /did not pass verification/);
+});
+
+test("appends typed capsule history events without caching and preserves server errors", async () => {
+  const event = { id: capsule.id, sequence: 1, type: "forecast", createdAt: capsule.created_at, payload: { direction: "up" } };
+  let request;
+  const saved = await appendDecisionCapsuleEvent(capsule.id, { idempotencyKey: capsule.id, type: "forecast", payload: event.payload }, async (url, init) => {
+    request = { url, init };
+    return new Response(JSON.stringify({ event, integrity: "valid" }), { status: 201 });
+  });
+  assert.equal(request.init.method, "POST");
+  assert.equal(request.init.cache, "no-store");
+  assert.deepEqual(saved, event);
+  await assert.rejects(appendDecisionCapsuleEvent(capsule.id, {}, async () => new Response(JSON.stringify({ error: "Capsule event limit reached." }), { status: 409 })), /event limit reached/);
 });
