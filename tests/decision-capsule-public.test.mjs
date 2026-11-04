@@ -117,6 +117,8 @@ test("research projection rejects malformed timestamps and non-JSON summary valu
   assert.equal(verifyPublicCapsuleSnapshot(invalidDate), false);
   const invalidSummary = structuredClone(snapshot); invalidSummary.research.summary = Number.NaN;
   assert.equal(verifyPublicCapsuleSnapshot(invalidSummary), false);
+  const rolledCalendarDate = structuredClone(snapshot); rolledCalendarDate.research.createdAt = "2026-02-30T00:00:00Z";
+  assert.equal(verifyPublicCapsuleSnapshot(rolledCalendarDate), false);
 });
 
 test("event projection re-hashes a verifiable public chain without private capsule and idempotency identifiers", () => {

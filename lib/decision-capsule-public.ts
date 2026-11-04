@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { hashCapsuleSnapshot, type JsonValue } from "./decision-capsules";
 import type { CapsuleEvent } from "./decision-capsule-events";
+import { isStrictIsoTimestamp } from "./strict-iso-timestamp.js";
 
 export type CapsulePublicationSelection = {
   research: boolean;
@@ -30,7 +31,7 @@ function text(value: unknown): string | null {
 }
 
 function nullableText(value: unknown): boolean { return value === null || typeof value === "string"; }
-function validDateText(value: unknown): boolean { return typeof value === "string" && Number.isFinite(Date.parse(value)); }
+function validDateText(value: unknown): boolean { return typeof value === "string" && isStrictIsoTimestamp(value); }
 
 function publicText(value: unknown, limit = 2_000): string | null {
   if (typeof value !== "string") return null;
@@ -220,7 +221,7 @@ export function verifyPublicCapsuleSnapshot(value: unknown): boolean {
   for (let index = 0; index < snapshot.events.length; index += 1) {
     const event = record(snapshot.events[index]);
     if (!event || event.sequence !== index + 1 || !["forecast", "outcome"].includes(String(event.type)) || event.previousHash !== previousHash
-      || typeof event.createdAt !== "string" || !Number.isFinite(Date.parse(event.createdAt)) || !record(event.payload)) return false;
+      || typeof event.createdAt !== "string" || !validDateText(event.createdAt) || !record(event.payload)) return false;
     const payload = event.payload as Record<string, unknown>;
     if (event.type === "forecast") {
       const forecastKeys = ["instrument", "referencePrice", "direction", "thresholdPercent", "horizonAt", "probability", "referenceSourceUrl", "referenceSourceTimestamp", "referenceReportedBy"];
@@ -229,10 +230,10 @@ export function verifyPublicCapsuleSnapshot(value: unknown): boolean {
         || !instrument || !exactKeys(instrument, ["type", "symbol"]) || event.forecastSequence !== null || Object.hasOwn(payload, "forecastEventId")
         || typeof instrument.type !== "string" || typeof instrument.symbol !== "string" || typeof payload.referencePrice !== "number" || !Number.isFinite(payload.referencePrice) || payload.referencePrice <= 0
         || (payload.direction !== "up" && payload.direction !== "down") || typeof payload.thresholdPercent !== "number" || !Number.isFinite(payload.thresholdPercent) || payload.thresholdPercent <= 0 || payload.thresholdPercent > 100
-        || typeof payload.horizonAt !== "string" || !Number.isFinite(Date.parse(payload.horizonAt))) return false;
+        || typeof payload.horizonAt !== "string" || !validDateText(payload.horizonAt)) return false;
       if (Object.hasOwn(payload, "probability") && (typeof payload.probability !== "number" || !Number.isFinite(payload.probability) || payload.probability < 0 || payload.probability > 1)) return false;
       if (Object.hasOwn(payload, "referenceSourceUrl") !== Object.hasOwn(payload, "referenceSourceTimestamp")) return false;
-      if (Object.hasOwn(payload, "referenceSourceUrl") && (safeHttps(payload.referenceSourceUrl) !== payload.referenceSourceUrl || typeof payload.referenceSourceTimestamp !== "string" || !Number.isFinite(Date.parse(payload.referenceSourceTimestamp)))) return false;
+      if (Object.hasOwn(payload, "referenceSourceUrl") && (safeHttps(payload.referenceSourceUrl) !== payload.referenceSourceUrl || typeof payload.referenceSourceTimestamp !== "string" || !validDateText(payload.referenceSourceTimestamp))) return false;
       if (Object.hasOwn(payload, "referenceReportedBy") && payload.referenceReportedBy !== "user") return false;
       if (Object.hasOwn(payload, "referenceSourceUrl") && payload.referenceReportedBy !== "user") return false;
       forecasts.set(event.sequence as number, payload);
@@ -240,8 +241,8 @@ export function verifyPublicCapsuleSnapshot(value: unknown): boolean {
       const reference = event.forecastSequence;
       if (!exactKeys(event, ["sequence", "type", "forecastSequence", "payload", "previousHash", "createdAt", "integrityHash"]) || !exactKeys(payload, ["observedPrice", "observedAt", "sourceUrl", "sourceTimestamp", "reportedBy", "actualReturnPercent", "forecastMet", "brierScore"], ["observedPrice", "observedAt", "sourceUrl", "sourceTimestamp", "reportedBy", "actualReturnPercent", "forecastMet"])
         || !Number.isSafeInteger(reference) || !forecasts.has(reference as number) || outcomes.has(reference as number) || Object.hasOwn(payload, "forecastEventId")
-        || typeof payload.observedPrice !== "number" || !Number.isFinite(payload.observedPrice) || payload.observedPrice <= 0 || typeof payload.observedAt !== "string" || !Number.isFinite(Date.parse(payload.observedAt))
-        || safeHttps(payload.sourceUrl) !== payload.sourceUrl || typeof payload.sourceTimestamp !== "string" || !Number.isFinite(Date.parse(payload.sourceTimestamp))
+        || typeof payload.observedPrice !== "number" || !Number.isFinite(payload.observedPrice) || payload.observedPrice <= 0 || typeof payload.observedAt !== "string" || !validDateText(payload.observedAt)
+        || safeHttps(payload.sourceUrl) !== payload.sourceUrl || typeof payload.sourceTimestamp !== "string" || !validDateText(payload.sourceTimestamp)
         || payload.reportedBy !== "user" || !Number.isFinite(payload.actualReturnPercent) || typeof payload.forecastMet !== "boolean") return false;
       const forecast = forecasts.get(reference as number);
       if (!forecast || Date.parse(String(payload.observedAt)) < Date.parse(String(forecast.horizonAt))) return false;
