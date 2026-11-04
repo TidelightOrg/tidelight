@@ -134,6 +134,8 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f tests/postgres/decision-capsules.sql
       - name: Apply append-only capsule event migration
         run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261104064644_decision_capsule_event_history.sql
+      - name: Apply capsule event append hardening
+        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261104152000_decision_capsule_event_append_hardening.sql
       - name: Test capsule event grants, idempotency, and serialized append
         run: psql -v ON_ERROR_STOP=1 -f tests/postgres/decision-capsule-events.sql
       - name: Apply revocable public capsule publication migration
