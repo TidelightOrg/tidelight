@@ -234,13 +234,13 @@ body:has(.judge-page) :is(.product-quick-actions,.tide-guide){display:none!impor
 .judge-monitor-capture-heading h3{margin:5px 0 0;font-size:19px;letter-spacing:-.025em}
 .judge-monitor-capture-heading>p{margin:0;color:var(--muted);font-size:11px}
 .judge-monitor-capture-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-.judge-monitor-capture{overflow:hidden;border:1px solid var(--judge-line);border-radius:18px;background:var(--surface);text-decoration:none;box-shadow:0 18px 46px #00000014;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
-.judge-monitor-capture:hover{transform:translateY(-3px);border-color:color-mix(in srgb,#b8a477 55%,var(--line));box-shadow:0 22px 54px #00000020}
+.judge-monitor-capture{overflow:hidden;border:1px solid color-mix(in srgb,var(--text) 15%,var(--line));border-radius:14px;background:var(--surface);text-decoration:none;box-shadow:0 10px 28px #0000000a;transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease}
+.judge-monitor-capture:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--text) 35%,var(--line));box-shadow:0 16px 36px #00000012}
 .judge-monitor-capture>img{display:block;width:100%;height:auto;aspect-ratio:1085/630;object-fit:cover;object-position:top;border-bottom:1px solid var(--judge-line);background:#101513}
 .judge-monitor-capture:nth-child(2)>img{aspect-ratio:1085/862}
 .judge-monitor-capture>span{display:grid;grid-template-columns:1fr auto;gap:3px 12px;padding:15px 17px}
 .judge-monitor-capture b{font-size:13px;color:var(--text)}
 .judge-monitor-capture small{grid-column:1;color:var(--muted);font-size:11px}
-.judge-monitor-capture i{grid-column:2;grid-row:1/3;align-self:center;color:#d8c393;font-style:normal;font-size:15px}
+.judge-monitor-capture i{grid-column:2;grid-row:1/3;align-self:center;color:var(--text);font-style:normal;font-size:15px}
 @media(max-width:900px){.judge-monitor-results{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:620px){.judge-monitor-summary{grid-template-columns:32px minmax(0,1fr);gap:11px;padding:16px}.judge-monitor-summary-mark{width:30px;height:30px}.judge-monitor-report-link{grid-column:2;justify-self:start}.judge-monitor-results,.judge-monitor-capture-grid{grid-template-columns:1fr}.judge-monitor-result{min-height:0}.judge-monitor-capture-heading{display:block}.judge-monitor-capture-heading>p{margin-top:8px}.judge-monitor-capture>img,.judge-monitor-capture:nth-child(2)>img{aspect-ratio:1085/650}}
