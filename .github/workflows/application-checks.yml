@@ -130,6 +130,10 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261103060730_private_decision_capsules.sql
       - name: Test capsule ownership, write-once grants, and RLS
         run: psql -v ON_ERROR_STOP=1 -f tests/postgres/decision-capsules.sql
+      - name: Apply append-only capsule event migration
+        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261104064644_decision_capsule_event_history.sql
+      - name: Test capsule event grants, idempotency, and serialized append
+        run: psql -v ON_ERROR_STOP=1 -f tests/postgres/decision-capsule-events.sql
 
   saved-evidence-graph-database:
     runs-on: ubuntu-latest
