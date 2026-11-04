@@ -22,7 +22,7 @@ function safeHttps(value: unknown, policyVersion = 2): string | null {
   if (typeof value !== "string" || value.length > 2_048) return null;
   try {
     const url = new URL(value);
-    const sensitiveQuery = /^(?:key|client[_-]?secret|access[_-]?token|token|api[_-]?key|secret|signature|sig|session(?:id)?|auth(?:orization)?|password|passwd|x-amz-(?:credential|signature|security-token)|x-goog-(?:credential|signature))$/i;
+    const sensitiveQuery = /^(?:key|client[_-]?secret|access[_-]?token|refresh[_-]?token|token|api[_-]?key|secret|signature|sig|session(?:id)?|auth(?:orization)?|password|passwd|x-amz-(?:credential|signature|security-token)|x-goog-(?:credential|signature))$/i;
     if (url.protocol !== "https:" || !url.hostname || url.username || url.password) return null;
     if (policyVersion >= 2 && (url.hash || [...url.searchParams.keys()].some(key => sensitiveQuery.test(key)))) return null;
     return url.toString();
@@ -263,7 +263,7 @@ export function verifyPublicCapsuleSnapshot(value: unknown): boolean {
       if (Object.hasOwn(payload, "referenceSourceUrl") !== Object.hasOwn(payload, "referenceSourceTimestamp")) return false;
       if (Object.hasOwn(payload, "referenceSourceUrl")) {
         const redacted = payload.referenceSourceUrlRedacted === true;
-        if ((redacted ? payload.referenceSourceUrl !== null : safeHttps(payload.referenceSourceUrl, urlPolicyVersion) !== payload.referenceSourceUrl)
+        if ((redacted ? payload.referenceSourceUrl !== null : (urlPolicyVersion >= 2 && payload.referenceSourceUrl === null) || safeHttps(payload.referenceSourceUrl, urlPolicyVersion) !== payload.referenceSourceUrl)
           || (Object.hasOwn(payload, "referenceSourceUrlRedacted") && !redacted)
           || typeof payload.referenceSourceTimestamp !== "string" || !validDateText(payload.referenceSourceTimestamp)) return false;
       } else if (Object.hasOwn(payload, "referenceSourceUrlRedacted")) return false;
@@ -275,7 +275,7 @@ export function verifyPublicCapsuleSnapshot(value: unknown): boolean {
       if (!exactKeys(event, ["sequence", "type", "forecastSequence", "payload", "previousHash", "createdAt", "integrityHash"]) || !exactKeys(payload, ["observedPrice", "observedAt", "sourceUrl", "sourceTimestamp", "reportedBy", "actualReturnPercent", "forecastMet", "brierScore", "sourceUrlRedacted"], ["observedPrice", "observedAt", "sourceUrl", "sourceTimestamp", "reportedBy", "actualReturnPercent", "forecastMet"])
         || !Number.isSafeInteger(reference) || !forecasts.has(reference as number) || outcomes.has(reference as number) || Object.hasOwn(payload, "forecastEventId")
         || typeof payload.observedPrice !== "number" || !Number.isFinite(payload.observedPrice) || payload.observedPrice <= 0 || typeof payload.observedAt !== "string" || !validDateText(payload.observedAt)
-        || (payload.sourceUrlRedacted === true ? payload.sourceUrl !== null : safeHttps(payload.sourceUrl, urlPolicyVersion) !== payload.sourceUrl) || (Object.hasOwn(payload, "sourceUrlRedacted") && payload.sourceUrlRedacted !== true)
+        || (payload.sourceUrlRedacted === true ? payload.sourceUrl !== null : (urlPolicyVersion >= 2 && payload.sourceUrl === null) || safeHttps(payload.sourceUrl, urlPolicyVersion) !== payload.sourceUrl) || (Object.hasOwn(payload, "sourceUrlRedacted") && payload.sourceUrlRedacted !== true)
         || typeof payload.sourceTimestamp !== "string" || !validDateText(payload.sourceTimestamp)
         || payload.reportedBy !== "user" || !Number.isFinite(payload.actualReturnPercent) || typeof payload.forecastMet !== "boolean") return false;
       const forecast = forecasts.get(reference as number);

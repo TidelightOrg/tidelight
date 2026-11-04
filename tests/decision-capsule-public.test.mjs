@@ -8,6 +8,7 @@ const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
   return nextResolve(specifier, context);
 } });
 const { buildPublicCapsuleSnapshot, capsulePublicationHash, hashPublicationToken, verifyPublicCapsuleSnapshot } = await import("../lib/decision-capsule-public.ts");
+const { hashCapsuleSnapshot } = await import("../lib/decision-capsules.ts");
 hooks.deregister();
 
 const sourceId = "70000000-0000-4000-8000-000000000001";
@@ -230,7 +231,7 @@ test("common credential query names are redacted from event provenance", () => {
     ...event,
     payload: {
       ...event.payload,
-      referenceSourceUrl: "https://prices.example/nvda?KEY=private-secret&Client_Secret=also-private",
+      referenceSourceUrl: "https://prices.example/nvda?KEY=private-secret&Client_Secret=also-private&Refresh_Token=long-lived-secret",
       referenceSourceTimestamp: "2026-11-01T00:01:00.000Z",
       referenceReportedBy: "user",
     },
@@ -240,7 +241,28 @@ test("common credential query names are redacted from event provenance", () => {
   assert.equal(snapshot.events[0].payload.referenceSourceUrlRedacted, true);
   assert.equal(JSON.stringify(snapshot).includes("private-secret"), false);
   assert.equal(JSON.stringify(snapshot).includes("also-private"), false);
+  assert.equal(JSON.stringify(snapshot).includes("long-lived-secret"), false);
   assert.equal(verifyPublicCapsuleSnapshot(snapshot), true);
+});
+
+test("policy v2 rejects unflagged null event URLs even when their event hash is recomputed", () => {
+  const forecast = { ...event, payload: { ...event.payload, referenceSourceUrl: "https://prices.example/nvda?refresh-token=private", referenceSourceTimestamp: "2026-11-01T00:01:00.000Z", referenceReportedBy: "user" } };
+  const snapshot = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [forecast], selection: { research: false, evidence: false, events: true } });
+  const tampered = structuredClone(snapshot);
+  delete tampered.events[0].payload.referenceSourceUrlRedacted;
+  const unsigned = { ...tampered.events[0] };
+  delete unsigned.integrityHash;
+  tampered.events[0].integrityHash = hashCapsuleSnapshot(unsigned);
+  assert.equal(verifyPublicCapsuleSnapshot(tampered), false);
+
+  const outcome = { ...event, id: "90000000-0000-4000-8000-000000000002", sequence: 2, type: "outcome", forecastEventId: forecast.id, payload: { forecastEventId: forecast.id, observedPrice: 101, observedAt: "2026-11-03T00:00:00.000Z", sourceUrl: "https://prices.example/nvda?refresh_token=private", sourceTimestamp: "2026-11-03T00:01:00.000Z", reportedBy: "user", actualReturnPercent: 1, forecastMet: false } };
+  const withOutcome = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [{ ...forecast, sequence: 1 }, outcome], selection: { research: false, evidence: false, events: true } });
+  const outcomeTampered = structuredClone(withOutcome);
+  delete outcomeTampered.events[1].payload.sourceUrlRedacted;
+  const unsignedOutcome = { ...outcomeTampered.events[1] };
+  delete unsignedOutcome.integrityHash;
+  outcomeTampered.events[1].integrityHash = hashCapsuleSnapshot(unsignedOutcome);
+  assert.equal(verifyPublicCapsuleSnapshot(outcomeTampered), false);
 });
 
 test("publication tokens are hashed before storage and empty projections are rejected", () => {
