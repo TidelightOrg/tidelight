@@ -18,6 +18,9 @@ test("public capsule viewer is no-login, no-index, and only loads the public pro
   assert.match(viewer, /claim\.stance === "supports" \? "Supports" : claim\.stance === "contradicts" \? "Challenges" : "Context"/);
   assert.match(viewer, /forecasts\.get\(forecastSequence\)/);
   assert.match(viewer, /event\.forecastSequence/);
+  assert.match(viewer, /direction === "up" \? translate\("Up"\) : direction === "down" \? translate\("Down"\)/);
+  assert.match(viewer, /directionLabel\(referencedForecast\.direction\)/);
+  assert.match(viewer, /directionLabel\(payload\.direction\)/);
   assert.match(viewer, /\?download=1/);
   assert.doesNotMatch(viewer, /getServerAuthState|createAdminClient|supabase/);
   assert.match(share, /function publicViewerUrl\(apiUrl: string\)/);

@@ -66,6 +66,7 @@ function CapsuleEvents({ value, translate }: { value: unknown; translate: (value
   if (!Array.isArray(value)) return null;
   const events = value.filter(isRecord);
   const forecasts = new Map<number, JsonRecord>();
+  const directionLabel = (direction: unknown) => direction === "up" ? translate("Up") : direction === "down" ? translate("Down") : stringValue(direction);
   for (const event of events) if (event.type === "forecast" && typeof event.sequence === "number" && isRecord(event.payload)) forecasts.set(event.sequence, event.payload);
   return <section className="public-capsule-section">
     <h2>{translate("Forecast history")}</h2>
@@ -79,7 +80,7 @@ function CapsuleEvents({ value, translate }: { value: unknown; translate: (value
       const symbol = stringValue(isOutcome ? referencedInstrument.symbol : instrument.symbol);
       return <li key={index}>
         <header><strong>{isOutcome ? `${translate("Outcome")} · ${translate("Forecast")} #${forecastSequence ?? "—"}` : `${translate("Forecast")} #${typeof event.sequence === "number" ? event.sequence : index + 1}`}</strong><time>{dateValue(event.createdAt) ?? "—"}</time></header>
-        {isOutcome ? <p>{symbol ? `${symbol} · ` : ""}{referencedForecast ? `${translate("Forecast")}: ${stringValue(referencedForecast.direction)} ${typeof referencedForecast.thresholdPercent === "number" ? `${referencedForecast.thresholdPercent}%` : ""} · ` : ""}{translate("Observed price")} {typeof payload.observedPrice === "number" ? payload.observedPrice.toLocaleString() : "—"} · {typeof payload.actualReturnPercent === "number" ? `${payload.actualReturnPercent.toFixed(2)}%` : "—"}</p> : <p>{stringValue(instrument.symbol)} · {stringValue(payload.direction)} · {translate("Reference price")} {typeof payload.referencePrice === "number" ? payload.referencePrice.toLocaleString() : "—"} · {typeof payload.thresholdPercent === "number" ? `${payload.thresholdPercent}%` : "—"}</p>}
+        {isOutcome ? <p>{symbol ? `${symbol} · ` : ""}{referencedForecast ? `${translate("Forecast")}: ${directionLabel(referencedForecast.direction)} ${typeof referencedForecast.thresholdPercent === "number" ? `${referencedForecast.thresholdPercent}%` : ""} · ` : ""}{translate("Observed price")} {typeof payload.observedPrice === "number" ? payload.observedPrice.toLocaleString() : "—"} · {typeof payload.actualReturnPercent === "number" ? `${payload.actualReturnPercent.toFixed(2)}%` : "—"}</p> : <p>{stringValue(instrument.symbol)} · {directionLabel(payload.direction)} · {translate("Reference price")} {typeof payload.referencePrice === "number" ? payload.referencePrice.toLocaleString() : "—"} · {typeof payload.thresholdPercent === "number" ? `${payload.thresholdPercent}%` : "—"}</p>}
         {isOutcome ? <span className="public-capsule-reported">{translate("Reported by user")}</span> : payload.horizonAt ? <span>{translate("Horizon")} · {dateValue(payload.horizonAt) ?? "—"}</span> : null}
       </li>;
     })}</ol> : <p>{translate("No forecast history was included.")}</p>}
