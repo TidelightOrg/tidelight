@@ -375,7 +375,7 @@ export default function AgentFlowDesk({ initialQuestion, initialMonitorId = null
           <span>{translate("Capsule ID")} · <code>{capsuleReceipt.id}</code></span>
           <span>SHA-256 · <code>{capsuleReceipt.integrityHash}</code></span>
           <a href={`/api/decision-capsules/${capsuleReceipt.id}`} target="_blank" rel="noopener noreferrer">{translate("Open verified capsule JSON")} ↗</a>
-          <a href={`/api/decision-capsules/${capsuleReceipt.id}?download=1`} download>{translate("Download verified capsule evidence")} ↓</a>
+          <a href={`/api/decision-capsules/${capsuleReceipt.id}?download=1`} target="_blank" rel="noopener noreferrer">{translate("Download verified capsule evidence")} ↓</a>
         </div> : <button type="button" onClick={() => void saveDecisionCapsule()} disabled={capsuleSaving} aria-busy={capsuleSaving}>
           {capsuleSaving ? translate("Saving capsule…") : translate("Save private Decision Capsule ↗")}
         </button>}
