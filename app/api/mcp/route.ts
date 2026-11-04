@@ -7,6 +7,7 @@ import { GET as listInstruments } from "@/app/api/v1/market/instruments/route";
 import { POST as startResearch } from "@/app/api/v1/research/jobs/route";
 import { DELETE as cancelResearch, GET as getResearch } from "@/app/api/v1/research/jobs/[jobId]/route";
 import { GET as getPublicCapsule } from "@/app/api/decision-capsules/public/[token]/route";
+import { mcpRateLimitClientHeaders } from "@/lib/tic/mcp-client-ip";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -45,9 +46,7 @@ function makeInvoker(secret: string, incomingRequest: Request): TicMcpInvoker {
         return (await cancelResearch(apiRequest(secret, `/api/v1/research/jobs/${encodeURIComponent(operation.jobId)}`, "DELETE"), { params: Promise.resolve({ jobId: operation.jobId }) })) ?? Response.json({ error: { code: "service_unavailable", message: "The research job could not be cancelled." } }, { status: 503 });
       case "capsule.public.get":
         {
-          const headers = new Headers();
-          const forwardedIp = incomingRequest.headers.get("x-vercel-forwarded-for");
-          if (forwardedIp) headers.set("x-vercel-forwarded-for", forwardedIp);
+          const headers = mcpRateLimitClientHeaders(incomingRequest.headers);
           return getPublicCapsule(new Request(`https://tidelight.app/api/decision-capsules/public/${operation.token}`, { headers }), { params: Promise.resolve({ token: operation.token }) });
         }
       default:
