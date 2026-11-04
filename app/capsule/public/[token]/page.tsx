@@ -9,5 +9,5 @@ export const metadata = {
 
 export default async function PublicCapsulePage({ params }: { params: Promise<{ token: string }> }) {
   const { token } = await params;
-  return <PublicCapsuleViewer token={token} />;
+  return <PublicCapsuleViewer key={token} token={token} />;
 }
