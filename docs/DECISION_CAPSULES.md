@@ -7,6 +7,7 @@ Decision Capsules preserve an immutable, private snapshot of a completed researc
 - `POST /api/decision-capsules` with `{ "researchRunId": "<uuid>" }` requires a signed-in user and snapshots only a completed run belonging to that user.
 - Repeating the request for the same owner and run returns the existing capsule. The database enforces one capsule per owner/run.
 - `GET /api/decision-capsules/<capsule-id>` requires the owning signed-in user. It recomputes the canonical SHA-256 over `original_snapshot` and returns the snapshot only when the digest matches.
+- Add `?download=1` to the verified GET URL to receive the same owner-scoped JSON as a `nosniff` attachment. The Research receipt offers both an inline verification link and a download action; each request repeats owner and integrity checks.
 - Both endpoints are private and `no-store`. There is no public lookup, share token, capsule revocation, outcome record, or calibration claim in v1.
 
 Completed authenticated Research results now offer a **Save private Decision Capsule** action. It submits only the saved research run ID; the server retrieves and snapshots the owner-scoped sources and claims. Guest Judge results do not expose the action because they have no persisted account run. The Research interface displays the integrity hash and links to the owner-authenticated verification response after the API confirms the SHA-256. Repeating a save uses the existing idempotent owner/run contract. This captures research provenance only and does not create a forecast, paper order, or outcome assessment.
