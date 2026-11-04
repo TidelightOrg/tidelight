@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, type FormEvent } from "react";
+import { useCallback, useEffect, useRef, useState, type FormEvent } from "react";
 import { useLanguage } from "@/app/ui/language-provider";
 import { appendDecisionCapsuleEvent, getDecisionCapsuleEvents, type DecisionCapsuleHistoryEvent } from "@/lib/decision-capsule-client";
 
@@ -18,14 +18,16 @@ function localDateTime(value: Date) {
   return new Date(value.getTime() - offset).toISOString().slice(0, 16);
 }
 
-function formatPayload(event: DecisionCapsuleHistoryEvent, translate: (key: string) => string) {
+function formatPayload(event: DecisionCapsuleHistoryEvent, translate: (key: string) => string, forecast?: DecisionCapsuleHistoryEvent) {
   const payload = event.payload;
   if (event.type === "forecast") {
     const instrument = payload.instrument as { type?: string; symbol?: string } | undefined;
     return `${instrument?.symbol ?? "Instrument"} · ${instrument?.type?.replaceAll("_", " ") ?? ""} · ${payload.direction === "up" ? "↑" : "↓"} ${payload.thresholdPercent}% from ${payload.referencePrice}`;
   }
   const score = typeof payload.brierScore === "number" ? ` · ${translate("Brier")} ${payload.brierScore.toFixed(3)} ${translate("(one outcome)")}` : "";
-  return `${payload.forecastMet ? "Threshold reached" : "Threshold not reached"} · ${Number(payload.actualReturnPercent).toFixed(2)}%${score} · user reported`;
+  const instrument = forecast?.payload.instrument as { type?: string; symbol?: string } | undefined;
+  const identity = instrument?.symbol ? `${instrument.symbol} · ${instrument.type?.replaceAll("_", " ") ?? ""} · ` : "";
+  return `${identity}${payload.forecastMet ? "Threshold reached" : "Threshold not reached"} · ${Number(payload.actualReturnPercent).toFixed(2)}%${score} · user reported`;
 }
 
 export default function DecisionCapsuleHistory({ capsuleId }: { capsuleId: string }) {
@@ -47,6 +49,8 @@ export default function DecisionCapsuleHistory({ capsuleId }: { capsuleId: strin
   const [observedAt, setObservedAt] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
   const [sourceTimestamp, setSourceTimestamp] = useState("");
+  const forecastRetryKey = useRef<{ payload: string; key: string } | null>(null);
+  const resetOutcomeDraft = () => { setOutcomeForecast(null); setObservedPrice(""); setObservedAt(""); setSourceUrl(""); setSourceTimestamp(""); };
 
   const loadHistory = useCallback(() => getDecisionCapsuleEvents(capsuleId), [capsuleId]);
   const refresh = useCallback(async () => {
@@ -73,8 +77,11 @@ export default function DecisionCapsuleHistory({ capsuleId }: { capsuleId: strin
       horizonAt: new Date(horizonAt).toISOString(),
       ...(probability.trim() ? { probability: Number(probability) } : {}),
     };
+    const payloadKey = JSON.stringify(payload);
+    if (!forecastRetryKey.current || forecastRetryKey.current.payload !== payloadKey) forecastRetryKey.current = { payload: payloadKey, key: crypto.randomUUID() };
     try {
-      await appendDecisionCapsuleEvent(capsuleId, { idempotencyKey: crypto.randomUUID(), type: "forecast", payload });
+      await appendDecisionCapsuleEvent(capsuleId, { idempotencyKey: forecastRetryKey.current.key, type: "forecast", payload });
+      forecastRetryKey.current = null;
       setSymbol(""); setReferencePrice(""); setProbability(""); setExpanded(false);
       await refresh();
     } catch (cause) { setError(cause instanceof Error ? cause.message : translate("Capsule event could not be saved.")); }
@@ -96,7 +103,7 @@ export default function DecisionCapsuleHistory({ capsuleId }: { capsuleId: strin
           sourceTimestamp: new Date(sourceTimestamp).toISOString(),
         },
       });
-      setOutcomeForecast(null); setObservedPrice(""); setObservedAt(""); setSourceUrl(""); setSourceTimestamp("");
+      resetOutcomeDraft();
       await refresh();
     } catch (cause) { setError(cause instanceof Error ? cause.message : translate("Capsule event could not be saved.")); }
     finally { setSubmitting(false); }
@@ -108,13 +115,13 @@ export default function DecisionCapsuleHistory({ capsuleId }: { capsuleId: strin
     {!loading && events.length ? <ol aria-label={translate("Verified capsule events")}>
       {events.map(event => <li key={event.id}>
         <span className="flow-capsule-event-type">{translate(event.type === "forecast" ? "Forecast" : "Outcome")}</span>
-        <span>{formatPayload(event, translate)}</span>
+        <span>{formatPayload(event, translate, event.type === "outcome" ? events.find(item => item.id === event.payload.forecastEventId && item.type === "forecast") : undefined)}</span>
         <time dateTime={event.createdAt}>{new Date(event.createdAt).toLocaleString()}</time>
         {event.type === "forecast" ? (() => {
           const horizon = Date.parse(String(event.payload.horizonAt));
           const hasOutcome = events.some(item => item.type === "outcome" && item.payload.forecastEventId === event.id);
           if (hasOutcome || !Number.isFinite(horizon) || Date.now() < horizon) return null;
-          return <button type="button" onClick={() => { setOutcomeForecast(event); setObservedAt(localDateTime(new Date())); }} aria-label={`${translate("Record outcome for")} ${String((event.payload.instrument as { symbol?: string })?.symbol ?? "forecast")}`}>
+          return <button type="button" onClick={() => { if (outcomeForecast?.id !== event.id) { setObservedPrice(""); setSourceUrl(""); setSourceTimestamp(""); } setOutcomeForecast(event); setObservedAt(localDateTime(new Date())); }} aria-label={`${translate("Record outcome for")} ${String((event.payload.instrument as { symbol?: string })?.symbol ?? "forecast")}`}>
             {translate("Record outcome")}
           </button>;
         })() : null}
@@ -125,10 +132,10 @@ export default function DecisionCapsuleHistory({ capsuleId }: { capsuleId: strin
       <label>{translate("Observed at")}<input type="datetime-local" required value={observedAt} onChange={event => setObservedAt(event.target.value)} /></label>
       <label>{translate("Source URL")}<input type="url" required value={sourceUrl} onChange={event => setSourceUrl(event.target.value)} /></label>
       <label>{translate("Source timestamp")}<input type="datetime-local" required value={sourceTimestamp} onChange={event => setSourceTimestamp(event.target.value)} /></label>
-      <div><button type="submit" disabled={submitting || !sourceTimestamp}>{submitting ? translate("Saving") : translate("Save outcome")}</button><button type="button" onClick={() => setOutcomeForecast(null)}>{translate("Cancel")}</button></div>
+      <div><button type="submit" disabled={submitting || !sourceTimestamp}>{submitting ? translate("Saving") : translate("Save outcome")}</button><button type="button" onClick={resetOutcomeDraft}>{translate("Cancel")}</button></div>
     </form> : null}
     {expanded ? <form className="flow-capsule-event-form" onSubmit={submitForecast}>
-      <label>{translate("Instrument type")}<select value={instrumentType} onChange={event => setInstrumentType(event.target.value as Forecast["instrument"]["type"])}><option value="us_equity">{translate("US equity")}</option><option value="reality_token">{translate("Reality token")}</option><option value="us_stock_perpetual">{translate("US-stock perpetual")}</option></select></label>
+      <label>{translate("Instrument type")}<select value={instrumentType} onChange={event => { forecastRetryKey.current = null; setInstrumentType(event.target.value as Forecast["instrument"]["type"]); }}><option value="us_equity">{translate("US equity")}</option><option value="reality_token">{translate("Reality token")}</option><option value="us_stock_perpetual">{translate("US-stock perpetual")}</option></select></label>
       <label>{translate("Symbol")}<input autoComplete="off" maxLength={16} required value={symbol} onChange={event => setSymbol(event.target.value.toUpperCase())} /></label>
       <label>{translate("Reference price")}<input type="number" min="0.00000001" step="any" required value={referencePrice} onChange={event => setReferencePrice(event.target.value)} /></label>
       <label>{translate("Direction")}<select value={direction} onChange={event => setDirection(event.target.value as Forecast["direction"])}><option value="up">{translate("Up")}</option><option value="down">{translate("Down")}</option></select></label>
