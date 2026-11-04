@@ -6,6 +6,31 @@ user_id='10000000-0000-4000-8000-000000000001'
 tmp_dir="$(mktemp -d)"
 ready_file="$tmp_dir/lock-ready"
 continue_file="$tmp_dir/continue-append"
+appender_pid=""
+publisher_pid=""
+
+cleanup_process() {
+  local process_id="$1"
+  [[ -n "$process_id" ]] || return 0
+  if kill -0 "$process_id" 2>/dev/null; then
+    for _ in {1..20}; do
+      kill -0 "$process_id" 2>/dev/null || break
+      sleep 0.05
+    done
+    if kill -0 "$process_id" 2>/dev/null; then kill "$process_id" 2>/dev/null || true; fi
+    wait "$process_id" 2>/dev/null || true
+  fi
+}
+
+cleanup() {
+  touch "$continue_file"
+  cleanup_process "$publisher_pid"
+  cleanup_process "$appender_pid"
+  rm -rf "$tmp_dir"
+}
+trap cleanup EXIT
+trap 'exit 130' INT
+trap 'exit 143' TERM
 
 # Keep the append transaction open after the append function acquires its lock.
 # The marker makes sure the stale publisher starts only after that lock exists.
@@ -34,6 +59,8 @@ for attempt in {1..50}; do
   sleep 0.1
 done
 if [[ ! -f "$ready_file" ]]; then
+  touch "$continue_file"
+  wait "$appender_pid" || true
   cat "$tmp_dir/appender.log"
   echo "capsule appender did not acquire its advisory lock" >&2
   exit 1
