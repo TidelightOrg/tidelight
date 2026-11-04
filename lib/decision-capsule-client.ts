@@ -8,7 +8,7 @@ export type DecisionCapsuleReceipt = {
 
 export type SavedDecisionCapsule = Pick<DecisionCapsuleReceipt, "id" | "createdAt" | "integrityHash"> & { question: string };
 export type CapsulePublicationSelection = { research: boolean; evidence: boolean; events: boolean };
-export type CapsulePublicationPreview = { preview: Record<string, unknown>; integrityHash: string };
+export type CapsulePublicationPreview = { preview: Record<string, unknown>; integrityHash: string; confirmationHash: string };
 
 export async function getSavedDecisionCapsules(fetcher: typeof fetch = fetch): Promise<SavedDecisionCapsule[]> {
   const response = await fetcher("/api/decision-capsules", { cache: "no-store", headers: { Accept: "application/json" } });
@@ -67,14 +67,14 @@ export async function getCapsulePublicationStatus(capsuleId: string, fetcher: ty
 
 export async function previewDecisionCapsuleShare(capsuleId: string, selection: CapsulePublicationSelection, fetcher: typeof fetch = fetch): Promise<CapsulePublicationPreview> {
   const payload = await shareRequest(capsuleId, { action: "preview", selection }, fetcher);
-  if (!payload.preview || typeof payload.preview !== "object" || Array.isArray(payload.preview) || typeof payload.integrityHash !== "string" || !/^[a-f0-9]{64}$/.test(payload.integrityHash)) {
+  if (!payload.preview || typeof payload.preview !== "object" || Array.isArray(payload.preview) || typeof payload.integrityHash !== "string" || !/^[a-f0-9]{64}$/.test(payload.integrityHash) || typeof payload.confirmationHash !== "string" || !/^[a-f0-9]{64}$/.test(payload.confirmationHash)) {
     throw new Error("Capsule sharing returned an invalid public preview.");
   }
-  return { preview: payload.preview as Record<string, unknown>, integrityHash: payload.integrityHash };
+  return { preview: payload.preview as Record<string, unknown>, integrityHash: payload.integrityHash, confirmationHash: payload.confirmationHash };
 }
 
-export async function publishDecisionCapsuleShare(capsuleId: string, selection: CapsulePublicationSelection, expectedIntegrityHash: string, fetcher: typeof fetch = fetch) {
-  const payload = await shareRequest(capsuleId, { action: "publish", selection, confirmed: true, expectedIntegrityHash }, fetcher);
+export async function publishDecisionCapsuleShare(capsuleId: string, selection: CapsulePublicationSelection, expectedConfirmationHash: string, fetcher: typeof fetch = fetch) {
+  const payload = await shareRequest(capsuleId, { action: "publish", selection, confirmed: true, expectedConfirmationHash }, fetcher);
   if (payload.published !== true || typeof payload.url !== "string" || !/^\/api\/decision-capsules\/public\/[A-Za-z0-9_-]{43}$/.test(payload.url)
     || typeof payload.createdAt !== "string" || !isStrictIsoTimestamp(payload.createdAt) || typeof payload.integrityHash !== "string" || !/^[a-f0-9]{64}$/.test(payload.integrityHash)) {
     throw new Error("Capsule sharing returned invalid public link details.");

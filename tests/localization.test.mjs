@@ -177,9 +177,9 @@ test("public capsule sharing requires selected fields and translated owner confi
     "Review exact public content", "I reviewed this content and want to publish it", "Publish public copy", "Open public verification", "Copy public link", "Revoke public link",
   ]) assert.equal(typeof translations[key], "string", `Simplified Chinese must translate: ${key}`);
   assert.match(desk, /previewDecisionCapsuleShare\(capsuleId, selection\)/);
-  assert.match(desk, /publishDecisionCapsuleShare\(capsuleId, selection, preview\.integrityHash\)/);
+  assert.match(desk, /publishDecisionCapsuleShare\(capsuleId, selection, preview\.confirmationHash\)/);
   assert.match(desk, /<DecisionCapsuleShare key=\{selected\.id\}/);
-  assert.match(client, /expectedIntegrityHash/);
+  assert.match(client, /expectedConfirmationHash/);
 });
 
 test("developer pages expose a language toggle and share the language preference across Tidelight subdomains", async () => {

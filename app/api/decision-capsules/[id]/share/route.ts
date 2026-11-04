@@ -4,7 +4,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { getServerAuthState } from "@/lib/supabase/auth-user";
 import { capsuleHashMatches } from "@/lib/decision-capsules";
 import { MAX_CAPSULE_EVENTS, verifyCapsuleEventChain, type CapsuleEventRow } from "@/lib/decision-capsule-events";
-import { buildPublicCapsuleSnapshot, capsulePublicationHash, hashPublicationToken, MAX_PUBLIC_CAPSULE_BYTES, type CapsulePublicationSelection, verifyPublicCapsuleSnapshot } from "@/lib/decision-capsule-public";
+import { buildPublicCapsuleSnapshot, capsuleHistoryHead, capsulePublicationConfirmationHash, capsulePublicationHash, hashPublicationToken, MAX_PUBLIC_CAPSULE_BYTES, type CapsulePublicationSelection, verifyPublicCapsuleSnapshot } from "@/lib/decision-capsule-public";
 
 export const dynamic = "force-dynamic";
 const noStore = { "Cache-Control": "no-store", "X-Content-Type-Options": "nosniff" };
@@ -93,20 +93,22 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   const selection = parseSelection(body.selection);
   if (body.action !== "preview" && body.action !== "publish") return NextResponse.json({ error: "Choose a supported capsule sharing action." }, { status: 400, headers: noStore });
   if (!selection) return NextResponse.json({ error: "Select at least one public section." }, { status: 400, headers: noStore });
-  if (body.action === "publish" && (!exactKeys(body, ["action", "selection", "confirmed", "expectedIntegrityHash"]) || body.confirmed !== true || typeof body.expectedIntegrityHash !== "string" || !HASH.test(body.expectedIntegrityHash))) {
+  if (body.action === "publish" && (!exactKeys(body, ["action", "selection", "confirmed", "expectedConfirmationHash"]) || body.confirmed !== true || typeof body.expectedConfirmationHash !== "string" || !HASH.test(body.expectedConfirmationHash))) {
     return NextResponse.json({ error: "Review the public copy and confirm before publishing." }, { status: 400, headers: noStore });
   }
   if (body.action === "preview" && !exactKeys(body, ["action", "selection"])) return NextResponse.json({ error: "Unsupported preview fields." }, { status: 400, headers: noStore });
 
   const loaded = await loadOwnerCapsule(admin, user.id, id); if (loaded.response) return loaded.response;
-  let publicSnapshot: Record<string, unknown>; let integrityHash: string;
+  let publicSnapshot: Record<string, unknown>; let integrityHash: string; let confirmationHash: string; let historyHead: ReturnType<typeof capsuleHistoryHead>;
   try {
     publicSnapshot = buildPublicCapsuleSnapshot({ originalSnapshot: loaded.capsule.original_snapshot, capsuleIntegrityHash: loaded.capsule.integrity_hash, events: loaded.events, selection });
     integrityHash = capsulePublicationHash(publicSnapshot);
+    historyHead = capsuleHistoryHead(loaded.capsule.integrity_hash, loaded.events);
+    confirmationHash = capsulePublicationConfirmationHash(publicSnapshot, historyHead);
     if (Buffer.byteLength(JSON.stringify(publicSnapshot), "utf8") > MAX_PUBLIC_CAPSULE_BYTES) return NextResponse.json({ error: "This public projection is too large to publish safely." }, { status: 413, headers: noStore });
   } catch { return NextResponse.json({ error: "The selected public sections could not be prepared." }, { status: 422, headers: noStore }); }
-  if (body.action === "preview") return NextResponse.json({ preview: publicSnapshot, integrityHash }, { headers: noStore });
-  if (body.expectedIntegrityHash !== integrityHash) return NextResponse.json({ error: "Capsule history changed after preview. Review a fresh public copy." }, { status: 409, headers: noStore });
+  if (body.action === "preview") return NextResponse.json({ preview: publicSnapshot, integrityHash, confirmationHash }, { headers: noStore });
+  if (body.expectedConfirmationHash !== confirmationHash) return NextResponse.json({ error: "Capsule history changed after preview. Review a fresh public copy." }, { status: 409, headers: noStore });
 
   const { data: existing, error: existingError } = await admin.from("decision_capsule_publications")
     .select("id").eq("capsule_id", id).eq("user_id", user.id).is("revoked_at", null).maybeSingle();
@@ -114,13 +116,20 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
   if (existing) return NextResponse.json({ error: "An active public capsule link already exists. Revoke it before publishing a new copy." }, { status: 409, headers: noStore });
 
   const token = randomBytes(32).toString("base64url");
-  const { data: inserted, error: insertError } = await admin.from("decision_capsule_publications")
-    .insert({ capsule_id: id, user_id: user.id, token_hash: hashPublicationToken(token), schema_version: 1, public_snapshot: publicSnapshot, integrity_hash: integrityHash })
-    .select("created_at").maybeSingle();
+  const { data: inserted, error: insertError } = await admin.rpc("publish_decision_capsule_publication", {
+    p_capsule_id: id,
+    p_user_id: user.id,
+    p_expected_history_sequence: historyHead.sequence,
+    p_expected_history_hash: historyHead.hash,
+    p_token_hash: hashPublicationToken(token),
+    p_public_snapshot: publicSnapshot,
+    p_integrity_hash: integrityHash,
+  });
   if (insertError) {
     if (insertError.code === "23505") return NextResponse.json({ error: "An active public capsule link already exists. Revoke it before publishing a new copy." }, { status: 409, headers: noStore });
+    if (insertError.code === "40001" || insertError.message === "capsule_event_head_changed") return NextResponse.json({ error: "Capsule history changed after preview. Review a fresh public copy." }, { status: 409, headers: noStore });
     return NextResponse.json({ error: "The public capsule could not be stored." }, { status: 503, headers: noStore });
   }
-  if (!inserted) return NextResponse.json({ error: "The public capsule could not be stored." }, { status: 503, headers: noStore });
+  if (!inserted || typeof inserted.created_at !== "string") return NextResponse.json({ error: "The public capsule could not be stored." }, { status: 503, headers: noStore });
   return NextResponse.json({ published: true, url: `/api/decision-capsules/public/${token}`, createdAt: inserted.created_at, integrityHash }, { status: 201, headers: noStore });
 }
