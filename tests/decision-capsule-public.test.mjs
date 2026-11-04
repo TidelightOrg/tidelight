@@ -54,6 +54,32 @@ test("research-only disclosure allowlists nested Agent Flow fields and strips pr
   assert.equal(verifyPublicCapsuleSnapshot(projection), true);
 });
 
+test("research-only disclosure preserves evidence-brief narrative without sources or private identifiers", () => {
+  const snapshot = structuredClone(privateSnapshot);
+  snapshot.research.summary = {
+    summary: "Revenue growth is reported in the excerpt. 80000000-0000-4000-8000-000000000001 https://example.com/private",
+    answer_status: "source_matched_claims",
+    upside: "Demand improved",
+    downside: "Margins remain uncertain",
+    catalysts: ["Next earnings"],
+    what_would_change: ["A revised filing", "Check https://example.com/internal before the next report"],
+    research_run_id: "90000000-0000-4000-8000-000000000001",
+    claims: [{ claim: "private" }],
+    sources: [{ url: "https://example.com/private" }],
+  };
+  const projection = buildPublicCapsuleSnapshot({ originalSnapshot: snapshot, capsuleIntegrityHash: "c".repeat(64), events: [], selection: { research: true, evidence: false, events: false } });
+  assert.equal(projection.research.summary.summary, "Revenue growth is reported in the excerpt. [private identifier omitted] [source link omitted]");
+  assert.equal(projection.research.summary.answer_status, "source_matched_claims");
+  assert.equal(projection.research.summary.upside, "Demand improved");
+  assert.equal(projection.research.summary.downside, "Margins remain uncertain");
+  assert.deepEqual(projection.research.summary.catalysts, ["Next earnings"]);
+  assert.deepEqual(projection.research.summary.what_would_change, ["A revised filing", "Check [source link omitted] before the next report"]);
+  assert.equal("research_run_id" in projection.research.summary, false);
+  assert.equal("claims" in projection.research.summary, false);
+  assert.equal("sources" in projection.research.summary, false);
+  assert.equal(verifyPublicCapsuleSnapshot(projection), true);
+});
+
 test("evidence projection omits non-HTTPS sources and never publishes internal source IDs", () => {
   const sourceWithSecretUrl = structuredClone(privateSnapshot);
   sourceWithSecretUrl.sources.push({ id: "private-signed-source", url: "https://files.example.com/filing?X-Amz-Signature=private-secret", title: "Signed filing", publisher: "Issuer", publishedAt: null, retrievedAt: "2026-11-01T00:01:00.000Z", sourceType: "primary", excerpt: "private", contentHash: null });
@@ -127,6 +153,8 @@ test("research projection rejects malformed timestamps and non-JSON summary valu
   assert.equal(verifyPublicCapsuleSnapshot(invalidDate), false);
   const invalidSummary = structuredClone(snapshot); invalidSummary.research.summary = Number.NaN;
   assert.equal(verifyPublicCapsuleSnapshot(invalidSummary), false);
+  const rolledCalendarDate = structuredClone(snapshot); rolledCalendarDate.research.createdAt = "2026-02-30T00:00:00Z";
+  assert.equal(verifyPublicCapsuleSnapshot(rolledCalendarDate), false);
 });
 
 test("event projection re-hashes a verifiable public chain without private capsule and idempotency identifiers", () => {
