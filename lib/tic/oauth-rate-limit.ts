@@ -2,7 +2,7 @@ import "server-only";
 import { createHmac } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-export type TicOAuthRateEndpoint = "register" | "authorize" | "token" | "revoke";
+export type TicOAuthRateEndpoint = "register" | "authorize" | "token" | "revoke" | "public_capsule";
 
 export async function reserveOAuthRateLimit(request: Request, endpoint: TicOAuthRateEndpoint, limit: number, windowSeconds: number) {
   const source = request.headers.get("x-vercel-forwarded-for") ?? request.headers.get("x-real-ip") ?? "unknown";

@@ -6,6 +6,7 @@ export const NextResponse = class extends Response {
 export const createClient = async () => globalThis.flowTest;
 export const createAdminClient = () => { if (globalThis.flowTest.adminUnavailable) throw new Error('missing server configuration'); return globalThis.flowTest.admin; };
 export const getServerAuthState = async () => ({ user: globalThis.flowTest.user, errorCode: null });
+export const reserveOAuthRateLimit = async (...args) => { globalThis.flowTest.rateLimitCalls?.push(args); if (globalThis.flowTest.rateLimitError) throw new Error("rate-limit-unavailable"); return globalThis.flowTest.rateLimitAllowed !== false; };
 export const requiresMfa = async () => false;
 export const logSecurityEvent = async () => {};
 

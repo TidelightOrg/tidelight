@@ -17,6 +17,13 @@ do $$ begin
   end if;
 end $$;
 
+do $$ begin
+  if not public.reserve_tic_oauth_rate_limit(repeat('e', 64), 'public_capsule', 1, 60)
+    or public.reserve_tic_oauth_rate_limit(repeat('e', 64), 'public_capsule', 1, 60) then
+    raise exception 'public capsule reads must use the shared atomic rate limiter';
+  end if;
+end $$;
+
 set role service_role;
 insert into public.decision_capsule_publications(capsule_id, user_id, token_hash, public_snapshot, integrity_hash)
 values ('50000000-0000-4000-8000-000000000001', '10000000-0000-4000-8000-000000000001', repeat('a', 64), '{"schemaVersion":1,"research":{"question":"shared"}}', repeat('b', 64));

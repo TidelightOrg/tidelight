@@ -4,10 +4,10 @@ import { registerHooks } from "node:module";
 
 const owner = "10000000-0000-4000-8000-000000000001";
 const capsuleId = "e475bd46-5035-4ae5-9f19-e2959a4f0734";
-globalThis.flowTest = { user: { id: owner }, admin: null };
+globalThis.flowTest = { user: { id: owner }, admin: null, rateLimitAllowed: true, rateLimitCalls: [] };
 const fixture = new URL("./fixtures/research-flow-integration-mocks.mjs", import.meta.url).href;
 const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
-  if (specifier === "next/server" || specifier === "@/lib/supabase/admin" || specifier === "@/lib/supabase/auth-user") return { url: fixture, shortCircuit: true };
+  if (specifier === "next/server" || specifier === "@/lib/supabase/admin" || specifier === "@/lib/supabase/auth-user" || specifier === "@/lib/tic/oauth-rate-limit") return { url: fixture, shortCircuit: true };
   if (specifier === "@/lib/decision-capsules") return { url: new URL("../lib/decision-capsules.ts", import.meta.url).href, shortCircuit: true };
   if (specifier === "@/lib/decision-capsule-events") return { url: new URL("../lib/decision-capsule-events.ts", import.meta.url).href, shortCircuit: true };
   if (specifier === "@/lib/decision-capsule-public") return { url: new URL("../lib/decision-capsule-public.ts", import.meta.url).href, shortCircuit: true };
@@ -80,7 +80,7 @@ function installAdmin() {
     },
   };
 }
-function reset() { publication = null; failCapsuleLookup = false; globalThis.flowTest.user = { id: owner }; installAdmin(); }
+function reset() { publication = null; failCapsuleLookup = false; globalThis.flowTest.user = { id: owner }; globalThis.flowTest.adminUnavailable = false; globalThis.flowTest.rateLimitAllowed = true; globalThis.flowTest.rateLimitError = false; globalThis.flowTest.rateLimitCalls = []; installAdmin(); }
 function params(id = capsuleId) { return { params: Promise.resolve({ id }) }; }
 function post(body, id = capsuleId) { return new Request(`https://tidelight.app/api/decision-capsules/${id}/share`, { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(body) }); }
 
@@ -132,6 +132,24 @@ test("public link serves only the redacted immutable projection and verifies its
   assert.equal(JSON.stringify(body).includes("contentHash"), false);
   assert.equal(JSON.stringify(body).includes("idempotencyKey"), false);
   assert.equal((await publicRoute.GET(new Request("https://tidelight.app/api"), { params: Promise.resolve({ token: "bad" }) })).status, 404);
+});
+
+test("public reads enforce a per-IP rate gate before database access", async () => {
+  reset();
+  const selection = { research: true, evidence: false, events: false };
+  const preview = await (await shareRoute.POST(post({ action: "preview", selection }), params())).json();
+  const result = await (await shareRoute.POST(post({ action: "publish", selection, confirmed: true, expectedIntegrityHash: preview.integrityHash }), params())).json();
+  const token = result.url.split("/").at(-1);
+  globalThis.flowTest.adminUnavailable = true;
+  globalThis.flowTest.rateLimitAllowed = false;
+  const limited = await publicRoute.GET(new Request("https://tidelight.app"), { params: Promise.resolve({ token }) });
+  assert.equal(limited.status, 429);
+  assert.equal(limited.headers.get("retry-after"), "60");
+  assert.equal(globalThis.flowTest.rateLimitCalls.at(-1)[1], "public_capsule");
+  globalThis.flowTest.rateLimitAllowed = true;
+  globalThis.flowTest.rateLimitError = true;
+  assert.equal((await publicRoute.GET(new Request("https://tidelight.app"), { params: Promise.resolve({ token }) })).status, 503);
+  assert.equal((await publicRoute.GET(new Request("https://tidelight.app"), { params: Promise.resolve({ token: "bad" }) })).status, 404);
 });
 
 test("owner can revoke a public bearer link and revocation takes effect on the next read", async () => {

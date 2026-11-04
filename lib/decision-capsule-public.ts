@@ -32,6 +32,47 @@ function text(value: unknown): string | null {
 function nullableText(value: unknown): boolean { return value === null || typeof value === "string"; }
 function validDateText(value: unknown): boolean { return typeof value === "string" && Number.isFinite(Date.parse(value)); }
 
+function publicText(value: unknown, limit = 2_000): string | null {
+  if (typeof value !== "string") return null;
+  return value.slice(0, limit)
+    .replace(/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/gi, "[private identifier omitted]")
+    .replace(/https?:\/\/[^\s)\]}>,]+/gi, "[source link omitted]");
+}
+
+function publicResearchSummary(value: unknown): JsonValue {
+  if (typeof value === "string") return publicText(value, 4_000) ?? "";
+  const root = record(value);
+  if (!root) return null;
+  const summary: Record<string, JsonValue> = {};
+  const synthesis = record(root.synthesis);
+  if (synthesis && (synthesis.mode === "model" || synthesis.mode === "source_only")) {
+    summary.synthesis = { mode: synthesis.mode, provider: publicText(synthesis.provider, 120) };
+  }
+  const coverage = record(root.researchCoverage);
+  if (coverage) {
+    const publicCoverage: Record<string, JsonValue> = {};
+    for (const key of ["mode", "collectedAt"]) if (typeof coverage[key] === "string") publicCoverage[key] = publicText(coverage[key], 200) ?? "";
+    for (const key of ["lookbackDays", "queriesPerTicker", "collectedItems", "publishers"]) if (typeof coverage[key] === "number" && Number.isFinite(coverage[key])) publicCoverage[key] = coverage[key] as number;
+    if (Array.isArray(coverage.limitations)) publicCoverage.limitations = coverage.limitations.slice(0, 12).flatMap(item => { const safe = publicText(item, 500); return safe ? [safe] : []; });
+    summary.researchCoverage = publicCoverage;
+  }
+  if (Array.isArray(root.assets)) {
+    summary.assets = root.assets.slice(0, 20).flatMap(value => {
+      const asset = record(value);
+      if (!asset) return [];
+      const safe: Record<string, JsonValue> = {};
+      for (const key of ["ticker", "issuer"]) { const field = publicText(asset[key], 100); if (field) safe[key] = field; }
+      const narrative = publicText(asset.summary, 4_000); if (narrative) safe.summary = narrative;
+      if (["bullish", "bearish", "mixed", "unclear"].includes(String(asset.stance))) safe.stance = asset.stance as string;
+      if (typeof asset.confidence === "number" && Number.isFinite(asset.confidence) && asset.confidence >= 0 && asset.confidence <= 1) safe.confidence = asset.confidence;
+      if (Array.isArray(asset.risks)) safe.risks = asset.risks.slice(0, 8).flatMap(item => { const risk = publicText(item, 500); return risk ? [risk] : []; });
+      const nextCheck = publicText(asset.nextCheck, 500); if (nextCheck) safe.nextCheck = nextCheck;
+      return Object.keys(safe).length ? [safe] : [];
+    });
+  }
+  return summary;
+}
+
 /** Builds a public allowlist projection; private owner, run, source and event-storage IDs are excluded. */
 export function buildPublicCapsuleSnapshot(input: {
   originalSnapshot: unknown;
@@ -59,7 +100,7 @@ export function buildPublicCapsuleSnapshot(input: {
       createdAt: text(research.createdAt) ?? "",
       completedAt: text(research.completedAt),
       model: text(research.model),
-      summary: research.summary === undefined ? null : research.summary as JsonValue,
+      summary: publicResearchSummary(research.summary),
     };
   }
 
@@ -123,6 +164,7 @@ export function buildPublicCapsuleSnapshot(input: {
       return { ...unsigned, integrityHash };
     });
   }
+  if (!verifyPublicCapsuleSnapshot(projection)) throw new TypeError("The public capsule projection failed validation.");
   return projection;
 }
 

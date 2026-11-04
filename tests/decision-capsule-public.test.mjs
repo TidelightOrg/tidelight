@@ -36,6 +36,24 @@ test("public capsule projection includes only selected sections and excludes pri
   assert.equal(JSON.stringify(researchOnly).includes("sourceId"), false);
 });
 
+test("research-only disclosure allowlists nested Agent Flow fields and strips private identifiers and evidence", () => {
+  const snapshot = structuredClone(privateSnapshot);
+  snapshot.research.summary = {
+    researchRunId: "90000000-0000-4000-8000-000000000001",
+    contextRunId: "90000000-0000-4000-8000-000000000002",
+    evidenceGraph: { private: true },
+    assets: [{ ticker: "NVDA", issuer: "NVIDIA", summary: "Revenue rose; https://example.com/private", stance: "mixed", confidence: 0.6, sources: [{ url: "https://example.com/private" }], evidenceBalance: { supporting: ["claim"] }, handoff: { href: "/private" }, tradeable: true }],
+  };
+  const projection = buildPublicCapsuleSnapshot({ originalSnapshot: snapshot, capsuleIntegrityHash: "c".repeat(64), events: [], selection: { research: true, evidence: false, events: false } });
+  const encoded = JSON.stringify(projection);
+  assert.equal(encoded.includes("90000000-0000-4000-8000-000000000001"), false);
+  assert.equal(encoded.includes("evidenceGraph"), false);
+  assert.equal(encoded.includes("private"), false);
+  assert.equal(encoded.includes("sources"), false);
+  assert.equal(projection.research.summary.assets[0].summary, "Revenue rose; [source link omitted]");
+  assert.equal(verifyPublicCapsuleSnapshot(projection), true);
+});
+
 test("evidence projection omits non-HTTPS sources and never publishes internal source IDs", () => {
   const snapshot = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [], selection: { research: false, evidence: true, events: false } });
   assert.equal(snapshot.evidence.sources.length, 1);
@@ -80,8 +98,7 @@ test("public outcome records retain reproducible return, threshold, and Brier ca
   const snapshot = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [forecast, outcome], selection: { research: false, evidence: false, events: true } });
   assert.equal(verifyPublicCapsuleSnapshot(snapshot), true);
   const incorrect = structuredClone(outcome); incorrect.payload.actualReturnPercent = 9;
-  const tamperedCalculation = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [forecast, incorrect], selection: { research: false, evidence: false, events: true } });
-  assert.equal(verifyPublicCapsuleSnapshot(tamperedCalculation), false);
+  assert.throws(() => buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [forecast, incorrect], selection: { research: false, evidence: false, events: true } }), /projection failed validation/);
 });
 
 test("publication tokens are hashed before storage and empty projections are rejected", () => {

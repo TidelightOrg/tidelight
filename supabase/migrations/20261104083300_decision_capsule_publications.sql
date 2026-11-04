@@ -53,3 +53,35 @@ comment on column public.decision_capsule_publications.token_hash is
   'SHA-256 of a random 256-bit bearer token; the reusable raw token is returned only at publication time.';
 comment on column public.decision_capsule_publications.public_snapshot is
   'Allowlisted public projection. It excludes account identifiers and private storage metadata; publication requires owner confirmation.';
+
+alter table public.tic_oauth_rate_limits drop constraint if exists tic_oauth_rate_limits_endpoint_check;
+alter table public.tic_oauth_rate_limits add constraint tic_oauth_rate_limits_endpoint_check
+  check (endpoint in ('register','authorize','token','revoke','public_capsule'));
+
+create or replace function public.reserve_tic_oauth_rate_limit(p_subject_hash text,p_endpoint text,p_max_requests integer,p_window_seconds integer)
+returns boolean
+language plpgsql security definer set search_path = '' as $$
+declare current_window timestamptz; current_count integer;
+begin
+  if p_subject_hash !~ '^[0-9a-f]{64}$' or p_endpoint not in ('register','authorize','token','revoke','public_capsule')
+     or p_max_requests not between 1 and 1000 or p_window_seconds not between 1 and 86400 then
+    raise exception 'invalid OAuth rate limit parameters';
+  end if;
+  perform pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(p_subject_hash || ':' || p_endpoint,0));
+  delete from public.tic_oauth_rate_limits where window_started_at < now() - interval '1 day';
+  select window_started_at,request_count into current_window,current_count
+    from public.tic_oauth_rate_limits where subject_hash=p_subject_hash and endpoint=p_endpoint for update;
+  if not found then
+    insert into public.tic_oauth_rate_limits(subject_hash,endpoint,window_started_at,request_count)
+    values(p_subject_hash,p_endpoint,now(),1);
+  elsif current_window <= now() - make_interval(secs => p_window_seconds) then
+    update public.tic_oauth_rate_limits set window_started_at=now(),request_count=1
+      where subject_hash=p_subject_hash and endpoint=p_endpoint;
+  elsif current_count >= p_max_requests then
+    return false;
+  else
+    update public.tic_oauth_rate_limits set request_count=request_count+1
+      where subject_hash=p_subject_hash and endpoint=p_endpoint;
+  end if;
+  return true;
+end $$;
