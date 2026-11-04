@@ -14,9 +14,9 @@ export type CapsuleInstrumentType = keyof typeof SYMBOLS;
 export type CapsuleForecastPayload = {
   instrument: { type: CapsuleInstrumentType; symbol: string };
   referencePrice: number;
-  referenceSourceUrl: string;
-  referenceSourceTimestamp: string;
-  referenceReportedBy: "user";
+  referenceSourceUrl?: string;
+  referenceSourceTimestamp?: string;
+  referenceReportedBy?: "user";
   direction: "up" | "down";
   thresholdPercent: number;
   horizonAt: string;
@@ -180,13 +180,19 @@ export function mapCapsuleEvent(row: CapsuleEventRow): CapsuleEvent | null {
 }
 
 function isForecastPayload(value: unknown): value is CapsuleForecastPayload {
-  if (!isPlainObject(value) || !exactKeys(value, ["instrument", "referencePrice", "referenceSourceUrl", "referenceSourceTimestamp", "referenceReportedBy", "direction", "thresholdPercent", "horizonAt", ...(Object.hasOwn(value, "probability") ? ["probability"] : [])])) return false;
+  if (!isPlainObject(value)) return false;
+  const baseKeys = ["instrument", "referencePrice", "direction", "thresholdPercent", "horizonAt", ...(Object.hasOwn(value, "probability") ? ["probability"] : [])];
+  const legacyShape = exactKeys(value, baseKeys);
+  const provenanceShape = exactKeys(value, [...baseKeys, "referenceSourceUrl", "referenceSourceTimestamp", "referenceReportedBy"]);
+  if (!legacyShape && !provenanceShape) return false;
   const instrument = value.instrument;
   if (!isPlainObject(instrument) || !exactKeys(instrument, ["type", "symbol"]) || typeof instrument.type !== "string" || !Object.hasOwn(SYMBOLS, instrument.type) || typeof instrument.symbol !== "string" || !SYMBOLS[instrument.type as CapsuleInstrumentType].test(instrument.symbol)) return false;
   if (typeof value.referencePrice !== "number" || !Number.isFinite(value.referencePrice) || value.referencePrice <= 0 || value.referencePrice > 1e15) return false;
-  if (typeof value.referenceSourceUrl !== "string" || value.referenceSourceUrl.length > 2_048 || value.referenceReportedBy !== "user") return false;
-  try { const url = new URL(value.referenceSourceUrl); if (url.protocol !== "https:" || !url.hostname || url.username || url.password || url.toString() !== value.referenceSourceUrl) return false; } catch { return false; }
-  try { parseTimestamp(value.referenceSourceTimestamp, "Reference source timestamp"); } catch { return false; }
+  if (provenanceShape) {
+    if (typeof value.referenceSourceUrl !== "string" || value.referenceSourceUrl.length > 2_048 || value.referenceReportedBy !== "user") return false;
+    try { const url = new URL(value.referenceSourceUrl); if (url.protocol !== "https:" || !url.hostname || url.username || url.password || url.toString() !== value.referenceSourceUrl) return false; } catch { return false; }
+    try { parseTimestamp(value.referenceSourceTimestamp, "Reference source timestamp"); } catch { return false; }
+  }
   if (value.direction !== "up" && value.direction !== "down") return false;
   if (typeof value.thresholdPercent !== "number" || !Number.isFinite(value.thresholdPercent) || value.thresholdPercent <= 0 || value.thresholdPercent > 100) return false;
   try { parseTimestamp(value.horizonAt, "Forecast horizon"); } catch { return false; }
