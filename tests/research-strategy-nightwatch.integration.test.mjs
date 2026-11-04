@@ -110,9 +110,11 @@ test("oversized issuer and macro source URLs are excluded before persistence", a
   const issuerEvents = (await issuerResponse.text()).split("\n\n").filter(Boolean).map(frame => JSON.parse(frame.split("\ndata: ")[1]));
   const issuerResult = issuerEvents.findLast(frame => frame.researchRunId);
   assert.ok(issuerEvents.some(frame => frame.agent === "Evidence search" && frame.detail.includes("Omitted 1 source link")), "the storage limitation count excludes valid items outside the normal forty-source research cap");
-  assert.ok(issuerResult.researchCoverage.limitations.some(limit => limit.includes("longer than 4,096 characters")));
+  assert.ok(issuerResult.researchCoverage.limitations.some(limit => limit.includes("2,000 UTF-8 bytes") && limit.includes("4,096 characters")));
   assert.ok(issuerResult.assets.flatMap(asset => asset.sources).every(source => source.url.length <= 4_096));
-  assert.ok(captures.research.filter(row => row.table === "research_sources").flatMap(row => row.rows).every(source => source.url.length <= 4_096));
+  const issuerPersistedSources = captures.research.filter(row => row.table === "research_sources").flatMap(row => row.rows);
+  assert.ok(issuerPersistedSources.some(source => source.url === sourceRows[0].url));
+  assert.ok(issuerPersistedSources.every(source => source.url.length <= 4_096 && new TextEncoder().encode(source.url).byteLength <= 2_000));
 
   captures.research.length = 0;
   const macroResponse = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
@@ -121,9 +123,11 @@ test("oversized issuer and macro source URLs are excluded before persistence", a
   assert.equal(macroResponse.status, 200);
   const macroEvents = (await macroResponse.text()).split("\n\n").filter(Boolean).map(frame => JSON.parse(frame.split("\ndata: ")[1]));
   const macroResult = macroEvents.findLast(frame => frame.researchRunId);
-  assert.ok(macroResult.researchCoverage.limitations.some(limit => limit.includes("longer than 4,096 characters")));
+  assert.ok(macroResult.researchCoverage.limitations.some(limit => limit.includes("2,000 UTF-8 bytes") && limit.includes("4,096 characters")));
   assert.ok(macroResult.assets.flatMap(asset => asset.sources).every(source => source.url.length <= 4_096));
-  assert.ok(captures.research.filter(row => row.table === "research_sources").flatMap(row => row.rows).every(source => source.url.length <= 4_096));
+  const macroPersistedSources = captures.research.filter(row => row.table === "research_sources").flatMap(row => row.rows);
+  assert.ok(macroPersistedSources.some(source => source.url === macroRows[0].url));
+  assert.ok(macroPersistedSources.every(source => source.url.length <= 4_096 && new TextEncoder().encode(source.url).byteLength <= 2_000));
 });
 
 test("provider outage produces a source-only research result and blocks trade handoff", async t => {
