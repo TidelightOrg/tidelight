@@ -145,6 +145,29 @@ test("hash-chain verification rejects changed payloads, skipped sequence, and or
   assert.equal(verifyCapsuleEventChain(capsuleId, "invalid", []), null);
 });
 
+test("legacy forecast payloads remain verifiable without changing their stored hashes", () => {
+  const [currentForecast, currentOutcome] = chainEvents();
+  const legacyPayload = { ...currentForecast.payload };
+  delete legacyPayload.referenceSourceUrl;
+  delete legacyPayload.referenceSourceTimestamp;
+  delete legacyPayload.referenceReportedBy;
+  const unsignedForecast = structuredClone(currentForecast);
+  delete unsignedForecast.integrityHash;
+  unsignedForecast.payload = legacyPayload;
+  const forecast = { ...unsignedForecast, integrityHash: hashCapsuleEvent(unsignedForecast) };
+  const unsignedOutcome = structuredClone(currentOutcome);
+  delete unsignedOutcome.integrityHash;
+  unsignedOutcome.previousHash = forecast.integrityHash;
+  const outcome = { ...unsignedOutcome, integrityHash: hashCapsuleEvent(unsignedOutcome) };
+  assert.deepEqual(verifyCapsuleEventChain(capsuleId, anchor, [row(forecast), row(outcome)]), [forecast, outcome]);
+  assert.throws(() => parseCapsuleEventInput({
+    idempotencyKey: "3475bd46-5035-4ae5-9f19-e2959a4f0734", type: "forecast", payload: {
+      instrument: { type: "us_equity", symbol: "NVDA" }, referencePrice: 100,
+      direction: "up", thresholdPercent: 5, horizonAt: "2026-11-05T00:00:00Z",
+    },
+  }, now), /incomplete/i);
+});
+
 test("outcome scoring rejects non-forecast and mismatched forecast identities", () => {
   const [forecast, outcome] = chainEvents();
   assert.throws(() => buildCapsuleOutcomePayload(outcome, outcome.payload), /not a forecast/i);
