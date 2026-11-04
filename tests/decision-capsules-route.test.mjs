@@ -49,6 +49,7 @@ const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
   return nextResolve(specifier, context);
 } });
 const route = await import("../app/api/decision-capsules/route.ts");
+const verifyRoute = await import("../app/api/decision-capsules/[id]/route.ts");
 hooks.deregister();
 
 test("capsule creation rejects a completed source-empty run without inserting a capsule", async () => {
@@ -142,4 +143,38 @@ test("capsule retries return the verified saved capsule before requiring source 
   assert.match((await lookupFailure.json()).error, /could not be verified/i);
   globalThis.capsuleRouteTest.existingCapsule = null;
   globalThis.capsuleRouteTest.capsuleLookupError = null;
+});
+
+test("verified capsule evidence downloads as a private attachment only after owner and hash checks", async () => {
+  const { hashCapsuleSnapshot } = await import("../lib/decision-capsules.ts");
+  const snapshot = { schemaVersion: 1, research: { question: "Recorded evidence" }, sources: [], evidence: [] };
+  const capsule = {
+    id: "d475bd46-5035-4ae5-9f19-e2959a4f0734",
+    created_at: "2026-11-02T00:00:00.000Z",
+    original_snapshot: snapshot,
+    integrity_hash: hashCapsuleSnapshot(snapshot),
+    hash_algorithm: "sha256",
+    schema_version: 1,
+  };
+  globalThis.capsuleRouteTest.existingCapsule = capsule;
+  const request = new Request(`https://tidelight.app/api/decision-capsules/${capsule.id}?download=1`);
+  const response = await verifyRoute.GET(request, { params: Promise.resolve({ id: capsule.id }) });
+
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("cache-control"), "no-store");
+  assert.equal(response.headers.get("x-content-type-options"), "nosniff");
+  assert.equal(response.headers.get("content-disposition"), `attachment; filename="tidelight-decision-capsule-${capsule.id}.json"`);
+  assert.deepEqual(await response.json(), { capsule, integrity: "valid" });
+
+  globalThis.capsuleRouteTest.user = null;
+  globalThis.flowTest.user = null;
+  const unauthorized = await verifyRoute.GET(request, { params: Promise.resolve({ id: capsule.id }) });
+  assert.equal(unauthorized.status, 401);
+  globalThis.capsuleRouteTest.user = { id: "test-owner" };
+  globalThis.flowTest.user = globalThis.capsuleRouteTest.user;
+  globalThis.capsuleRouteTest.existingCapsule = { ...capsule, integrity_hash: "0".repeat(64) };
+  const tampered = await verifyRoute.GET(request, { params: Promise.resolve({ id: capsule.id }) });
+  assert.equal(tampered.status, 409);
+  assert.equal(tampered.headers.has("content-disposition"), false);
+  globalThis.capsuleRouteTest.existingCapsule = null;
 });
