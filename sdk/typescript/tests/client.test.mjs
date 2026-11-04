@@ -80,6 +80,20 @@ test("already-aborted public capsule requests never call fetch", async () => {
   assert.equal(called, false);
 });
 
+test("retries transport failures while reading a public capsule body", async () => {
+  const snapshot = { research: { question: "NVDA?" } };
+  const canonical = value => Array.isArray(value) ? `[${value.map(canonical).join(",")}]` : value && typeof value === "object" ? `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${canonical(value[key])}`).join(",")}}` : JSON.stringify(value);
+  const integrityHash = createHash("sha256").update(canonical(snapshot), "utf8").digest("hex");
+  let calls = 0;
+  const result = await getPublicDecisionCapsule("e".repeat(43), { maxRetries: 1, fetch: async () => {
+    calls += 1;
+    if (calls === 1) return new Response(new ReadableStream({ start(controller) { controller.error(new TypeError("body transport failed")); } }));
+    return Response.json({ schemaVersion: 1, publishedAt: "2026-11-01T00:00:00Z", snapshot, integrityHash, hashAlgorithm: "sha256", integrity: "valid" });
+  } });
+  assert.equal(result.integrity, "valid");
+  assert.equal(calls, 2);
+});
+
 test("public capsule digest uses the shared canonical JSON format", () => {
   const snapshot = { z: -0, a: { unicode: "NVIDIA ™", tiny: 1e-7, micro: 1e-6, near: 1.23e20, prob: 0.7, whole: 1.0 }, items: [true, null, 3] };
   assert.equal(verifyPublicDecisionCapsule({ snapshot, hashAlgorithm: "sha256", integrityHash: "d9e3e417a7e61eaeeb90ce493e07e959ee65d4801282f69c559aa8f9bf55dc98" }), true);

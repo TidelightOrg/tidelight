@@ -83,7 +83,11 @@ export async function getPublicDecisionCapsule(token: string, options: { publicB
     let response: Response; let payload: unknown;
     try {
       response = await transport(url, { headers: { Accept: "application/json" }, signal: controller.signal, redirect: "error" });
-      try { payload = await response.json(); } catch { payload = null; }
+      try { payload = await response.json(); }
+      catch (error) {
+        if (error instanceof SyntaxError) payload = null;
+        else throw error;
+      }
     } catch (error) {
       if (options.signal?.aborted) throw error;
       if (attempt >= maxRetries) throw new TidelightApiError(0, "network_error", "The public capsule could not be reached.", null);

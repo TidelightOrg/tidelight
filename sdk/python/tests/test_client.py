@@ -49,6 +49,9 @@ class ClientTests(unittest.TestCase):
         local_client = Client(KEY, public_base_url="http://localhost:3000", opener=opener)
         local_client.get_public_decision_capsule("a" * 43)
         self.assertTrue(calls[-1][0].startswith("http://localhost:3000/"))
+        preview_client = Client(KEY, public_base_url="https://preview.tidelight.example", opener=opener)
+        preview_client.get_public_decision_capsule("a" * 43)
+        self.assertTrue(calls[-1][0].startswith("https://preview.tidelight.example/"))
 
         shared = {"z": -0.0, "a": {"unicode": "NVIDIA ™", "tiny": 1e-7, "micro": 1e-6, "near": 1.23e20, "prob": 0.7, "whole": 1.0}, "items": [True, None, 3]}
         self.assertEqual(_canonical_json(shared), '{"a":{"micro":0.000001,"near":123000000000000000000,"prob":0.7,"tiny":1e-7,"unicode":"NVIDIA ™","whole":1},"items":[true,null,3],"z":0}')
@@ -62,6 +65,15 @@ class ClientTests(unittest.TestCase):
             get_public_decision_capsule("a" * 43, opener=opener, max_retries=0)
         self.assertEqual(caught.exception.status, 404)
         self.assertEqual(str(caught.exception), "Public capsule not found.")
+
+    def test_public_capsule_malformed_success_body_becomes_api_error(self):
+        class MalformedResponse(io.BytesIO):
+            status = 200
+
+        with self.assertRaises(ApiError) as caught:
+            get_public_decision_capsule("a" * 43, opener=lambda *_args, **_kwargs: MalformedResponse(b"<html>proxy error</html>"), max_retries=0)
+        self.assertEqual(caught.exception.status, 200)
+        self.assertEqual(caught.exception.code, "invalid_response")
 
     def test_research_job_creation_status_and_cancellation(self):
         job_id = "01234567-89ab-4cde-8fab-0123456789ab"

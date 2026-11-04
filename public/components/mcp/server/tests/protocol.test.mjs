@@ -41,6 +41,7 @@ test("research scope validates inputs and invokes durable job operations", async
   });
   const { tools } = await client.listTools();
   assert.deepEqual(tools.map(tool => tool.name).sort(), ["tidelight_cancel_research_job", "tidelight_get_public_decision_capsule", "tidelight_get_research_job", "tidelight_start_company_research"]);
+  assert.equal(tools.find(tool => tool.name === "tidelight_get_public_decision_capsule").annotations.readOnlyHint, true);
   const invalid = await client.callTool({ name: "tidelight_start_company_research", arguments: { ticker: "NVDA;DROP" } });
   assert.equal(invalid.isError, true);
   assert.equal(calls.length, 0);

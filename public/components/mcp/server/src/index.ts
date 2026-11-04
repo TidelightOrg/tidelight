@@ -67,6 +67,7 @@ export function createTidelightMcpServer(scopes: ReadonlySet<string>, invoke: Ti
     server.registerTool("tidelight_get_public_decision_capsule", {
       title: "Verify a public Decision Capsule",
       description: "Retrieve a capsule that its owner explicitly published. The result includes a SHA-256 integrity status for the disclosed copy; this does not establish source authenticity, truth, or research skill. The bearer token is private to anyone holding the shared link.",
+      annotations: { readOnlyHint: true },
       inputSchema: { token: z.string().regex(/^[A-Za-z0-9_-]{43}$/).describe("The 256-bit token from an owner-published Decision Capsule link.") },
     }, async ({ token }) => asToolResult(await invoke({ operation: "capsule.public.get", token })));
 
