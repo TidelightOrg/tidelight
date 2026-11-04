@@ -147,6 +147,23 @@ test("an outcome requires a same-capsule forecast and cannot precede its horizon
   assert.equal(rpcCalls.length, 1);
 });
 
+test("an outcome cannot be submitted before the current time reaches the forecast horizon", async () => {
+  reset();
+  const now = Date.now();
+  const forecastBody = forecast();
+  forecastBody.payload.horizonAt = new Date(now + 30_000).toISOString();
+  const savedForecast = await withDateNow(now, () => route.POST(request(forecastBody), { params: Promise.resolve({ id: capsuleId }) }));
+  assert.equal(savedForecast.status, 201);
+  const outcomeBody = { idempotencyKey: "1475bd46-5035-4ae5-9f19-e2959a4f0734", type: "outcome", payload: {
+    forecastEventId: rows[0].id, observedPrice: 106, observedAt: forecastBody.payload.horizonAt,
+    sourceUrl: "https://prices.example/nvda", sourceTimestamp: forecastBody.payload.horizonAt,
+  } };
+  const response = await withDateNow(now, () => route.POST(request(outcomeBody), { params: Promise.resolve({ id: capsuleId }) }));
+  assert.equal(response.status, 422);
+  assert.match((await response.json()).error, /at or after the forecast horizon/i);
+  assert.equal(rpcCalls.length, 1);
+});
+
 test("recorded outcomes are calculated on the server and visibly marked as user reported", async () => {
   reset();
   await route.POST(request(forecast()), { params: Promise.resolve({ id: capsuleId }) });
