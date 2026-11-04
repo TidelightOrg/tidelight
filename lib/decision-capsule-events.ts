@@ -115,12 +115,14 @@ export function parseCapsuleEventInput(value: unknown, now = Date.now(), options
     let url: URL;
     try { url = new URL(raw.sourceUrl); } catch { throw new CapsuleEventValidationError("A valid outcome source URL is required."); }
     if (url.protocol !== "https:" || !url.hostname || url.username || url.password) throw new CapsuleEventValidationError("Outcome sources must use an HTTPS URL without credentials.");
+    const normalizedSourceUrl = url.toString();
+    if (normalizedSourceUrl.length > 2_048) throw new CapsuleEventValidationError("Outcome source URL must be 2,048 characters or fewer after normalization.");
     const observedAt = parseTimestamp(raw.observedAt, "Observation time");
     const sourceTimestamp = parseTimestamp(raw.sourceTimestamp, "Source timestamp");
     if (Date.parse(observedAt) > now + 60_000 || Date.parse(sourceTimestamp) > now + 60_000) throw new CapsuleEventValidationError("Outcome timestamps cannot be in the future.");
     const observedPrice = finiteRange(raw.observedPrice, Number.MIN_VALUE, 1e15, "Observed price");
     const forecastEventId = raw.forecastEventId.toLowerCase();
-    const payload = { forecastEventId, observedPrice, observedAt, sourceUrl: url.toString(), sourceTimestamp, reportedBy: "user" as const };
+    const payload = { forecastEventId, observedPrice, observedAt, sourceUrl: normalizedSourceUrl, sourceTimestamp, reportedBy: "user" as const };
     if (Buffer.byteLength(canonicalJson(payload), "utf8") > MAX_CAPSULE_EVENT_BYTES) throw new CapsuleEventValidationError("The event is too large.");
     return { idempotencyKey: value.idempotencyKey.toLowerCase(), type: "outcome", payload, forecastEventId };
   }
@@ -135,7 +137,7 @@ export function buildCapsuleOutcomePayload(forecast: CapsuleEvent, input: Capsul
   const boundary = forecast.payload.referencePrice * (forecast.payload.direction === "up"
     ? 1 + forecast.payload.thresholdPercent / 100
     : 1 - forecast.payload.thresholdPercent / 100);
-  const tolerance = Number.EPSILON * Math.max(forecast.payload.referencePrice, input.observedPrice, Math.abs(boundary), 1) * 8;
+  const tolerance = Number.EPSILON * Math.max(forecast.payload.referencePrice, input.observedPrice, Math.abs(boundary)) * 8;
   const forecastMet = forecast.payload.direction === "up"
     ? input.observedPrice + tolerance >= boundary
     : input.observedPrice - tolerance <= boundary;
