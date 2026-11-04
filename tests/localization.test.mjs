@@ -131,9 +131,10 @@ test("Simplified Chinese covers the private capsule action in saved Research", a
 });
 
 test("Simplified Chinese covers the capsule forecast and outcome controls", async () => {
-  const [component, desk, translations] = await Promise.all([
+  const [component, desk, client, translations] = await Promise.all([
     readFile(new URL("app/ui/decision-capsule-history.tsx", root), "utf8"),
     readFile(new URL("app/ui/agent-flow-desk.tsx", root), "utf8"),
+    readFile(new URL("lib/decision-capsule-client.ts", root), "utf8"),
     readFile(new URL("app/i18n/zh-CN.json", root), "utf8").then(JSON.parse),
   ]);
   assert.match(desk, /<DecisionCapsuleHistory key=\{capsuleReceipt\.id\}/);
@@ -143,6 +144,10 @@ test("Simplified Chinese covers the capsule forecast and outcome controls", asyn
     "Observed price", "Source URL", "Source timestamp", "Save forecast", "Save outcome", "Reload history",
   ]) {
     assert.ok(component.includes(key), `Capsule history must render the copy key: ${key}`);
+    assert.equal(typeof translations[key], "string", `Simplified Chinese must translate: ${key}`);
+  }
+  for (const key of ["Saved decision capsules", "Saved capsules", "Refresh saved capsules", "Private decision capsules could not be loaded.", "A saved capsule returned invalid details.", "Saved capsules returned an invalid response."]) {
+    assert.ok(`${desk}\n${client}`.includes(key), `Saved capsule history must render the copy key: ${key}`);
     assert.equal(typeof translations[key], "string", `Simplified Chinese must translate: ${key}`);
   }
 });
