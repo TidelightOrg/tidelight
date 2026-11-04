@@ -134,6 +134,10 @@ jobs:
         run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261104064644_decision_capsule_event_history.sql
       - name: Test capsule event grants, idempotency, and serialized append
         run: psql -v ON_ERROR_STOP=1 -f tests/postgres/decision-capsule-events.sql
+      - name: Apply revocable public capsule publication migration
+        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261104083300_decision_capsule_publications.sql
+      - name: Test public capsule disclosure, token, and revocation storage grants
+        run: psql -v ON_ERROR_STOP=1 -f tests/postgres/decision-capsule-publications.sql
 
   saved-evidence-graph-database:
     runs-on: ubuntu-latest

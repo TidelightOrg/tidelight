@@ -165,6 +165,23 @@ test("capsule outcome diagnostics remain labeled as user-reported and sample-gat
   assert.match(component, /outcomeSummary\.calibrationGap === null \? translate\("Requires 20 scored forecasts"\)/);
 });
 
+test("public capsule sharing requires selected fields and translated owner confirmation", async () => {
+  const [desk, client, translations] = await Promise.all([
+    readFile(new URL("app/ui/agent-flow-desk.tsx", root), "utf8"),
+    readFile(new URL("lib/decision-capsule-client.ts", root), "utf8"),
+    readFile(new URL("app/i18n/zh-CN.json", root), "utf8").then(JSON.parse),
+  ]);
+  for (const key of [
+    "Public capsule verification", "Public verification", "Select sections to publish. Account and storage IDs stay private. The hash verifies this copy, not source truth.",
+    "Include in public copy", "Question and research summary", "Sources and evidence claims", "Forecasts and reported outcomes", "Preview public copy",
+    "Review exact public content", "I reviewed this content and want to publish it", "Publish public copy", "Open public verification", "Copy public link", "Revoke public link",
+  ]) assert.equal(typeof translations[key], "string", `Simplified Chinese must translate: ${key}`);
+  assert.match(desk, /previewDecisionCapsuleShare\(capsuleId, selection\)/);
+  assert.match(desk, /publishDecisionCapsuleShare\(capsuleId, selection, preview\.integrityHash\)/);
+  assert.match(desk, /<DecisionCapsuleShare key=\{selected\.id\}/);
+  assert.match(client, /expectedIntegrityHash/);
+});
+
 test("developer pages expose a language toggle and share the language preference across Tidelight subdomains", async () => {
   const [nav, docs, provider] = await Promise.all([
     readFile(new URL("app/developers/platform-nav.tsx", root), "utf8"),
