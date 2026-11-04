@@ -69,7 +69,10 @@ function CapsuleEvents({ value, translate }: { value: unknown; translate: (value
       return <li key={index}>
         <header><strong>{isOutcome ? `${translate("Outcome")} · ${translate("Forecast")} #${forecastSequence ?? "—"}` : `${translate("Forecast")} #${typeof event.sequence === "number" ? event.sequence : index + 1}`}</strong><time>{dateValue(event.createdAt) ?? "—"}</time></header>
         {isOutcome ? <p>{symbol ? `${symbol} · ` : ""}{referencedForecast ? `${translate("Forecast")}: ${directionLabel(referencedForecast.direction)} ${typeof referencedForecast.thresholdPercent === "number" ? `${referencedForecast.thresholdPercent}%` : ""} · ` : ""}{translate("Observed price")} {typeof payload.observedPrice === "number" ? payload.observedPrice.toLocaleString() : "—"} · {typeof payload.actualReturnPercent === "number" ? `${payload.actualReturnPercent.toFixed(2)}%` : "—"}</p> : <p>{stringValue(instrument.symbol)} · {directionLabel(payload.direction)} · {translate("Reference price")} {typeof payload.referencePrice === "number" ? payload.referencePrice.toLocaleString() : "—"} · {typeof payload.thresholdPercent === "number" ? `${payload.thresholdPercent}%` : "—"}</p>}
-        {isOutcome ? <span className="public-capsule-reported">{translate("Reported by user")}</span> : payload.horizonAt ? <span>{translate("Horizon")} · {dateValue(payload.horizonAt) ?? "—"}</span> : null}
+        <div className="public-capsule-event-meta">
+          {isOutcome ? <span className="public-capsule-reported">{translate("Reported by user")}</span> : payload.horizonAt ? <span>{translate("Horizon")} · {dateValue(payload.horizonAt) ?? "—"}</span> : null}
+          {(isOutcome ? payload.sourceUrlRedacted : payload.referenceSourceUrlRedacted) === true ? <span className="public-capsule-source-redacted">{translate("Source link redacted")}</span> : null}
+        </div>
       </li>;
     })}</ol> : <p>{translate("No forecast history was included.")}</p>}
   </section>;
