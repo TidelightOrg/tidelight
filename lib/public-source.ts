@@ -30,6 +30,11 @@ const secHosts = new Set(["sec.gov", "www.sec.gov"]);
 const maxPageBytes = 2 * 1024 * 1024;
 const maxExcerptLength = 6_000;
 
+function sliceWithoutSplitSurrogate(value: string, maxCodeUnits: number) {
+  const excerpt = value.slice(0, maxCodeUnits);
+  return /[\uD800-\uDBFF]$/.test(excerpt) ? excerpt.slice(0, -1) : excerpt;
+}
+
 function hostIsWithin(host: string, domain: string) {
   return host === domain || host.endsWith(`.${domain}`);
 }
@@ -85,7 +90,7 @@ export function extractPublicPage(html: string) {
     .replace(/<(script|style|nav|footer|header|aside|form|noscript|svg|iframe|button)\b[^>]*>[\s\S]*?<\/\1>/gi, " ")
     .replace(/<(?:br|\/p|\/h[1-6]|\/li|\/div|\/section|\/article)\b[^>]*>/gi, "\n")
     .replace(/<[^>]+>/g, " ");
-  const excerpt = decodeEntities(visible).replace(/[\t\f\v ]+/g, " ").replace(/ *\n+ */g, "\n").trim().slice(0, maxExcerptLength);
+  const excerpt = sliceWithoutSplitSurrogate(decodeEntities(visible).replace(/[\t\f\v ]+/g, " ").replace(/ *\n+ */g, "\n").trim(), maxExcerptLength);
   return { title: title.slice(0, 200), publicationDate, excerpt };
 }
 
@@ -139,7 +144,7 @@ export async function fetchPublicResearchSource(value: string, company: string, 
   const contentType = response.headers.get("content-type")?.toLowerCase() ?? "";
   if (!contentType.startsWith("text/html") && !contentType.startsWith("text/plain")) throw new Error("source-content-type-not-supported");
   const html = await readLimited(response);
-  const parsed = contentType.startsWith("text/html") ? extractPublicPage(html) : { title: "", publicationDate: null, excerpt: cleanText(html) };
+  const parsed = contentType.startsWith("text/html") ? extractPublicPage(html) : { title: "", publicationDate: null, excerpt: sliceWithoutSplitSurrogate(cleanText(html), maxExcerptLength) };
   if (parsed.excerpt.length < 80) throw new Error("source-text-too-short");
 
   const publisher = currentUrl.hostname;

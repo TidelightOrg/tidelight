@@ -46,6 +46,21 @@ test("blocks redirects to unapproved hosts before making a second request", asyn
   assert.equal(requests, 1);
 });
 
+test("bounds fetched plain text to the saved excerpt limit before persistence", async () => {
+  const plainText = "Issuer text with source details. ".repeat(500);
+  const fetcher = async () => new Response(plainText, { headers: { "content-type": "text/plain" } });
+  const result = await fetchPublicResearchSource("https://nvidia.com/news", "NVDA", fetcher);
+  assert.equal(result.excerpt.length, 6_000);
+});
+
+test("truncates plain-text excerpts without splitting a supplementary Unicode character", async () => {
+  const plainText = `${"a".repeat(5_999)}🌊${"b".repeat(100)}`;
+  const fetcher = async () => new Response(plainText, { headers: { "content-type": "text/plain" } });
+  const result = await fetchPublicResearchSource("https://nvidia.com/news", "NVDA", fetcher);
+  assert.equal(result.excerpt.length, 5_999);
+  assert.doesNotMatch(result.excerpt, /[\uD800-\uDBFF]$/);
+});
+
 test("rejects unsupported response types, oversized pages, and too little article text", async () => {
   const wrongType = async () => new Response("{}", { headers: { "content-type": "application/json" } });
   await assert.rejects(fetchPublicResearchSource("https://nvidia.com/news", "NVDA", wrongType), /source-content-type-not-supported/);

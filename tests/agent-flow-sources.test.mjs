@@ -61,6 +61,47 @@ test("public feeds retain only relevant, recent dated HTTPS stories and deduplic
   } finally { globalThis.fetch = previousFetch; }
 });
 
+test("excludes oversized issuer links before duplicate selection and preserves a valid alternate", async () => {
+  const previousFetch = globalThis.fetch;
+  const date = new Date(Date.now() - 60_000).toUTCString();
+  const invalid = `https://news.google.com/rss/articles/${"x".repeat(2_050)}`;
+  globalThis.fetch = async input => {
+    const query = new URL(input).searchParams.get("q") ?? "";
+    const rows = query.includes("earnings") ? [
+      `<item><title>NVIDIA quarterly earnings report</title><link>${invalid}</link><source>Wire A</source><pubDate>${date}</pubDate><description>${"The same report headline has a longer discovery excerpt. ".repeat(4)}</description></item>`,
+      `<item><title>NVIDIA quarterly earnings report</title><link>https://news.google.com/rss/articles/valid</link><source>Wire B</source><pubDate>${date}</pubDate><description>Short valid alternate.</description></item>`,
+    ] : [];
+    return new Response(`<rss><channel>${rows.join("")}</channel></rss>`, { status: 200, headers: { "content-type": "application/rss+xml" } });
+  };
+  let omitted = 0;
+  try {
+    const items = await gatherIssuerEvidence("NVDA", "NVIDIA", "", () => omitted++);
+    assert.ok(items.some(item => item.url.endsWith("/valid")));
+    assert.equal(items.some(item => item.url === invalid), false);
+    assert.equal(omitted, 2);
+  } finally { globalThis.fetch = previousFetch; }
+});
+
+test("oversized issuer links are counted only when they match the requested historical period", async () => {
+  const previousFetch = globalThis.fetch;
+  const requestedDate = new Date("2026-02-25T20:00:00Z").toUTCString();
+  const otherDate = new Date("2025-02-26T20:00:00Z").toUTCString();
+  const invalid = `https://news.google.com/rss/articles/${"x".repeat(2_050)}`;
+  globalThis.fetch = async input => {
+    const query = new URL(input).searchParams.get("q") ?? "";
+    const rows = query.includes("earnings") ? [
+      `<item><title>NVIDIA FY2026 fourth-quarter results</title><link>${invalid}</link><source>Wire</source><pubDate>${requestedDate}</pubDate><description>Quarterly revenue results</description></item>`,
+      `<item><title>NVDA annual design conference schedule</title><link>https://conference.example/nvda</link><source>Wire</source><pubDate>${otherDate}</pubDate><description>New conference dates and keynote speakers</description></item>`,
+    ] : [];
+    return new Response(`<rss><channel>${rows.join("")}</channel></rss>`, { status: 200, headers: { "content-type": "application/rss+xml" } });
+  };
+  let omitted = 0;
+  try {
+    await gatherIssuerEvidence("NVDA", "NVIDIA", "Summarize NVIDIA FY2026 fourth-quarter results.", () => omitted++);
+    assert.equal(omitted, 2);
+  } finally { globalThis.fetch = previousFetch; }
+});
+
 test("explicit historical issuer questions can retrieve dated event coverage outside the current-news window", async () => {
   const now = Date.now();
   const previousFetch = globalThis.fetch;

@@ -1,4 +1,5 @@
 import type { FlowSource } from "./agent-flow-policy";
+import { isPersistableResearchSourceUrl } from "./research-source-limits.js";
 
 export type FlowEvidence = FlowSource & { snippet: string };
 const issuerNames: Record<string, string> = { NVDA: "NVIDIA", TSLA: "Tesla", AAPL: "Apple", AMD: "Advanced Micro Devices", MSFT: "Microsoft", META: "Meta", AMZN: "Amazon", GOOGL: "Alphabet", INTC: "Intel", ASML: "ASML", QCOM: "Qualcomm", MU: "Micron" };
@@ -158,7 +159,7 @@ async function readPrimaryIssuerArticle(ticker: string, item: FlowEvidence): Pro
         continue;
       }
       const snippet = readableArticleText(html);
-      return snippet.length >= 120 ? { ...item, url: current.toString(), snippet, via: "Issuer primary source" } : item;
+      return snippet.length >= 120 && isPersistableResearchSourceUrl(current.toString()) ? { ...item, url: current.toString(), snippet, via: "Issuer primary source" } : item;
     }
   } catch { /* Keep the dated headline when an issuer site is unavailable. */ }
   return item;
@@ -184,7 +185,7 @@ export function buildIssuerNewsQueries(ticker: string, issuer: string, question 
     `"${name}" OR "${ticker}" (industry OR supply chain OR market)`,
   ];
 }
-export async function gatherIssuerEvidence(ticker: string, issuer: string, question = ""): Promise<FlowEvidence[]> {
+export async function gatherIssuerEvidence(ticker: string, issuer: string, question = "", onOmittedUrl?: () => void): Promise<FlowEvidence[]> {
   const name = issuerNames[ticker] ?? issuer;
   const context = historicalSearchContext(question);
   const queries = buildIssuerNewsQueries(ticker, issuer, question);
@@ -201,6 +202,7 @@ export async function gatherIssuerEvidence(ticker: string, issuer: string, quest
   });
   const now = Date.now();
   const stories = new Map<string, FlowEvidence>();
+  const oversizedItems: FlowEvidence[] = [];
   for (const result of results) {
     if (result.status !== "fulfilled") continue;
     for (const item of result.value) {
@@ -209,6 +211,7 @@ export async function gatherIssuerEvidence(ticker: string, issuer: string, quest
         (name.length >= 4 && headline.toLowerCase().includes(name.toLowerCase()));
       const maxAge = context.historical ? HISTORICAL_EVIDENCE_AGE_MS : MAX_EVIDENCE_AGE_MS;
       if (!relevant || !withinResearchWindow(item, now, maxAge)) continue;
+      if (!isPersistableResearchSourceUrl(item.url)) { oversizedItems.push(item); continue; }
       const key = storyKey(item);
       const previous = stories.get(key);
       if (!previous || (item.snippet.length > previous.snippet.length && item.via === "Public feeds")) stories.set(key, item);
@@ -218,6 +221,10 @@ export async function gatherIssuerEvidence(ticker: string, issuer: string, quest
   const eligibleStories = context.historical && context.year
     ? [...stories.values()].filter(item => matchesRequestedPeriod(item, context) || matchesRelatedEventWindow(item, matchingPeriodStories))
     : [...stories.values()];
+  for (const item of oversizedItems) {
+    const eligible = !context.historical || !context.year || matchesRequestedPeriod(item, context) || matchesRelatedEventWindow(item, matchingPeriodStories);
+    if (eligible) onOmittedUrl?.();
+  }
   if (!stories.size && results.some(result => result.status === "fulfilled")) console.warn("agent-flow-source-empty", ticker, results.map(result => result.status === "fulfilled" ? result.value.length : "failed"));
   const ranked = eligibleStories
     .sort((a, b) => {

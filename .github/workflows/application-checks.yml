@@ -131,6 +131,38 @@ jobs:
       - name: Test capsule ownership, write-once grants, and RLS
         run: psql -v ON_ERROR_STOP=1 -f tests/postgres/decision-capsules.sql
 
+  saved-evidence-graph-database:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tidelight_evidence_graph_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d tidelight_evidence_graph_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      PGHOST: 127.0.0.1
+      PGPORT: 5432
+      PGUSER: postgres
+      PGPASSWORD: postgres
+      PGDATABASE: tidelight_evidence_graph_test
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Prepare minimal research tables and legacy rows
+        run: psql -v ON_ERROR_STOP=1 -f tests/postgres/saved-evidence-graph-prerequisites.sql
+      - name: Apply saved graph limits migration
+        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261102180000_saved_evidence_graph_text_limits.sql
+      - name: Test bounds and legacy-row compatibility
+        run: psql -v ON_ERROR_STOP=1 -f tests/postgres/saved-evidence-graph-text-limits.sql
+
   guest-research-rate-limit-database:
     runs-on: ubuntu-latest
     services:

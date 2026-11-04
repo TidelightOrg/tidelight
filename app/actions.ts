@@ -9,6 +9,7 @@ import { mapResearchExposure } from "@/lib/exposure-map";
 import { validateBrief } from "@/lib/evidence";
 import { fetchPublicResearchSource, validatePublicSourceUrl, type RetrievedPublicSource } from "@/lib/public-source";
 import { getServerAuthState } from "@/lib/supabase/auth-user";
+import { isPersistableResearchSourceUrl } from "@/lib/research-source-limits";
 
 export async function signOut() {
   const supabase = await createClient();
@@ -78,6 +79,7 @@ export async function createEvidenceBrief(input: { question: string; sourceTitle
   const sourceList = input.sources?.length ? input.sources : [{ title: input.sourceTitle ?? "", url: input.sourceUrl ?? "", excerpt: input.excerpt ?? "" }];
   if (!question || question.length > 500) return { error: "Enter a question under 500 characters." };
   if (sourceList.length > 5) return { error: "Use up to five sources per brief." };
+  if (sourceList.some((source) => typeof source.url !== "string" || source.url.length > 4_096)) return { error: "Source links must be 4,096 characters or shorter." };
   const company = input.company?.toUpperCase() ?? "";
   if (input.fetchSource && (sourceList.length < 1 || sourceList.length > 3 || sourceList.some((source) => !validatePublicSourceUrl(source.url, company)))) {
     return { error: "Use one to three HTTPS links from the selected company, SEC, or a supported public publisher. For other sources, switch to Pro and paste a passage." };
@@ -89,7 +91,9 @@ export async function createEvidenceBrief(input: { question: string; sourceTitle
   if (sources.some((source) => !source || (!input.fetchSource && (!source.title || source.title.length > 200 || source.excerpt.length < 80 || source.excerpt.length > 6000)))) {
     return { error: input.fetchSource ? "Enter a supported HTTPS source link." : "Each source needs a title and an excerpt between 80 and 6,000 characters." };
   }
+  if (sources.some((source) => source && source.url.length > 4_096)) return { error: "Source links must be 4,096 characters or shorter." };
   const validSources: Array<{ title: string; url: string; excerpt: string }> = sources as Array<{ title: string; url: string; excerpt: string }>;
+  if (validSources.some((source) => !isPersistableResearchSourceUrl(source.url))) return { error: "Each source link must fit the 2,000-byte research storage limit." };
   if (new Set(validSources.map((source) => source.url)).size !== validSources.length) return { error: "Each source needs a different link so evidence can be traced clearly." };
 
   const auth = await getServerAuthState();
@@ -120,6 +124,7 @@ export async function createEvidenceBrief(input: { question: string; sourceTitle
   try {
     if (input.fetchSource) {
       const fetchedSources = await Promise.all(validSources.map((source) => fetchPublicResearchSource(source.url, company)));
+      if (fetchedSources.some((source) => !isPersistableResearchSourceUrl(source.url))) throw new Error("source-url-too-long");
       if (new Set(fetchedSources.map((source) => source.url)).size !== fetchedSources.length) throw new Error("duplicate-final-source");
       fetchedSources.forEach((fetched, index) => {
         validSources[index] = { title: fetched.title, url: fetched.url, excerpt: fetched.excerpt };
@@ -136,7 +141,7 @@ export async function createEvidenceBrief(input: { question: string; sourceTitle
     if (!brief) throw new Error("invalid-evidence-response");
 
     const { data: savedSources, error: sourceError } = await supabase.from("research_sources").insert(validSources.map((source) => ({
-      research_run_id: run.id, url: source.url, title: source.title, publisher: provenance.get(source.url)?.publisher ?? new URL(source.url).hostname, source_type: provenance.get(source.url)?.sourceType ?? "user_note", excerpt: source.excerpt,
+      research_run_id: run.id, url: source.url, title: source.title, publisher: (provenance.get(source.url)?.publisher ?? new URL(source.url).hostname).slice(0, 120), source_type: provenance.get(source.url)?.sourceType ?? "user_note", excerpt: source.excerpt,
     }))).select("id, url, publisher, retrieved_at");
     if (sourceError || !savedSources?.length) throw new Error("source-save-failed");
 

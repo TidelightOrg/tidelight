@@ -35,10 +35,10 @@ test("queries include the requested event period and official source domains", (
 
 test("gathering macro evidence keeps matching official and independent sources and excludes unrelated dates/domains", async () => {
   const previousFetch = globalThis.fetch;
+  let requestCount = 0;
   globalThis.fetch = async input => {
-    const url = new URL(input);
-    const query = url.searchParams.get("q") ?? "";
-    const rows = query.includes("federalreserve.gov") ? [
+    const isOfficialQuery = requestCount++ < 2;
+    const rows = isOfficialQuery ? [
       item({ title: "Federal Reserve issues FOMC statement for September 2026", link: "https://news.google.com/rss/articles/fomc-sep26", source: "federalreserve.gov", date: "Wed, 16 Sep 2026 14:00:00 GMT", snippet: "The Committee decided to maintain the target range." }),
       item({ title: "Federal Reserve issues FOMC statement for July 2026", link: "https://news.google.com/rss/articles/fomc-jul26", source: "federalreserve.gov", date: "Wed, 29 Jul 2026 14:00:00 GMT" }),
       item({ title: "Unverified Fed rumor for September 2026", link: "https://news.google.com/rss/articles/rumor", source: "unknown.example", date: "Wed, 16 Sep 2026 14:00:00 GMT" }),
@@ -89,5 +89,26 @@ test("macro feed response bodies are bounded even without a Content-Length heade
   try {
     const evidence = await gatherMacroEvidence("Summarize the latest U.S. CPI release.");
     assert.deepEqual(evidence, []);
+  } finally { globalThis.fetch = previousFetch; }
+});
+
+test("macro evidence excludes oversized duplicate links before choosing representatives", async () => {
+  const previousFetch = globalThis.fetch;
+  const date = new Date().toUTCString();
+  let requestCount = 0;
+  let omitted = 0;
+  globalThis.fetch = async input => {
+    const isOfficialQuery = requestCount++ < 2;
+    const rows = isOfficialQuery ? [
+      item({ title: "Federal Reserve issues FOMC statement for September 2026", link: `https://news.google.com/rss/articles/${"x".repeat(4_100)}`, source: "federalreserve.gov", date, snippet: "Long invalid link." }),
+      item({ title: "Federal Reserve issues FOMC statement for September 2026", link: "https://news.google.com/rss/articles/valid", source: "federalreserve.gov", date, snippet: "Usable official story." }),
+    ] : [];
+    return new Response(`<rss><channel>${rows.join("")}</channel></rss>`, { status: 200, headers: { "content-type": "application/rss+xml" } });
+  };
+  try {
+    const evidence = await gatherMacroEvidence("Explain the September 2026 FOMC decision.", () => omitted++);
+    assert.equal(evidence.length, 1);
+    assert.equal(evidence[0].url, "https://news.google.com/rss/articles/valid");
+    assert.equal(omitted, 2);
   } finally { globalThis.fetch = previousFetch; }
 });

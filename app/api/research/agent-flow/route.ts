@@ -11,6 +11,7 @@ import { extractFlowTickers, gateFlowTrade, isTokenizedMarketQuestion, normalize
 import { buildIssuerNewsQueries, gatherIssuerEvidence, issuerEvidenceLookbackDays, type FlowEvidence } from "@/lib/agent-flow-sources";
 import { agentKeyIssuerEvidence } from "@/lib/agentkey-flow-sources";
 import { buildMacroNewsQueries, classifyMacroQuestion, gatherMacroEvidence, macroResearchLookbackDays, type MacroEvidence, type MacroTopic } from "@/lib/macro-research-sources";
+import { filterPersistableResearchSources } from "@/lib/research-source-limits";
 import { recordProviderHealth } from "@/lib/provider-health";
 import { getSecCompanyResearch } from "@/lib/sec-fundamentals";
 
@@ -207,11 +208,14 @@ export async function POST(request: Request) {
           const topicLabel = macroTopic === "monetary_policy" ? "Federal Reserve policy" : macroTopic === "inflation" ? "U.S. inflation" : "U.S. labor market";
           stage("Coordinator", "complete", "Macro research question framed", `Researching ${topicLabel} as an information-only macro brief. No stock quote, derivative, candle, or trading provider is used.`);
           stage("Macro evidence", "running", "Finding official and independent sources", "Checking Federal Reserve or BLS coverage alongside bounded independent reporting for the requested period.");
-          const macroSources: MacroEvidence[] = await settleWithin(gatherMacroEvidence(question), 18_000);
+          let omittedDuringMacroGather = 0;
+          const macroCandidates: MacroEvidence[] = await settleWithin(gatherMacroEvidence(question, () => omittedDuringMacroGather++), 18_000);
+          const { items: macroSources, omittedOversizedLinks: omittedAfterMacroGather } = filterPersistableResearchSources(macroCandidates);
+          const omittedMacroSources = omittedDuringMacroGather + omittedAfterMacroGather;
           const sourceByMacro: Record<string, FlowSource[]> = { MACRO: macroSources.map(source => ({ title: source.title, url: source.url, publisher: source.publisher, publishedAt: source.publishedAt, via: source.sourceKind === "official" ? "Official source" : "Independent reporting" })) };
           const officialCount = macroSources.filter(source => source.sourceKind === "official").length;
           const independentCount = macroSources.filter(source => source.sourceKind === "independent_reporting").length;
-          stage("Macro evidence", macroSources.length ? "complete" : "blocked", `${macroSources.length} macro sources collected`, macroSources.length ? `${officialCount} official Fed/BLS source${officialCount === 1 ? "" : "s"} and ${independentCount} independent report${independentCount === 1 ? "" : "s"} matched the request. Each source remains linked below.` : "No attributable Federal Reserve/BLS or allowlisted independent coverage matched this dated question.");
+          stage("Macro evidence", macroSources.length ? "complete" : "blocked", `${macroSources.length} macro sources collected`, `${macroSources.length ? `${officialCount} official Fed/BLS source${officialCount === 1 ? "" : "s"} and ${independentCount} independent report${independentCount === 1 ? "" : "s"} matched the request. Each source remains linked below.` : "No attributable Federal Reserve/BLS or allowlisted independent coverage matched this dated question."}${omittedMacroSources ? ` Omitted ${omittedMacroSources} source link${omittedMacroSources === 1 ? "" : "s"} outside the database-safe 2,000-byte / 4,096-character URL limit.` : ""}`);
           const allSources = user ? macroSources.map(source => ({ research_run_id: runId, url: source.url, title: source.title.slice(0, 300), publisher: source.publisher.slice(0, 120), published_at: source.publishedAt, source_type: "web", excerpt: source.snippet.slice(0, 3_500) })) : [];
           if (allSources.length) {
             const { error } = await supabase.from("research_sources").upsert(allSources, { onConflict: "research_run_id,url", ignoreDuplicates: true });
@@ -251,7 +255,7 @@ export async function POST(request: Request) {
 
           const evidenceGraph = buildEvidenceGraph({ question, asOf: new Date().toISOString(), synthesisMode: synthesisProvider ? "model" : "source_only", assets: [{ ...asset, sources: macroSources.map(source => ({ title: source.title, url: source.url, publisher: source.publisher, publishedAt: source.publishedAt, via: source.sourceKind === "official" ? "Official source" as const : "Independent reporting" as const, snippet: source.snippet })) }] });
           stage("Coordinator", "complete", "Macro research ready", user ? "The macro brief is saved privately. It contains no stock signal, quote, or trade handoff." : "The macro brief is ready for this browser session. It contains no stock signal, quote, or trade handoff.");
-          const result = { ...(user ? { researchRunId: runId } : { guestSessionResult: true }), question, researchType: "macro" as const, macroTopic, synthesis: synthesisProvider ? { mode: "model" as const, provider: synthesisProvider } : { mode: "source_only" as const, provider: null }, evidenceGraph, ...(providerAttempts.length || providerRouting ? { operationalDiagnostics: { providerAttempts, ...(providerRouting ? { providerRouting } : {}) } } : {}), researchCoverage: { mode: "macro", lookbackDays: macroResearchLookbackDays(question), queriesPerTicker: buildMacroNewsQueries(question).length * 2, collectedItems: macroSources.length, publishers: new Set(macroSources.map(source => source.publisher)).size, sourceDomains: new Set(macroSources.map(source => source.publisherDomain)).size, collectedAt: new Date().toISOString(), limitations: ["Macro coverage is bounded to Federal Reserve/BLS sources and an allowlist of independent publishers.", "Market expectations are reporting context, not a policy outcome or forecast."] }, assets: [asset], tradeable: false, trace, ...(user && contextRunId ? { contextRunId } : {}), ...(user && workspaceContext ? { workspaceContext } : {}) };
+          const result = { ...(user ? { researchRunId: runId } : { guestSessionResult: true }), question, researchType: "macro" as const, macroTopic, synthesis: synthesisProvider ? { mode: "model" as const, provider: synthesisProvider } : { mode: "source_only" as const, provider: null }, evidenceGraph, ...(providerAttempts.length || providerRouting ? { operationalDiagnostics: { providerAttempts, ...(providerRouting ? { providerRouting } : {}) } } : {}), researchCoverage: { mode: "macro", lookbackDays: macroResearchLookbackDays(question), queriesPerTicker: buildMacroNewsQueries(question).length * 2, collectedItems: macroSources.length, publishers: new Set(macroSources.map(source => source.publisher)).size, sourceDomains: new Set(macroSources.map(source => source.publisherDomain)).size, collectedAt: new Date().toISOString(), limitations: ["Macro coverage is bounded to Federal Reserve/BLS sources and an allowlist of independent publishers.", "Market expectations are reporting context, not a policy outcome or forecast.", "Source links exceeding 2,000 UTF-8 bytes or 4,096 characters are omitted from saved research."] }, assets: [asset], tradeable: false, trace, ...(user && contextRunId ? { contextRunId } : {}) };
           await recordProviderHealth(providerAttempts);
           if (user) { const { error: saveError } = await supabase.from("research_runs").update({ status: "complete", completed_at: new Date().toISOString(), summary: result }).eq("id", runId).eq("user_id", user.id); if (saveError) { stage("Coordinator", "blocked", "Private trace could not be saved", "No trading handoff was offered because the macro research record was not committed."); throw new Error(`research-save-failed:${saveError.code}`); } }
           push("result", result);
@@ -260,6 +264,7 @@ export async function POST(request: Request) {
         const tokenizedMarketQuestion = isTokenizedMarketQuestion(question, tickers);
         stage("Coordinator", "complete", "Question framed", `${tokenizedMarketQuestion ? "Researching issuer evidence and the explicitly requested tokenized market." : "Researching issuer and stock-perpetual context only."} A question-focused discovery pass and complementary bounded news searches per issuer, followed by corroboration and risk gates.${workspaceContext ? ` Opened from ${workspaceContext}.` : ""}`);
         stage("Market scout", "running", "Mapping current market and coverage", tokenizedMarketQuestion ? "Checking issuer evidence, the requested tokenized instrument, and market context. Headlines remain discovery references until reviewed." : "Checking issuer coverage and relevant stock-perpetual context. Headlines remain discovery references until reviewed.");
+        const oversizedIssuerLinks = new Map<string, number>();
         const snapshots: MarketSnapshot[] = await Promise.all(tickers.map(async ticker => {
           const symbol = `${ticker}USDT`;
           // Bound each independent provider call so one stalled feed cannot consume the
@@ -268,7 +273,7 @@ export async function POST(request: Request) {
             settleWithin(getBitgetStockPerp(symbol), 18_000),
             tokenizedMarketQuestion ? settleWithin(getBitgetAsset(`R${ticker}USDT`), 18_000) : Promise.resolve(null),
             settleWithin(getBitgetCandles(symbol, "4H", 100, "USDT-FUTURES"), 18_000),
-            settleWithin(gatherIssuerEvidence(ticker, getIssuerName(ticker), question), 18_000),
+            settleWithin(gatherIssuerEvidence(ticker, getIssuerName(ticker), question, () => oversizedIssuerLinks.set(ticker, (oversizedIssuerLinks.get(ticker) ?? 0) + 1)), 18_000),
             settleWithin(agentKeyIssuerEvidence(ticker, getIssuerName(ticker)), 12_000),
             settleWithin(getSecCompanyResearch(ticker, null, { asOf: researchAsOf, includeAnalystTargets: false }), 18_000),
           ]);
@@ -301,8 +306,10 @@ export async function POST(request: Request) {
           }
           const capturedFacts = boundedSecFacts(financialFacts);
           stage("SEC filings", sec.status === "fulfilled" && capturedFacts.length ? "complete" : "blocked", sec.status === "fulfilled" ? `${ticker}: ${capturedFacts.length} filed facts` : `${ticker}: SEC facts unavailable`, capturedFacts.length ? `${capturedFacts.length} dated reported values from SEC company facts are available.` : "No eligible SEC facts were retrieved; missing financials are not inferred.", ticker);
-          const evidence = [...new Map([...feedEvidence, ...liveEvidence].map(source => [source.url, source])).values()]
-            .sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? "")).slice(0, 40);
+          const evidenceCandidates = [...new Map([...feedEvidence, ...liveEvidence].map(source => [source.url, source])).values()];
+          const { items: persistableEvidence, omittedOversizedLinks: postEnrichmentOmissions } = filterPersistableResearchSources(evidenceCandidates);
+          const omittedLongUrls = postEnrichmentOmissions + (oversizedIssuerLinks.get(ticker) ?? 0);
+          const evidence = persistableEvidence.sort((a, b) => Date.parse(b.publishedAt ?? "") - Date.parse(a.publishedAt ?? "")).slice(0, 40);
           stage(
             "Evidence search",
             liveEvidence.length || feedEvidence.length ? "complete" : "blocked",
@@ -311,11 +318,11 @@ export async function POST(request: Request) {
               : feedEvidence.length
                 ? `${ticker}: public sources used`
                 : `${ticker}: no attributable coverage`,
-            liveEvidence.length
+            `${liveEvidence.length
               ? "AgentKey returned dated article links; public feeds were checked alongside it."
               : feedEvidence.length
                 ? "No attributable AgentKey headlines were available for this search. Public-feed results are shown below."
-                : "AgentKey and public feeds returned no recent, attributable article links.",
+              : "AgentKey and public feeds returned no recent, attributable article links."}${omittedLongUrls ? ` Omitted ${omittedLongUrls} source link${omittedLongUrls === 1 ? "" : "s"} outside the database-safe 2,000-byte / 4,096-character URL limit.` : ""}`,
             ticker,
           );
           return { ticker, issuer: market?.name ?? spotAsset?.name ?? ticker, secStatus: sec.status === "fulfilled" ? "available" as const : "unavailable" as const, financialFacts: capturedFacts, perp: market, spot: spotAsset,
@@ -375,7 +382,7 @@ export async function POST(request: Request) {
         });
         const evidenceGraph = buildEvidenceGraph({ question, asOf: new Date(now).toISOString(), synthesisMode: synthesisProvider ? "model" : "source_only", assets: assets.map(asset => ({ ...asset, synthesisMode: assessments[asset.ticker] ? "model" : "source_only", sources: researchSourcesFor(snapshots.find(snapshot => snapshot.ticker === asset.ticker)!), financialFacts: snapshots.find(snapshot => snapshot.ticker === asset.ticker)?.financialFacts ?? [] })) });
         stage("Coordinator", "complete", "Review ready", user && assets.some(asset => asset.tradeable) ? "One or more scenarios may proceed to a separate trade review. Nothing was sent to Bitget or the paper ledger." : guest && assets.some(asset => asset.tradeable) ? "The research gates passed, but public judge sessions are read-only. No paper or live action is available." : "Keep watching the evidence and market. No scenario passed every trade review gate.");
-        const result = { ...(user ? { researchRunId: runId } : { guestSessionResult: true }), question, synthesis: synthesisProvider ? { mode: "model" as const, provider: synthesisProvider } : { mode: "source_only" as const, provider: null }, evidenceGraph, ...(providerAttempts.length || providerRouting ? { operationalDiagnostics: { providerAttempts, ...(providerRouting ? { providerRouting } : {}) } } : {}), researchCoverage: { mode: "deep", lookbackDays, queriesPerTicker: buildIssuerNewsQueries(tickers[0], getIssuerName(tickers[0]), question).length * 2, collectedItems: snapshots.reduce((count, snap) => count + snap.sources.length, 0), publishers: [...new Set(snapshots.flatMap(snap => snap.sources.map(source => source.publisher)))].length, sourceDomains: [...new Set(snapshots.flatMap(snap => snap.sources.map(source => new URL(source.url).hostname)))].length, collectedAt: new Date().toISOString(), limitations: ["Primary issuer excerpts are bounded and partial; open the cited source for the complete release.", "Public-feed coverage is bounded and cannot represent the entire internet.", "SEC facts filed on the research date are excluded because filing times are unavailable."] }, assets: user ? assets : assets.map(asset => ({ ...asset, tradeable: false, handoff: null, gateReasons: [...asset.gateReasons, "Guest research is read-only; sign in to review this decision in a paper workflow."] })), tradeable: user ? assets.some(asset => asset.tradeable) : false, trace, ...(user && contextRunId ? { contextRunId } : {}), ...(user && workspaceContext ? { workspaceContext } : {}) };
+        const result = { ...(user ? { researchRunId: runId } : { guestSessionResult: true }), question, synthesis: synthesisProvider ? { mode: "model" as const, provider: synthesisProvider } : { mode: "source_only" as const, provider: null }, evidenceGraph, ...(providerAttempts.length || providerRouting ? { operationalDiagnostics: { providerAttempts, ...(providerRouting ? { providerRouting } : {}) } } : {}), researchCoverage: { mode: "deep", lookbackDays, queriesPerTicker: buildIssuerNewsQueries(tickers[0], getIssuerName(tickers[0]), question).length * 2, collectedItems: snapshots.reduce((count, snap) => count + snap.sources.length, 0), publishers: [...new Set(snapshots.flatMap(snap => snap.sources.map(source => source.publisher)))].length, sourceDomains: [...new Set(snapshots.flatMap(snap => snap.sources.map(source => new URL(source.url).hostname)))].length, collectedAt: new Date().toISOString(), limitations: ["Primary issuer excerpts are bounded and partial; open the cited source for the complete release.", "Public-feed coverage is bounded and cannot represent the entire internet.", "SEC facts filed on the research date are excluded because filing times are unavailable.", "Source links exceeding 2,000 UTF-8 bytes or 4,096 characters are omitted from saved research."] }, assets: user ? assets : assets.map(asset => ({ ...asset, tradeable: false, handoff: null, gateReasons: [...asset.gateReasons, "Guest research is read-only; sign in to review this decision in a paper workflow."] })), tradeable: user ? assets.some(asset => asset.tradeable) : false, trace, ...(user && contextRunId ? { contextRunId } : {}) };
         await recordProviderHealth(providerAttempts);
         if (user) { const { error: saveError } = await supabase.from("research_runs").update({ status: "complete", completed_at: new Date().toISOString(), summary: result }).eq("id", runId).eq("user_id", user.id); if (saveError) { stage("Coordinator", "blocked", "Private trace could not be saved", "No trade handoff was offered because the research record was not committed."); throw new Error(`research-save-failed:${saveError.code}`); } }
         let monitorObservationSaved = false;

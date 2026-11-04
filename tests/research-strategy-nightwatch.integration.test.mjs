@@ -87,6 +87,7 @@ const mockSpecifiers = new Set([
 
 const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
   if (specifier === "server-only" || mockSpecifiers.has(specifier)) return { url: new URL("./fixtures/research-flow-integration-mocks.mjs", import.meta.url).href, shortCircuit: true };
+  if (specifier === "@/lib/research-source-limits") return { url: new URL("../lib/research-source-limits.js", import.meta.url).href, shortCircuit: true };
   if (specifier === "@/lib/agent-flow-policy") return { url: new URL("../lib/agent-flow-policy.ts", import.meta.url).href, shortCircuit: true };
   if (specifier === "@/lib/evidence-graph") return { url: new URL("../lib/evidence-graph.ts", import.meta.url).href, shortCircuit: true };
   if (specifier === "@/lib/nightwatch-exit-quote") return { url: new URL("../lib/nightwatch-exit-quote.ts", import.meta.url).href, shortCircuit: true };
@@ -97,6 +98,42 @@ const strategyRoute = await import("../app/api/futures/paper/route.ts");
 const nightwatchRoute = await import("../app/api/nightwatch/tick/route.ts");
 const closeRoute = await import("../app/api/nightwatch/close/route.ts");
 hooks.deregister();
+
+test("oversized issuer and macro source URLs are excluded before persistence", async t => {
+  const longIssuer = { ...sourceRows[0], url: `https://fixture.example/${"i".repeat(5_000)}` };
+  const longMacro = { ...macroRows[0], url: `https://fixture.example/${"m".repeat(5_000)}` };
+  sourceRows.push(longIssuer);
+  sourceRows.push(...Array.from({ length: 45 }, (_, index) => ({ ...sourceRows[0], title: `Additional fixture ${index}`, url: `https://fixture.example/extra-${index}`, publisher: `Additional Fixture ${index}` })));
+  macroRows.push(longMacro);
+  t.after(() => { sourceRows.length = 2; macroRows.length = 2; captures.research.length = 0; });
+
+  captures.research.length = 0;
+  const issuerResponse = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
+    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: "Review NVDA using synthetic test fixture sources" }),
+  }));
+  assert.equal(issuerResponse.status, 200);
+  const issuerEvents = (await issuerResponse.text()).split("\n\n").filter(Boolean).map(frame => JSON.parse(frame.split("\ndata: ")[1]));
+  const issuerResult = issuerEvents.findLast(frame => frame.researchRunId);
+  assert.ok(issuerEvents.some(frame => frame.agent === "Evidence search" && frame.detail.includes("Omitted 1 source link")), "the storage limitation count excludes valid items outside the normal forty-source research cap");
+  assert.ok(issuerResult.researchCoverage.limitations.some(limit => limit.includes("2,000 UTF-8 bytes") && limit.includes("4,096 characters")));
+  assert.ok(issuerResult.assets.flatMap(asset => asset.sources).every(source => source.url.length <= 4_096));
+  const issuerPersistedSources = captures.research.filter(row => row.table === "research_sources").flatMap(row => row.rows);
+  assert.ok(issuerPersistedSources.some(source => source.url === sourceRows[0].url));
+  assert.ok(issuerPersistedSources.every(source => source.url.length <= 4_096 && new TextEncoder().encode(source.url).byteLength <= 2_000));
+
+  captures.research.length = 0;
+  const macroResponse = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
+    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: "Explain the September 16, 2026 FOMC decision and the evidence relevant to its stated rationale." }),
+  }));
+  assert.equal(macroResponse.status, 200);
+  const macroEvents = (await macroResponse.text()).split("\n\n").filter(Boolean).map(frame => JSON.parse(frame.split("\ndata: ")[1]));
+  const macroResult = macroEvents.findLast(frame => frame.researchRunId);
+  assert.ok(macroResult.researchCoverage.limitations.some(limit => limit.includes("2,000 UTF-8 bytes") && limit.includes("4,096 characters")));
+  assert.ok(macroResult.assets.flatMap(asset => asset.sources).every(source => source.url.length <= 4_096));
+  const macroPersistedSources = captures.research.filter(row => row.table === "research_sources").flatMap(row => row.rows);
+  assert.ok(macroPersistedSources.some(source => source.url === macroRows[0].url));
+  assert.ok(macroPersistedSources.every(source => source.url.length <= 4_096 && new TextEncoder().encode(source.url).byteLength <= 2_000));
+});
 
 test("provider outage produces a source-only research result and blocks trade handoff", async t => {
   globalThis.flowTest.aiUnavailable = true;
