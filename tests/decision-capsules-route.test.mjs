@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { registerHooks } from "node:module";
 
 const calls = [];
-globalThis.capsuleRouteTest = { user: { id: "test-owner" }, sources: [], evidence: [] };
+globalThis.capsuleRouteTest = { user: { id: "test-owner" }, sources: [], evidence: [], capsules: [] };
 globalThis.flowTest = { user: globalThis.capsuleRouteTest.user };
 globalThis.flowTest.admin = {
   from(table) {
@@ -30,7 +30,7 @@ globalThis.flowTest.admin = {
       },
       insert(rows) { this.operation = "insert"; calls.push({ table, operation: "insert", rows }); return this; },
       then(resolve, reject) {
-        const data = table === "research_sources" ? globalThis.capsuleRouteTest.sources : table === "research_evidence" ? globalThis.capsuleRouteTest.evidence : [];
+        const data = table === "research_sources" ? globalThis.capsuleRouteTest.sources : table === "research_evidence" ? globalThis.capsuleRouteTest.evidence : table === "decision_capsules" ? globalThis.capsuleRouteTest.capsules : [];
         return Promise.resolve({ data, error: null, count: data.length }).then(resolve, reject);
       },
     };
@@ -51,6 +51,26 @@ const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
 const route = await import("../app/api/decision-capsules/route.ts");
 const verifyRoute = await import("../app/api/decision-capsules/[id]/route.ts");
 hooks.deregister();
+
+test("capsule history reopens only the owner's bounded integrity-checked capsules", async () => {
+  const { hashCapsuleSnapshot } = await import("../lib/decision-capsules.ts");
+  const snapshot = { schemaVersion: 1, research: { question: "Review NVDA" }, sources: [], evidence: [] };
+  const capsule = { id: "d475bd46-5035-4ae5-9f19-e2959a4f0734", created_at: "2026-11-01T00:00:00.000Z", original_snapshot: snapshot, integrity_hash: hashCapsuleSnapshot(snapshot), hash_algorithm: "sha256", schema_version: 1 };
+  globalThis.capsuleRouteTest.capsules = [capsule];
+  const response = await route.GET();
+  assert.equal(response.status, 200);
+  assert.equal(response.headers.get("cache-control"), "no-store");
+  assert.deepEqual(await response.json(), { capsules: [{ id: capsule.id, createdAt: capsule.created_at, integrityHash: capsule.integrity_hash, question: "Review NVDA" }], integrity: "valid" });
+
+  globalThis.capsuleRouteTest.user = null;
+  globalThis.flowTest.user = null;
+  assert.equal((await route.GET()).status, 401);
+  globalThis.capsuleRouteTest.user = { id: "test-owner" };
+  globalThis.flowTest.user = globalThis.capsuleRouteTest.user;
+  globalThis.capsuleRouteTest.capsules = [{ ...capsule, integrity_hash: "0".repeat(64) }];
+  assert.equal((await route.GET()).status, 409);
+  globalThis.capsuleRouteTest.capsules = [];
+});
 
 test("capsule creation rejects a completed source-empty run without inserting a capsule", async () => {
   calls.length = 0;

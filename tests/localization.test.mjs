@@ -130,6 +130,29 @@ test("Simplified Chinese covers the private capsule action in saved Research", a
   assert.doesNotMatch(desk, /\?download=1`} download/);
 });
 
+test("Simplified Chinese covers the capsule forecast and outcome controls", async () => {
+  const [component, desk, client, translations] = await Promise.all([
+    readFile(new URL("app/ui/decision-capsule-history.tsx", root), "utf8"),
+    readFile(new URL("app/ui/agent-flow-desk.tsx", root), "utf8"),
+    readFile(new URL("lib/decision-capsule-client.ts", root), "utf8"),
+    readFile(new URL("app/i18n/zh-CN.json", root), "utf8").then(JSON.parse),
+  ]);
+  assert.match(desk, /<DecisionCapsuleHistory key=\{capsuleReceipt\.id\}/);
+  for (const key of [
+    "Decision history", "Refresh capsule history", "Record forecast", "Instrument type", "US equity", "Reality token",
+    "US-stock perpetual", "Reference price", "Threshold %", "Horizon", "Probability (0–1)", "Brier", "(one outcome)", "Record outcome",
+    "Observed price", "Source URL", "Source timestamp", "Save forecast", "Save outcome", "Reload history",
+  ]) {
+    assert.ok(component.includes(key), `Capsule history must render the copy key: ${key}`);
+    assert.equal(typeof translations[key], "string", `Simplified Chinese must translate: ${key}`);
+  }
+  for (const key of ["Saved decision capsules", "Saved capsules", "Refresh saved capsules", "Private decision capsules could not be loaded.", "A saved capsule returned invalid details.", "Saved capsules returned an invalid response."]) {
+    assert.ok(`${desk}\n${client}`.includes(key), `Saved capsule history must render the copy key: ${key}`);
+    assert.equal(typeof translations[key], "string", `Simplified Chinese must translate: ${key}`);
+  }
+  assert.match(component, /setInstrumentType\(event\.target\.value as Forecast\["instrument"\]\["type"\]\); setSymbol\(""\); setReferencePrice\(""\)/);
+});
+
 test("developer pages expose a language toggle and share the language preference across Tidelight subdomains", async () => {
   const [nav, docs, provider] = await Promise.all([
     readFile(new URL("app/developers/platform-nav.tsx", root), "utf8"),
