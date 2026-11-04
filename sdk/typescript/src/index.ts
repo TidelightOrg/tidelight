@@ -94,7 +94,8 @@ export async function getPublicDecisionCapsule(token: string, options: { publicB
       await pause(attempt); continue;
     } finally { clearTimeout(timer); options.signal?.removeEventListener("abort", onAbort); }
     if (!response.ok) {
-      const detail = payload && typeof payload === "object" && "error" in payload && payload.error && typeof payload.error === "object" ? payload.error as Record<string, unknown> : {};
+      const rawError = payload && typeof payload === "object" && "error" in payload ? payload.error : null;
+      const detail = typeof rawError === "string" ? { message: rawError } : rawError && typeof rawError === "object" ? rawError as Record<string, unknown> : {};
       if ([429, 502, 503, 504].includes(response.status) && attempt < maxRetries) { await pause(attempt, response.headers.get("retry-after")); continue; }
       throw new TidelightApiError(response.status, typeof detail.code === "string" ? detail.code : "public_capsule_error", typeof detail.message === "string" ? detail.message : "Public capsule request failed.", typeof detail.request_id === "string" ? detail.request_id : response.headers.get("x-request-id"));
     }

@@ -80,6 +80,13 @@ test("already-aborted public capsule requests never call fetch", async () => {
   assert.equal(called, false);
 });
 
+test("public capsule string errors preserve the server message", async () => {
+  await assert.rejects(
+    getPublicDecisionCapsule("d".repeat(43), { maxRetries: 0, fetch: async () => Response.json({ error: "Public capsule not found." }, { status: 404 }) }),
+    error => error instanceof TidelightApiError && error.status === 404 && error.code === "public_capsule_error" && error.message === "Public capsule not found.",
+  );
+});
+
 test("retries transport failures while reading a public capsule body", async () => {
   const snapshot = { research: { question: "NVDA?" } };
   const canonical = value => Array.isArray(value) ? `[${value.map(canonical).join(",")}]` : value && typeof value === "object" ? `{${Object.keys(value).sort().map(key => `${JSON.stringify(key)}:${canonical(value[key])}`).join(",")}}` : JSON.stringify(value);

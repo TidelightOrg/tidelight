@@ -3,6 +3,7 @@ import hashlib
 import json
 import threading
 import unittest
+from http.client import IncompleteRead
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 from urllib.error import HTTPError
 from urllib.parse import parse_qs, urlparse
@@ -74,6 +75,30 @@ class ClientTests(unittest.TestCase):
             get_public_decision_capsule("a" * 43, opener=lambda *_args, **_kwargs: MalformedResponse(b"<html>proxy error</html>"), max_retries=0)
         self.assertEqual(caught.exception.status, 200)
         self.assertEqual(caught.exception.code, "invalid_response")
+
+    def test_public_capsule_retries_truncated_response_body(self):
+        from tidelight.client import _canonical_json
+
+        snapshot = {"schemaVersion": 1, "research": {"question": "NVDA?"}}
+        digest = hashlib.sha256(_canonical_json(snapshot).encode()).hexdigest()
+        payload = {"schemaVersion": 1, "publishedAt": "2026-11-01T00:00:00Z", "snapshot": snapshot, "integrityHash": digest, "hashAlgorithm": "sha256", "integrity": "valid"}
+        calls = []
+
+        class TruncatedResponse(io.BytesIO):
+            status = 200
+
+            def read(self, *args, **kwargs):
+                raise IncompleteRead(b"{\"schema", 20)
+
+        def opener(request, timeout):
+            calls.append(request.full_url)
+            if len(calls) == 1:
+                return TruncatedResponse(b"")
+            return FakeResponse(payload)
+
+        result = get_public_decision_capsule("a" * 43, opener=opener, sleeper=lambda _seconds: None, max_retries=1)
+        self.assertEqual(result["integrity"], "valid")
+        self.assertEqual(len(calls), 2)
 
     def test_research_job_creation_status_and_cancellation(self):
         job_id = "01234567-89ab-4cde-8fab-0123456789ab"

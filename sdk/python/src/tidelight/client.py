@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import hashlib
+from http.client import IncompleteRead
 import math
 import re
 import time
@@ -145,7 +146,7 @@ def get_public_decision_capsule(token: str, *, public_base_url: str = "https://t
                 pause(min(5.0, float(error.headers.get("Retry-After", 0) or 0)) if str(error.headers.get("Retry-After", "")).isdigit() else min(2.0, 0.25 * 2 ** attempt))
                 continue
             raise ApiError(error.code, details.get("code", "public_capsule_error"), details.get("message", "Public capsule request failed."), details.get("request_id") or error.headers.get("X-Request-Id")) from None
-        except (URLError, TimeoutError, OSError):
+        except (URLError, TimeoutError, OSError, IncompleteRead):
             if attempt >= max_retries:
                 raise ApiError(0, "network_error", "The public capsule could not be reached.") from None
             pause(min(2.0, 0.25 * 2 ** attempt))
