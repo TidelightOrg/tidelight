@@ -9,7 +9,7 @@ import { useLanguage } from "@/app/ui/language-provider";
 import { localizeResearchSuggestion } from "@/lib/research-question-localization";
 import type { EvidenceGraph, EvidenceGraphNode } from "@/lib/evidence-graph";
 import { JUDGE_SESSION_KEY, storeJudgeResult, clearJudgeResult } from "@/lib/judge-session";
-import { createDecisionCapsule, getSavedDecisionCapsules, type DecisionCapsuleReceipt, type SavedDecisionCapsule } from "@/lib/decision-capsule-client";
+import { createDecisionCapsule, getCapsulePublicationStatus, getSavedDecisionCapsules, previewDecisionCapsuleShare, publishDecisionCapsuleShare, revokeDecisionCapsuleShare, type CapsulePublicationPreview, type CapsulePublicationSelection, type DecisionCapsuleReceipt, type SavedDecisionCapsule } from "@/lib/decision-capsule-client";
 import { isCurrentDecisionCapsuleSave } from "@/lib/decision-capsule-save-scope";
 import DecisionCapsuleHistory from "@/app/ui/decision-capsule-history";
 
@@ -114,6 +114,75 @@ function EvidenceGraphPanel({ graph }: { graph: EvidenceGraph }) {
   return <details className="flow-evidence-graph"><summary>{translate("Evidence trace")} · {graph.nodes.length} {translate("records")} / {graph.edges.length} {translate("links")}</summary><div className="flow-evidence-graph-body"><p>{translate("Snapshot as of")} <time dateTime={graph.asOf}>{new Date(graph.asOf).toLocaleString()}</time>. {translate("Source linkage shows provenance; it does not independently verify claim support.")} {translate("Retrieved excerpts are not quote-verified.")}</p>{hypotheses.map(hypothesis => <section className="flow-graph-hypothesis" key={hypothesis.id}><header><b>{hypothesis.ticker} {translate("hypothesis")} · {translate(hypothesis.stance)}</b><span>{hypothesis.confidenceOrigin === "model_reported" && hypothesis.reportedConfidence !== null ? `${translate("Model-reported")} ${Math.round(hypothesis.reportedConfidence * 100)}%` : hypothesis.confidenceOrigin === "application_calibrated" && hypothesis.reportedConfidence !== null ? `${translate("Application-capped")} ${Math.round(hypothesis.reportedConfidence * 100)}%` : translate("No model confidence recorded")}</span></header>{hypothesis.riskConsiderations.length ? <p>{translate("Risk considerations:")} {hypothesis.riskConsiderations.join(" · ")}</p> : null}</section>)}{instruments.length ? <div className="flow-graph-instruments"><b>{translate("Distinct market identities")}</b>{instruments.map(instrument => <span key={instrument.id}>{translate(instrument.marketType === "reality_tokenized_spot" ? "Reality tokenized spot" : "U.S. stock perpetual")} · {instrument.symbol} · {instrument.availability === "observed" && instrument.observedAt ? `${translate("observed at")} ${new Date(instrument.observedAt).toLocaleString()}` : translate("Observation unavailable or outside snapshot")}</span>)}</div> : null}<div className="flow-graph-claims">{claims.map(claim => <article className="flow-graph-claim" key={claim.id}><header><b>{translate(claim.polarity === "supporting" ? "Supports" : "Challenges")} · {claim.ticker}</b><span>{translate(claim.citationStatus.replaceAll("_", " "))}</span></header><p>{claim.text}</p>{sourcesFor(claim).map(source => <div className="flow-graph-source-passage" key={source.id}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.publisher} · {source.title} ↗</a>{passagesFor(claim.id).filter(passage => passage.sourceId === source.id).map(passage => <blockquote key={passage.id}><span>{translate("Retrieved excerpt")} · {translate("exact quote not verified")}</span><p>{passage.text}</p></blockquote>)}</div>)}</article>)}</div>{!claims.length ? <section className="flow-graph-empty"><p>{translate("No model-linked evidence points were recorded. The captured source references remain available below.")}</p>{sources.length ? <ul>{sources.map(source => <li key={source.id}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.publisher} · {source.title} ↗</a></li>)}</ul> : null}</section> : null}</div></details>;
 }
 
+function DecisionCapsuleShare({ capsuleId }: { capsuleId: string }) {
+  const { translate } = useLanguage();
+  const [selection, setSelection] = useState<CapsulePublicationSelection>({ research: false, evidence: false, events: false });
+  const [preview, setPreview] = useState<CapsulePublicationPreview | null>(null);
+  const [published, setPublished] = useState(false);
+  const [createdAt, setCreatedAt] = useState<string | null>(null);
+  const [shareUrl, setShareUrl] = useState<string | null>(null);
+  const [confirmed, setConfirmed] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [error, setError] = useState("");
+  const localShareChangeRef = useRef(false);
+  useEffect(() => {
+    let active = true;
+    localShareChangeRef.current = false;
+    getCapsulePublicationStatus(capsuleId).then(status => {
+      if (active && !localShareChangeRef.current) { setPublished(status.published); setCreatedAt(status.published ? status.createdAt : null); }
+    }).catch(cause => { if (active && !localShareChangeRef.current) setError(cause instanceof Error ? cause.message : translate("Capsule sharing status could not be loaded.")); });
+    return () => { active = false; };
+  }, [capsuleId, translate]);
+  async function preparePreview() {
+    setBusy(true); setError(""); setPreview(null); setConfirmed(false); setShareUrl(null);
+    try { setPreview(await previewDecisionCapsuleShare(capsuleId, selection)); }
+    catch (cause) { setError(cause instanceof Error ? cause.message : translate("Public capsule preview could not be prepared.")); }
+    finally { setBusy(false); }
+  }
+  async function publish() {
+    if (!preview || !confirmed) return;
+    setBusy(true); setError("");
+    try {
+      const result = await publishDecisionCapsuleShare(capsuleId, selection, preview.confirmationHash);
+      localShareChangeRef.current = true;
+      setShareUrl(result.url); setCreatedAt(result.createdAt); setPublished(true); setPreview(null); setConfirmed(false);
+    } catch (cause) {
+      const message = cause instanceof Error ? cause.message : translate("Public capsule could not be published.");
+      if (message.includes("changed after preview")) { setPreview(null); setConfirmed(false); }
+      if (message.includes("active public capsule link already exists")) { setPublished(true); setCreatedAt(null); setPreview(null); setConfirmed(false); }
+      setError(message);
+    }
+    finally { setBusy(false); }
+  }
+  async function revoke() {
+    setBusy(true); setError("");
+    try { await revokeDecisionCapsuleShare(capsuleId); localShareChangeRef.current = true; setPublished(false); setCreatedAt(null); setShareUrl(null); setPreview(null); }
+    catch (cause) { setError(cause instanceof Error ? cause.message : translate("Public capsule link could not be revoked.")); }
+    finally { setBusy(false); }
+  }
+  return <section className="flow-capsule-share" aria-label={translate("Public capsule verification")}>
+    <header><h4>{translate("Public verification")}</h4>{published ? <span>{translate("Published")}{createdAt ? ` · ${new Date(createdAt).toLocaleDateString()}` : ""}</span> : null}</header>
+    <p>{translate("Select sections to publish. Account and storage IDs stay private. The hash verifies this copy, not source truth.")}</p>
+    {!published ? <>
+      <fieldset disabled={busy}><legend>{translate("Include in public copy")}</legend>
+        <label><input type="checkbox" checked={selection.research} onChange={event => { setSelection(value => ({ ...value, research: event.target.checked })); setPreview(null); setConfirmed(false); }} />{translate("Question and research summary")}</label>
+        <label><input type="checkbox" checked={selection.evidence} onChange={event => { setSelection(value => ({ ...value, evidence: event.target.checked })); setPreview(null); setConfirmed(false); }} />{translate("Sources and evidence claims")}</label>
+        <label><input type="checkbox" checked={selection.events} onChange={event => { setSelection(value => ({ ...value, events: event.target.checked })); setPreview(null); setConfirmed(false); }} />{translate("Forecasts and reported outcomes")}</label>
+      </fieldset>
+      {!preview ? <button type="button" onClick={() => void preparePreview()} disabled={busy || !Object.values(selection).some(Boolean)} aria-busy={busy}>{busy ? translate("Preparing preview…") : translate("Preview public copy")}</button> : <div className="flow-capsule-share-preview">
+        <details><summary>{translate("Review exact public content")}</summary><pre>{JSON.stringify(preview.preview, null, 2)}</pre></details>
+        <label><input type="checkbox" checked={confirmed} onChange={event => setConfirmed(event.target.checked)} />{translate("I reviewed this content and want to publish it")}</label>
+        <div><button type="button" onClick={() => void publish()} disabled={busy || !confirmed} aria-busy={busy}>{busy ? translate("Publishing…") : translate("Publish public copy")}</button><button type="button" onClick={() => { setPreview(null); setConfirmed(false); }}>{translate("Cancel")}</button></div>
+      </div>}
+    </> : <>
+      {shareUrl ? <div className="flow-capsule-share-link" role="status" aria-live="polite"><a href={shareUrl} target="_blank" rel="noopener noreferrer">{translate("Open public verification")}</a><button type="button" onClick={() => { void navigator.clipboard.writeText(new URL(shareUrl, window.location.href).toString()).then(() => setCopied(true)).catch(() => setCopied(false)); }}>{copied ? translate("Copied") : translate("Copy public link")}</button><code>{shareUrl}</code></div> : <span className="flow-capsule-share-note">{translate("The link is shown once after publishing. Revoke and republish to create a new link.")}</span>}
+      <button type="button" onClick={() => void revoke()} disabled={busy} aria-busy={busy}>{busy ? translate("Revoking…") : translate("Revoke public link")}</button>
+    </>}
+    {error ? <p role="alert">{translate(error)}</p> : null}
+  </section>;
+}
+
 function SavedDecisionCapsules() {
   const { translate } = useLanguage();
   const [capsules, setCapsules] = useState<SavedDecisionCapsule[]>([]);
@@ -145,7 +214,7 @@ function SavedDecisionCapsules() {
         <span>{capsule.question}</span><time dateTime={capsule.createdAt}>{new Date(capsule.createdAt).toLocaleDateString()}</time>
       </button>
     </li>)}</ul> : null}
-    {selected ? <div className="flow-capsule-library-detail"><div className="flow-capsule-receipt"><b>{translate("Capsule saved · integrity verified")}</b><span>{translate("Capsule ID")} · <code>{selected.id}</code></span><span>SHA-256 · <code>{selected.integrityHash}</code></span><a href={`/api/decision-capsules/${selected.id}`} target="_blank" rel="noopener noreferrer">{translate("Open verified capsule JSON")} ↗</a><a href={`/api/decision-capsules/${selected.id}?download=1`} target="_blank" rel="noopener noreferrer">{translate("Download verified capsule evidence")} ↓</a></div><DecisionCapsuleHistory key={selected.id} capsuleId={selected.id} /></div> : null}
+    {selected ? <div className="flow-capsule-library-detail"><div className="flow-capsule-receipt"><b>{translate("Capsule saved · integrity verified")}</b><span>{translate("Capsule ID")} · <code>{selected.id}</code></span><span>SHA-256 · <code>{selected.integrityHash}</code></span><a href={`/api/decision-capsules/${selected.id}`} target="_blank" rel="noopener noreferrer">{translate("Open verified capsule JSON")} ↗</a><a href={`/api/decision-capsules/${selected.id}?download=1`} target="_blank" rel="noopener noreferrer">{translate("Download verified capsule evidence")} ↓</a></div><DecisionCapsuleShare key={selected.id} capsuleId={selected.id} /><DecisionCapsuleHistory key={selected.id} capsuleId={selected.id} /></div> : null}
   </section>;
 }
 

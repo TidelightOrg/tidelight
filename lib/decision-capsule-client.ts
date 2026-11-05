@@ -1,3 +1,5 @@
+import { isStrictIsoTimestamp } from "./strict-iso-timestamp.js";
+
 export type DecisionCapsuleReceipt = {
   id: string;
   createdAt: string;
@@ -7,6 +9,8 @@ export type DecisionCapsuleReceipt = {
 };
 
 export type SavedDecisionCapsule = Pick<DecisionCapsuleReceipt, "id" | "createdAt" | "integrityHash"> & { question: string };
+export type CapsulePublicationSelection = { research: boolean; evidence: boolean; events: boolean };
+export type CapsulePublicationPreview = { preview: Record<string, unknown>; integrityHash: string; confirmationHash: string };
 
 export async function getSavedDecisionCapsules(fetcher: typeof fetch = fetch): Promise<SavedDecisionCapsule[]> {
   const response = await fetcher("/api/decision-capsules", { cache: "no-store", headers: { Accept: "application/json" } });
@@ -41,6 +45,50 @@ function readApiError(payload: unknown, fallback: string) {
   return payload && typeof payload === "object" && "error" in payload && typeof payload.error === "string" ? payload.error : fallback;
 }
 
+async function shareRequest(capsuleId: string, body?: Record<string, unknown>, fetcher: typeof fetch = fetch) {
+  const response = await fetcher(`/api/decision-capsules/${encodeURIComponent(capsuleId)}/share`, {
+    ...(body ? { method: "POST", headers: { "Content-Type": "application/json", Accept: "application/json" }, body: JSON.stringify(body) } : { headers: { Accept: "application/json" } }),
+    cache: "no-store",
+  });
+  const payload: unknown = await response.json().catch(() => null);
+  if (!response.ok) throw new Error(readApiError(payload, "Capsule sharing is unavailable."));
+  if (!payload || typeof payload !== "object") throw new Error("Capsule sharing returned an invalid response.");
+  return payload as Record<string, unknown>;
+}
+
+export async function getCapsulePublicationStatus(capsuleId: string, fetcher: typeof fetch = fetch): Promise<{ published: false } | { published: true; createdAt: string; integrityHash: string }> {
+  const payload = await shareRequest(capsuleId, undefined, fetcher);
+  if (typeof payload.published !== "boolean") throw new Error("Capsule sharing returned an invalid status.");
+  if (payload.published && (typeof payload.createdAt !== "string" || !isStrictIsoTimestamp(payload.createdAt) || typeof payload.integrityHash !== "string" || !/^[a-f0-9]{64}$/i.test(payload.integrityHash))) {
+    throw new Error("Capsule sharing returned invalid publication details.");
+  }
+  return payload.published
+    ? { published: true, createdAt: payload.createdAt as string, integrityHash: (payload.integrityHash as string).toLowerCase() }
+    : { published: false };
+}
+
+export async function previewDecisionCapsuleShare(capsuleId: string, selection: CapsulePublicationSelection, fetcher: typeof fetch = fetch): Promise<CapsulePublicationPreview> {
+  const payload = await shareRequest(capsuleId, { action: "preview", selection }, fetcher);
+  if (!payload.preview || typeof payload.preview !== "object" || Array.isArray(payload.preview) || typeof payload.integrityHash !== "string" || !/^[a-f0-9]{64}$/.test(payload.integrityHash) || typeof payload.confirmationHash !== "string" || !/^[a-f0-9]{64}$/.test(payload.confirmationHash)) {
+    throw new Error("Capsule sharing returned an invalid public preview.");
+  }
+  return { preview: payload.preview as Record<string, unknown>, integrityHash: payload.integrityHash, confirmationHash: payload.confirmationHash };
+}
+
+export async function publishDecisionCapsuleShare(capsuleId: string, selection: CapsulePublicationSelection, expectedConfirmationHash: string, fetcher: typeof fetch = fetch) {
+  const payload = await shareRequest(capsuleId, { action: "publish", selection, confirmed: true, expectedConfirmationHash }, fetcher);
+  if (payload.published !== true || typeof payload.url !== "string" || !/^\/api\/decision-capsules\/public\/[A-Za-z0-9_-]{43}$/.test(payload.url)
+    || typeof payload.createdAt !== "string" || !isStrictIsoTimestamp(payload.createdAt) || typeof payload.integrityHash !== "string" || !/^[a-f0-9]{64}$/.test(payload.integrityHash)) {
+    throw new Error("Capsule sharing returned invalid public link details.");
+  }
+  return { url: payload.url, createdAt: payload.createdAt, integrityHash: payload.integrityHash };
+}
+
+export async function revokeDecisionCapsuleShare(capsuleId: string, fetcher: typeof fetch = fetch) {
+  const payload = await shareRequest(capsuleId, { action: "revoke" }, fetcher);
+  if (payload.revoked !== true) throw new Error("Capsule sharing returned an invalid revocation status.");
+}
+
 export async function getDecisionCapsuleEvents(capsuleId: string, fetcher: typeof fetch = fetch): Promise<DecisionCapsuleHistoryEvent[]> {
   const response = await fetcher(`/api/decision-capsules/${encodeURIComponent(capsuleId)}/events`, { cache: "no-store", headers: { Accept: "application/json" } });
   const payload: unknown = await response.json().catch(() => null);
@@ -66,21 +114,6 @@ export async function appendDecisionCapsuleEvent(capsuleId: string, event: Recor
     throw new Error("Capsule event could not be verified.");
   }
   return payload.event as DecisionCapsuleHistoryEvent;
-}
-
-function isStrictIsoTimestamp(value: string) {
-  const match = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2}):(\d{2})(?:\.(\d{1,9}))?(Z|[+-]\d{2}:\d{2})$/.exec(value);
-  if (!match) return false;
-  const [, yearText, monthText, dayText, hourText, minuteText, secondText, , zone] = match;
-  const year = Number(yearText), month = Number(monthText), day = Number(dayText);
-  const hour = Number(hourText), minute = Number(minuteText), second = Number(secondText);
-  const daysInMonth = new Date(Date.UTC(year, month, 0)).getUTCDate();
-  if (month < 1 || month > 12 || day < 1 || day > daysInMonth || hour > 23 || minute > 59 || second > 59) return false;
-  if (zone !== "Z") {
-    const offsetHour = Number(zone.slice(1, 3)), offsetMinute = Number(zone.slice(4, 6));
-    if (offsetHour > 23 || offsetMinute > 59) return false;
-  }
-  return Number.isFinite(Date.parse(value));
 }
 
 export async function createDecisionCapsule(researchRunId: string, fetcher: typeof fetch = fetch): Promise<DecisionCapsuleReceipt> {

@@ -126,14 +126,22 @@ jobs:
           persist-credentials: false
       - name: Prepare isolated capsule schema
         run: psql -v ON_ERROR_STOP=1 -f tests/postgres/decision-capsules-prerequisites.sql
+      - name: Apply shared OAuth IP rate limiter migration
+        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261015092907_tic_mcp_oauth.sql
       - name: Apply private capsule migration
         run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261103060730_private_decision_capsules.sql
       - name: Test capsule ownership, write-once grants, and RLS
         run: psql -v ON_ERROR_STOP=1 -f tests/postgres/decision-capsules.sql
       - name: Apply append-only capsule event migration
         run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261104064644_decision_capsule_event_history.sql
+      - name: Apply capsule event append hardening
+        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261104152000_decision_capsule_event_append_hardening.sql
       - name: Test capsule event grants, idempotency, and serialized append
         run: psql -v ON_ERROR_STOP=1 -f tests/postgres/decision-capsule-events.sql
+      - name: Apply revocable public capsule publication migration
+        run: psql -v ON_ERROR_STOP=1 -f supabase/migrations/20261104083300_decision_capsule_publications.sql
+      - name: Test public capsule disclosure, token, and revocation storage grants
+        run: psql -v ON_ERROR_STOP=1 -f tests/postgres/decision-capsule-publications.sql
 
   saved-evidence-graph-database:
     runs-on: ubuntu-latest
