@@ -30,8 +30,9 @@ export async function GET(request: Request) {
     if (!asset) return Response.json({ error: "This stock perpetual is not currently available from Bitget." }, { status: 503, headers: { "Cache-Control": "no-store" } });
     const depth = depthResult.data as { a?: string[][]; b?: string[][]; ts?: string } | undefined;
     const fills = tradesResult.data as Array<{ tradeId?: string; execId?: string; price?: string; size?: string; side?: string; ts?: string }> | undefined;
-    const funding = (fundingResult.data as Array<{ fundingRate?: string; fundingRateInterval?: string; nextUpdate?: string }> | undefined)?.[0];
-    const fundingRate = Number(funding?.fundingRate), nextFundingAt = Number(funding?.nextUpdate), fundingInterval = Number(funding?.fundingRateInterval);
+    const funding = (fundingResult.data as Array<{ fundingRate?: string | number | null; fundingRateInterval?: string; nextUpdate?: string }> | undefined)?.[0];
+    const rawRate = funding?.fundingRate;
+    const fundingRate = rawRate == null || (typeof rawRate === "string" && rawRate.trim() === "") ? NaN : Number(rawRate), nextFundingAt = Number(funding?.nextUpdate), fundingInterval = Number(funding?.fundingRateInterval);
     return Response.json({
       provider: "Bitget", category: "USDT-FUTURES", interval,
       market: { symbol, lastPrice: asset.lastPrice, change24h: asset.change24h, high24h: asset.high24h, low24h: asset.low24h, open24h: asset.open24h, volume24h: asset.volume24h, turnover24h: asset.turnover24h, providerTimestamp: asset.providerTimestamp },
