@@ -22,7 +22,7 @@ function safeHttps(value: unknown, policyVersion = 2): string | null {
   if (typeof value !== "string" || value.length > 2_048) return null;
   try {
     const url = new URL(value);
-    const sensitiveQuery = /^(?:key|client[_-]?secret|access[_-]?token|refresh[_-]?token|token|api[_-]?key|secret|signature|sig|session(?:id)?|auth(?:orization)?|password|passwd|x-amz-(?:credential|signature|security-token)|x-goog-(?:credential|signature))$/i;
+    const sensitiveQuery = /^(?:key|client[_-]?secret|access[_-]?token|refresh[_-]?token|id[_-]?token|token|(?:x[_-]?)?api[_-]?key|secret|signature|sig|session(?:[_-]?id)?|auth(?:orization)?|password|passwd|x-amz-(?:credential|signature|security-token)|x-goog-(?:credential|signature))$/i;
     if (url.protocol !== "https:" || !url.hostname || url.username || url.password) return null;
     if (policyVersion >= 2 && (url.hash || [...url.searchParams.keys()].some(key => sensitiveQuery.test(key)))) return null;
     return url.toString();

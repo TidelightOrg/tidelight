@@ -109,6 +109,60 @@ test("strict URL policy applies to new copies while v1 snapshots retain their or
   assert.equal(verifyPublicCapsuleSnapshot(current), true);
 });
 
+test("v2 rejects credential query names across evidence and event URLs", () => {
+  const names = [
+    "key", "client_secret", "access-token", "refresh_token", "token", "api_key", "secret", "signature", "sig", "session", "sessionid", "auth", "authorization", "password", "passwd", "x-amz-credential", "x-amz-signature", "x-amz-security-token", "x-goog-credential", "x-goog-signature",
+    "id_token", "ID-TOKEN", "idtoken", "id%5Ftoken", "session_id", "SESSION-ID", "x-api-key", "X_API_KEY", "xapikey",
+  ];
+  for (const name of names) {
+    const url = `https://example.com/filing?ordinary=1&${name}=private`;
+    const original = structuredClone(privateSnapshot);
+    original.sources[0].url = url;
+    const forecast = { ...event, payload: { ...event.payload, referenceSourceUrl: url, referenceSourceTimestamp: "2026-11-01T00:01:00.000Z", referenceReportedBy: "user" } };
+    const outcome = { ...event, id: "90000000-0000-4000-8000-000000000002", sequence: 2, type: "outcome", forecastEventId: forecast.id, payload: { forecastEventId: forecast.id, observedPrice: 101, observedAt: "2026-11-03T00:00:00.000Z", sourceUrl: url, sourceTimestamp: "2026-11-03T00:01:00.000Z", reportedBy: "user", actualReturnPercent: 1, forecastMet: false } };
+    const projection = buildPublicCapsuleSnapshot({ originalSnapshot: original, capsuleIntegrityHash: "c".repeat(64), events: [forecast, outcome], selection: { research: false, evidence: true, events: true } });
+    assert.deepEqual(projection.evidence.sources, [], name);
+    assert.equal(projection.evidence.claims[0].sourceUrl, null, name);
+    assert.equal(projection.events[0].payload.referenceSourceUrl, null, name);
+    assert.equal(projection.events[0].payload.referenceSourceUrlRedacted, true, name);
+    assert.equal(projection.events[1].payload.sourceUrl, null, name);
+    assert.equal(projection.events[1].payload.sourceUrlRedacted, true, name);
+    assert.equal(verifyPublicCapsuleSnapshot(projection), true, name);
+    for (const [index, field] of [[0, "referenceSourceUrl"], [1, "sourceUrl"]]) {
+      const tampered = structuredClone(projection);
+      tampered.events[index].payload[field] = url;
+      delete tampered.events[index].payload[`${field}Redacted`];
+      for (let i = index; i < tampered.events.length; i += 1) {
+        if (i > index) tampered.events[i].previousHash = tampered.events[i - 1].integrityHash;
+        const unsigned = { ...tampered.events[i] };
+        delete unsigned.integrityHash;
+        tampered.events[i].integrityHash = hashCapsuleSnapshot(unsigned);
+      }
+      assert.equal(verifyPublicCapsuleSnapshot(tampered), false, `${name}: ${field}`);
+    }
+  }
+});
+
+test("URL verification rejects new v2 names and retains v1 and ordinary links", () => {
+  const original = structuredClone(privateSnapshot);
+  original.sources[0].url = "https://example.com/filing?topic=id_token&session_identifier=report&api_key_info=public";
+  const current = buildPublicCapsuleSnapshot({ originalSnapshot: original, capsuleIntegrityHash: "c".repeat(64), events: [], selection: { research: false, evidence: true, events: false } });
+  assert.equal(current.evidence.sources[0].url, original.sources[0].url);
+  assert.equal(current.evidence.claims[0].sourceUrl, original.sources[0].url);
+  assert.equal(verifyPublicCapsuleSnapshot(current), true);
+
+  for (const name of ["id_token", "session_id", "x-api-key"]) {
+    const url = `https://example.com/filing?${name}=private`;
+    const source = structuredClone(current); source.evidence.sources[0].url = url;
+    assert.equal(verifyPublicCapsuleSnapshot(source), false, name);
+    const claim = structuredClone(current); claim.evidence.claims[0].sourceUrl = url;
+    assert.equal(verifyPublicCapsuleSnapshot(claim), false, name);
+    delete source.urlPolicyVersion;
+    source.evidence.claims[0].sourceUrl = url;
+    assert.equal(verifyPublicCapsuleSnapshot(source), true, name);
+  }
+});
+
 test("public prose fields redact embedded identifiers and URLs before integrity hashing", () => {
   const snapshot = structuredClone(privateSnapshot);
   snapshot.research.question = "Review 80000000-0000-4000-8000-000000000001 https://internal.example/path";
