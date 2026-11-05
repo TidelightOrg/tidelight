@@ -2,6 +2,7 @@ import { createHmac, randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
 import { emailFrame, emailSenders } from "@/lib/email/brand";
 import { sendWithResend } from "@/lib/email/resend";
+import { sanitizeFeedbackPage } from "@/lib/feedback-page";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -15,10 +16,6 @@ function emailAddress(value: unknown): string | undefined {
   if (typeof value !== "string" || value.length > 254) return undefined;
   const email = value.trim();
   return /^[^\s@<>]+@[^\s@<>]+\.[^\s@<>]+$/.test(email) ? email : undefined;
-}
-
-function safePath(value: unknown) {
-  return typeof value === "string" && /^\/[A-Za-z0-9/_-]{0,120}$/.test(value) ? value : "/";
 }
 
 export async function POST(request: Request) {
@@ -66,7 +63,7 @@ export async function POST(request: Request) {
     if (allowed !== true) return json({ error: "Please wait before sending more feedback." }, 429);
     await admin.from("feedback_rate_windows").delete().lt("window_started_at", new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString());
 
-    const page = safePath(body.page);
+    const page = sanitizeFeedbackPage(body.page);
     const id = typeof body.requestId === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(body.requestId)
       ? body.requestId
       : randomUUID();
