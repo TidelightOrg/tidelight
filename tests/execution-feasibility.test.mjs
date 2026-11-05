@@ -103,3 +103,11 @@ test("next settlement funding uses venue rate and direction with explicit payer 
   assert.equal(estimateNextFundingCost({ ...base, settlementAt: 85_000, direction: "long" }).status, "unavailable");
   assert.equal(estimateNextFundingCost({ ...base, rate: null, direction: "long" }).status, "unavailable");
 });
+
+test("funding settlement uses its own clock while rate age remains on the client clock", () => {
+  const base = { notional: 1_000, rate: 0.0001, direction: "long", settlementAt: 21_000, rateReceivedAt: 50_000, now: 51_000 };
+  assert.equal(estimateNextFundingCost({ ...base, settlementNow: 20_500 }).status, "estimated");
+  assert.equal(estimateNextFundingCost({ ...base, settlementNow: 21_000 }).status, "unavailable");
+  assert.equal(estimateNextFundingCost({ ...base, now: 65_001, settlementNow: 20_500 }).status, "unavailable");
+  assert.equal(estimateNextFundingCost({ ...base, now: 49_999, settlementNow: 20_500 }).status, "unavailable");
+});

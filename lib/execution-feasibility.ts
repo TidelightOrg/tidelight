@@ -16,6 +16,11 @@ export function serverAnchoredSnapshotNow(serverReceivedAt: number | null | unde
   return (serverReceivedAt as number) + Math.max(0, clientNow - (clientRequestStartedAt as number) - (Number.isFinite(processingMs) && processingMs >= 0 ? processingMs : 0));
 }
 
+/** Apply the same venue skew and snapshot age limits to book-derived prices and sweeps. */
+export function isFreshBookTimestamp(timestamp: number | null | undefined, receivedAt: number | undefined, now: number, maxAgeMs = 15_000) {
+  return timestamp != null && Number.isFinite(timestamp) && !(timestamp - (receivedAt ?? now) > 5_000) && !(now - timestamp > maxAgeMs);
+}
+
 /** Return only the side(s) implied by the proposed paper action. */
 export function executionSidesForAction(action: ExecutionAction, direction: PositionDirection) {
   const primarySide: ExecutionSide | null = action === "open_long" ? "buy" : action === "open_short" ? "sell" : direction === "long" ? "sell" : direction === "short" ? "buy" : null;
@@ -67,7 +72,7 @@ export function estimateBookSweep(input: {
     bookAgeMs,
   } as const;
   // Check venue skew at server receipt; use the advanced server clock for age.
-  if (!Number.isFinite(input.quantity) || input.quantity <= 0 || !base.referencePrice || bookAgeMs === null || input.bookTimestamp! - (input.receivedAt ?? now) > 5_000 || bookAgeMs > maxAgeMs || validLevels.length === 0 || crossedBook) {
+  if (!Number.isFinite(input.quantity) || input.quantity <= 0 || !base.referencePrice || !isFreshBookTimestamp(input.bookTimestamp, input.receivedAt, now, maxAgeMs) || validLevels.length === 0 || crossedBook) {
     return { ...base, status: "unavailable" };
   }
 
@@ -109,6 +114,7 @@ export function estimateNextFundingCost(input: {
   settlementAt: number | null;
   rateReceivedAt: number | null;
   now: number;
+  settlementNow?: number;
   maxAgeMs?: number;
 }): FundingEstimate {
   const base = {
@@ -119,9 +125,10 @@ export function estimateNextFundingCost(input: {
   } as const;
   const maxAgeMs = input.maxAgeMs ?? 15_000;
   const age = input.rateReceivedAt !== null && Number.isFinite(input.rateReceivedAt) ? input.now - input.rateReceivedAt : Infinity;
+  const settlementNow = input.settlementNow ?? input.now;
   if (base.rate === null || base.notional === null || base.settlementAt === null
     || !Number.isFinite(input.now) || !Number.isFinite(input.rateReceivedAt) || age < 0 || age > maxAgeMs
-    || base.settlementAt <= input.now || !["long", "short"].includes(input.direction)) {
+    || !Number.isFinite(settlementNow) || base.settlementAt <= settlementNow || !["long", "short"].includes(input.direction)) {
     return { ...base, status: "unavailable" };
   }
   const cost = base.notional * base.rate * (input.direction === "long" ? 1 : -1);
