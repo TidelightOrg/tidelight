@@ -100,7 +100,7 @@ test("evidence projection omits non-HTTPS sources and never publishes internal s
 
 test("strict URL policy applies to new copies while v1 snapshots retain their original verification rules", () => {
   const current = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [], selection: { research: false, evidence: true, events: false } });
-  assert.equal(current.urlPolicyVersion, 2);
+  assert.equal(current.urlPolicyVersion, 3);
   const legacy = structuredClone(current);
   delete legacy.urlPolicyVersion;
   legacy.evidence.sources[0].url = "https://example.com/filing#access_token=legacy";
@@ -317,6 +317,55 @@ test("policy v2 rejects unflagged null event URLs even when their event hash is 
   delete unsignedOutcome.integrityHash;
   outcomeTampered.events[1].integrityHash = hashCapsuleSnapshot(unsignedOutcome);
   assert.equal(verifyPublicCapsuleSnapshot(outcomeTampered), false);
+});
+
+test("policy 3 redacts additional credential names and stored policy 2 copies keep their rules", () => {
+  const names = ["auth_token", "oauth_token", "access_key", "private_key", "credential", "credentials", "jwt", "bearer", "sas_token", "AWSAccessKeyId", "auth-token", "access-key"];
+  const clean = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [], selection: { research: false, evidence: true, events: false } });
+  assert.equal(clean.urlPolicyVersion, 3);
+  for (const name of names) {
+    const url = `https://example.com/filing?${name}=secret-value`;
+    const original = structuredClone(privateSnapshot);
+    original.sources[0].url = url;
+    const forecast = { ...event, payload: { ...event.payload, referenceSourceUrl: url, referenceSourceTimestamp: "2026-11-01T00:01:00.000Z", referenceReportedBy: "user" } };
+    const projection = buildPublicCapsuleSnapshot({ originalSnapshot: original, capsuleIntegrityHash: "c".repeat(64), events: [forecast], selection: { research: false, evidence: true, events: true } });
+    assert.equal(projection.urlPolicyVersion, 3, name);
+    assert.deepEqual(projection.evidence.sources, [], name);
+    assert.equal(projection.evidence.claims[0].sourceUrl, null, name);
+    assert.equal(projection.events[0].payload.referenceSourceUrl, null, name);
+    assert.equal(projection.events[0].payload.referenceSourceUrlRedacted, true, name);
+    assert.equal(JSON.stringify(projection).includes("secret-value"), false, name);
+    assert.equal(verifyPublicCapsuleSnapshot(projection), true, name);
+
+    const stored = structuredClone(clean);
+    stored.urlPolicyVersion = 2;
+    stored.evidence.sources[0].url = url;
+    stored.evidence.claims[0].sourceUrl = url;
+    assert.equal(verifyPublicCapsuleSnapshot(stored), true, `stored v2 ${name}`);
+    stored.urlPolicyVersion = 3;
+    assert.equal(verifyPublicCapsuleSnapshot(stored), false, `v3 rejects stored ${name}`);
+  }
+
+  const ordinary = structuredClone(privateSnapshot);
+  ordinary.sources[0].url = "https://example.com/filing?auth_token_info=public&session_token_label=note";
+  const kept = buildPublicCapsuleSnapshot({ originalSnapshot: ordinary, capsuleIntegrityHash: "c".repeat(64), events: [], selection: { research: false, evidence: true, events: false } });
+  assert.equal(kept.evidence.sources[0].url, ordinary.sources[0].url);
+  assert.equal(verifyPublicCapsuleSnapshot(kept), true);
+});
+
+test("event provenance stores the canonical URL used by snapshot verification", () => {
+  const forecast = { ...event, payload: { ...event.payload, referenceSourceUrl: "https://EXAMPLE.com:443/quote", referenceSourceTimestamp: "2026-11-01T00:01:00.000Z", referenceReportedBy: "user" } };
+  const outcome = {
+    ...event, id: "90000000-0000-4000-8000-000000000002", sequence: 2, type: "outcome", forecastEventId: forecast.id,
+    payload: { forecastEventId: forecast.id, observedPrice: 101, observedAt: "2026-11-03T00:00:00.000Z", sourceUrl: "https://EXAMPLE.com:443/close", sourceTimestamp: "2026-11-03T00:01:00.000Z", reportedBy: "user", actualReturnPercent: 1, forecastMet: false },
+    createdAt: "2026-11-03T00:02:00.000Z",
+  };
+  const snapshot = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [forecast, outcome], selection: { research: false, evidence: false, events: true } });
+  assert.equal(snapshot.events[0].payload.referenceSourceUrl, "https://example.com/quote");
+  assert.equal("referenceSourceUrlRedacted" in snapshot.events[0].payload, false);
+  assert.equal(snapshot.events[1].payload.sourceUrl, "https://example.com/close");
+  assert.equal("sourceUrlRedacted" in snapshot.events[1].payload, false);
+  assert.equal(verifyPublicCapsuleSnapshot(snapshot), true);
 });
 
 test("publication tokens are hashed before storage and empty projections are rejected", () => {

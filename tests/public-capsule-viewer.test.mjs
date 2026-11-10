@@ -15,6 +15,7 @@ test("public capsule viewer is no-login, no-index, and only loads the public pro
   assert.match(viewer, /fetch\(`\/api\/decision-capsules\/public\/\$\{token\}`/);
   assert.match(viewer, /verifyPublicCapsulePublication\(value\)/);
   assert.match(viewer, /verifyPublicCapsulePublication\(value\)/);
+  assert.match(viewer, /response\.status === 409/);
   assert.match(viewer, /setError\("unverified"\)/);
   assert.match(viewer, /Capsule could not be verified/);
   assert.match(page, /PublicCapsuleViewer key=\{token\} token=\{token\}/);

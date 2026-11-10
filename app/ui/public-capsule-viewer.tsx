@@ -114,6 +114,7 @@ export default function PublicCapsuleViewer({ token }: { token: string }) {
     if (!tokenValid) return () => controller.abort();
     fetch(`/api/decision-capsules/public/${token}`, { cache: "no-store", signal: controller.signal })
       .then(async response => {
+        if (response.status === 409) { setError("unverified"); return; }
         if (!response.ok) throw new Error("unavailable");
         const value: unknown = await response.json();
         const verified = await verifyPublicCapsulePublication(value);

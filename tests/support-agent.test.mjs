@@ -9,6 +9,7 @@ const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
     "@/lib/supabase/server": "export const createClient=async()=>globalThis.supportDatabase;",
     "@/lib/support-knowledge": "export * from " + JSON.stringify(new URL("../lib/support-knowledge.ts", import.meta.url).href) + ";",
     "@/lib/tidelight-docs": "export const queryTidelightDocs=async()=>\"\";export const TIDELIGHT_DOCS_HOME=\"https://docs.tidelight.app\";",
+    "@/lib/feedback-page": "export * from " + JSON.stringify(new URL("../lib/feedback-page.ts", import.meta.url).href) + ";",
   };
   if (mocked[specifier]) return { url: "data:text/javascript," + encodeURIComponent(mocked[specifier]), shortCircuit: true };
   return nextResolve(specifier, context);
@@ -80,7 +81,7 @@ test("public capsule bearer tokens are redacted from support provider context ac
     assert.match(messages[0].content, /CURRENT PAGE: \/capsule\/public\/\[token\]/);
     return { answer: "The public record shows its disclosed source history and integrity status.", linkHrefs: [] };
   };
-  for (const pathname of [`/capsule/public/${token}`, `/capsule/public/${token}/`, `/capsule/public/${token}/nested/path`, `/capsule/public/${token}-`, `/flow/capsule/public/${token}`]) {
+  for (const pathname of [`/capsule/public/${token}`, `/capsule/public/${token}/`, `/capsule/public/${token}/nested/path`, `/capsule/public/${token}-`, `/capsule/public/${token}x`, `/capsule/public/${"b".repeat(50)}`, `/flow/capsule/public/${token}`, `/flow/capsule/public/${token}/nested`]) {
     const response = await ask("What is on this page?", { pathname });
     assert.equal(response.status, 200);
     assert.equal((await response.json()).source, "ai");

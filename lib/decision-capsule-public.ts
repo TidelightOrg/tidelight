@@ -18,13 +18,17 @@ function exactKeys(value: Record<string, unknown>, allowed: string[], required =
   return Object.keys(value).every(key => allowed.includes(key)) && required.every(key => Object.hasOwn(value, key));
 }
 
+/** New projections record this version. Policy 2 stays frozen so stored copies keep their original rules. */
+const CURRENT_URL_POLICY_VERSION = 3;
+
 function safeHttps(value: unknown, policyVersion = 2): string | null {
   if (typeof value !== "string" || value.length > 2_048) return null;
   try {
     const url = new URL(value);
     const sensitiveQuery = /^(?:key|client[_-]?secret|access[_-]?token|refresh[_-]?token|id[_-]?token|token|(?:x[_-]?)?api[_-]?key|secret|signature|sig|session(?:[_-]?id)?|auth(?:orization)?|password|passwd|x-amz-(?:credential|signature|security-token)|x-goog-(?:credential|signature))$/i;
+    const sensitiveQueryV3 = /^(?:(?:o?auth|sas)[_-]?token|bearer|jwt|credentials?|(?:access|private)[_-]?key|aws[_-]?access[_-]?key[_-]?id)$/i;
     if (url.protocol !== "https:" || !url.hostname || url.username || url.password) return null;
-    if (policyVersion >= 2 && (url.hash || [...url.searchParams.keys()].some(key => sensitiveQuery.test(key)))) return null;
+    if (policyVersion >= 2 && (url.hash || [...url.searchParams.keys()].some(key => sensitiveQuery.test(key) || (policyVersion >= 3 && sensitiveQueryV3.test(key))))) return null;
     return url.toString();
   } catch { return null; }
 }
@@ -115,7 +119,7 @@ export function buildPublicCapsuleSnapshot(input: {
 
   const projection: Record<string, JsonValue> = {
     schemaVersion: 1,
-    urlPolicyVersion: 2,
+    urlPolicyVersion: CURRENT_URL_POLICY_VERSION,
     sourceCapsuleIntegrityHash: capsuleIntegrityHash,
     integrityScope: "disclosed_public_projection",
     sourceAuthenticity: "not_independently_verified",
@@ -135,7 +139,7 @@ export function buildPublicCapsuleSnapshot(input: {
     const sourceById = new Map<string, Record<string, unknown>>();
     const publicSources = sources.flatMap(value => {
       const source = record(value);
-      const url = safeHttps(source?.url);
+      const url = safeHttps(source?.url, CURRENT_URL_POLICY_VERSION);
       if (!source || typeof source.id !== "string" || !url) return [];
       sourceById.set(source.id, source);
       return [{
@@ -154,7 +158,7 @@ export function buildPublicCapsuleSnapshot(input: {
       if (!item) return [];
       const source = typeof item.sourceId === "string" ? sourceById.get(item.sourceId) : null;
       return [{
-        sourceUrl: safeHttps(source?.url),
+        sourceUrl: safeHttps(source?.url, CURRENT_URL_POLICY_VERSION),
         claim: publicText(item.claim, 32_000) ?? "",
         supportingQuote: publicText(item.supportingQuote, 32_000),
         stance: text(item.stance),
@@ -182,18 +186,24 @@ export function buildPublicCapsuleSnapshot(input: {
         forecastSequence = sequence;
         const outcome = { ...raw };
         delete outcome.forecastEventId;
-        const publicUrl = safeHttps(outcome.sourceUrl);
-        if (typeof outcome.sourceUrl === "string" && !publicUrl) {
-          outcome.sourceUrl = null;
-          outcome.sourceUrlRedacted = true;
+        const publicUrl = safeHttps(outcome.sourceUrl, CURRENT_URL_POLICY_VERSION);
+        if (typeof outcome.sourceUrl === "string") {
+          if (publicUrl) outcome.sourceUrl = publicUrl;
+          else {
+            outcome.sourceUrl = null;
+            outcome.sourceUrlRedacted = true;
+          }
         }
         payload = outcome as Record<string, JsonValue>;
       } else {
         const forecast = { ...(event.payload as unknown as Record<string, unknown>) };
-        const publicUrl = safeHttps(forecast.referenceSourceUrl);
-        if (typeof forecast.referenceSourceUrl === "string" && !publicUrl) {
-          forecast.referenceSourceUrl = null;
-          forecast.referenceSourceUrlRedacted = true;
+        const publicUrl = safeHttps(forecast.referenceSourceUrl, CURRENT_URL_POLICY_VERSION);
+        if (typeof forecast.referenceSourceUrl === "string") {
+          if (publicUrl) forecast.referenceSourceUrl = publicUrl;
+          else {
+            forecast.referenceSourceUrl = null;
+            forecast.referenceSourceUrlRedacted = true;
+          }
         }
         payload = forecast as Record<string, JsonValue>;
       }
@@ -211,7 +221,7 @@ export function buildPublicCapsuleSnapshot(input: {
 export function verifyPublicCapsuleSnapshot(value: unknown): boolean {
   const snapshot = record(value);
   const urlPolicyVersion = snapshot?.urlPolicyVersion === undefined ? 1 : snapshot.urlPolicyVersion;
-  if (!snapshot || !exactKeys(snapshot, ["schemaVersion", "urlPolicyVersion", "sourceCapsuleIntegrityHash", "integrityScope", "sourceAuthenticity", "research", "evidence", "eventAnchorHash", "events"], ["schemaVersion", "sourceCapsuleIntegrityHash", "integrityScope", "sourceAuthenticity"]) || snapshot.schemaVersion !== 1 || (urlPolicyVersion !== 1 && urlPolicyVersion !== 2) || typeof snapshot.sourceCapsuleIntegrityHash !== "string" || !/^[a-f0-9]{64}$/.test(snapshot.sourceCapsuleIntegrityHash)
+  if (!snapshot || !exactKeys(snapshot, ["schemaVersion", "urlPolicyVersion", "sourceCapsuleIntegrityHash", "integrityScope", "sourceAuthenticity", "research", "evidence", "eventAnchorHash", "events"], ["schemaVersion", "sourceCapsuleIntegrityHash", "integrityScope", "sourceAuthenticity"]) || snapshot.schemaVersion !== 1 || (urlPolicyVersion !== 1 && urlPolicyVersion !== 2 && urlPolicyVersion !== 3) || typeof snapshot.sourceCapsuleIntegrityHash !== "string" || !/^[a-f0-9]{64}$/.test(snapshot.sourceCapsuleIntegrityHash)
     || snapshot.integrityScope !== "disclosed_public_projection" || snapshot.sourceAuthenticity !== "not_independently_verified"
     || (!Object.hasOwn(snapshot, "research") && !Object.hasOwn(snapshot, "evidence") && !Object.hasOwn(snapshot, "events"))) return false;
   if (Object.hasOwn(snapshot, "research")) {
