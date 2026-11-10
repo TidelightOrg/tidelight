@@ -125,7 +125,7 @@ Strategy Lab replays a baseline against historical public candles. Nightwatch an
 - **Prices have context.** Public Bitget quotes are shown with available freshness and market information. A feed can be delayed, unavailable, or different from another venue.
 - **Sources remain inspectable.** A research brief is an aid to review. It does not independently verify every statement in an outside article.
 - **Private work stays private.** Signed-in briefs, preferences, watchlists, and ledgers are protected by account-scoped database policies.
-- **Paper means paper.** Nightwatch and the Futures Paper Desk simulate activity. They do not place exchange orders, hold assets, or manage customer funds.
+- **Paper means paper.** Nightwatch and the Futures Paper Desk simulate activity. They do not place exchange orders, hold assets, or manage customer funds. A confirmed Trading-desk demo order is separate: it is sent to Bitget's demo environment and uses virtual funds.
 - **You stay in control.** Tidelight is an informational research product, not financial advice or a recommendation. Check original sources and your own circumstances before acting.
 
 ## Project at a glance
@@ -140,7 +140,7 @@ Strategy Lab replays a baseline against historical public candles. Nightwatch an
 | **AI research** | Server-side Bitget Qwen and Gemini integrations |
 | **Privacy** | Supabase Auth and owner-scoped PostgreSQL policies |
 | **Built with** | Next.js, TypeScript, and Supabase |
-| **Live trading** | Disabled. Paper activity is simulated. |
+| **Live trading** | Off unless `TIDELIGHT_LIVE_ORDER_EXECUTION_ENABLED` is exactly `true`. Demo spot orders still use Bitget's demo environment. |
 
 Prices, coverage, and provider availability may change. Finnhub is an optional source for aggregate analyst targets; its free plan can have usage limits. If the data is unavailable, Tidelight should say so rather than invent a target.
 

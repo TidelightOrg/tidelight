@@ -7,7 +7,7 @@
 
 > **Current production blocker:** Vercel reports the Tidelight project as `live: false`. Read-only requests to `tidelight.app/judge` and `status.tidelight.app/health` returned HTTP 402 `DEPLOYMENT_DISABLED` on 28 October 2026. The latest production deployment is marked READY, but the domains are not serving the product. Restore service and verify public routes before treating any feature or roadmap phase as production-ready.
 >
-> **Current trading-policy mismatch:** public product documentation says live trading is disabled and the product is paper-first. The repository nevertheless contains authenticated live Bitget Reality spot and US-stock-perpetual order handlers. Those handlers require user credentials, explicit confirmation, MFA, and—in the futures path—approved access and accepted terms, but this is not the same as a global off switch. Until the owner makes a separately reviewed decision, the product should keep live order execution globally disabled and make that state enforceable on the server.
+> **Live order execution:** authenticated Bitget Reality spot and US-stock-perpetual order handlers exist. They are refused unless `TIDELIGHT_LIVE_ORDER_EXECUTION_ENABLED` is exactly `true`. A missing or any other value fails closed, including for an approved futures user with authenticator assurance. The private Bitget client applies that same switch before a live write. Demo spot orders still reach Bitget's demo environment on purpose and use virtual funds. Nightwatch, futures paper, REST v1, MCP, webhooks, and cron do not place exchange orders. Do not add a second switch. Keep the variable unset or `false` until a separate product, legal, security, and operations review approves live execution.
 
 ## Executive direction
 
@@ -112,7 +112,7 @@ The schedule is a dependency order, not a date promise. Durations assume a small
 
 1. **Restore the Vercel project.** The owner should inspect the Vercel account/project state, billing/usage, pause/disable reason, and deployment limits. Re-enable the project through the supported owner controls; do not move production aliases to a preview deployment or bypass platform protections.
 2. **Verify after reactivation.** Check `tidelight.app`, `status.tidelight.app`, `api.tidelight.app`, `dev.tidelight.app`, `mcp.tidelight.app`, `package.tidelight.app`, and `blogs.tidelight.app` in a real browser and with route-level health checks. Record the commit and deployment that is actually serving.
-3. **Resolve order-execution policy.** For the roadmap’s intended “research, strategy prototype, and trade testing” positioning, default to paper-only. Add a server-enforced kill switch for all live order handlers and prove that no user, including an approved operator, can send a real order while the switch is off. Keep demo/paper ledgers separate from exchange balances and fills.
+3. **Keep the existing order-execution switch off.** `TIDELIGHT_LIVE_ORDER_EXECUTION_ENABLED` is the only live-order switch. It defaults off and fails closed. Request tests deny an approved futures user and an authenticator-satisfied spot user while it is off. Demo spot orders still use Bitget's demo environment; paper ledgers do not call the exchange. Do not add a second switch.
 4. **Reconcile docs and routes.** Update README, onboarding, workspace controls, operator screens, API docs, and tests to describe the actual mode. Do not label the product paper-only if a reachable route can submit a real order.
 5. **Capture a clean baseline.** Record current public route status, API/MCP auth boundaries, database migration state, scheduled workers, error rates, provider health, and current feature flags without exposing credentials or customer content.
 
@@ -306,7 +306,7 @@ Only begin this phase after the prior proof gates hold.
 ### First 7 days
 
 1. Restore the Vercel project and confirm the reason for `live: false`; re-open all public routes from a clean browser.
-2. Put server-side live order execution behind a verified global off switch and reconcile all user-facing copy with the actual capability.
+2. Keep the existing server-side live-order switch off. Do not add another one. Demo spot orders remain Bitget demo orders.
 3. Record the production migration, feature-flag, scheduler, provider, and status baseline.
 4. Reconcile `CODEX_HANDOFF.md`, `TIC_IMPLEMENTATION.md`, and this roadmap where current evidence differs from old notes.
 
@@ -359,7 +359,7 @@ All thresholds in this table are targets to agree and measure; none are current 
 
 ## Decisions the product owner should make before Phase 1 expands
 
-1. Confirm the public product is a research and paper-testing product, with live trading disabled globally. The code currently has guarded live-order routes; reconcile this before broader rollout.
+1. Confirm the public product stays a research and paper-testing product. Live Bitget orders are refused unless `TIDELIGHT_LIVE_ORDER_EXECUTION_ENABLED` is exactly `true`. Keep production unset or `false`.
 2. Confirm primary launch user: active self-directed rToken researcher, strategy tester, or developer/platform integrator. The initial navigation and beta should optimize one primary user, not all segments equally.
 3. Confirm which rToken issuers/instruments are in scope and what provider agreements allow for public display, retention, and redistribution.
 4. Approve the proposed initial research-quality thresholds and the sample size/reviewer process.

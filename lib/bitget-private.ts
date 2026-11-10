@@ -1,6 +1,7 @@
 import "server-only";
 import { createCipheriv, createDecipheriv, createHash, createHmac, randomBytes } from "node:crypto";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { LiveOrderExecutionDisabledError, liveExchangeWriteRefused } from "@/lib/live-order-policy";
 
 type Mode = "demo" | "live";
 type Secrets = { apiKey: string; apiSecret: string; passphrase: string; mode: Mode };
@@ -43,6 +44,7 @@ export async function getBitgetCredentials(userId: string): Promise<Secrets | nu
   return { apiKey: decryptSecret(data.api_key_ciphertext), apiSecret: decryptSecret(data.api_secret_ciphertext), passphrase: decryptSecret(data.passphrase_ciphertext), mode: data.mode === "live" ? "live" : "demo" };
 }
 export async function bitgetPrivateRequest(credentials: Secrets, method: "GET" | "POST", path: string, payload?: Record<string, unknown>) {
+  if (liveExchangeWriteRefused(credentials.mode, method, path)) throw new LiveOrderExecutionDisabledError();
   const body = payload ? JSON.stringify(payload) : "";
   const url = "https://api.bitget.com" + path;
   const response = await fetch(url, { method, headers: bitgetHeaders(credentials, method, path, body), ...(payload ? { body } : {}), signal: AbortSignal.timeout(12000), cache: "no-store" });

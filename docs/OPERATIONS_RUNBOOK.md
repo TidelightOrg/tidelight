@@ -26,9 +26,19 @@ The Vercel Hobby-compatible schedule is once per day at 09:00 UTC, with per-hour
 
 No production restore has been performed. Before calling recovery rehearsed, use an isolated staging project or branch, restore a recent backup there, check migrations and owner-scoped reads, and record restore time and data-loss point. Do not restore over production as a test. The Supabase project owner must confirm available backup retention and restore options in the project dashboard because they depend on the current plan.
 
+## Live order switch
+
+One server switch controls real Bitget orders: `TIDELIGHT_LIVE_ORDER_EXECUTION_ENABLED`. Only the exact value `true` allows them. A missing value, `false`, or any other string fails closed. Do not add a second flag.
+
+The same check runs in the spot order route, the futures live-order route, live credential setup, and futures live access/account reads. `bitgetPrivateRequest` applies it again before any live-credential write, so a new caller cannot skip it. A refused live spot or futures order returns the disabled message and writes a `security_events` row with `event_type` `bitget_order_attempt` and metadata `blocked: true`, `reason: live_execution_disabled`.
+
+Demo spot orders are intentionally outside this switch. A connected demo key still sends a confirmed order to Bitget with the `paptrading: 1` header. Those orders use Bitget's virtual-funds demo environment. Nightwatch, the futures paper ledger, REST v1, MCP, webhooks, cron, and server actions do not call the private order API.
+
+To stop live orders, unset the variable or set it to anything other than `true`, then redeploy. Cancelling an order that already reached Bitget has to be done at Bitget while the switch is off.
+
 ## Incident response
 
-1. Pause the user's Nightwatch paper agent from its control surface; no live execution path exists.
+1. Pause the user's Nightwatch paper agent from its control surface. Live Bitget orders are already refused unless `TIDELIGHT_LIVE_ORDER_EXECUTION_ENABLED` is exactly `true`.
 2. Check `/systems` for stale providers and note the request ID and deploy SHA.
 3. Check Vercel function logs for the relevant route; never include API keys or authorization headers in logs.
 4. If a market source is stale or unavailable, stop manual checks until current completed candles return.

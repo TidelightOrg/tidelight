@@ -33,12 +33,12 @@ export const SUPPORT_TOPICS: SupportTopic[] = [
   },
   {
     id: "live-key", title: "Bitget live API and safety", keywords: ["live trading", "live api", "bitget key", "api key", "connect bitget", "api secret", "withdrawal", "real order"],
-    answer: "Sign in to Tidelight and open Trading. Use a dedicated Bitget key for the account mode you select, with spot trade read and write access and withdrawals disabled. Enter the API key, secret, and passphrase only in Tidelight’s private connection form. Tidelight verifies read access before storing the encrypted credential; Bitget checks write access when an order is confirmed. Each live order needs explicit confirmation and an authenticator check. Never paste a key or secret into support chat.",
+    answer: "Live exchange orders stay off unless this deployment sets live execution on. The server refuses a live order before Bitget is contacted, including after an authenticator check or an approved futures review. A confirmed demo order is different: it is sent to Bitget’s demo environment and uses virtual funds. Never paste a key or secret into support chat.",
     links: [{ label: "Open Trading", href: "/trading" }, { label: "Account security", href: "/settings" }],
   },
   {
     id: "orders", title: "Bitget order controls", keywords: ["order", "buy", "sell", "trade", "execution", "spot", "reality token"],
-    answer: "The Trading desk offers one-off demo or live spot orders only for verified Reality stock tokens. Choose the account mode, token, side, order type, and amount; review everything before confirming. The estimated order cap is 250 USDT, and live orders require an authenticator check. A market order may execute immediately. The assistant cannot place or approve orders.",
+    answer: "Confirmed demo spot orders for verified Reality stock tokens are sent to Bitget’s demo environment and use virtual funds. Live spot orders use the same form only when this deployment has turned live execution on; otherwise the server refuses them before an exchange order is sent. The estimated cap is 250 USDT. The assistant cannot place or approve orders.",
     links: [{ label: "Open Trading", href: "/trading" }],
   },
   {
@@ -48,7 +48,7 @@ export const SUPPORT_TOPICS: SupportTopic[] = [
   },
   {
     id: "futures", title: "Stock perpetual paper desk", keywords: ["futures", "perpetual", "perp", "short", "margin", "liquidation", "stock perp"],
-    answer: "The stock perpetual desk simulates long and short positions against selected Bitget stock perpetual references. The account balance and fills are paper values. Read the price timestamp and decision trail before acting elsewhere; this desk does not submit live perpetual orders.",
+    answer: "The stock perpetual desk simulates long and short positions against selected Bitget stock perpetual references. The account balance and fills are paper values. Live perpetual orders are refused by the server while live execution is off, and an approved access request does not bypass that refusal.",
     links: [{ label: "Open paper futures", href: "/futures" }],
   },
   {

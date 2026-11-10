@@ -21,6 +21,8 @@
 | `PATCH, DELETE /webhooks/{endpoint_id}` | `alerts:manage` | 更新、轮换密钥或停用项目端点 |
 | `GET /webhooks/deliveries` | `alerts:manage` | 查看投递尝试和安全的失败详情 |
 
+这些操作不会下交易所订单。Bitget 实盘订单是另一条服务端路由，除非 `TIDELIGHT_LIVE_ORDER_EXECUTION_ENABLED` 恰好为 `true`，否则保持关闭。
+
 ## 首个请求
 
 创建开发者项目和带有 `market:read` 权限的测试密钥。请将密钥放入本地 Shell 环境；不要提交密钥、发送给不可信服务，或放入浏览器代码。

@@ -4,6 +4,12 @@
 **Repository:** [`TidelightOrg/tidelight`](https://github.com/TidelightOrg/tidelight)
 **Purpose:** let a fresh session continue from current verified state without repeating completed work.
 
+## Live-order switch
+
+Do not add another live-order flag. `TIDELIGHT_LIVE_ORDER_EXECUTION_ENABLED` must be exactly `true` or the server refuses live Bitget writes. Missing configuration fails closed. The spot and futures live routes, live key setup, and `bitgetPrivateRequest` all use that one check. An approved futures user with authenticator assurance is still refused while it is off, and the refusal is written to `security_events`.
+
+Demo spot orders are intentionally not covered. A confirmed demo order still calls Bitget with `paptrading: 1` and uses virtual funds. Nightwatch, futures paper, REST v1, MCP, webhooks, cron, and server actions do not place exchange orders.
+
 ## Current verified continuation point · 30 October 2026
 
 PR #442, **Improve research evidence integrity and evaluation clarity**, is open on `codex/benchmark-status-hierarchy`. The latest code commit is `2c496ecb5b77a2a2721436c9681e9fb48bbbe1c6`; its Vercel preview is READY at [tidelight-nhpvw9qzt-tidelight1.vercel.app](https://tidelight-nhpvw9qzt-tidelight1.vercel.app/). Keep all follow-up work on this PR.
