@@ -1,5 +1,7 @@
 # Tidelight 产品演进路线图
 
+> **历史文档。** 这不是当前路线图。当前英文路线图是 [docs/PRODUCT_EVOLUTION_ROADMAP.md](../PRODUCT_EVOLUTION_ROADMAP.md)。本中文文件是一份更早、更短的计划，未按 2026 年 11 月 10 日的 `main` 重新审计。若与英文路线图或代码不一致，以英文路线图和代码为准。
+
 **目的：** 将 Tidelight 从强大的黑客马拉松原型转变为涵盖 AI Trading Desk、Alpha Factory 和 Agentic Trading 的连贯、可靠的产品。
 
 **产品论文：** 一份决策记录跟踪市场事件，从来源证据，通过映射暴露和明确场景，到可重复的策略分析和受保护的纸质决策。人类仍然对投资决策负责。 Tidelight 不下实时订单。
