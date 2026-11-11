@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { readdir, readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
-import { isLiveOrderExecutionEnabled, liveExchangeWriteRefused } from "../lib/live-order-policy.ts";
+import { isLiveOrderExecutionEnabled, liveExchangeWriteRefused, readBlockedOrderPreview } from "../lib/live-order-policy.ts";
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 
@@ -63,6 +63,21 @@ test("trading pages disclose the disabled state and remove live entry controls",
   assert.match(futuresUi, /Live access requests and real Bitget orders are blocked server-side/);
 });
 
+test("a blocked futures preview keeps symbol and action only for a small body", async () => {
+  const small = new Request("https://tidelight.app/api/futures/live-order", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ symbol: "nvdaUSDT", action: "open_long" }) });
+  assert.deepEqual(await readBlockedOrderPreview(small), { symbol: "NVDAUSDT", action: "open_long" });
+  const oversized = new Request("https://tidelight.app/api/futures/live-order", { method: "POST", headers: { "content-type": "application/json", "content-length": "9000" }, body: "{\"symbol\":\"NVDAUSDT\"}" });
+  assert.deepEqual(await readBlockedOrderPreview(oversized), { symbol: null, action: null });
+  const stream = new ReadableStream({
+    start(controller) {
+      controller.enqueue(new TextEncoder().encode(`{"symbol":"${"A".repeat(4000)}","action":"open_long"}`));
+      controller.close();
+    },
+  });
+  const chunked = new Request("https://tidelight.app/api/futures/live-order", { method: "POST", body: stream, duplex: "half" });
+  assert.deepEqual(await readBlockedOrderPreview(chunked), { symbol: null, action: null });
+});
+
 test("the private client applies the same switch before any Bitget write, and demo orders stay outside it", async () => {
   const [policy, client] = await Promise.all([
     source("../lib/live-order-policy.ts"),
@@ -70,7 +85,9 @@ test("the private client applies the same switch before any Bitget write, and de
   ]);
   assert.match(policy, /Demo mode is never refused here/);
   assert.match(policy, /if \(mode !== "live"\) return false/);
-  assert.ok(client.indexOf("liveExchangeWriteRefused") < client.indexOf("fetch(url"));
+  const guard = client.indexOf("liveExchangeWriteRefused(");
+  const send = client.indexOf("fetch(url");
+  assert.ok(guard >= 0 && send >= 0 && guard < send);
   assert.match(client, /credentials\.mode === "demo" \? \{ paptrading: "1" \}/);
 });
 

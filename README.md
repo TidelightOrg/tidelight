@@ -125,7 +125,7 @@ Strategy Lab replays a baseline against historical public candles. Nightwatch an
 - **Prices have context.** Public Bitget quotes are shown with available freshness and market information. A feed can be delayed, unavailable, or different from another venue.
 - **Sources remain inspectable.** A research brief is an aid to review. It does not independently verify every statement in an outside article.
 - **Private work stays private.** Signed-in briefs, preferences, watchlists, and ledgers are protected by account-scoped database policies.
-- **Paper means paper.** Nightwatch and the Futures Paper Desk simulate activity. They do not place exchange orders, hold assets, or manage customer funds. A confirmed Trading-desk demo order is separate: it is sent to Bitget's demo environment and uses virtual funds.
+- **Paper means paper.** Nightwatch and the Futures Paper Desk simulate activity. They do not place exchange orders, hold assets, or manage customer funds. Futures paper orders stay in Tidelight's ledger. An eligible confirmed Bitget spot demo order is sent to Bitget's demo environment and uses virtual funds.
 - **You stay in control.** Tidelight is an informational research product, not financial advice or a recommendation. Check original sources and your own circumstances before acting.
 
 ## Project at a glance

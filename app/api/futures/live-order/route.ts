@@ -5,7 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { bitgetPrivateRequest, getBitgetCredentials, BitgetRequestError } from "@/lib/bitget-private";
 import { getBitgetStockPerp, STOCK_PERP_UNIVERSE } from "@/lib/bitget-market";
 import { MAX_ORDER_ATTEMPTS_PER_HOUR } from "@/lib/bitget-order-policy";
-import { isLiveOrderExecutionEnabled, LIVE_ORDER_DISABLED_MESSAGE, LiveOrderExecutionDisabledError, liveOrderBlockedAudit } from "@/lib/live-order-policy";
+import { isLiveOrderExecutionEnabled, LIVE_ORDER_DISABLED_MESSAGE, LiveOrderExecutionDisabledError, liveOrderBlockedAudit, readBlockedOrderPreview } from "@/lib/live-order-policy";
 
 export const dynamic = "force-dynamic";
 const MAX_MARGIN = 250;
@@ -22,8 +22,7 @@ export async function POST(request:Request) {
   const {data:{user}}=await supabase.auth.getUser();
   if(!user)return NextResponse.json({error:"Sign in to send a live futures order."},{status:401});
   if(!isLiveOrderExecutionEnabled()){
-    let symbol:string|null=null,action:string|null=null;
-    try{const preview=await request.json() as {symbol?:unknown;action?:unknown};symbol=typeof preview.symbol==="string"?preview.symbol.toUpperCase():null;action=typeof preview.action==="string"?preview.action:null;}catch{/* A refused order does not depend on a parseable body. */}
+    const {symbol,action}=await readBlockedOrderPreview(request);
     const {error:blockedAuditError}=await supabase.from("security_events").insert({user_id:user.id,event_type:"bitget_order_attempt",metadata:liveOrderBlockedAudit({mode:"live",product:"USDT-FUTURES",symbol,action})});
     if(blockedAuditError)return NextResponse.json({error:"Could not write the live order audit record. No order was sent."},{status:503,headers:{"Cache-Control":"no-store"}});
     return NextResponse.json({error:LIVE_ORDER_DISABLED_MESSAGE},{status:403,headers:{"Cache-Control":"no-store"}});
@@ -48,7 +47,7 @@ export async function POST(request:Request) {
     const {data:assurance}=await supabase.auth.mfa.getAuthenticatorAssuranceLevel();
     if(assurance?.currentLevel!=="aal2")return NextResponse.json({error:"Complete an authenticator check before placing a live futures order.",mfaRequired:true},{status:403});
     const hourAgo=new Date(Date.now()-60*60*1000).toISOString();
-    const {count:attempts,error:auditReadError}=await supabase.from("security_events").select("id",{count:"exact",head:true}).eq("user_id",user.id).eq("event_type","bitget_order_attempt").gte("created_at",hourAgo);
+    const {count:attempts,error:auditReadError}=await supabase.from("security_events").select("id",{count:"exact",head:true}).eq("user_id",user.id).eq("event_type","bitget_order_attempt").gte("created_at",hourAgo).not("metadata","cs",{blocked:true});
     if(auditReadError)return NextResponse.json({error:"Could not check the live order safety limit. No order was sent."},{status:503});
     if((attempts??0)>=MAX_ORDER_ATTEMPTS_PER_HOUR)return NextResponse.json({error:"This account has reached the five order attempts per hour safety limit."},{status:429});
     const [market,settingsResult,positionsResult,assetsResult]=await Promise.all([

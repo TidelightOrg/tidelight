@@ -64,6 +64,7 @@ function resetState(overrides = {}) {
     credentialReads: 0,
     mfaChecks: 0,
     events,
+    filters: [],
     privateCalls,
     asset: { isReality: true, kind: "rtoken", quoteCoin: "USDT", lastPrice: 100 },
     perp: { lastPrice: 100, providerTimestamp: Date.now() },
@@ -85,6 +86,10 @@ function resetState(overrides = {}) {
         select() { return builder; },
         eq() { return builder; },
         gte() { return builder; },
+        not(column, operator, value) {
+          state.filters.push({ column, operator, value });
+          return builder;
+        },
         insert(values) {
           events.push({ table, values });
           return Promise.resolve({ error: null });
@@ -154,6 +159,7 @@ test("an MFA-satisfied live spot order is refused when the switch is missing, an
   assert.deepEqual(state.privateCalls.map((call) => [call.mode, call.method, call.path]), [
     ["live", "POST", "/api/v3/trade/place-order"],
   ]);
+  assert.deepEqual(state.filters, [{ column: "metadata", operator: "cs", value: { blocked: true } }]);
 });
 
 test("approved futures access and authenticator assurance do not bypass a missing switch", async (t) => {
@@ -185,6 +191,17 @@ test("approved futures access and authenticator assurance do not bypass a missin
   assert.equal(allowed.status, 200, JSON.stringify(allowedBody));
   assert.equal(state.mfaChecks, 1);
   assert.ok(state.privateCalls.some((call) => call.mode === "live" && call.method === "POST" && call.path === "/api/v3/trade/place-order"));
+  assert.deepEqual(state.filters, [{ column: "metadata", operator: "cs", value: { blocked: true } }]);
+});
+
+test("an oversized blocked futures body is refused without keeping its payload", async (t) => {
+  withSwitch(t);
+  const state = resetState();
+  const response = await futures.POST(post("/api/futures/live-order", { symbol: "N".repeat(9000), action: "open_long", margin: 20, leverage: 10, confirmation: "PLACE LIVE FUTURES ORDER" }));
+  assert.equal(response.status, 403);
+  assert.equal(state.events[0].values.metadata.symbol, null);
+  assert.equal(state.events[0].values.metadata.action, null);
+  assert.equal(state.privateCalls.length, 0);
 });
 
 test("a signed-out caller is denied before an audit row or an exchange call", async (t) => {

@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       if (assurance?.currentLevel !== "aal2") return NextResponse.json({ error: "Complete an authenticator check before placing a live order.", mfaRequired: true }, { status: 403 });
     }
     const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-    const { count: attempts, error: auditReadError } = await supabase.from("security_events").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "bitget_order_attempt").gte("created_at", hourAgo);
+    const { count: attempts, error: auditReadError } = await supabase.from("security_events").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "bitget_order_attempt").gte("created_at", hourAgo).not("metadata", "cs", { blocked: true });
     if (auditReadError) return NextResponse.json({ error: "Could not check the order safety limit. No order was sent." }, { status: 503 });
     if ((attempts ?? 0) >= MAX_ORDER_ATTEMPTS_PER_HOUR) return NextResponse.json({ error: "This account has reached the five order attempts per hour safety limit." }, { status: 429 });
     const asset = await getBitgetAsset(symbol);

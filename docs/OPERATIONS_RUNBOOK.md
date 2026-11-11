@@ -30,7 +30,7 @@ No production restore has been performed. Before calling recovery rehearsed, use
 
 One server switch controls real Bitget orders: `TIDELIGHT_LIVE_ORDER_EXECUTION_ENABLED`. Only the exact value `true` allows them. A missing value, `false`, or any other string fails closed. Do not add a second flag.
 
-The same check runs in the spot order route, the futures live-order route, live credential setup, and futures live access/account reads. `bitgetPrivateRequest` applies it again before any live-credential write, so a new caller cannot skip it. A refused live spot or futures order returns the disabled message and writes a `security_events` row with `event_type` `bitget_order_attempt` and metadata `blocked: true`, `reason: live_execution_disabled`.
+The same check runs in the spot order route, the futures live-order route, live credential setup, and futures live access/account reads. `bitgetPrivateRequest` applies it again before any live-credential write, so a new caller cannot skip it. When the audit insert succeeds, a refused live spot or futures order returns the disabled message and writes a `security_events` row with `event_type` `bitget_order_attempt` and metadata `blocked: true`, `reason: live_execution_disabled`. If that insert fails, the route returns 503 and an audit row is not guaranteed. No order is sent in either case. Those blocked rows do not count toward the hourly attempt limit.
 
 Demo spot orders are intentionally outside this switch. A connected demo key still sends a confirmed order to Bitget with the `paptrading: 1` header. Those orders use Bitget's virtual-funds demo environment. Nightwatch, the futures paper ledger, REST v1, MCP, webhooks, cron, and server actions do not call the private order API.
 

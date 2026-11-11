@@ -33,7 +33,7 @@ export const SUPPORT_TOPICS: SupportTopic[] = [
   },
   {
     id: "live-key", title: "Bitget live API and safety", keywords: ["live trading", "live api", "bitget key", "api key", "connect bitget", "api secret", "withdrawal", "real order"],
-    answer: "Live exchange orders stay off unless this deployment sets live execution on. The server refuses a live order before Bitget is contacted, including after an authenticator check or an approved futures review. A confirmed demo order is different: it is sent to Bitget’s demo environment and uses virtual funds. Never paste a key or secret into support chat.",
+    answer: "Live exchange orders stay off unless this deployment sets live execution on. While it is off, the server refuses a live order before Bitget is contacted, including after an authenticator check or an approved futures review. When it is on, sign in, open Trading, and connect a dedicated Bitget key with spot trade read and write access and withdrawals disabled. Enter the API key, secret, and passphrase only in Tidelight’s private connection form. Tidelight verifies read access before storing the encrypted credential. Each live order still needs explicit confirmation and an authenticator check. A confirmed demo order is different: it is sent to Bitget’s demo environment and uses virtual funds. Never paste a key or secret into support chat.",
     links: [{ label: "Open Trading", href: "/trading" }, { label: "Account security", href: "/settings" }],
   },
   {

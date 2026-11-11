@@ -6,7 +6,7 @@
 
 ## Live-order switch
 
-Do not add another live-order flag. `TIDELIGHT_LIVE_ORDER_EXECUTION_ENABLED` must be exactly `true` or the server refuses live Bitget writes. Missing configuration fails closed. The spot and futures live routes, live key setup, and `bitgetPrivateRequest` all use that one check. An approved futures user with authenticator assurance is still refused while it is off, and the refusal is written to `security_events`.
+Do not add another live-order flag. `TIDELIGHT_LIVE_ORDER_EXECUTION_ENABLED` must be exactly `true` or the server refuses live Bitget writes. Missing configuration fails closed. The spot and futures live routes, live key setup, and `bitgetPrivateRequest` all use that one check. An approved futures user with authenticator assurance is still refused while it is off. A successful refusal is written to `security_events`. If that write fails, the route returns 503 and the row is not guaranteed. No order is sent either way.
 
 Demo spot orders are intentionally not covered. A confirmed demo order still calls Bitget with `paptrading: 1` and uses virtual funds. Nightwatch, futures paper, REST v1, MCP, webhooks, cron, and server actions do not place exchange orders.
 
