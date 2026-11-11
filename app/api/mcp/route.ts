@@ -6,6 +6,8 @@ import { getTicMcpAllowedOrigins, ticMcpCorsHeaders } from "@/lib/tic/mcp-cors";
 import { GET as listInstruments } from "@/app/api/v1/market/instruments/route";
 import { POST as startResearch } from "@/app/api/v1/research/jobs/route";
 import { DELETE as cancelResearch, GET as getResearch } from "@/app/api/v1/research/jobs/[jobId]/route";
+import { GET as getPublicCapsule } from "@/app/api/decision-capsules/public/[token]/route";
+import { mcpRateLimitClientHeaders } from "@/lib/tic/mcp-client-ip";
 
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
@@ -27,7 +29,7 @@ function apiRequest(secret: string, path: string, method: string, body?: unknown
   return createMcpInternalRequest(`https://tidelight.app${path}`, { method, headers, body: body === undefined ? undefined : JSON.stringify(body) });
 }
 
-function makeInvoker(secret: string): TicMcpInvoker {
+function makeInvoker(secret: string, incomingRequest: Request): TicMcpInvoker {
   return async (operation: TicMcpOperation): Promise<Response> => {
     switch (operation.operation) {
       case "market.list":
@@ -42,6 +44,11 @@ function makeInvoker(secret: string): TicMcpInvoker {
         return (await getResearch(apiRequest(secret, `/api/v1/research/jobs/${encodeURIComponent(operation.jobId)}`, "GET"), { params: Promise.resolve({ jobId: operation.jobId }) })) ?? Response.json({ error: { code: "service_unavailable", message: "The research job could not be loaded." } }, { status: 503 });
       case "research.cancel":
         return (await cancelResearch(apiRequest(secret, `/api/v1/research/jobs/${encodeURIComponent(operation.jobId)}`, "DELETE"), { params: Promise.resolve({ jobId: operation.jobId }) })) ?? Response.json({ error: { code: "service_unavailable", message: "The research job could not be cancelled." } }, { status: 503 });
+      case "capsule.public.get":
+        {
+          const headers = mcpRateLimitClientHeaders(incomingRequest.headers);
+          return getPublicCapsule(new Request(`https://tidelight.app/api/decision-capsules/public/${operation.token}`, { headers }), { params: Promise.resolve({ token: operation.token }) });
+        }
       default:
         return Response.json({ error: { code: "unsupported_operation", message: "This Tidelight operation is unavailable." } }, { status: 400 });
     }
@@ -76,7 +83,7 @@ async function handle(request: Request) {
     enableDnsRebindingProtection: true,
   });
   try {
-    const server = createTidelightMcpServer(new Set(credential.scopes), makeInvoker(credential.secret));
+    const server = createTidelightMcpServer(new Set(credential.scopes), makeInvoker(credential.secret, request));
     await server.connect(transport);
     const response = await transport.handleRequest(request);
     const headers = new Headers(response.headers);

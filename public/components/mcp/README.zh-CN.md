@@ -24,8 +24,9 @@ https://mcp.tidelight.app/mcp
 | `tidelight_start_company_research` | `research:run` | 启动异步公司研究快照 |
 | `tidelight_get_research_job` | `research:run` | 读取任务状态和已完成结果 |
 | `tidelight_cancel_research_job` | `research:run` | 请求取消排队任务 |
+| `tidelight_get_public_decision_capsule` | `research:run` | 使用 256 位持有者令牌读取用户主动发布的胶囊 |
 
-这些工具返回代币化现货产品，不是直接持有的美国股票或股票永续合约。研究结果会保留来源背景；它们不是投资建议，也不会暴露私有模型思维链。服务仍会强制执行数据提供方条款和项目权限范围。
+这些工具返回代币化现货产品，不是直接持有的美国股票或股票永续合约。研究结果会保留来源背景；它们不是投资建议，也不会暴露私有模型思维链。公开胶囊工具只读取用户主动发布的副本；完整性状态只验证已公开内容的字节，不证明来源真实性或研究质量。服务仍会强制执行数据提供方条款和项目权限范围。
 
 ## 本地 stdio 中介程序
 

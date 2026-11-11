@@ -36,10 +36,12 @@ test("research scope validates inputs and invokes durable job operations", async
   const calls = [];
   const { server, client } = await connect(["research:run"], async operation => {
     calls.push(operation);
+    if (operation.operation === "capsule.public.get") return Response.json({ integrity: "valid", integrityHash: "a".repeat(64) });
     return Response.json({ job_id: "3d7fbd5c-a03c-4ba1-ae77-8ecf44dbdb5e", status: "queued", error: null });
   });
   const { tools } = await client.listTools();
-  assert.deepEqual(tools.map(tool => tool.name).sort(), ["tidelight_cancel_research_job", "tidelight_get_research_job", "tidelight_start_company_research"]);
+  assert.deepEqual(tools.map(tool => tool.name).sort(), ["tidelight_cancel_research_job", "tidelight_get_public_decision_capsule", "tidelight_get_research_job", "tidelight_start_company_research"]);
+  assert.equal(tools.find(tool => tool.name === "tidelight_get_public_decision_capsule").annotations.readOnlyHint, true);
   const invalid = await client.callTool({ name: "tidelight_start_company_research", arguments: { ticker: "NVDA;DROP" } });
   assert.equal(invalid.isError, true);
   assert.equal(calls.length, 0);
@@ -47,6 +49,12 @@ test("research scope validates inputs and invokes durable job operations", async
   assert.equal(started.structuredContent.status, "queued");
   assert.equal(calls[0].ticker, "NVDA");
   assert.equal(calls[0].idempotencyKey, "mcp-test-0001");
+  const invalidCapsule = await client.callTool({ name: "tidelight_get_public_decision_capsule", arguments: { token: "invalid" } });
+  assert.equal(invalidCapsule.isError, true);
+  assert.equal(calls.length, 1);
+  const capsule = await client.callTool({ name: "tidelight_get_public_decision_capsule", arguments: { token: "a".repeat(43) } });
+  assert.equal(capsule.structuredContent.integrity, "valid");
+  assert.deepEqual(calls[1], { operation: "capsule.public.get", token: "a".repeat(43) });
   await client.close();
   await server.close();
 });
