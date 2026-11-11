@@ -30,7 +30,7 @@ const rows = {
     { id: orphanCapsule, user_id: owner, research_run_id: null, created_at: "2026-11-03T01:00:00.000Z", original_snapshot: { copied: true }, integrity_hash: "c".repeat(64) },
   ],
   strategy_backtest_runs: [
-    { id: backtestId, user_id: owner, strategy_key: "sma_trend_v1", symbol: "RNVDAUSDT", interval: "4H", created_at: "2026-11-02T02:00:00.000Z", market_category: "SPOT", parameters: { researchRunId: runId.toUpperCase(), candles: [1], feeBpsPerSide: 10 }, train_metrics: { returnPct: 1 }, candles: [1] },
+    { id: backtestId, user_id: owner, strategy_key: "sma_trend_v1", symbol: "NVDAUSDT", interval: "4H", created_at: "2026-11-02T02:00:00.000Z", parameters: { researchRunId: runId.toUpperCase(), marketCategory: "SPOT", candles: [1], feeBpsPerSide: 10 }, train_metrics: { returnPct: 1 }, candles: [1] },
     { id: otherBacktest, user_id: other, strategy_key: "sma_trend_v1", symbol: "RNVDAUSDT", interval: "4H", created_at: "2026-11-02T02:00:00.000Z", parameters: { researchRunId: runId, candles: [1] }, candles: [9] },
   ],
   nightwatch_schedules: [
@@ -72,12 +72,24 @@ function clientFor(source, calls, { fail } = {}) {
         maybeSingle: async () => finish(true),
         then(resolve, reject) { return Promise.resolve(finish(false)).then(resolve, reject); },
       };
+      function project(row) {
+        if (!state.columns) return { ...row };
+        const out = {};
+        for (const part of state.columns.split(",")) {
+          const piece = part.trim();
+          const alias = piece.match(/^([A-Za-z_][A-Za-z0-9_]*):([A-Za-z_][A-Za-z0-9_]*)->>(([A-Za-z_][A-Za-z0-9_]*))$/);
+          if (alias) out[alias[1]] = row[alias[2]]?.[alias[3]] ?? null;
+          else out[piece] = row[piece];
+        }
+        return out;
+      }
       function finish(single) {
         calls.push({ source, ...state });
         if (fail?.table === table) return { data: null, error: { message: "unavailable" } };
         let found = (rows[table] ?? []).filter(row => state.filters.every(([op, column, value]) => matches(row, op, column, value)));
         if (state.limit) found = found.slice(0, state.limit);
-        return { data: single ? found[0] ?? null : found, error: null };
+        const projected = found.map(project);
+        return { data: single ? projected[0] ?? null : projected, error: null };
       }
       return api;
     },
@@ -101,7 +113,8 @@ test("an owned research run resolves linked ids without copying stored payloads"
   assert.equal(record.schemaVersion, 1);
   assert.deepEqual(record.researchRun, { id: runId, question: "What changed for NVDA?", status: "complete", createdAt: "2026-11-02T00:00:00.000Z" });
   assert.deepEqual(record.capsule, { id: capsuleId, createdAt: "2026-11-02T01:00:00.000Z" });
-  assert.deepEqual(record.strategyBacktests, { items: [{ id: backtestId, strategyKey: "sma_trend_v1", symbol: "RNVDAUSDT", interval: "4H", marketCategory: "SPOT", createdAt: "2026-11-02T02:00:00.000Z" }], earlier: null });
+  assert.deepEqual(record.strategyBacktests, { items: [{ id: backtestId, strategyKey: "sma_trend_v1", symbol: "NVDAUSDT", interval: "4H", marketCategory: "SPOT", createdAt: "2026-11-02T02:00:00.000Z" }], earlier: null });
+  assert.ok(calls.some(call => call.table === "strategy_backtest_runs" && call.columns.includes("market_category:parameters->>marketCategory")));
   assert.deepEqual(record.nightwatchSchedules, { items: [{ id: scheduleId, label: "Daily review", symbol: "RNVDAUSDT", playbookKey: "sma_trend_v1", enabled: true }], earlier: null });
   assert.deepEqual(record.paperDecisions, { items: [{ id: paperId, symbol: "RNVDAUSDT", signal: "buy", outcome: "executed", createdAt: "2026-11-02T04:00:00.000Z" }], earlier: null });
   assert.equal("summary" in record.researchRun, false);
@@ -176,9 +189,8 @@ test("a futures backtest keeps its market, and older links stay reachable", asyn
     strategy_key: "sma_trend_v1",
     symbol: "NVDAUSDT",
     interval: "1H",
-    market_category: "USDT-FUTURES",
     created_at: new Date(Date.UTC(2026, 10, 2, 12, 0, 0) - index * 1000).toISOString(),
-    parameters: { researchRunId: runId, candles: [1] },
+    parameters: { researchRunId: runId, marketCategory: "USDT-FUTURES", candles: [1] },
   }));
   try {
     const first = await resolveDecisionRecord(readers(owner).store, runId);
