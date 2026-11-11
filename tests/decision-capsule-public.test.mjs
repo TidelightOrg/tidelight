@@ -320,7 +320,7 @@ test("policy v2 rejects unflagged null event URLs even when their event hash is 
 });
 
 test("policy 3 redacts additional credential names and stored policy 2 copies keep their rules", () => {
-  const names = ["auth_token", "oauth_token", "access_key", "private_key", "credential", "credentials", "jwt", "bearer", "sas_token", "AWSAccessKeyId", "auth-token", "access-key"];
+  const names = ["auth_token", "oauth_token", "access_key", "access_key_id", "access-key-id", "AccessKeyId", "private_key", "credential", "credentials", "jwt", "bearer", "sas_token", "session_token", "session-token", "sessiontoken", "AWSAccessKeyId", "auth-token", "access-key"];
   const clean = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [], selection: { research: false, evidence: true, events: false } });
   assert.equal(clean.urlPolicyVersion, 3);
   for (const name of names) {
