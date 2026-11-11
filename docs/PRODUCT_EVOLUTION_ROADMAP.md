@@ -1,6 +1,6 @@
 # Tidelight product evolution roadmap
 
-**Canonical roadmap · inventory inspected 28 October 2026 · continuation note 10 November 2026**
+**Canonical roadmap · inventory inspected 28 October 2026 · continuation note 11 November 2026**
 
 **Repository baseline for the inventory below:** `TidelightOrg/tidelight` main, commit `35a4dba61cef97fa81a13eaab13b165d6d021006` (PR #437). That inventory was not re-audited line by line on 10 November 2026.
 **Docs reconciliation baseline:** `main` commit `f75aa3468baaa7a5aab75aa1ccfec00befe24cbc` (merge of PR #492, 11 November 2026). Continuation detail is in [`docs/CODEX_HANDOFF.md`](CODEX_HANDOFF.md).
