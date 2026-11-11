@@ -142,7 +142,7 @@ Keep account/security, notifications, help, and status easy to find but secondar
 
 - Define a shared `Decision Record` schema and stable IDs for event, issuer, instrument, source capture, claim, strategy version, replay, paper decision, and user action. Do not replace the records that already exist: research runs and evidence, the evidence graph, Decision Capsules (research snapshot plus append-only forecast/outcome events), `researchRunId` links into Strategy Lab and Nightwatch, and separate paper ledgers. A capsule is not that shared record. [`docs/DECISION_CAPSULES.md`](DECISION_CAPSULES.md) says a capsule snapshots a completed research run and does not create a paper order.
 - Make every workflow card state its data mode: live provider observation, cached snapshot, historical replay, paper simulation, or unavailable.
-- Create one canonical asset/instrument identity linking issuer, US stock, Bitget Reality rToken, and USDT perpetual without treating them as equivalent.
+- Create one canonical asset/instrument identity linking issuer, US stock, Bitget Reality rToken, and USDT perpetual without treating them as equivalent. First increment: [`docs/INSTRUMENT_IDENTITY.md`](INSTRUMENT_IDENTITY.md) and `lib/instrument-identity.ts` link the three symbols in code and map the kind names already stored. No table. The legs are not interchangeable. The open questions in that note are still for the owner.
 - Add a “continue this analysis” handoff that preserves the source and timestamp snapshot, but asks the user before a new replay, schedule, or paper action.
 - Reduce duplicated status, empty, loading, error, and confirmation patterns. Preserve theme, responsive, keyboard, and screen-reader behavior.
 - Conduct observed task sessions with users who did not build the product; watch them find an asset, verify a source, run a replay, and interpret the result.
@@ -315,7 +315,7 @@ Only begin this phase after the prior proof gates hold.
 
 1. Run the two-reviewer frozen research evaluation and publish its incomplete/complete gate accurately.
 2. Instrument model/provider success and failure causes; diagnose low synthesis availability separately from answer quality.
-3. Agree the canonical instrument schema and data freshness rules for issuer shares, rTokens, and perpetuals.
+3. Agree the canonical instrument schema and data freshness rules for issuer shares, rTokens, and perpetuals. A first code increment is [`docs/INSTRUMENT_IDENTITY.md`](INSTRUMENT_IDENTITY.md). It does not close this item: one freshness window for research, replay, and paper, and the session, currency, and candle fields, are still open.
 4. Observe first-time users through one workflow and simplify navigation around the core workspaces.
 
 ### Weeks 4–8

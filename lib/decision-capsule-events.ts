@@ -1,16 +1,13 @@
 import { createHash, timingSafeEqual } from "node:crypto";
 import { canonicalJson } from "./decision-capsules";
+import { INSTRUMENT_SYMBOL_PATTERNS, type CanonicalInstrumentKind } from "./instrument-identity";
 
 export const MAX_CAPSULE_EVENTS = 500;
 export const MAX_CAPSULE_EVENT_BYTES = 16 * 1024;
 export const CAPSULE_EVENT_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-const SYMBOLS = {
-  us_equity: /^[A-Z][A-Z0-9.-]{0,14}$/,
-  reality_token: /^R[A-Z0-9.-]{1,15}$/,
-  us_stock_perpetual: /^[A-Z0-9]{1,16}USDT$/,
-} as const;
+const SYMBOLS = INSTRUMENT_SYMBOL_PATTERNS;
 
-export type CapsuleInstrumentType = keyof typeof SYMBOLS;
+export type CapsuleInstrumentType = CanonicalInstrumentKind;
 export type CapsuleForecastPayload = {
   instrument: { type: CapsuleInstrumentType; symbol: string };
   referencePrice: number;
