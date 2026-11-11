@@ -58,6 +58,7 @@ export default function WorkspaceShell({ children, email, avatarUrl, displayName
   const [mobileMenuPath, setMobileMenuPath] = useState<string | null>(null);
   const mobileMenuOpen = mobileMenuPath === pathname;
   const active = visibleNavigation.find((item) => item.href === pathname) ?? visibleNavigation[0];
+  const activeLabel = pathname === "/decisions" || pathname.startsWith("/decisions/") ? "Decision record" : active.label;
 
   useEffect(() => {
     if (mode !== "mini") return;
@@ -107,7 +108,7 @@ export default function WorkspaceShell({ children, email, avatarUrl, displayName
       <main className="main-area">
         <header className="topbar">
           <Link className="mobile-brand" href="/"><Image src="/tidelight-mark.svg" alt="" width={36} height={36} priority /><span>tide<span className="brand-light">light</span></span></Link><LanguageToggle className="mobile-language-toggle" />
-          <div className="breadcrumb">Workspace <span>/</span> {active.label}</div><div className="mobile-utility"><button type="button" className="mobile-menu-toggle" aria-label={mobileMenuOpen ? "Close workspace navigation" : "Open workspace navigation"} aria-expanded={mobileMenuOpen} aria-controls="mobile-workspace-drawer" onClick={() => setMobileMenuPath(mobileMenuOpen ? null : pathname)}><i/><i/><i/></button><b>{active.label}</b><div className="mobile-utility-controls"><ExperienceSwitch /><ThemeQuickSwitch /><Link className="top-signin" href={email ? "/account" : "/login"} prefetch={false}>{email ? "ACCOUNT" : "SIGN IN"}</Link></div></div>
+          <div className="breadcrumb">Workspace <span>/</span> {activeLabel}</div><div className="mobile-utility"><button type="button" className="mobile-menu-toggle" aria-label={mobileMenuOpen ? "Close workspace navigation" : "Open workspace navigation"} aria-expanded={mobileMenuOpen} aria-controls="mobile-workspace-drawer" onClick={() => setMobileMenuPath(mobileMenuOpen ? null : pathname)}><i/><i/><i/></button><b>{activeLabel}</b><div className="mobile-utility-controls"><ExperienceSwitch /><ThemeQuickSwitch /><Link className="top-signin" href={email ? "/account" : "/login"} prefetch={false}>{email ? "ACCOUNT" : "SIGN IN"}</Link></div></div>
           <div className="top-actions"><ExperienceSwitch /><ThemeQuickSwitch /><Link className="top-signin" href={email ? "/account" : "/login"} prefetch={false}>{email ? "ACCOUNT" : "SIGN IN"}</Link></div>
         </header>
         <div className="route-content">{children}</div>
