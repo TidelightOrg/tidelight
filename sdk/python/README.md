@@ -8,7 +8,7 @@
 
 ---
 
-The official Python client supports tokenized-equity market listings, asynchronous company research jobs, and research webhooks. It preserves provider provenance, stable error codes, and request IDs while applying bounded timeouts and retries.
+The official Python client supports tokenized-equity market listings, asynchronous company research jobs, research webhooks, and read-only public Decision Capsule verification. It preserves provider provenance, stable error codes, and request IDs while applying bounded timeouts and retries.
 
 ## Install
 
@@ -38,12 +38,25 @@ for instrument in page.data:
 | Tokenized-equity spot listings and pagination | `market:read` | `list_tokenized_equities`, `tokenized_equities` |
 | Company research snapshots | `research:run` | `start_company_research`, `get_research_job`, `cancel_research_job`, `wait_for_research_job` |
 | Research webhooks and delivery history | `alerts:manage` | `create_webhook`, `update_webhook`, `list_webhooks`, `list_webhook_deliveries` |
+| Public Decision Capsule copies | Public bearer link | `get_public_decision_capsule`, `verify_public_decision_capsule` |
 
 A tokenized-equity spot instrument is not a direct share or a stock perpetual. When provider terms block a market response, the SDK surfaces `provider_terms_unconfirmed` without retrying or substituting data.
 
 ## Reliability and security
 
 The default request timeout is 10 seconds. Network errors, `429`, and transient `5xx` responses receive at most two bounded retries. Webhook mutations are not automatically retried because the API does not accept webhook idempotency keys. The default transport rejects redirects and restricts bearer credentials to `api.tidelight.app`.
+
+Public capsule links are fetched from `tidelight.app` without an API key and are verified locally against the disclosed snapshot's SHA-256 digest. `public_base_url` can be overridden only for a trusted HTTPS origin or local development. Digest verification detects changed bytes relative to the supplied digest; it does not prove authorship, source authenticity, or research quality.
+
+Use the standalone helper to retrieve a shared capsule without creating an authenticated client:
+
+```python
+import os
+from tidelight import get_public_decision_capsule
+
+capsule = get_public_decision_capsule(os.environ["TIDELIGHT_PUBLIC_CAPSULE_TOKEN"])
+print(capsule["integrityHash"], capsule["snapshot"])
+```
 
 Webhook creation and secret rotation return a one-time signing secret. **TODO: Persist** it in your approved secret manager immediately. Do not print it; it cannot be recovered by listing the endpoint.
 
