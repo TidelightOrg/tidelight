@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { registerHooks } from "node:module";
 const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
   if (specifier === "./decision-capsules") return { url: new URL("../lib/decision-capsules.ts", import.meta.url).href, shortCircuit: true };
+  if (specifier === "./instrument-identity") return { url: new URL("../lib/instrument-identity.ts", import.meta.url).href, shortCircuit: true };
   return nextResolve(specifier, context);
 } });
 const {

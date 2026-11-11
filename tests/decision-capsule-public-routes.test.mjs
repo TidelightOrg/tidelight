@@ -13,6 +13,7 @@ const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
   if (specifier === "@/lib/decision-capsule-public") return { url: new URL("../lib/decision-capsule-public.ts", import.meta.url).href, shortCircuit: true };
   if (specifier === "./decision-capsules") return { url: new URL("../lib/decision-capsules.ts", import.meta.url).href, shortCircuit: true };
   if (specifier === "./decision-capsule-public") return { url: new URL("../lib/decision-capsule-public.ts", import.meta.url).href, shortCircuit: true };
+  if (specifier === "./instrument-identity") return { url: new URL("../lib/instrument-identity.ts", import.meta.url).href, shortCircuit: true };
   return nextResolve(specifier, context);
 } });
 const cryptoUtils = await import("node:crypto");

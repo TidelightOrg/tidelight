@@ -1,6 +1,7 @@
 import "server-only";
 import { getBitgetMarketUniverse, getBitgetStockPerp, STOCK_PERP_UNIVERSE, type MarketAsset } from "@/lib/bitget-market";
 import { gatherIssuerEvidence } from "@/lib/agent-flow-sources";
+import { canonicalKindForMarketAsset } from "@/lib/instrument-identity";
 
 const supportedTickers = new Set<string>(STOCK_PERP_UNIVERSE.map(symbol => symbol.slice(0, -4)));
 
@@ -33,10 +34,10 @@ export function buildCompanySnapshot(input: {
   generatedAt?: number;
 }) {
   const tokenizedSpot = input.assets
-    .filter(asset => asset.kind === "rtoken" && asset.isReality && asset.underlyingTicker === input.ticker)
+    .filter(asset => asset.kind === "rtoken" && canonicalKindForMarketAsset(asset) === "reality_token" && asset.underlyingTicker === input.ticker)
     .sort((a, b) => a.symbol.localeCompare(b.symbol))
     .map(projectInstrument);
-  const perpetual = input.perpetual?.kind === "rtoken" && !input.perpetual.isReality && input.perpetual.underlyingTicker === input.ticker
+  const perpetual = input.perpetual?.kind === "rtoken" && canonicalKindForMarketAsset(input.perpetual) === "us_stock_perpetual" && input.perpetual.underlyingTicker === input.ticker
     ? {
         symbol: input.perpetual.symbol,
         instrument_type: "stock_perpetual" as const,
