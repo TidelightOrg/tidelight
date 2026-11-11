@@ -1,0 +1,11 @@
+.decision-record{display:grid;gap:22px;max-width:40rem;padding:8px 0 64px}
+.decision-record h1{margin:0;color:var(--text);font:var(--weight-heading) clamp(28px,4vw,42px)/1.12 var(--display);letter-spacing:-.045em;overflow-wrap:anywhere}
+.decision-record ol{display:grid;margin:0;padding:0;list-style:none;border-top:1px solid var(--line)}
+.decision-record li{border-bottom:1px solid var(--line)}
+.decision-record a,.decision-record li>div{display:grid;gap:4px;padding:14px 2px;color:var(--text);text-decoration:none}
+.decision-record a:hover .decision-record-title{text-decoration:underline;text-underline-offset:3px}
+.decision-record a:focus-visible{outline:2px solid var(--text);outline-offset:2px}
+.decision-record-title{color:var(--text);font:600 14px/1.4 var(--font)}
+.decision-record-meta{display:flex;flex-wrap:wrap;gap:8px 14px;color:var(--muted);font:12px/1.4 var(--mono);overflow-wrap:anywhere}
+.decision-record-meta code{color:inherit;font:inherit}
+.decision-record [role=alert]{margin:0;color:var(--text);font:14px/1.5 var(--font)}
