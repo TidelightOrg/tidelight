@@ -4,6 +4,7 @@ const NIGHTWATCH_SYMBOL = /^[A-Z0-9]{2,24}USDT$/;
 const TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
 const LINK_LIMIT = 50;
 
+/** A linked read failed. Callers must not present that as an empty record. */
 export class DecisionRecordUnavailable extends Error {
   constructor() {
     super("decision-record-unavailable");
@@ -11,8 +12,10 @@ export class DecisionRecordUnavailable extends Error {
   }
 }
 
+/** One row, or a page of rows, from a user-scoped or capsule read. */
 export type DecisionRecordResult = { data: unknown; error: { message: string } | null };
 
+/** Query methods the resolver calls. Production passes a Supabase client. */
 export type DecisionRecordQuery = {
   select(columns: string): DecisionRecordQuery;
   eq(column: string, value: string): DecisionRecordQuery;
@@ -23,18 +26,27 @@ export type DecisionRecordQuery = {
   maybeSingle(): Promise<DecisionRecordResult>;
 };
 
-/** User-scoped reads use the signed-in client. Capsule reads use the server role because authenticated has no table grant. */
+/** Signed-in client for owner tables. Capsule reads use the server role because authenticated has no table grant. */
 export type DecisionRecordClient = { from(table: string): DecisionRecordQuery };
 
+/** Research run fields shown on the record. The id is the continuity key. */
 export type DecisionRecordResearchRun = { id: string; question: string; status: string; createdAt: string };
+/** Capsule id and time. The snapshot stays on the capsule row. */
 export type DecisionRecordCapsule = { id: string; createdAt: string };
+/** Market stored on a strategy backtest. */
 export type DecisionRecordMarket = "SPOT" | "USDT-FUTURES";
+/** Strategy backtest identity, including the saved market. */
 export type DecisionRecordBacktest = { id: string; strategyKey: string; symbol: string; interval: string; marketCategory: DecisionRecordMarket; createdAt: string };
+/** Nightwatch schedule identity. */
 export type DecisionRecordSchedule = { id: string; label: string; symbol: string; playbookKey: string; enabled: boolean };
+/** Paper decision identity. The outcome is the recorded action. */
 export type DecisionRecordPaperDecision = { id: string; symbol: string; signal: string; outcome: string; createdAt: string };
+/** One page of linked rows. `earlier` is the cursor for the next older page. */
 export type DecisionRecordList<T> = { items: T[]; earlier: string | null };
+/** Optional cursors. Each linked list pages on its own. */
 export type DecisionRecordWindow = { strategiesBefore?: string | null; schedulesBefore?: string | null; decisionsBefore?: string | null };
 
+/** Owner-scoped references. The stable id is the research run while that run exists. */
 export type DecisionRecord = {
   schemaVersion: 1;
   id: string;
@@ -48,6 +60,7 @@ export type DecisionRecord = {
 
 type DecisionRecordRead = { userId: string; user: DecisionRecordClient; capsules: DecisionRecordClient };
 
+/** Read-only links into the existing desks. Invalid symbols are not linked. */
 export const decisionRecordHref = {
   capsule(id: string) {
     return UUID.test(id) ? `/api/decision-capsules/${id}` : null;
@@ -173,11 +186,12 @@ async function linked(read: DecisionRecordRead, researchRunId: string, saved: De
   };
 }
 
-/** Read the signed-in owner's existing research, capsule, strategy, and Nightwatch ids. Does not copy snapshots or write. */
+/** Accept only an ISO timestamp cursor. Any other value is ignored. */
 export function decisionRecordCursor(value: string | undefined): string | null {
   return value && TIMESTAMP.test(value) ? value : null;
 }
 
+/** Next older page of one list, keeping the other lists' cursors. */
 export function decisionRecordEarlierHref(id: string, cursors: DecisionRecordWindow, key: keyof DecisionRecordWindow, earlier: string) {
   const params = new URLSearchParams();
   for (const [name, value] of Object.entries({ ...cursors, [key]: earlier })) {
@@ -186,6 +200,7 @@ export function decisionRecordEarlierHref(id: string, cursors: DecisionRecordWin
   return `/decisions/${id}?${params.toString()}`;
 }
 
+/** Read this owner's research, capsule, strategy, and Nightwatch ids. Does not copy snapshots or write. Returns null when this owner cannot see the id. */
 export async function resolveDecisionRecord(read: DecisionRecordRead, id: string, window: DecisionRecordWindow = {}): Promise<DecisionRecord | null> {
   if (!UUID.test(id)) return null;
   const runRow = await single(read.user.from("research_runs").select("id,question,status,created_at").eq("id", id).eq("user_id", read.userId));

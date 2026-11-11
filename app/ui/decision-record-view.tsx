@@ -18,6 +18,7 @@ function Earlier({ id, cursors, name, earlier, title }: { id: string; cursors: D
   return <Entry href={decisionRecordEarlierHref(id, cursors, name, earlier)} title={title} meta={null} />;
 }
 
+/** Read-only list of the ids already linked to one research run or capsule. */
 export function DecisionRecordView({ record, cursors }: { record: DecisionRecord; cursors: DecisionRecordWindow }) {
   const runId = record.researchRun?.id ?? null;
   return <main className="decision-record">
