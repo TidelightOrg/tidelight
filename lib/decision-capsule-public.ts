@@ -26,7 +26,7 @@ function safeHttps(value: unknown, policyVersion = 2): string | null {
   try {
     const url = new URL(value);
     const sensitiveQuery = /^(?:key|client[_-]?secret|access[_-]?token|refresh[_-]?token|id[_-]?token|token|(?:x[_-]?)?api[_-]?key|secret|signature|sig|session(?:[_-]?id)?|auth(?:orization)?|password|passwd|x-amz-(?:credential|signature|security-token)|x-goog-(?:credential|signature))$/i;
-    const sensitiveQueryV3 = /^(?:(?:o?auth|sas)[_-]?token|bearer|jwt|credentials?|(?:access|private)[_-]?key|aws[_-]?access[_-]?key[_-]?id)$/i;
+    const sensitiveQueryV3 = /^(?:(?:o?auth|sas|session)[_-]?token|bearer|jwt|credentials?|access[_-]?key(?:[_-]?id)?|private[_-]?key|aws[_-]?access[_-]?key[_-]?id)$/i;
     if (url.protocol !== "https:" || !url.hostname || url.username || url.password) return null;
     if (policyVersion >= 2 && (url.hash || [...url.searchParams.keys()].some(key => sensitiveQuery.test(key) || (policyVersion >= 3 && sensitiveQueryV3.test(key))))) return null;
     return url.toString();
