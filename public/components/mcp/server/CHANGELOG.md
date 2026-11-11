@@ -1,5 +1,9 @@
 # Changelog
 
+## Unreleased
+
+- Add a read-only tool for retrieving owner-published Decision Capsules using a public bearer token.
+
 ## 0.1.2
 
 - Align npm documentation with the live package, supported transports, and current container release.

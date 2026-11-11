@@ -69,8 +69,9 @@ The upstream Tidelight service returns only tools allowed by the key’s current
 | --- | --- |
 | `tidelight_search_tokenized_equities`, `tidelight_get_tokenized_equity` | `market:read` |
 | `tidelight_start_company_research`, `tidelight_get_research_job`, `tidelight_cancel_research_job` | `research:run` |
+| `tidelight_get_public_decision_capsule` | `research:run` |
 
-Instrument results identify supported Reality tokenized-equity spot products; they are not direct US shares or stock perpetual contracts. Research results preserve source context and do not expose private model reasoning.
+Instrument results identify supported Reality tokenized-equity spot products; they are not direct US shares or stock perpetual contracts. Research results preserve source context and do not expose private model reasoning. The public capsule tool reads only owner-published bearer links; the disclosed-copy integrity status does not establish source authenticity or research quality.
 
 ## Published container
 

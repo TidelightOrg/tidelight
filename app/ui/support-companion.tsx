@@ -204,7 +204,7 @@ export default function SupportCompanion() {
     dragRef.current = null;
   }
 
-  if (pathname.startsWith("/login") || pathname.startsWith("/auth/")) return null;
+  if (pathname.startsWith("/login") || pathname.startsWith("/auth/") || pathname.startsWith("/capsule/public/")) return null;
 
   async function ask(question: string, updatedAt: number) {
     const text = question.trim();

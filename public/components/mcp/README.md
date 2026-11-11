@@ -25,8 +25,9 @@ The service accepts Tidelight OAuth access tokens and scoped developer API keys.
 | `tidelight_start_company_research` | `research:run` | Start an asynchronous company research snapshot |
 | `tidelight_get_research_job` | `research:run` | Read status and any completed result |
 | `tidelight_cancel_research_job` | `research:run` | Request cancellation of queued work |
+| `tidelight_get_public_decision_capsule` | `research:run` | Retrieve an owner-published capsule from its 256-bit bearer token |
 
-These instruments are tokenized spot products, not direct US shares or stock perpetual contracts. Research results preserve source context; they are not recommendations and do not expose private model chain-of-thought. Provider terms and project scopes remain enforced by the service.
+These instruments are tokenized spot products, not direct US shares or stock perpetual contracts. Research results preserve source context; they are not recommendations and do not expose private model chain-of-thought. The public capsule tool only reads owner-published copies; its integrity status covers disclosed bytes, not source authenticity or research quality. Provider terms and project scopes remain enforced by the service.
 
 ## Local stdio bridge
 

@@ -8,6 +8,7 @@ const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
   return nextResolve(specifier, context);
 } });
 const { buildPublicCapsuleSnapshot, capsulePublicationHash, hashPublicationToken, verifyPublicCapsuleSnapshot } = await import("../lib/decision-capsule-public.ts");
+const { hashCapsuleSnapshot } = await import("../lib/decision-capsules.ts");
 hooks.deregister();
 
 const sourceId = "70000000-0000-4000-8000-000000000001";
@@ -30,7 +31,7 @@ const event = {
 
 test("public capsule projection includes only selected sections and excludes private storage identifiers", () => {
   const researchOnly = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [event], selection: { research: true, evidence: false, events: false } });
-  assert.deepEqual(Object.keys(researchOnly).sort(), ["integrityScope", "research", "schemaVersion", "sourceAuthenticity", "sourceCapsuleIntegrityHash"]);
+  assert.deepEqual(Object.keys(researchOnly).sort(), ["integrityScope", "research", "schemaVersion", "sourceAuthenticity", "sourceCapsuleIntegrityHash", "urlPolicyVersion"]);
   assert.equal(JSON.stringify(researchOnly).includes("80000000-0000-4000-8000-000000000001"), false);
   assert.equal(JSON.stringify(researchOnly).includes("private content hash"), false);
   assert.equal(JSON.stringify(researchOnly).includes("sourceId"), false);
@@ -81,14 +82,85 @@ test("research-only disclosure preserves evidence-brief narrative without source
 });
 
 test("evidence projection omits non-HTTPS sources and never publishes internal source IDs", () => {
-  const snapshot = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [], selection: { research: false, evidence: true, events: false } });
+  const sourceWithSecretUrl = structuredClone(privateSnapshot);
+  sourceWithSecretUrl.sources.push({ id: "private-signed-source", url: "https://files.example.com/filing?X-Amz-Signature=private-secret", title: "Signed filing", publisher: "Issuer", publishedAt: null, retrievedAt: "2026-11-01T00:01:00.000Z", sourceType: "primary", excerpt: "private", contentHash: null });
+  sourceWithSecretUrl.sources.push({ id: "private-key-source", url: "https://files.example.com/key?KEY=private-secret", title: "Key URL", publisher: "Issuer", publishedAt: null, retrievedAt: "2026-11-01T00:01:00.000Z", sourceType: "primary", excerpt: "private", contentHash: null });
+  sourceWithSecretUrl.sources.push({ id: "private-client-secret-source", url: "https://files.example.com/client?Client_Secret=private-secret", title: "Client secret URL", publisher: "Issuer", publishedAt: null, retrievedAt: "2026-11-01T00:01:00.000Z", sourceType: "primary", excerpt: "private", contentHash: null });
+  sourceWithSecretUrl.sources.push({ id: "private-fragment-source", url: "https://files.example.com/filing#access_token=private-secret", title: "Fragment URL", publisher: "Issuer", publishedAt: null, retrievedAt: "2026-11-01T00:01:00.000Z", sourceType: "primary", excerpt: "private", contentHash: null });
+  const snapshot = buildPublicCapsuleSnapshot({ originalSnapshot: sourceWithSecretUrl, capsuleIntegrityHash: "c".repeat(64), events: [], selection: { research: false, evidence: true, events: false } });
   assert.equal(snapshot.evidence.sources.length, 1);
   assert.equal(snapshot.evidence.sources[0].url, "https://example.com/filing");
   assert.equal(snapshot.evidence.claims[0].sourceUrl, "https://example.com/filing");
   assert.equal(JSON.stringify(snapshot).includes(sourceId), false);
+  assert.equal(JSON.stringify(snapshot).includes("private-secret"), false);
   assert.equal(JSON.stringify(snapshot).includes("passageStartCodepoint"), false);
   const malformed = structuredClone(snapshot); malformed.evidence.claims[0].confidence = 1.5;
   assert.equal(verifyPublicCapsuleSnapshot(malformed), false);
+});
+
+test("strict URL policy applies to new copies while v1 snapshots retain their original verification rules", () => {
+  const current = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [], selection: { research: false, evidence: true, events: false } });
+  assert.equal(current.urlPolicyVersion, 3);
+  const legacy = structuredClone(current);
+  delete legacy.urlPolicyVersion;
+  legacy.evidence.sources[0].url = "https://example.com/filing#access_token=legacy";
+  legacy.evidence.claims[0].sourceUrl = legacy.evidence.sources[0].url;
+  assert.equal(verifyPublicCapsuleSnapshot(legacy), true);
+  assert.equal(verifyPublicCapsuleSnapshot(current), true);
+});
+
+test("v2 rejects credential query names across evidence and event URLs", () => {
+  const names = [
+    "key", "client_secret", "access-token", "refresh_token", "token", "api_key", "secret", "signature", "sig", "session", "sessionid", "auth", "authorization", "password", "passwd", "x-amz-credential", "x-amz-signature", "x-amz-security-token", "x-goog-credential", "x-goog-signature",
+    "id_token", "ID-TOKEN", "idtoken", "id%5Ftoken", "session_id", "SESSION-ID", "x-api-key", "X_API_KEY", "xapikey",
+  ];
+  for (const name of names) {
+    const url = `https://example.com/filing?ordinary=1&${name}=private`;
+    const original = structuredClone(privateSnapshot);
+    original.sources[0].url = url;
+    const forecast = { ...event, payload: { ...event.payload, referenceSourceUrl: url, referenceSourceTimestamp: "2026-11-01T00:01:00.000Z", referenceReportedBy: "user" } };
+    const outcome = { ...event, id: "90000000-0000-4000-8000-000000000002", sequence: 2, type: "outcome", forecastEventId: forecast.id, payload: { forecastEventId: forecast.id, observedPrice: 101, observedAt: "2026-11-03T00:00:00.000Z", sourceUrl: url, sourceTimestamp: "2026-11-03T00:01:00.000Z", reportedBy: "user", actualReturnPercent: 1, forecastMet: false } };
+    const projection = buildPublicCapsuleSnapshot({ originalSnapshot: original, capsuleIntegrityHash: "c".repeat(64), events: [forecast, outcome], selection: { research: false, evidence: true, events: true } });
+    assert.deepEqual(projection.evidence.sources, [], name);
+    assert.equal(projection.evidence.claims[0].sourceUrl, null, name);
+    assert.equal(projection.events[0].payload.referenceSourceUrl, null, name);
+    assert.equal(projection.events[0].payload.referenceSourceUrlRedacted, true, name);
+    assert.equal(projection.events[1].payload.sourceUrl, null, name);
+    assert.equal(projection.events[1].payload.sourceUrlRedacted, true, name);
+    assert.equal(verifyPublicCapsuleSnapshot(projection), true, name);
+    for (const [index, field] of [[0, "referenceSourceUrl"], [1, "sourceUrl"]]) {
+      const tampered = structuredClone(projection);
+      tampered.events[index].payload[field] = url;
+      delete tampered.events[index].payload[`${field}Redacted`];
+      for (let i = index; i < tampered.events.length; i += 1) {
+        if (i > index) tampered.events[i].previousHash = tampered.events[i - 1].integrityHash;
+        const unsigned = { ...tampered.events[i] };
+        delete unsigned.integrityHash;
+        tampered.events[i].integrityHash = hashCapsuleSnapshot(unsigned);
+      }
+      assert.equal(verifyPublicCapsuleSnapshot(tampered), false, `${name}: ${field}`);
+    }
+  }
+});
+
+test("URL verification rejects new v2 names and retains v1 and ordinary links", () => {
+  const original = structuredClone(privateSnapshot);
+  original.sources[0].url = "https://example.com/filing?topic=id_token&session_identifier=report&api_key_info=public";
+  const current = buildPublicCapsuleSnapshot({ originalSnapshot: original, capsuleIntegrityHash: "c".repeat(64), events: [], selection: { research: false, evidence: true, events: false } });
+  assert.equal(current.evidence.sources[0].url, original.sources[0].url);
+  assert.equal(current.evidence.claims[0].sourceUrl, original.sources[0].url);
+  assert.equal(verifyPublicCapsuleSnapshot(current), true);
+
+  for (const name of ["id_token", "session_id", "x-api-key"]) {
+    const url = `https://example.com/filing?${name}=private`;
+    const source = structuredClone(current); source.evidence.sources[0].url = url;
+    assert.equal(verifyPublicCapsuleSnapshot(source), false, name);
+    const claim = structuredClone(current); claim.evidence.claims[0].sourceUrl = url;
+    assert.equal(verifyPublicCapsuleSnapshot(claim), false, name);
+    delete source.urlPolicyVersion;
+    source.evidence.claims[0].sourceUrl = url;
+    assert.equal(verifyPublicCapsuleSnapshot(source), true, name);
+  }
 });
 
 test("public prose fields redact embedded identifiers and URLs before integrity hashing", () => {
@@ -110,6 +182,25 @@ test("public prose fields redact embedded identifiers and URLs before integrity 
   assert.equal(capsulePublicationHash(projection).length, 64);
 });
 
+test("public prose redacts email addresses without changing explicit source URLs or numeric facts", () => {
+  const snapshot = structuredClone(privateSnapshot);
+  snapshot.research.question = 'Review NVDA with researcher@example.com, analyst@bücher.de, josé@example.org, and "Jane Doe"@example.org. Follow up with analyst@example.net. Reference price $100.25; funding 100@12.50';
+  snapshot.sources[0].excerpt = "Contact analyst+private@example.org about the filing.";
+  const projection = buildPublicCapsuleSnapshot({ originalSnapshot: snapshot, capsuleIntegrityHash: "c".repeat(64), events: [], selection: { research: true, evidence: true, events: false } });
+  const encoded = JSON.stringify(projection);
+  assert.equal(encoded.includes("researcher@example.com"), false);
+  assert.equal(encoded.includes("analyst@bücher.de"), false);
+  assert.equal(encoded.includes("josé@example.org"), false);
+  assert.equal(encoded.includes('"Jane Doe"@example.org'), false);
+  assert.equal(encoded.includes("analyst@example.net"), false);
+  assert.equal(encoded.includes("analyst+private@example.org"), false);
+  assert.match(projection.research.question, /\[email omitted\]/);
+  assert.match(projection.research.question, /\$100\.25/);
+  assert.match(projection.research.question, /100@12\.50/);
+  assert.equal(projection.evidence.sources[0].url, "https://example.com/filing");
+  assert.equal(verifyPublicCapsuleSnapshot(projection), true);
+});
+
 test("research projection rejects malformed timestamps and non-JSON summary values", () => {
   const snapshot = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [], selection: { research: true, evidence: false, events: false } });
   assert.equal(verifyPublicCapsuleSnapshot(snapshot), true);
@@ -123,7 +214,7 @@ test("research projection rejects malformed timestamps and non-JSON summary valu
 
 test("event projection re-hashes a verifiable public chain without private capsule and idempotency identifiers", () => {
   const snapshot = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [event], selection: { research: false, evidence: false, events: true } });
-  assert.deepEqual(Object.keys(snapshot).sort(), ["eventAnchorHash", "events", "integrityScope", "schemaVersion", "sourceAuthenticity", "sourceCapsuleIntegrityHash"]);
+  assert.deepEqual(Object.keys(snapshot).sort(), ["eventAnchorHash", "events", "integrityScope", "schemaVersion", "sourceAuthenticity", "sourceCapsuleIntegrityHash", "urlPolicyVersion"]);
   assert.equal(snapshot.events[0].sequence, 1);
   assert.equal("capsuleId" in snapshot.events[0], false);
   assert.equal("idempotencyKey" in snapshot.events[0], false);
@@ -146,6 +237,135 @@ test("public outcome records retain reproducible return, threshold, and Brier ca
   assert.equal(verifyPublicCapsuleSnapshot(snapshot), true);
   const incorrect = structuredClone(outcome); incorrect.payload.actualReturnPercent = 9;
   assert.throws(() => buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [forecast, incorrect], selection: { research: false, evidence: false, events: true } }), /projection failed validation/);
+});
+
+test("event provenance with credential-bearing URLs is redacted without making append-only history unshareable", () => {
+  const forecast = {
+    ...event,
+    payload: {
+      ...event.payload,
+      referenceSourceUrl: "https://prices.example/nvda?api_key=private-secret",
+      referenceSourceTimestamp: "2026-11-01T00:01:00.000Z",
+      referenceReportedBy: "user",
+    },
+  };
+  const outcome = {
+    ...event,
+    id: "90000000-0000-4000-8000-000000000002",
+    sequence: 2,
+    type: "outcome",
+    forecastEventId: forecast.id,
+    payload: {
+      forecastEventId: forecast.id,
+      observedPrice: 106,
+      observedAt: "2026-11-03T00:00:00.000Z",
+      sourceUrl: "https://prices.example/nvda#access_token=private-secret",
+      sourceTimestamp: "2026-11-03T00:01:00.000Z",
+      reportedBy: "user",
+      actualReturnPercent: 6,
+      forecastMet: true,
+    },
+    createdAt: "2026-11-03T00:02:00.000Z",
+  };
+  const snapshot = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [forecast, outcome], selection: { research: false, evidence: false, events: true } });
+  assert.equal(snapshot.events[0].payload.referenceSourceUrl, null);
+  assert.equal(snapshot.events[0].payload.referenceSourceUrlRedacted, true);
+  assert.equal(snapshot.events[1].payload.sourceUrl, null);
+  assert.equal(snapshot.events[1].payload.sourceUrlRedacted, true);
+  assert.equal(snapshot.events[0].payload.referenceSourceTimestamp, "2026-11-01T00:01:00.000Z");
+  assert.equal(JSON.stringify(snapshot).includes("private-secret"), false);
+  assert.equal(verifyPublicCapsuleSnapshot(snapshot), true);
+  const tampered = structuredClone(snapshot);
+  tampered.events[0].payload.referenceSourceUrlRedacted = false;
+  assert.equal(verifyPublicCapsuleSnapshot(tampered), false);
+});
+
+test("common credential query names are redacted from event provenance", () => {
+  const forecast = {
+    ...event,
+    payload: {
+      ...event.payload,
+      referenceSourceUrl: "https://prices.example/nvda?KEY=private-secret&Client_Secret=also-private&Refresh_Token=long-lived-secret",
+      referenceSourceTimestamp: "2026-11-01T00:01:00.000Z",
+      referenceReportedBy: "user",
+    },
+  };
+  const snapshot = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [forecast], selection: { research: false, evidence: false, events: true } });
+  assert.equal(snapshot.events[0].payload.referenceSourceUrl, null);
+  assert.equal(snapshot.events[0].payload.referenceSourceUrlRedacted, true);
+  assert.equal(JSON.stringify(snapshot).includes("private-secret"), false);
+  assert.equal(JSON.stringify(snapshot).includes("also-private"), false);
+  assert.equal(JSON.stringify(snapshot).includes("long-lived-secret"), false);
+  assert.equal(verifyPublicCapsuleSnapshot(snapshot), true);
+});
+
+test("policy v2 rejects unflagged null event URLs even when their event hash is recomputed", () => {
+  const forecast = { ...event, payload: { ...event.payload, referenceSourceUrl: "https://prices.example/nvda?refresh-token=private", referenceSourceTimestamp: "2026-11-01T00:01:00.000Z", referenceReportedBy: "user" } };
+  const snapshot = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [forecast], selection: { research: false, evidence: false, events: true } });
+  const tampered = structuredClone(snapshot);
+  delete tampered.events[0].payload.referenceSourceUrlRedacted;
+  const unsigned = { ...tampered.events[0] };
+  delete unsigned.integrityHash;
+  tampered.events[0].integrityHash = hashCapsuleSnapshot(unsigned);
+  assert.equal(verifyPublicCapsuleSnapshot(tampered), false);
+
+  const outcome = { ...event, id: "90000000-0000-4000-8000-000000000002", sequence: 2, type: "outcome", forecastEventId: forecast.id, payload: { forecastEventId: forecast.id, observedPrice: 101, observedAt: "2026-11-03T00:00:00.000Z", sourceUrl: "https://prices.example/nvda?refresh_token=private", sourceTimestamp: "2026-11-03T00:01:00.000Z", reportedBy: "user", actualReturnPercent: 1, forecastMet: false } };
+  const withOutcome = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [{ ...forecast, sequence: 1 }, outcome], selection: { research: false, evidence: false, events: true } });
+  const outcomeTampered = structuredClone(withOutcome);
+  delete outcomeTampered.events[1].payload.sourceUrlRedacted;
+  const unsignedOutcome = { ...outcomeTampered.events[1] };
+  delete unsignedOutcome.integrityHash;
+  outcomeTampered.events[1].integrityHash = hashCapsuleSnapshot(unsignedOutcome);
+  assert.equal(verifyPublicCapsuleSnapshot(outcomeTampered), false);
+});
+
+test("policy 3 redacts additional credential names and stored policy 2 copies keep their rules", () => {
+  const names = ["auth_token", "oauth_token", "access_key", "private_key", "credential", "credentials", "jwt", "bearer", "sas_token", "AWSAccessKeyId", "auth-token", "access-key"];
+  const clean = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [], selection: { research: false, evidence: true, events: false } });
+  assert.equal(clean.urlPolicyVersion, 3);
+  for (const name of names) {
+    const url = `https://example.com/filing?${name}=secret-value`;
+    const original = structuredClone(privateSnapshot);
+    original.sources[0].url = url;
+    const forecast = { ...event, payload: { ...event.payload, referenceSourceUrl: url, referenceSourceTimestamp: "2026-11-01T00:01:00.000Z", referenceReportedBy: "user" } };
+    const projection = buildPublicCapsuleSnapshot({ originalSnapshot: original, capsuleIntegrityHash: "c".repeat(64), events: [forecast], selection: { research: false, evidence: true, events: true } });
+    assert.equal(projection.urlPolicyVersion, 3, name);
+    assert.deepEqual(projection.evidence.sources, [], name);
+    assert.equal(projection.evidence.claims[0].sourceUrl, null, name);
+    assert.equal(projection.events[0].payload.referenceSourceUrl, null, name);
+    assert.equal(projection.events[0].payload.referenceSourceUrlRedacted, true, name);
+    assert.equal(JSON.stringify(projection).includes("secret-value"), false, name);
+    assert.equal(verifyPublicCapsuleSnapshot(projection), true, name);
+
+    const stored = structuredClone(clean);
+    stored.urlPolicyVersion = 2;
+    stored.evidence.sources[0].url = url;
+    stored.evidence.claims[0].sourceUrl = url;
+    assert.equal(verifyPublicCapsuleSnapshot(stored), true, `stored v2 ${name}`);
+    stored.urlPolicyVersion = 3;
+    assert.equal(verifyPublicCapsuleSnapshot(stored), false, `v3 rejects stored ${name}`);
+  }
+
+  const ordinary = structuredClone(privateSnapshot);
+  ordinary.sources[0].url = "https://example.com/filing?auth_token_info=public&session_token_label=note";
+  const kept = buildPublicCapsuleSnapshot({ originalSnapshot: ordinary, capsuleIntegrityHash: "c".repeat(64), events: [], selection: { research: false, evidence: true, events: false } });
+  assert.equal(kept.evidence.sources[0].url, ordinary.sources[0].url);
+  assert.equal(verifyPublicCapsuleSnapshot(kept), true);
+});
+
+test("event provenance stores the canonical URL used by snapshot verification", () => {
+  const forecast = { ...event, payload: { ...event.payload, referenceSourceUrl: "https://EXAMPLE.com:443/quote", referenceSourceTimestamp: "2026-11-01T00:01:00.000Z", referenceReportedBy: "user" } };
+  const outcome = {
+    ...event, id: "90000000-0000-4000-8000-000000000002", sequence: 2, type: "outcome", forecastEventId: forecast.id,
+    payload: { forecastEventId: forecast.id, observedPrice: 101, observedAt: "2026-11-03T00:00:00.000Z", sourceUrl: "https://EXAMPLE.com:443/close", sourceTimestamp: "2026-11-03T00:01:00.000Z", reportedBy: "user", actualReturnPercent: 1, forecastMet: false },
+    createdAt: "2026-11-03T00:02:00.000Z",
+  };
+  const snapshot = buildPublicCapsuleSnapshot({ originalSnapshot: privateSnapshot, capsuleIntegrityHash: "c".repeat(64), events: [forecast, outcome], selection: { research: false, evidence: false, events: true } });
+  assert.equal(snapshot.events[0].payload.referenceSourceUrl, "https://example.com/quote");
+  assert.equal("referenceSourceUrlRedacted" in snapshot.events[0].payload, false);
+  assert.equal(snapshot.events[1].payload.sourceUrl, "https://example.com/close");
+  assert.equal("sourceUrlRedacted" in snapshot.events[1].payload, false);
+  assert.equal(verifyPublicCapsuleSnapshot(snapshot), true);
 });
 
 test("publication tokens are hashed before storage and empty projections are rejected", () => {

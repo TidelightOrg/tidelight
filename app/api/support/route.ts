@@ -1,6 +1,7 @@
 import { aiJsonWithFallback, configuredAiProviders } from "@/lib/ai-fallback";
 import { createClient } from "@/lib/supabase/server";
 import { allowedSupportLinks, supportFallback, supportTopicsFor, SUPPORT_TOPICS } from "@/lib/support-knowledge";
+import { sanitizePublicCapsulePath } from "@/lib/feedback-page";
 import { queryTidelightDocs, TIDELIGHT_DOCS_HOME } from "@/lib/tidelight-docs";
 
 export const dynamic = "force-dynamic";
@@ -41,7 +42,8 @@ export async function POST(request: Request) {
   catch { return response({ error: "Please send a question." }, 400); }
   const question = typeof body.question === "string" ? body.question.trim() : "";
   if (!question || question.length > 1200) return response({ error: "Ask a question of up to 1,200 characters." }, 400);
-  const pathname = typeof body.pathname === "string" && /^\/[A-Za-z0-9/_-]{0,100}$/.test(body.pathname) ? body.pathname : "/";
+  const requestedPath = typeof body.pathname === "string" && /^\/[A-Za-z0-9/_-]{0,100}$/.test(body.pathname) ? body.pathname : "/";
+  const pathname = sanitizePublicCapsulePath(requestedPath) ?? requestedPath;
   if (secretLike(question)) return response({
     answer: "That looks like it may contain a credential or verification code. Please remove it and ask again. If you shared a real Bitget key or password anywhere it could be seen, revoke or rotate it in the provider account.",
     links: [{ label: "Account security", href: "/settings" }], source: "knowledge",

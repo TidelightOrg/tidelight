@@ -18,11 +18,18 @@ function exactKeys(value: Record<string, unknown>, allowed: string[], required =
   return Object.keys(value).every(key => allowed.includes(key)) && required.every(key => Object.hasOwn(value, key));
 }
 
-function safeHttps(value: unknown): string | null {
+/** New projections record this version. Policy 2 stays frozen so stored copies keep their original rules. */
+const CURRENT_URL_POLICY_VERSION = 3;
+
+function safeHttps(value: unknown, policyVersion = 2): string | null {
   if (typeof value !== "string" || value.length > 2_048) return null;
   try {
     const url = new URL(value);
-    return url.protocol === "https:" && url.hostname && !url.username && !url.password ? url.toString() : null;
+    const sensitiveQuery = /^(?:key|client[_-]?secret|access[_-]?token|refresh[_-]?token|id[_-]?token|token|(?:x[_-]?)?api[_-]?key|secret|signature|sig|session(?:[_-]?id)?|auth(?:orization)?|password|passwd|x-amz-(?:credential|signature|security-token)|x-goog-(?:credential|signature))$/i;
+    const sensitiveQueryV3 = /^(?:(?:o?auth|sas)[_-]?token|bearer|jwt|credentials?|(?:access|private)[_-]?key|aws[_-]?access[_-]?key[_-]?id)$/i;
+    if (url.protocol !== "https:" || !url.hostname || url.username || url.password) return null;
+    if (policyVersion >= 2 && (url.hash || [...url.searchParams.keys()].some(key => sensitiveQuery.test(key) || (policyVersion >= 3 && sensitiveQueryV3.test(key))))) return null;
+    return url.toString();
   } catch { return null; }
 }
 
@@ -37,7 +44,8 @@ function publicText(value: unknown, limit = 2_000): string | null {
   if (typeof value !== "string") return null;
   return value.slice(0, limit)
     .replace(/[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}/gi, "[private identifier omitted]")
-    .replace(/https?:\/\/[^\s)\]}>,]+/gi, "[source link omitted]");
+    .replace(/https?:\/\/[^\s)\]}>,]+/gi, "[source link omitted]")
+    .replace(/(?<![\p{L}\p{N}._%+-])(?:"(?:[^"\\\r\n]|\\.){1,64}"|[\p{L}\p{N}._%+-]{1,64})@(?:[\p{L}\p{N}](?:[\p{L}\p{N}-]{0,61}[\p{L}\p{N}])?\.)+(?:[\p{L}]{2,63}|xn--[A-Za-z0-9-]{2,59})(?![\p{L}\p{N}_+-])/giu, "[email omitted]");
 }
 
 function publicResearchSummary(value: unknown): JsonValue {
@@ -111,6 +119,7 @@ export function buildPublicCapsuleSnapshot(input: {
 
   const projection: Record<string, JsonValue> = {
     schemaVersion: 1,
+    urlPolicyVersion: CURRENT_URL_POLICY_VERSION,
     sourceCapsuleIntegrityHash: capsuleIntegrityHash,
     integrityScope: "disclosed_public_projection",
     sourceAuthenticity: "not_independently_verified",
@@ -130,7 +139,7 @@ export function buildPublicCapsuleSnapshot(input: {
     const sourceById = new Map<string, Record<string, unknown>>();
     const publicSources = sources.flatMap(value => {
       const source = record(value);
-      const url = safeHttps(source?.url);
+      const url = safeHttps(source?.url, CURRENT_URL_POLICY_VERSION);
       if (!source || typeof source.id !== "string" || !url) return [];
       sourceById.set(source.id, source);
       return [{
@@ -149,7 +158,7 @@ export function buildPublicCapsuleSnapshot(input: {
       if (!item) return [];
       const source = typeof item.sourceId === "string" ? sourceById.get(item.sourceId) : null;
       return [{
-        sourceUrl: safeHttps(source?.url),
+        sourceUrl: safeHttps(source?.url, CURRENT_URL_POLICY_VERSION),
         claim: publicText(item.claim, 32_000) ?? "",
         supportingQuote: publicText(item.supportingQuote, 32_000),
         stance: text(item.stance),
@@ -177,8 +186,27 @@ export function buildPublicCapsuleSnapshot(input: {
         forecastSequence = sequence;
         const outcome = { ...raw };
         delete outcome.forecastEventId;
+        const publicUrl = safeHttps(outcome.sourceUrl, CURRENT_URL_POLICY_VERSION);
+        if (typeof outcome.sourceUrl === "string") {
+          if (publicUrl) outcome.sourceUrl = publicUrl;
+          else {
+            outcome.sourceUrl = null;
+            outcome.sourceUrlRedacted = true;
+          }
+        }
         payload = outcome as Record<string, JsonValue>;
-      } else payload = event.payload as unknown as Record<string, JsonValue>;
+      } else {
+        const forecast = { ...(event.payload as unknown as Record<string, unknown>) };
+        const publicUrl = safeHttps(forecast.referenceSourceUrl, CURRENT_URL_POLICY_VERSION);
+        if (typeof forecast.referenceSourceUrl === "string") {
+          if (publicUrl) forecast.referenceSourceUrl = publicUrl;
+          else {
+            forecast.referenceSourceUrl = null;
+            forecast.referenceSourceUrlRedacted = true;
+          }
+        }
+        payload = forecast as Record<string, JsonValue>;
+      }
       const unsigned = { sequence: event.sequence, type: event.type, forecastSequence, payload, previousHash, createdAt: event.createdAt };
       const integrityHash = hashCapsuleSnapshot(unsigned);
       previousHash = integrityHash;
@@ -192,7 +220,8 @@ export function buildPublicCapsuleSnapshot(input: {
 /** Verifies the disclosed projection and its re-keyed public event chain without exposing storage IDs. */
 export function verifyPublicCapsuleSnapshot(value: unknown): boolean {
   const snapshot = record(value);
-  if (!snapshot || !exactKeys(snapshot, ["schemaVersion", "sourceCapsuleIntegrityHash", "integrityScope", "sourceAuthenticity", "research", "evidence", "eventAnchorHash", "events"], ["schemaVersion", "sourceCapsuleIntegrityHash", "integrityScope", "sourceAuthenticity"]) || snapshot.schemaVersion !== 1 || typeof snapshot.sourceCapsuleIntegrityHash !== "string" || !/^[a-f0-9]{64}$/.test(snapshot.sourceCapsuleIntegrityHash)
+  const urlPolicyVersion = snapshot?.urlPolicyVersion === undefined ? 1 : snapshot.urlPolicyVersion;
+  if (!snapshot || !exactKeys(snapshot, ["schemaVersion", "urlPolicyVersion", "sourceCapsuleIntegrityHash", "integrityScope", "sourceAuthenticity", "research", "evidence", "eventAnchorHash", "events"], ["schemaVersion", "sourceCapsuleIntegrityHash", "integrityScope", "sourceAuthenticity"]) || snapshot.schemaVersion !== 1 || (urlPolicyVersion !== 1 && urlPolicyVersion !== 2 && urlPolicyVersion !== 3) || typeof snapshot.sourceCapsuleIntegrityHash !== "string" || !/^[a-f0-9]{64}$/.test(snapshot.sourceCapsuleIntegrityHash)
     || snapshot.integrityScope !== "disclosed_public_projection" || snapshot.sourceAuthenticity !== "not_independently_verified"
     || (!Object.hasOwn(snapshot, "research") && !Object.hasOwn(snapshot, "evidence") && !Object.hasOwn(snapshot, "events"))) return false;
   if (Object.hasOwn(snapshot, "research")) {
@@ -206,14 +235,14 @@ export function verifyPublicCapsuleSnapshot(value: unknown): boolean {
     if (evidence.sources.some(value => {
       const source = record(value);
       return !source || !exactKeys(source, ["url", "title", "publisher", "publishedAt", "retrievedAt", "sourceType", "excerpt"])
-        || safeHttps(source.url) !== source.url || typeof source.title !== "string" || source.title.length > 32_000
+        || safeHttps(source.url, urlPolicyVersion) !== source.url || typeof source.title !== "string" || source.title.length > 32_000
         || !nullableText(source.publisher) || !nullableText(source.sourceType) || !nullableText(source.excerpt)
         || (source.publishedAt !== null && !validDateText(source.publishedAt)) || (source.retrievedAt !== null && !validDateText(source.retrievedAt));
     })) return false;
     if (evidence.claims.some(value => {
       const claim = record(value);
       return !claim || !exactKeys(claim, ["sourceUrl", "claim", "supportingQuote", "stance", "confidence", "recordedAt", "quoteMatchStatus", "claimSupportStatus"])
-        || (claim.sourceUrl !== null && safeHttps(claim.sourceUrl) !== claim.sourceUrl) || typeof claim.claim !== "string" || claim.claim.length > 32_000
+        || (claim.sourceUrl !== null && safeHttps(claim.sourceUrl, urlPolicyVersion) !== claim.sourceUrl) || typeof claim.claim !== "string" || claim.claim.length > 32_000
         || !nullableText(claim.supportingQuote) || !nullableText(claim.stance) || !nullableText(claim.quoteMatchStatus) || !nullableText(claim.claimSupportStatus)
         || (claim.confidence !== null && (typeof claim.confidence !== "number" || !Number.isFinite(claim.confidence) || claim.confidence < 0 || claim.confidence > 1))
         || (claim.recordedAt !== null && !validDateText(claim.recordedAt));
@@ -233,7 +262,7 @@ export function verifyPublicCapsuleSnapshot(value: unknown): boolean {
       || typeof event.createdAt !== "string" || !validDateText(event.createdAt) || !record(event.payload)) return false;
     const payload = event.payload as Record<string, unknown>;
     if (event.type === "forecast") {
-      const forecastKeys = ["instrument", "referencePrice", "direction", "thresholdPercent", "horizonAt", "probability", "referenceSourceUrl", "referenceSourceTimestamp", "referenceReportedBy"];
+      const forecastKeys = ["instrument", "referencePrice", "direction", "thresholdPercent", "horizonAt", "probability", "referenceSourceUrl", "referenceSourceTimestamp", "referenceReportedBy", "referenceSourceUrlRedacted"];
       const instrument = record(payload.instrument);
       if (!exactKeys(event, ["sequence", "type", "forecastSequence", "payload", "previousHash", "createdAt", "integrityHash"]) || !exactKeys(payload, forecastKeys, ["instrument", "referencePrice", "direction", "thresholdPercent", "horizonAt"])
         || !instrument || !exactKeys(instrument, ["type", "symbol"]) || event.forecastSequence !== null || Object.hasOwn(payload, "forecastEventId")
@@ -242,16 +271,22 @@ export function verifyPublicCapsuleSnapshot(value: unknown): boolean {
         || typeof payload.horizonAt !== "string" || !validDateText(payload.horizonAt)) return false;
       if (Object.hasOwn(payload, "probability") && (typeof payload.probability !== "number" || !Number.isFinite(payload.probability) || payload.probability < 0 || payload.probability > 1)) return false;
       if (Object.hasOwn(payload, "referenceSourceUrl") !== Object.hasOwn(payload, "referenceSourceTimestamp")) return false;
-      if (Object.hasOwn(payload, "referenceSourceUrl") && (safeHttps(payload.referenceSourceUrl) !== payload.referenceSourceUrl || typeof payload.referenceSourceTimestamp !== "string" || !validDateText(payload.referenceSourceTimestamp))) return false;
+      if (Object.hasOwn(payload, "referenceSourceUrl")) {
+        const redacted = payload.referenceSourceUrlRedacted === true;
+        if ((redacted ? payload.referenceSourceUrl !== null : (urlPolicyVersion >= 2 && payload.referenceSourceUrl === null) || safeHttps(payload.referenceSourceUrl, urlPolicyVersion) !== payload.referenceSourceUrl)
+          || (Object.hasOwn(payload, "referenceSourceUrlRedacted") && !redacted)
+          || typeof payload.referenceSourceTimestamp !== "string" || !validDateText(payload.referenceSourceTimestamp)) return false;
+      } else if (Object.hasOwn(payload, "referenceSourceUrlRedacted")) return false;
       if (Object.hasOwn(payload, "referenceReportedBy") && payload.referenceReportedBy !== "user") return false;
       if (Object.hasOwn(payload, "referenceSourceUrl") && payload.referenceReportedBy !== "user") return false;
       forecasts.set(event.sequence as number, payload);
     } else {
       const reference = event.forecastSequence;
-      if (!exactKeys(event, ["sequence", "type", "forecastSequence", "payload", "previousHash", "createdAt", "integrityHash"]) || !exactKeys(payload, ["observedPrice", "observedAt", "sourceUrl", "sourceTimestamp", "reportedBy", "actualReturnPercent", "forecastMet", "brierScore"], ["observedPrice", "observedAt", "sourceUrl", "sourceTimestamp", "reportedBy", "actualReturnPercent", "forecastMet"])
+      if (!exactKeys(event, ["sequence", "type", "forecastSequence", "payload", "previousHash", "createdAt", "integrityHash"]) || !exactKeys(payload, ["observedPrice", "observedAt", "sourceUrl", "sourceTimestamp", "reportedBy", "actualReturnPercent", "forecastMet", "brierScore", "sourceUrlRedacted"], ["observedPrice", "observedAt", "sourceUrl", "sourceTimestamp", "reportedBy", "actualReturnPercent", "forecastMet"])
         || !Number.isSafeInteger(reference) || !forecasts.has(reference as number) || outcomes.has(reference as number) || Object.hasOwn(payload, "forecastEventId")
         || typeof payload.observedPrice !== "number" || !Number.isFinite(payload.observedPrice) || payload.observedPrice <= 0 || typeof payload.observedAt !== "string" || !validDateText(payload.observedAt)
-        || safeHttps(payload.sourceUrl) !== payload.sourceUrl || typeof payload.sourceTimestamp !== "string" || !validDateText(payload.sourceTimestamp)
+        || (payload.sourceUrlRedacted === true ? payload.sourceUrl !== null : (urlPolicyVersion >= 2 && payload.sourceUrl === null) || safeHttps(payload.sourceUrl, urlPolicyVersion) !== payload.sourceUrl) || (Object.hasOwn(payload, "sourceUrlRedacted") && payload.sourceUrlRedacted !== true)
+        || typeof payload.sourceTimestamp !== "string" || !validDateText(payload.sourceTimestamp)
         || payload.reportedBy !== "user" || !Number.isFinite(payload.actualReturnPercent) || typeof payload.forecastMet !== "boolean") return false;
       const forecast = forecasts.get(reference as number);
       if (!forecast || Date.parse(String(payload.observedAt)) < Date.parse(String(forecast.horizonAt))) return false;
