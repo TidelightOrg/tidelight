@@ -3,12 +3,12 @@
 **Canonical roadmap · inventory inspected 28 October 2026 · continuation note 10 November 2026**
 
 **Repository baseline for the inventory below:** `TidelightOrg/tidelight` main, commit `35a4dba61cef97fa81a13eaab13b165d6d021006` (PR #437). That inventory was not re-audited line by line on 10 November 2026.
-**Docs reconciliation baseline:** `main` commit `785d70e98373bba1618cafe50570bb717907760a` (merge of PR #491, 5 November 2026). PR #492 was open and is not in that commit. Continuation detail is in [`docs/CODEX_HANDOFF.md`](CODEX_HANDOFF.md).
+**Docs reconciliation baseline:** `main` commit `f75aa3468baaa7a5aab75aa1ccfec00befe24cbc` (merge of PR #492, 11 November 2026). Continuation detail is in [`docs/CODEX_HANDOFF.md`](CODEX_HANDOFF.md).
 **Purpose:** turn Tidelight's current collection of research, strategy, paper-testing, and developer-platform capabilities into a trusted, evidence-led workstation for US equities and tokenized US equity products (rTokens).
 
-> **Production availability is a dated observation.** On 28 October 2026, read-only requests to `tidelight.app/judge` and `status.tidelight.app/health` returned HTTP 402 `DEPLOYMENT_DISABLED`, and Vercel project metadata was recorded as `live: false` (deployment `dpl_7C42qAwZZZixf7Q7Tjd76EdZHWUR`, commit `3cae538`). On 1 November 2026, [`docs/DECISION_INTELLIGENCE_AUDIT_2026-11-01.md`](DECISION_INTELLIGENCE_AUDIT_2026-11-01.md) recorded HTTP 200 for `/judge`, `/api/system/health`, and `status.tidelight.app/health` at production SHA `0aa3e4e`. On 10 November 2026, a read-only check recorded in the Codex handoff found those public hosts responding, and `tidelight.app/api/system/health` reported deployment prefix `785d70e98373`. The 28 October disable reason is still not recorded, and that check did not repeat signed-in journeys. Do not treat Phase 0 as closed on the health responses alone.
+> **Production availability is a dated observation.** On 28 October 2026, read-only requests to `tidelight.app/judge` and `status.tidelight.app/health` returned HTTP 402 `DEPLOYMENT_DISABLED`, and Vercel project metadata was recorded as `live: false` (deployment `dpl_7C42qAwZZZixf7Q7Tjd76EdZHWUR`, commit `3cae538`). Later read-only checks found the public hosts responding: 1 November 2026 at SHA `0aa3e4e` ([`docs/DECISION_INTELLIGENCE_AUDIT_2026-11-01.md`](DECISION_INTELLIGENCE_AUDIT_2026-11-01.md)), 10 November 2026 with system health reporting `785d70e98373`, and 11 November 2026 with `tidelight.app/api/system/health` reporting `f75aa3468baa`. The 28 October disable reason is still not recorded, and those checks did not repeat signed-in journeys. Do not treat Phase 0 as closed on the health responses alone.
 >
-> **Live-order gate already in source.** PR #436 adds `lib/live-order-policy.ts`. Spot live orders, live credential setup, and the futures live routes call Bitget only when `TIDELIGHT_LIVE_ORDER_EXECUTION_ENABLED` is exactly `true`. `tests/live-order-policy.test.mjs` checks that default and that the gate appears before `bitgetPrivateRequest`. It does not send an authenticated request. On 10 November 2026 the production `/trading` page rendered the disabled-live copy. Demo spot orders and paper routes stay outside the gate. Do not add a second switch. Public copy still has to match this behavior.
+> **Live order execution.** The only switch is `TIDELIGHT_LIVE_ORDER_EXECUTION_ENABLED`. Only the exact string `true` allows a live Bitget write. A missing or any other value fails closed, including for an approved futures user with authenticator assurance. PR #494 applies that same check inside `bitgetPrivateRequest` before a live-credential write. `tests/live-order-request.test.mjs` denies that approved futures user and an authenticator-satisfied spot user while the switch is off, and the refusal is written to `security_events` with `blocked: true` and `reason: live_execution_disabled`. Demo spot orders still reach Bitget's demo environment on purpose (`paptrading: 1`) and use virtual funds. Nightwatch, futures paper, REST v1, MCP, webhooks, and cron do not place exchange orders. Do not add a second switch. Keep the variable unset, or set to anything other than `true`, until a separate product, legal, security, and operations review approves live execution. On 10 November 2026 the production `/trading` page rendered the disabled-live copy.
 
 ## Executive direction
 
@@ -107,13 +107,13 @@ The schedule is a dependency order, not a date promise. Durations assume a small
 
 ## Phase 0 — Restore service and establish a safe baseline
 
-**Why first:** the latest deployment is READY, but the project is not serving public routes. At the same time, public materials say “paper only” while gated real order routes exist. Building more features on top of either ambiguity would make the product harder to trust.
+**Why first:** public hosts were responding on 10 and 11 November 2026, so service restoration is no longer the open blocker. What remains is the unrecorded 28 October `live: false` reason, signed-in journeys that have not been re-run, and a live-order switch that must stay off. Building more product on an unexplained outage, or on copy that disagrees with that switch, would make the product harder to trust.
 
 ### Work
 
-1. **Restore the Vercel project.** The owner should inspect the Vercel account/project state, billing/usage, pause/disable reason, and deployment limits. Re-enable the project through the supported owner controls; do not move production aliases to a preview deployment or bypass platform protections. A 10 November 2026 read-only check found the public hosts responding at main `785d70e`. Record the 28 October disable reason before closing this item. Do not stand up a second production project to “restore” one that is already serving.
+1. **Record why Vercel was disabled.** The owner should inspect the Vercel account/project state, billing/usage, pause/disable reason, and deployment limits for the 28 October `live: false` / HTTP 402 event. Public hosts were already responding on 10 November 2026, and on 11 November 2026 system health reported `f75aa3468baa`. Do not move production aliases to a preview deployment, bypass platform protections, or stand up a second production project.
 2. **Verify after reactivation.** Check `tidelight.app`, `status.tidelight.app`, `api.tidelight.app`, `dev.tidelight.app`, `mcp.tidelight.app`, `package.tidelight.app`, and `blogs.tidelight.app` in a real browser and with route-level health checks. Record the commit and deployment that is actually serving.
-3. **Resolve order-execution policy.** For the roadmap’s intended “research, strategy prototype, and trade testing” positioning, default to paper-only. The server gate already lives in `lib/live-order-policy.ts` and is covered by `tests/live-order-policy.test.mjs` at the source level. Do not add a second switch. Still prove that no user, including an approved operator with valid account keys and MFA, can send a real order while the switch is off, with a request-level test rather than a source-order assertion alone. Keep demo/paper ledgers separate from exchange balances and fills.
+3. **Keep the existing order-execution switch off.** `TIDELIGHT_LIVE_ORDER_EXECUTION_ENABLED` is the only live-order switch. It defaults off and fails closed. PR #494’s request tests deny an approved futures user and an authenticator-satisfied spot user while it is off, and `bitgetPrivateRequest` applies the same check before a live write. Demo spot orders still use Bitget's demo environment; paper ledgers do not call the exchange. Do not add a second switch.
 4. **Reconcile docs and routes.** Update README, onboarding, workspace controls, operator screens, API docs, and tests to describe the actual mode. Do not label the product paper-only if a reachable route can submit a real order.
 5. **Capture a clean baseline.** Record current public route status, API/MCP auth boundaries, database migration state, scheduled workers, error rates, provider health, and current feature flags without exposing credentials or customer content.
 
@@ -306,8 +306,8 @@ Only begin this phase after the prior proof gates hold.
 
 ### First 7 days
 
-1. Restore the Vercel project and confirm the reason for `live: false`; re-open all public routes from a clean browser.
-2. Put server-side live order execution behind a verified global off switch and reconcile all user-facing copy with the actual capability.
+1. Record the 28 October `live: false` reason. Public routes were responding on 11 November 2026; do not open a second production project. Re-check signed-in journeys in a real browser.
+2. Keep the existing server-side live-order switch off. Do not add another one. Demo spot orders remain Bitget demo orders.
 3. Record the production migration, feature-flag, scheduler, provider, and status baseline.
 4. Reconcile `CODEX_HANDOFF.md`, `TIC_IMPLEMENTATION.md`, and this roadmap where current evidence differs from old notes.
 
@@ -360,7 +360,7 @@ All thresholds in this table are targets to agree and measure; none are current 
 
 ## Decisions the product owner should make before Phase 1 expands
 
-1. Confirm the public product is a research and paper-testing product, with live trading disabled globally. The code currently has guarded live-order routes; reconcile this before broader rollout.
+1. Confirm the public product stays a research and paper-testing product. Live Bitget orders are refused unless `TIDELIGHT_LIVE_ORDER_EXECUTION_ENABLED` is exactly `true`. Keep production unset or any value other than `true`.
 2. Confirm primary launch user: active self-directed rToken researcher, strategy tester, or developer/platform integrator. The initial navigation and beta should optimize one primary user, not all segments equally.
 3. Confirm which rToken issuers/instruments are in scope and what provider agreements allow for public display, retention, and redistribution.
 4. Approve the proposed initial research-quality thresholds and the sample size/reviewer process.
