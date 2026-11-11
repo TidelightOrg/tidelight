@@ -2,7 +2,7 @@
 
 English version: [README.md](README.md)
 
-`TidelightOrg/tidelight` 是规范的源代码仓库。首个公开软件包版本为 `0.1.2`（2026-10-18）。开发者中心从 npm 和 PyPI 读取当前版本，并链接到各注册表中的软件包。
+`TidelightOrg/tidelight` 是规范的源代码仓库。npm 和 PyPI 当前提供的版本是 `0.1.2`。`@tidelight/sdk` 于 2026-10-18 创建（同日发布 `0.1.0`）；`0.1.2` 于 2026-10-22 发布。PyPI 上的 `tidelight` `0.1.2` 于 2026-10-22 上传。开发者中心从 npm 和 PyPI 读取当前版本，并链接到各注册表中的软件包。
 
 ## 已发布的软件包
 

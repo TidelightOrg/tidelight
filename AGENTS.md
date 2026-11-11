@@ -10,7 +10,9 @@ This block is written and re-added by `next dev` — verify at `node_modules/nex
 
 ## Project handoff
 
-; do not repeat milestones marked complete without a specific regression or new evidence.
+Before continuing Tidelight Intelligence Cloud or broader Tidelight product work, read [the Codex project handoff](docs/CODEX_HANDOFF.md). It records the verified repository baseline, completed milestones, outstanding production evidence, external dependencies, and prioritized roadmap. Resume from its latest **Current verified continuation point**; do not repeat milestones marked complete without a specific regression or new evidence.
+
+The product roadmap is [docs/PRODUCT_EVOLUTION_ROADMAP.md](docs/PRODUCT_EVOLUTION_ROADMAP.md). `docs/NEXT_BUILD_MILESTONES.md`, `docs/planning/PROJECT_PLAN.md`, `docs/HACKATHON_PRODUCT_PLAN.md`, and `docs/zh-CN/PRODUCT_EVOLUTION_ROADMAP.md` are historical. They are not a second plan.
 
 Avoid unnecessary secondary labels and descriptions. Let the layout do the explaining.
 

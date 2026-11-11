@@ -2,7 +2,7 @@
 
 简体中文版：[README.zh-CN.md](README.zh-CN.md)
 
-`TidelightOrg/tidelight` is the canonical source repository. The first public package release is `0.1.2` (2026-10-18). The Developer Center reads current versions from npm and PyPI and links to each registry artifact.
+`TidelightOrg/tidelight` is the canonical source repository. npm and PyPI currently serve `0.1.2`. The `@tidelight/sdk` package was created on 2026-10-18 (`0.1.0` the same day); `0.1.2` was published on 2026-10-22. PyPI `tidelight` `0.1.2` was uploaded on 2026-10-22. The Developer Center reads current versions from npm and PyPI and links to each registry artifact.
 
 ## Published packages
 

@@ -1,5 +1,7 @@
 # Tidelight next build program
 
+> **Historical document.** This stage list is not the current plan. Product priority and acceptance evidence are in [the product evolution roadmap](PRODUCT_EVOLUTION_ROADMAP.md). The stages below were not re-audited as current status in the 10 November 2026 docs reconciliation.
+
 ## Stage 1 — Brand system and responsive parity
 - Keep desktop navigation meaning on mobile with the same branded rail.
 - Standardize Tidelight navy, ocean teal, aqua, amber and typography tokens.

@@ -1,13 +1,14 @@
 # Tidelight product evolution roadmap
 
-**Canonical roadmap · updated 28 October 2026**
+**Canonical roadmap · inventory inspected 28 October 2026 · continuation note 11 November 2026**
 
-**Repository baseline inspected:** `TidelightOrg/tidelight` main, commit `35a4dba61cef97fa81a13eaab13b165d6d021006` (PR #437).
+**Repository baseline for the inventory below:** `TidelightOrg/tidelight` main, commit `35a4dba61cef97fa81a13eaab13b165d6d021006` (PR #437). That inventory was not re-audited line by line on 10 November 2026.
+**Docs reconciliation baseline:** `main` commit `f75aa3468baaa7a5aab75aa1ccfec00befe24cbc` (merge of PR #492, 11 November 2026). Continuation detail is in [`docs/CODEX_HANDOFF.md`](CODEX_HANDOFF.md).
 **Purpose:** turn Tidelight's current collection of research, strategy, paper-testing, and developer-platform capabilities into a trusted, evidence-led workstation for US equities and tokenized US equity products (rTokens).
 
-> **Current production blocker:** Vercel reports the Tidelight project as `live: false`. Read-only requests to `tidelight.app/judge` and `status.tidelight.app/health` returned HTTP 402 `DEPLOYMENT_DISABLED` on 28 October 2026. The latest production deployment is marked READY, but the domains are not serving the product. Restore service and verify public routes before treating any feature or roadmap phase as production-ready.
+> **Production availability is a dated observation.** On 28 October 2026, read-only requests to `tidelight.app/judge` and `status.tidelight.app/health` returned HTTP 402 `DEPLOYMENT_DISABLED`, and Vercel project metadata was recorded as `live: false` (deployment `dpl_7C42qAwZZZixf7Q7Tjd76EdZHWUR`, commit `3cae538`). Later read-only checks found the public hosts responding: 1 November 2026 at SHA `0aa3e4e` ([`docs/DECISION_INTELLIGENCE_AUDIT_2026-11-01.md`](DECISION_INTELLIGENCE_AUDIT_2026-11-01.md)), 10 November 2026 with system health reporting `785d70e98373`, and 11 November 2026 with `tidelight.app/api/system/health` reporting `f75aa3468baa`. The 28 October disable reason is still not recorded, and those checks did not repeat signed-in journeys. Do not treat Phase 0 as closed on the health responses alone.
 >
-> **Current trading-policy mismatch:** public product documentation says live trading is disabled and the product is paper-first. The repository nevertheless contains authenticated live Bitget Reality spot and US-stock-perpetual order handlers. Those handlers require user credentials, explicit confirmation, MFA, and—in the futures path—approved access and accepted terms, but this is not the same as a global off switch. Until the owner makes a separately reviewed decision, the product should keep live order execution globally disabled and make that state enforceable on the server.
+> **Live order execution.** The only switch is `TIDELIGHT_LIVE_ORDER_EXECUTION_ENABLED`. Only the exact string `true` allows a live Bitget write. A missing or any other value fails closed, including for an approved futures user with authenticator assurance. PR #494 applies that same check inside `bitgetPrivateRequest` before a live-credential write. `tests/live-order-request.test.mjs` denies that approved futures user and an authenticator-satisfied spot user while the switch is off, and the refusal is written to `security_events` with `blocked: true` and `reason: live_execution_disabled`. Demo spot orders still reach Bitget's demo environment on purpose (`paptrading: 1`) and use virtual funds. Nightwatch, futures paper, REST v1, MCP, webhooks, and cron do not place exchange orders. Do not add a second switch. Keep the variable unset, or set to anything other than `true`, until a separate product, legal, security, and operations review approves live execution. On 10 November 2026 the production `/trading` page rendered the disabled-live copy.
 
 ## Executive direction
 
@@ -77,9 +78,9 @@ The inventory below is based on the current repository, its implementation and e
 | **Strategy Lab / Alpha Factory** | Deterministic SMA 20/50 baseline, chronological training/holdout split, configured fees and slippage, disjoint trailing evaluation windows when data permits, cost stress, completed-candle fingerprints, trade logs, and JSON exports. Market paths include Reality rTokens and stock perpetuals. | Five instruments in the 5 October diagnostic all underperformed same-window buy-and-hold after configured costs. That is evidence against an alpha claim, not against continuing research. Perpetual funding, margin, liquidation, contract specifications, order-book impact, session-aware execution, issuer actions, and token-specific liquidity are not fully represented. |
 | **Nightwatch paper decisions** | Paper decisions and fills, owner-scoped records, research lineage, guardrails, pause controls, daily limits, stale-data checks, duplicate suppression, and configurable scheduled reviews. | Database and scheduler safeguards exist. A representative, supervised production observation period with an independently reconciled audit remains open in the latest roadmap record. Re-check current schedule/run evidence before declaring it complete. |
 | **Futures paper desk** | A separate paper account for US-stock perpetuals, simulated entries/exits, a one-position/1× model, fixed fee/slippage assumptions, position and loss caps, and paper-ledger persistence. | It is a learning simulator. It does not fully model funding, margin, liquidation, contract multipliers, mark-price rules, exchange sizing, market impact, or gap execution. Paper P&L is not exchange P&L. |
-| **Developer platform** | Versioned REST API, owner/org-scoped projects and credentials, quotas and usage records, durable research jobs, webhooks with signatures/retry history and destination checks, Streamable HTTP MCP with scoped tools and OAuth/PKCE, OpenAPI, docs, operator/support workflows, and TypeScript/Python and other package surfaces. | Package install evidence exists for version 0.1.2 in the public README. Keep compatibility, release ownership, client-by-client MCP claims, support SLAs, and provider data rights explicit. Billing/credits are not backed by measured costs and real payment configuration. |
+| **Developer platform** | Versioned REST API, owner/org-scoped projects and credentials, quotas and usage records, durable research jobs, webhooks with signatures/retry history and destination checks, Streamable HTTP MCP with scoped tools and OAuth/PKCE, OpenAPI, docs, operator/support workflows, and TypeScript/Python and other package surfaces. | npm and PyPI serve `0.1.2` (that version published 2026-10-22; the npm packages were created 2026-10-18). See [`docs/packages/README.md`](packages/README.md). Keep compatibility, release ownership, client-by-client MCP claims, support SLAs, and provider data rights explicit. Billing/credits are not backed by measured costs and real payment configuration. |
 | **Identity and controls** | Supabase Auth, owner-scoped RLS, organization roles, API scopes, audit records, credential protection, MFA/passkey surfaces, and operator allowlisting. | These are useful foundations, not a security certification. Complete a current grant/RLS review, security threat model, restore rehearsal, and independent penetration review. Some implementation notes are older than the current main commit. |
-| **Status and communications** | Live component checks, scheduled status snapshots, detected incidents, 90-day history, maintenance notices, email subscriptions, RSS/Atom, Slack instructions, and an operator communications home. | The public status host recently had an incident-page rendering bug, fixed in PR #433. More critically, current Vercel project metadata says `live: false` and public routes return 402, so the current site is unavailable until platform service is restored. |
+| **Status and communications** | Live component checks, scheduled status snapshots, detected incidents, 90-day history, maintenance notices, email subscriptions, RSS/Atom, Slack instructions, and an operator communications home. | The public status host had an incident-page rendering bug, fixed in PR #433. On 28 October 2026 public routes returned 402 and project metadata said `live: false`. Later dated checks, cited at the top of this file, observed public routes responding. The disable reason is still unrecorded. |
 | **Product experience** | Branded landing, overview, research, markets, watchlist, strategies, Nightwatch, futures paper, community, guide/demo, developer portal/docs, themes, notifications, blog, status, and support pages. | The surface area is broad. The next phase should make the core workflow easier to understand and finish, not add more top-level destinations. The connected end-to-end journey and mobile experience need current production verification after availability is restored. |
 
 ### Important evidence—not marketing claims
@@ -87,7 +88,7 @@ The inventory below is based on the current repository, its implementation and e
 - The ten-event research capture log reports **10/10 captured runs**, with AI synthesis in **2/10**. This is capture availability only; no claim-level quality rate has been adjudicated.
 - The 5 October Strategy Lab diagnostic showed negative strategy returns on AAPL, NVDA, TSLA, BTC, and ETH, all below same-window buy-and-hold after the configured costs. It is a single dated diagnostic and not a broad strategy study.
 - CI, migration tests, and prior production journeys provide meaningful engineering evidence. They do not substitute for current production availability, data rights, independent research labels, an audited strategy study, a supervised paper period, or third-party security review.
-- Current production check on 28 October: latest Vercel deployment `dpl_7C42qAwZZZixf7Q7Tjd76EdZHWUR` is marked READY at commit `3cae538`; the project metadata says `live: false`, and public requests returned 402 `DEPLOYMENT_DISABLED`. This is an owner/platform availability issue to resolve before measuring product adoption.
+- Production check on 28 October: latest Vercel deployment `dpl_7C42qAwZZZixf7Q7Tjd76EdZHWUR` was marked READY at commit `3cae538`; the project metadata said `live: false`, and public requests returned 402 `DEPLOYMENT_DISABLED`. A later 1 November audit and a 10 November read-only check, both cited at the top of this file, observed public routes responding. Those later checks do not record why the project was disabled.
 
 ## Roadmap at a glance
 
@@ -106,13 +107,13 @@ The schedule is a dependency order, not a date promise. Durations assume a small
 
 ## Phase 0 — Restore service and establish a safe baseline
 
-**Why first:** the latest deployment is READY, but the project is not serving public routes. At the same time, public materials say “paper only” while gated real order routes exist. Building more features on top of either ambiguity would make the product harder to trust.
+**Why first:** public hosts were responding on 10 and 11 November 2026, so service restoration is no longer the open blocker. What remains is the unrecorded 28 October `live: false` reason, signed-in journeys that have not been re-run, and a live-order switch that must stay off. Building more product on an unexplained outage, or on copy that disagrees with that switch, would make the product harder to trust.
 
 ### Work
 
-1. **Restore the Vercel project.** The owner should inspect the Vercel account/project state, billing/usage, pause/disable reason, and deployment limits. Re-enable the project through the supported owner controls; do not move production aliases to a preview deployment or bypass platform protections.
+1. **Record why Vercel was disabled.** The owner should inspect the Vercel account/project state, billing/usage, pause/disable reason, and deployment limits for the 28 October `live: false` / HTTP 402 event. Public hosts were already responding on 10 November 2026, and on 11 November 2026 system health reported `f75aa3468baa`. Do not move production aliases to a preview deployment, bypass platform protections, or stand up a second production project.
 2. **Verify after reactivation.** Check `tidelight.app`, `status.tidelight.app`, `api.tidelight.app`, `dev.tidelight.app`, `mcp.tidelight.app`, `package.tidelight.app`, and `blogs.tidelight.app` in a real browser and with route-level health checks. Record the commit and deployment that is actually serving.
-3. **Resolve order-execution policy.** For the roadmap’s intended “research, strategy prototype, and trade testing” positioning, default to paper-only. Add a server-enforced kill switch for all live order handlers and prove that no user, including an approved operator, can send a real order while the switch is off. Keep demo/paper ledgers separate from exchange balances and fills.
+3. **Keep the existing order-execution switch off.** `TIDELIGHT_LIVE_ORDER_EXECUTION_ENABLED` is the only live-order switch. It defaults off and fails closed. PR #494’s request tests deny an approved futures user and an authenticator-satisfied spot user while it is off, and `bitgetPrivateRequest` applies the same check before a live write. Demo spot orders still use Bitget's demo environment; paper ledgers do not call the exchange. Do not add a second switch.
 4. **Reconcile docs and routes.** Update README, onboarding, workspace controls, operator screens, API docs, and tests to describe the actual mode. Do not label the product paper-only if a reachable route can submit a real order.
 5. **Capture a clean baseline.** Record current public route status, API/MCP auth boundaries, database migration state, scheduled workers, error rates, provider health, and current feature flags without exposing credentials or customer content.
 
@@ -139,7 +140,7 @@ Keep account/security, notifications, help, and status easy to find but secondar
 
 ### Work
 
-- Define a shared `Decision Record` schema and stable IDs for event, issuer, instrument, source capture, claim, strategy version, replay, paper decision, and user action.
+- Define a shared `Decision Record` schema and stable IDs for event, issuer, instrument, source capture, claim, strategy version, replay, paper decision, and user action. Do not replace the records that already exist: research runs and evidence, the evidence graph, Decision Capsules (research snapshot plus append-only forecast/outcome events), `researchRunId` links into Strategy Lab and Nightwatch, and separate paper ledgers. A capsule is not that shared record. [`docs/DECISION_CAPSULES.md`](DECISION_CAPSULES.md) says a capsule snapshots a completed research run and does not create a paper order.
 - Make every workflow card state its data mode: live provider observation, cached snapshot, historical replay, paper simulation, or unavailable.
 - Create one canonical asset/instrument identity linking issuer, US stock, Bitget Reality rToken, and USDT perpetual without treating them as equivalent.
 - Add a “continue this analysis” handoff that preserves the source and timestamp snapshot, but asks the user before a new replay, schedule, or paper action.
@@ -305,8 +306,8 @@ Only begin this phase after the prior proof gates hold.
 
 ### First 7 days
 
-1. Restore the Vercel project and confirm the reason for `live: false`; re-open all public routes from a clean browser.
-2. Put server-side live order execution behind a verified global off switch and reconcile all user-facing copy with the actual capability.
+1. Record the 28 October `live: false` reason. Public routes were responding on 11 November 2026; do not open a second production project. Re-check signed-in journeys in a real browser.
+2. Keep the existing server-side live-order switch off. Do not add another one. Demo spot orders remain Bitget demo orders.
 3. Record the production migration, feature-flag, scheduler, provider, and status baseline.
 4. Reconcile `CODEX_HANDOFF.md`, `TIC_IMPLEMENTATION.md`, and this roadmap where current evidence differs from old notes.
 
@@ -359,7 +360,7 @@ All thresholds in this table are targets to agree and measure; none are current 
 
 ## Decisions the product owner should make before Phase 1 expands
 
-1. Confirm the public product is a research and paper-testing product, with live trading disabled globally. The code currently has guarded live-order routes; reconcile this before broader rollout.
+1. Confirm the public product stays a research and paper-testing product. Live Bitget orders are refused unless `TIDELIGHT_LIVE_ORDER_EXECUTION_ENABLED` is exactly `true`. Keep production unset or any value other than `true`.
 2. Confirm primary launch user: active self-directed rToken researcher, strategy tester, or developer/platform integrator. The initial navigation and beta should optimize one primary user, not all segments equally.
 3. Confirm which rToken issuers/instruments are in scope and what provider agreements allow for public display, retention, and redistribution.
 4. Approve the proposed initial research-quality thresholds and the sample size/reviewer process.
@@ -368,7 +369,8 @@ All thresholds in this table are targets to agree and measure; none are current 
 ## Source of truth and related records
 
 - [`docs/TIC_IMPLEMENTATION.md`](TIC_IMPLEMENTATION.md) — TIC architecture, production routes, migration and deployment evidence; some entries are historical and must be reconciled with current platform state.
-- [`docs/CODEX_HANDOFF.md`](CODEX_HANDOFF.md) — latest session-specific continuation notes; its production baseline may lag current `main`.
+- [`docs/CODEX_HANDOFF.md`](CODEX_HANDOFF.md) — session continuation notes. Use the latest **Current verified continuation point**. Older “current” sections in that file are historical.
+- [`docs/NEXT_BUILD_MILESTONES.md`](NEXT_BUILD_MILESTONES.md), [`docs/planning/PROJECT_PLAN.md`](planning/PROJECT_PLAN.md), [`docs/HACKATHON_PRODUCT_PLAN.md`](HACKATHON_PRODUCT_PLAN.md), and [`docs/zh-CN/PRODUCT_EVOLUTION_ROADMAP.md`](zh-CN/PRODUCT_EVOLUTION_ROADMAP.md) — historical plans. They are not a second roadmap.
 - [`docs/RESEARCH_EVALUATION_PROTOCOL.md`](RESEARCH_EVALUATION_PROTOCOL.md) — frozen research benchmark and reviewer methodology.
 - [`docs/benchmarks/research-benchmark-capture-log-2026-10-24.md`](benchmarks/research-benchmark-capture-log-2026-10-24.md) — ten observed production captures; explicitly not scored.
 - [`docs/STRATEGY_VALIDATION_2026-10-05.md`](STRATEGY_VALIDATION_2026-10-05.md) — dated negative baseline diagnostic and candle fingerprints.

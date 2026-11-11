@@ -1,10 +1,48 @@
 # Tidelight Codex handoff
 
 **Prepared:** 26 October 2026
+**Continuation refreshed:** 11 November 2026
 **Repository:** [`TidelightOrg/tidelight`](https://github.com/TidelightOrg/tidelight)
 **Purpose:** let a fresh session continue from current verified state without repeating completed work.
 
-## Current verified continuation point · 30 October 2026
+## Current verified continuation point · 11 November 2026
+
+Resume here. Older sections titled “current” are historical notes from the day they were written.
+
+**Git baseline.** `main` is `f75aa3468baaa7a5aab75aa1ccfec00befe24cbc`, the merge of PR #492 on 11 November 2026 (`codex/decision-capsule-public-verification`). PR #442 merged on 30 October 2026 as `1842b79`; do not continue work on `codex/benchmark-status-hierarchy`. PR #491 (`785d70e98373bba1618cafe50570bb717907760a`, 5 November 2026) is an ancestor of this commit. Decision Capsule work on main includes the private foundation, the saved evidence-graph API, outcome evaluation, the public verification merged in #485, and the public-capsule follow-up merged in #492. This pass did not re-run the test suite.
+
+**Packages.** `sdk/typescript`, `sdk/python`, `packages/react`, `packages/cli`, and `public/components/mcp/server` are version `0.1.2` in the tree. On 10 November 2026, npm reported `@tidelight/sdk`, `@tidelight/mcp`, `@tidelight/react`, and `@tidelight/cli` at `0.1.2`, with that version published on 2026-10-22. `@tidelight/sdk` was created on 2026-10-18, when `0.1.0` was also published. PyPI `tidelight` `0.1.2` was uploaded on 2026-10-22. [`docs/packages/README.md`](packages/README.md) and [`docs/packages/PUBLISHING.md`](packages/PUBLISHING.md) match that release. Earlier notes in this file that called the SDKs unpublished are superseded by this paragraph.
+
+**Production reachability, read-only.** On 10 November 2026, HTTP 200: `tidelight.app/judge`, `status.tidelight.app/health` (body `status` `operational`), `api.tidelight.app/v1`, `dev.tidelight.app/`, `package.tidelight.app/`, `blogs.tidelight.app/`, and `mcp.tidelight.app/.well-known/oauth-protected-resource/mcp`. Unauthenticated `POST https://mcp.tidelight.app/mcp` returned 401 with `WWW-Authenticate`. System health then reported deployment `785d70e98373`. `https://tidelight.app/trading` included the copy “Live exchange orders are disabled across this deployment.” On 11 November 2026, `https://tidelight.app/api/system/health` reported deployment `f75aa3468baa`, matching the PR #492 merge. These checks did not inspect the Vercel project `live` flag, did not sign in, and did not run a research, strategy, or paper journey. The 28 October 402 `DEPLOYMENT_DISABLED` record remains historical. The reason for that disablement is not in the repository.
+
+**Live-order gate.** The only switch is `TIDELIGHT_LIVE_ORDER_EXECUTION_ENABLED` in `lib/live-order-policy.ts` (PR #436, commit `a26129a`). Only the exact string `true` allows a live Bitget write. PR #494 applies that check inside `bitgetPrivateRequest` before any live-credential write, and `tests/live-order-request.test.mjs` denies an authenticator-satisfied spot user and an approved futures user while the switch is off. Those refusals write `security_events` with `blocked: true` and `reason: live_execution_disabled`. Demo spot orders stay outside the switch: a confirmed demo order still calls Bitget with `paptrading: 1` and uses virtual funds. Nightwatch, futures paper, REST v1, MCP, webhooks, cron, and server actions do not place exchange orders. Do not add a second switch. The production variable is not stored in git; the 10 November `/trading` HTML is the observation that the deployment rendered the disabled branch.
+
+**Plans.** [`docs/PRODUCT_EVOLUTION_ROADMAP.md`](PRODUCT_EVOLUTION_ROADMAP.md) is the current roadmap. [`docs/NEXT_BUILD_MILESTONES.md`](NEXT_BUILD_MILESTONES.md), [`docs/planning/PROJECT_PLAN.md`](planning/PROJECT_PLAN.md), [`docs/HACKATHON_PRODUCT_PLAN.md`](HACKATHON_PRODUCT_PLAN.md), and [`docs/zh-CN/PRODUCT_EVOLUTION_ROADMAP.md`](zh-CN/PRODUCT_EVOLUTION_ROADMAP.md) are historical.
+
+### What already exists for the near-term roadmap
+
+Classified against code and the records above on 10 November 2026. “Partially built” means do not start a parallel implementation; finish the named gap.
+
+| Item | Class | What the tree already has | What is not done | Spec |
+|---|---|---|---|---|
+| Restore Vercel | Partially verified | Public hosts answered on 10 November 2026. On 11 November 2026 system health reported `f75aa3468baa`, the PR #492 merge. | The 28 October `live: false` reason is unrecorded. Signed-in journeys were not re-run. | The roadmap’s host list is enough for another read-only check. No code spec. |
+| Kill switch | Built in code | `lib/live-order-policy.ts`. Route gates in `app/api/bitget/order/route.ts`, `app/api/bitget/connection/route.ts`, `app/api/futures/live-order/route.ts`, `app/api/futures/live-access/route.ts`, and `app/api/futures/live-account/route.ts`. PR #494 also refuses the write inside `bitgetPrivateRequest` and covers an authenticator-satisfied spot user and an approved futures user in `tests/live-order-request.test.mjs`. Production `/trading` rendered the disabled copy on 10 November 2026. | Keep the deployment variable unset or any value other than `true`. Demo spot orders are intentionally outside the switch and still use Bitget’s demo environment. | PR #494 is the request-level spec. Do not add a second switch. |
+| Baseline telemetry | Partially built | `app/api/system/health/route.ts`, `app/api/health/route.ts`, `app/status`, `lib/provider-health.ts`, `app/operator/provider-health/page.tsx`. Dated snapshots: the 1 November audit and this section. | No single record of error rates, migration head, API/MCP auth boundaries, and feature flags for `785d70e`. No feature-flag registry exists in the tree. | The roadmap names the topics. It does not define error-rate fields, flag names, or where the baseline file lives. The owner needs to supply that before a new telemetry store is built. |
+| Two-reviewer benchmark | Partially built | Protocol in `docs/RESEARCH_EVALUATION_PROTOCOL.md`, scorer `scripts/score-research-benchmark.mjs`, frozen set `docs/benchmarks/research-benchmark-frozen-2026-10-24.json`, capture log, and contract scenarios. | `adjudications` is null. No claim-quality score. | The protocol, template, and scorer are enough to perform the review. The owner still has to supply two reviewers and the labels. |
+| Provider reliability instrumentation | Partially built | `research_provider_health_events` (`supabase/migrations/20261028204758_research_provider_health_events.sql`) stores provider, model, attempt, outcome (`success`, `http_error`, `invalid_response`, `timeout`, `network_error`), latency, and HTTP status. `lib/provider-health.ts` records events and applies a short failure circuit. Agent Flow passes `healthAware: true` and returns `operationalDiagnostics.providerAttempts`. Operator aggregate view exists. | Source relevance is not a health-event field. No in-repo diagnosis explains the 2/10 synthesis captures. Production population of the event table was not queried. | Existing event and diagnostic shapes are the spec. Extending them with source relevance needs an owner decision so it does not duplicate the benchmark. |
+| Canonical instrument schema | Partially built | Separate models: `lib/bitget-market.ts` Reality spot assets; `underlying_ticker` on the TIC market API; evidence-graph `marketType` of `reality_tokenized_spot` or `us_stock_perpetual` (`lib/evidence-graph.ts`); capsule forecast types `us_equity`, `reality_token`, `us_stock_perpetual` (`lib/decision-capsule-events.ts`); strategy `assetKind` `stock-perpetual` or the spot `kind` (`app/api/strategies/backtest/route.ts`). | No one schema links an issuer share, rToken, and perpetual without treating them as the same instrument, and no shared freshness contract is used by research, replay, and paper. | The roadmap’s field list is a checklist, not a contract. The owner needs to choose the canonical names before another schema is added. |
+| First-time-user workflow | Not built | Navigation is still the long shell in `app/ui/workspace-shell.tsx` (Research, Tools, Community, Workspace, Learn). Mini mode hides some technical routes. `app/guide/page.tsx` and `app/demo/page.tsx` exist. | The recommended Discover / Research / Strategy Lab / Paper Desk information architecture is not the nav. No observed first-time user session is recorded. | The roadmap states the target architecture and a four-of-five usability gate. It does not say which current routes move or what the screens should say. Confirm that with the owner before changing navigation. |
+| Decision Record and Research → Strategy → Paper workspace | Partially built | Research runs, sources, and evidence; evidence graph; Decision Capsules (`lib/decision-capsules.ts`, `docs/DECISION_CAPSULES.md`) for a research snapshot plus user-reported forecast/outcome events; `researchRunId` handoffs in `app/ui/research-workspace.tsx`, `app/ui/intelligence-results.tsx`, `app/api/strategies/backtest/route.ts`, and Nightwatch schedules. | No shared record with stable IDs for strategy version, replay, paper decision, and user action. Capsules do not create paper orders. Handoffs are links, not one workspace. | `docs/DECISION_INTELLIGENCE_AUDIT_2026-11-01.md` and `docs/DECISION_CAPSULES.md` say what not to duplicate. They do not specify whether the Decision Record extends capsules or references the existing tables. The owner needs to make that choice. |
+
+### Next gates still open in the records above
+
+1. Do not infer a research-quality score from capture completion. Finish two independent labels and adjudication on the frozen set, or leave the scorer’s incomplete gate in place.
+2. Do not add a second live-order switch, a second instrument schema, or a second decision store. Extend the records named above after the owner confirms the missing contract.
+3. PR #492 is merged as `f75aa34`. PR #494 is the live-order request-test change; do not describe those tests as missing, and do not add another switch.
+
+## Historical continuation record · 30 October 2026
+
+> **Superseded on 10 November 2026.** PR #442 merged on 30 October 2026 as `1842b79`. Do not continue work on `codex/benchmark-status-hierarchy`. The paragraphs below are the note as written while the PR was open.
 
 PR #442, **Improve research evidence integrity and evaluation clarity**, is open on `codex/benchmark-status-hierarchy`. The latest code commit is `2c496ecb5b77a2a2721436c9681e9fb48bbbe1c6`; its Vercel preview is READY at [tidelight-nhpvw9qzt-tidelight1.vercel.app](https://tidelight-nhpvw9qzt-tidelight1.vercel.app/). Keep all follow-up work on this PR.
 
@@ -23,7 +61,7 @@ Production Supabase project `plmdnzbmvgigkzfmfwov` has migration `20261030072558
 3. After merge, confirm the production Vercel deployment serves the merged commit, then open the production research desk and public replay route in Chromium.
 4. Preserve the global server-side live-order block and keep paper and exchange ledgers separate.
 
-## Current verified continuation point · 26 October 2026
+## Historical continuation record · 26 October 2026
 
 PR #390, **Add a public developer integration directory**, is merged and its production deployment is READY. The live developer integration page, developer landing page, package home, and package dashboard were opened in the connected browser at desktop width. The integration page rendered four integration cards; the package dashboard rendered the registry workbench and five integration entries. The visible status route, support route, and five theme controls were present. No desktop header or card overlap appeared in these views. The preview page also rendered, and its Simplified Chinese page heading and integration copy were verified.
 
@@ -37,7 +75,7 @@ PRs #387 and #389 (research publishing shape normalization; status discovery and
 2. Review GitHub feedback and CI before merging each PR; inspect its Vercel preview and confirm the resulting production deployment before moving on.
 3. Reconcile the product roadmap with current production evidence, then continue the frozen research benchmark, natural Nightwatch schedule observation, and authenticated third-party MCP interoperability. Never weaken research or paper-trading guardrails to manufacture a positive demo.
 
-## Current verified continuation point · 25 October 2026
+## Historical continuation record · 25 October 2026
 
 The session resumed with a clean `main` at `807366f49f32da557accc9ca4b01b23eea82b955`. PR #349, **Fix package action contrast in light themes**, is merged. The matching Vercel production deployment `dpl_ACmuJy3Ps8gmnzbu4r7VKNYfJ7Tr` is READY for that commit. PR #349 changed only package action contrast and a regression assertion; the connected Codex review summary reported no findings, and GitHub showed no submitted reviews or inline review threads.
 
@@ -83,7 +121,7 @@ Tidelight is a branded, evidence-first research desk for tokenized US equities. 
 - API keys are high entropy, shown once, stored as hashes, scoped, revocable/rotatable, quota checked, and audited. Public REST calls go through service-only authorization/quota functions. API logs retain request metadata, not request bodies or authorization headers. OAuth tokens are for MCP only; they must not become REST bearer credentials.
 - Durable research is a bounded asynchronous job flow, dispatched through Vault-backed Supabase scheduling to authenticated Vercel worker routes. Webhooks enforce destination checks, HTTPS, signatures, bounded retry, and durable delivery records.
 - Current usable MCP tools cover supported market/instrument search, tokenized-equity lookup, company research start, and job status/cancellation, depending on granted scopes. It reuses existing service handlers and API quotas. Prompts/resources/trading tools were deliberately not implemented.
-- `sdk/typescript` and `sdk/python` are in the repository and tested but are **unpublished**. Do not publish until package ownership, release credentials, versioning, and explicit release readiness are established.
+- `sdk/typescript` and `sdk/python` are in the repository and tested. Version `0.1.2` is the published release recorded in the 10 November 2026 continuation above and in [`docs/packages/README.md`](packages/README.md). Do not publish a newer version until package ownership, release credentials, versioning, and an explicit release are ready. See [`docs/packages/PUBLISHING.md`](packages/PUBLISHING.md).
 
 ### Product and brand constraints
 
@@ -102,7 +140,7 @@ The ordered TIC milestones below are complete in code. Their full file lists, mi
 | 5. Webhooks | Owner-scoped endpoints, encrypted one-time secrets, signatures, supported research events, SSRF protections, retries/delivery history | Production event delivery eventually succeeded on retry; unsafe destination rejected; migrations applied and access denial verified. |
 | 6. API-key rotation | Atomic replacement, preserved scope/quota/expiry policy, one-time response | Production old-key 401 / replacement 200 verified; rollback and grants tested. PR #130 merged/deployed. |
 | 7. Security audit log | Atomic create/rotate/revoke audit, actor attribution, active-key cap, filtered console view | Production lifecycle events and mobile/desktop console inspected; cleanup verified. PR #131 merged/deployed. |
-| 8. SDK and OpenAPI coverage | TS/Python webhook APIs, validation, OpenAPI 3.1 route/model coverage tests | SDK and app suites, TypeScript/lint and contract checks passed. SDK releases remain blocked on package ownership/credentials. |
+| 8. SDK and OpenAPI coverage | TS/Python webhook APIs, validation, OpenAPI 3.1 route/model coverage tests | SDK and app suites, TypeScript/lint and contract checks passed. At this milestone, SDK releases were still blocked on package ownership and credentials. That block is superseded by the published `0.1.2` release recorded in the 10 November 2026 continuation. |
 | 9. MCP OAuth | OAuth 2.1 public client flow, PKCE S256, consent, scoped/project-bound grants, refresh rotation, revocation, protected-resource metadata | Migration applied; production Inspector consent → PKCE → scoped tool discovery/call → refresh rotation → grant revocation → rejected request verified. Exact temporary client/project/key/session rows were removed and confirmed absent; the signed-in account was retained. App tests enforce OAuth-to-MCP-only. Valid OAuth use against REST was not re-tested in this client run. |
 | 10. Request analytics | Exact rolling 30-day response buckets, UTC zero-filled daily chart/table, latency hover, latest 100 rows; service-only invoker RPC | PostgreSQL 17 transaction tests covered exact counts/latency, validation, grants and rollback; 139 JS tests, typecheck, lint and build passed. Migration `20261015115230_tic_usage_analytics` was applied and production host smoke tests passed. At that earlier inspection, the account had no projects and correctly showed an empty state. Anonymous access returns 401, with no page errors or horizontal overflow. Cost/credit data is intentionally absent pending measured rates. Current production account state is recorded below. |
 | Service host routing | API, MCP, developer docs and status host routing through the current Vercel app | Production deployment ready and public routes smoke tested. `dev.tidelight.app` CNAME uses Vercel; preserve `docs.tidelight.app`. |
@@ -151,32 +189,31 @@ Implement correlated run IDs, measured provider health/latency and actionable fa
 
 ### P6 — Optional package releases and service extraction
 
-Publish Python/TypeScript SDK packages only after their owners, credentials, CI/release process, compatibility policy and authorization are confirmed. Extract TIC into separate repos/services only when operational boundaries, database ownership, auth, deployment, observability, and release ownership are explicitly designed; current module boundaries are intentionally separable but remain a single deployable application.
+Version `0.1.2` of the Python SDK, TypeScript SDK, React package, CLI, and MCP npm bridge is already published. Further releases still go through the owner, credentials, CI process, and compatibility policy in [`docs/packages/PUBLISHING.md`](packages/PUBLISHING.md). Extract TIC into separate repos/services only when operational boundaries, database ownership, auth, deployment, observability, and release ownership are explicitly designed; current module boundaries are intentionally separable but remain a single deployable application.
 
 ## External dependencies and state that must not be misrepresented
 
 - **Provider redistribution terms:** outstanding. Public Bitget-backed market route is currently enabled per owner direction; licensing review is still needed before expanding or claiming broad redistribution rights.
 - **Third-party MCP client support:** none certified yet. Protocol-level implementation and OAuth production journey have passed.
 - **Billing and credits:** not enabled; pricing approval, actual provider/compute rates, merchant eligibility/account, and payment configuration are missing.
-- **SDK publishing:** not done; both SDKs are repository packages only.
+- **SDK publishing:** `0.1.2` is published on npm and PyPI, as recorded in the 10 November 2026 continuation. This is not a claim about any later version.
 - **Organization invitations:** accounts already registered can be added; verified sender and Auth templates are needed for email invites.
 - **Backup restore rehearsal:** not performed. Never test by overwriting production.
-- **Live trading:** disabled / outside TIC scopes. Nightwatch is paper-only.
+- **Live trading:** the server gate defaults off, and the 10 November 2026 production `/trading` page rendered the disabled copy. Demo spot orders remain a separate path. Nightwatch is paper-only. The gate is outside TIC scopes.
 - **Production visual inspection:** prior analytics empty-state review occurred before the verification project was created. Current signed-in account state is one verification project, zero active test keys, and three successful market-request rows; no billing costs are available. Do not store OTP or ask a user to paste secrets in the repo.
 
 ## Repository map and source of truth
 
 - `AGENTS.md` — instructions and pointer to this handoff.
-- `docs/planning/PROJECT_PLAN.md` — product intent, architecture, guardrails, and legacy build milestones.
-- `docs/TIC_IMPLEMENTATION.md` — detailed TIC audit, ordered feature work, migration/application/test and production evidence.
-- `docs/NEXT_BUILD_MILESTONES.md` — original build program.
 - `docs/PRODUCT_EVOLUTION_ROADMAP.md` — current product priorities and acceptance evidence.
+- `docs/NEXT_BUILD_MILESTONES.md`, `docs/planning/PROJECT_PLAN.md`, and `docs/HACKATHON_PRODUCT_PLAN.md` — historical. Do not treat them as the current plan.
+- `docs/TIC_IMPLEMENTATION.md` — detailed TIC audit, ordered feature work, migration/application/test and production evidence. It was not re-audited in the 10 November 2026 reconciliation.
 - `docs/MILESTONE_EXECUTION.md` — product workflow and release constraints.
 - `docs/OPERATIONS_RUNBOOK.md` — health, Nightwatch scheduler, incident response and recovery procedure.
 - `docs/RESEARCH_EVALUATION_PROTOCOL.md` — benchmark definition.
 - `docs/tic-openapi.yaml` — API contract; keep route implementation and SDKs aligned.
 - `lib/tic`, `app/api/v1`, `app/api/developers`, `app/developers` — TIC service/platform boundaries.
-- `sdk/typescript`, `sdk/python` — in-repo SDKs, currently unpublished.
+- `sdk/typescript`, `sdk/python` — in-repo SDKs. The published release on record is `0.1.2`; see [`docs/packages/README.md`](packages/README.md).
 - `supabase/migrations` — schema/function history. Never edit an applied migration; add a new forward migration and check grants/RLS and compatibility.
 
 The implementation record and production evidence are authoritative over assumptions in older plans. When documents conflict, inspect current code, applied migration history, and actual deployment state, then correct both the handoff and the relevant record. Never imply production success solely from a local build or a plan.

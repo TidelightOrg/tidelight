@@ -1,5 +1,7 @@
 # Tidelight — S2 product plan
 
+> **Historical document.** This S2 hackathon plan is not the current build queue. Product priority and acceptance evidence are in [the product evolution roadmap](PRODUCT_EVOLUTION_ROADMAP.md). Phases and “in progress” labels below were not re-audited as current status in the 10 November 2026 docs reconciliation. Where this file disagrees with the roadmap or with code, use the roadmap and the code.
+
 **Product:** Tidelight, an after-hours intelligence terminal for tokenized US equities and digital assets.  
 **Core promise:** one verified asset universe; three ways to act on its data—research with a human, test an alpha strategy, or run a guarded paper-trading agent.  
 **North-star use case:** a retail trader wakes to an overnight macro or company event, sees which Bitget rTokens are affected, inspects cited evidence and a counter-case, then chooses whether to paper-test an action. Nothing routes a live order without a later explicit opt-in and deterministic checks.
