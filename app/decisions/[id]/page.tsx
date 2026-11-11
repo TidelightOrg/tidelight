@@ -1,7 +1,6 @@
 import { notFound, redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getServerAuthState } from "@/lib/supabase/auth-user";
-import { createClient } from "@/lib/supabase/server";
 import { DecisionRecordUnavailable, decisionRecordCursor, resolveDecisionRecord, type DecisionRecordClient } from "@/lib/decision-record";
 import { DecisionRecordView } from "@/app/ui/decision-record-view";
 import "./decision-record.css";
@@ -23,18 +22,18 @@ export default async function DecisionRecordPage({ params, searchParams }: { par
   if (auth.errorCode) return <main className="content-wrap inner-page decision-record"><h1>Decision record</h1><p role="alert">Sign-in could not be verified.</p></main>;
   if (!auth.user) redirect(`/login?next=${encodeURIComponent(`/decisions/${id}`)}`);
 
-  let user: DecisionRecordClient;
-  let capsules: DecisionRecordClient;
+  let records: DecisionRecordClient;
   try {
-    user = await createClient() as unknown as DecisionRecordClient;
-    capsules = createAdminClient() as unknown as DecisionRecordClient;
-  } catch {
+    // The cookie client reaches PostgREST as anon when the server session is absent. anon has no select grant, so the read is permission denied. The service role is the same boundary the research desk already uses, and every query still filters user_id.
+    records = createAdminClient() as unknown as DecisionRecordClient;
+  } catch (error) {
+    console.error("Decision record client unavailable", error instanceof Error ? error.message : "unknown");
     return unavailable();
   }
 
   let record;
   try {
-    record = await resolveDecisionRecord({ userId: auth.user.id, user, capsules }, id, cursors);
+    record = await resolveDecisionRecord({ userId: auth.user.id, user: records, capsules: records }, id, cursors);
   } catch (error) {
     if (error instanceof DecisionRecordUnavailable) return unavailable();
     throw error;

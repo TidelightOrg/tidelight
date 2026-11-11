@@ -85,7 +85,7 @@ function clientFor(source, calls, { fail } = {}) {
       }
       function finish(single) {
         calls.push({ source, ...state });
-        if (fail?.table === table) return { data: null, error: { message: "unavailable" } };
+        if (fail?.table === table) return { data: null, error: { code: fail.code, message: fail.message ?? "unavailable" } };
         let found = (rows[table] ?? []).filter(row => state.filters.every(([op, column, value]) => matches(row, op, column, value)));
         if (state.limit) found = found.slice(0, state.limit);
         const projected = found.map(project);
@@ -165,10 +165,18 @@ test("a capsule that points at a run this account cannot read is not returned", 
 });
 
 test("a read failure does not become an empty decision record", async () => {
-  await assert.rejects(
-    () => resolveDecisionRecord(readers(owner, { fail: { table: "research_runs" } }).store, runId),
-    DecisionRecordUnavailable,
-  );
+  const errors = [];
+  const original = console.error;
+  console.error = (...args) => { errors.push(args); };
+  try {
+    await assert.rejects(
+      () => resolveDecisionRecord(readers(owner, { fail: { table: "research_runs", message: "permission denied for table research_runs", code: "42501" } }).store, runId),
+      DecisionRecordUnavailable,
+    );
+  } finally {
+    console.error = original;
+  }
+  assert.deepEqual(errors, [["Decision record read failed", { code: "42501", message: "permission denied for table research_runs" }]]);
 });
 
 test("workspace links are read-only paths to the existing desks", () => {
@@ -218,8 +226,13 @@ test("the decision record page only reads and the research result links to it", 
   assert.match(strategies, /initialMarketCategory=\{initialMarketCategory\}/);
   assert.match(lab, /useState<AlphaMarketCategory>\(initialMarketCategory\)/);
   assert.match(page, /Earlier strategy backtests|decisionRecordEarlierHref|strategiesBefore/);
-  assert.match(page, /resolveDecisionRecord\(\{ userId: auth\.user\.id, user, capsules \}, id, cursors\)/);
+  assert.match(page, /resolveDecisionRecord\(\{ userId: auth\.user\.id, user: records, capsules: records \}, id, cursors\)/);
+  assert.match(page, /records = createAdminClient\(\)/);
+  assert.doesNotMatch(page, /createClient\(/);
   assert.doesNotMatch(page, /\.insert\(|\.update\(|\.delete\(/);
+  const shell = await readFile(new URL("../app/ui/workspace-shell.tsx", import.meta.url), "utf8");
+  assert.match(shell, /pathname === "\/decisions" \|\| pathname\.startsWith\("\/decisions\/"\)/);
+  assert.match(shell, /Decision record/);
   assert.match(workspace, /\/decisions\/\$\{brief\.research_run_id\}/);
   assert.match(workspace, /aria-label="Open decision record"/);
   assert.match(intelligence, /\/decisions\/\$\{encodeURIComponent\(result\.researchRunId\)\}/);

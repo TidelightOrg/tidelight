@@ -13,7 +13,7 @@ export class DecisionRecordUnavailable extends Error {
 }
 
 /** One row, or a page of rows, from a user-scoped or capsule read. */
-export type DecisionRecordResult = { data: unknown; error: { message: string } | null };
+export type DecisionRecordResult = { data: unknown; error: { message: string; code?: string } | null };
 
 /** Query methods the resolver calls. Production passes a Supabase client. */
 export type DecisionRecordQuery = {
@@ -100,9 +100,14 @@ function flag(value: unknown): boolean {
   return value;
 }
 
+function failRead(error: { message: string; code?: string } | null): never {
+  console.error("Decision record read failed", { code: error?.code, message: error?.message ?? "The read returned no rows." });
+  throw new DecisionRecordUnavailable();
+}
+
 async function single(query: DecisionRecordQuery): Promise<Record<string, unknown> | null> {
   const { data, error } = await query.maybeSingle();
-  if (error) throw new DecisionRecordUnavailable();
+  if (error) failRead(error);
   return data === null ? null : row(data);
 }
 
@@ -112,7 +117,7 @@ function before(query: DecisionRecordQuery, cursor: string | null | undefined) {
 
 async function many(query: DecisionRecordQuery): Promise<{ rows: Record<string, unknown>[]; earlier: string | null }> {
   const { data, error } = await query.order("created_at", { ascending: false }).limit(LINK_LIMIT + 1);
-  if (error || !Array.isArray(data)) throw new DecisionRecordUnavailable();
+  if (error || !Array.isArray(data)) failRead(error);
   const visible = data.slice(0, LINK_LIMIT).map(row);
   return { rows: visible, earlier: data.length > LINK_LIMIT ? text(visible.at(-1)?.created_at, 80) : null };
 }
