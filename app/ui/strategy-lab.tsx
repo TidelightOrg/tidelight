@@ -86,10 +86,10 @@ function MetricCard({ label, value, note, positive }: { label: string; value: st
   return <div className="strategy-metric"><span>{label}</span><b className={positive === undefined ? "" : positive ? "metric-positive" : "metric-negative"}>{value}</b><small>{note}</small></div>;
 }
 
-export default function StrategyLab({ signedIn, initialRuns, initialSymbol = "RAAPLUSDT", initialResearchRunId = null }: { signedIn: boolean; initialRuns: SavedRun[]; initialSymbol?: string; initialResearchRunId?: string | null }) {
+export default function StrategyLab({ signedIn, initialRuns, initialSymbol = "RAAPLUSDT", initialResearchRunId = null, initialMarketCategory = "SPOT" }: { signedIn: boolean; initialRuns: SavedRun[]; initialSymbol?: string; initialResearchRunId?: string | null; initialMarketCategory?: AlphaMarketCategory }) {
   const router = useRouter();
   const [symbol, setSymbol] = useState(initialSymbol);
-  const [marketCategory, setMarketCategory] = useState<AlphaMarketCategory>("SPOT");
+  const [marketCategory, setMarketCategory] = useState<AlphaMarketCategory>(initialMarketCategory);
   const [futuresBasket, setFuturesBasket] = useState<"leaders" | "semiconductors">("leaders");
   const [interval, setInterval] = useState<CandleInterval>("4H");
   const [strategyKey, setStrategyKey] = useState<StrategyKey>(BACKTEST_STRATEGY);

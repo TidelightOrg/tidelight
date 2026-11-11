@@ -30,7 +30,7 @@ const rows = {
     { id: orphanCapsule, user_id: owner, research_run_id: null, created_at: "2026-11-03T01:00:00.000Z", original_snapshot: { copied: true }, integrity_hash: "c".repeat(64) },
   ],
   strategy_backtest_runs: [
-    { id: backtestId, user_id: owner, strategy_key: "sma_trend_v1", symbol: "RNVDAUSDT", interval: "4H", created_at: "2026-11-02T02:00:00.000Z", parameters: { researchRunId: runId.toUpperCase(), candles: [1], feeBpsPerSide: 10 }, train_metrics: { returnPct: 1 }, candles: [1] },
+    { id: backtestId, user_id: owner, strategy_key: "sma_trend_v1", symbol: "RNVDAUSDT", interval: "4H", created_at: "2026-11-02T02:00:00.000Z", market_category: "SPOT", parameters: { researchRunId: runId.toUpperCase(), candles: [1], feeBpsPerSide: 10 }, train_metrics: { returnPct: 1 }, candles: [1] },
     { id: otherBacktest, user_id: other, strategy_key: "sma_trend_v1", symbol: "RNVDAUSDT", interval: "4H", created_at: "2026-11-02T02:00:00.000Z", parameters: { researchRunId: runId, candles: [1] }, candles: [9] },
   ],
   nightwatch_schedules: [
@@ -43,12 +43,13 @@ const rows = {
   ],
 };
 
-const forbiddenSelect = /original_snapshot|integrity_hash|parameters|snapshot|candles|train_metrics|test_metrics|summary|reason|reference_price/;
+const forbiddenSelect = /original_snapshot|integrity_hash|(?:^|,)parameters(?:,|$)|(?:^|,)snapshot(?:,|$)|candles|train_metrics|test_metrics|summary|reason|reference_price/;
 
 function matches(row, op, column, value) {
   const current = column.includes("->>")
     ? row[column.split("->>")[0]]?.[column.split("->>")[1]]
     : row[column];
+  if (op === "lt") return current != null && String(current) < String(value);
   if (current == null) return false;
   if (op === "eq" || op === "ilike") return String(current).toLowerCase() === String(value).toLowerCase();
   return false;
@@ -61,6 +62,7 @@ function clientFor(source, calls, { fail } = {}) {
       const api = {
         select(columns) { state.columns = columns; return api; },
         eq(column, value) { state.filters.push(["eq", column, value]); return api; },
+        lt(column, value) { state.filters.push(["lt", column, value]); return api; },
         filter(column, op, value) { state.filters.push([op, column, value]); return api; },
         order() { return api; },
         limit(count) { state.limit = count; return api; },
@@ -99,9 +101,9 @@ test("an owned research run resolves linked ids without copying stored payloads"
   assert.equal(record.schemaVersion, 1);
   assert.deepEqual(record.researchRun, { id: runId, question: "What changed for NVDA?", status: "complete", createdAt: "2026-11-02T00:00:00.000Z" });
   assert.deepEqual(record.capsule, { id: capsuleId, createdAt: "2026-11-02T01:00:00.000Z" });
-  assert.deepEqual(record.strategyBacktests, [{ id: backtestId, strategyKey: "sma_trend_v1", symbol: "RNVDAUSDT", interval: "4H", createdAt: "2026-11-02T02:00:00.000Z" }]);
-  assert.deepEqual(record.nightwatchSchedules, [{ id: scheduleId, label: "Daily review", symbol: "RNVDAUSDT", playbookKey: "sma_trend_v1", enabled: true }]);
-  assert.deepEqual(record.paperDecisions, [{ id: paperId, symbol: "RNVDAUSDT", signal: "buy", outcome: "executed", createdAt: "2026-11-02T04:00:00.000Z" }]);
+  assert.deepEqual(record.strategyBacktests, { items: [{ id: backtestId, strategyKey: "sma_trend_v1", symbol: "RNVDAUSDT", interval: "4H", marketCategory: "SPOT", createdAt: "2026-11-02T02:00:00.000Z" }], earlier: null });
+  assert.deepEqual(record.nightwatchSchedules, { items: [{ id: scheduleId, label: "Daily review", symbol: "RNVDAUSDT", playbookKey: "sma_trend_v1", enabled: true }], earlier: null });
+  assert.deepEqual(record.paperDecisions, { items: [{ id: paperId, symbol: "RNVDAUSDT", signal: "buy", outcome: "executed", createdAt: "2026-11-02T04:00:00.000Z" }], earlier: null });
   assert.equal("summary" in record.researchRun, false);
   assert.equal(JSON.stringify(record).includes("original_snapshot"), false);
   assert.equal(JSON.stringify(record).includes("referencePrice"), false);
@@ -117,9 +119,9 @@ test("another account's run, capsule, backtest, schedule, and paper decision sta
   assert.equal(hiddenRun, null);
   assert.equal(hiddenCapsule, null);
   const record = await resolveDecisionRecord(readers(owner).store, runId);
-  assert.deepEqual(record.strategyBacktests.map(item => item.id), [backtestId]);
-  assert.deepEqual(record.nightwatchSchedules.map(item => item.id), [scheduleId]);
-  assert.deepEqual(record.paperDecisions.map(item => item.id), [paperId]);
+  assert.deepEqual(record.strategyBacktests.items.map(item => item.id), [backtestId]);
+  assert.deepEqual(record.nightwatchSchedules.items.map(item => item.id), [scheduleId]);
+  assert.deepEqual(record.paperDecisions.items.map(item => item.id), [paperId]);
 });
 
 test("a capsule whose research run was removed stays a reference to that capsule only", async () => {
@@ -128,9 +130,9 @@ test("a capsule whose research run was removed stays a reference to that capsule
   assert.equal(record.anchor, "decision_capsule");
   assert.equal(record.researchRun, null);
   assert.deepEqual(record.capsule, { id: orphanCapsule, createdAt: "2026-11-03T01:00:00.000Z" });
-  assert.deepEqual(record.strategyBacktests, []);
-  assert.deepEqual(record.nightwatchSchedules, []);
-  assert.deepEqual(record.paperDecisions, []);
+  assert.deepEqual(record.strategyBacktests, { items: [], earlier: null });
+  assert.deepEqual(record.nightwatchSchedules, { items: [], earlier: null });
+  assert.deepEqual(record.paperDecisions, { items: [], earlier: null });
 });
 
 test("opening a capsule uses the research run id when that run is still visible", async () => {
@@ -158,21 +160,53 @@ test("a read failure does not become an empty decision record", async () => {
 
 test("workspace links are read-only paths to the existing desks", () => {
   assert.equal(decisionRecordHref.capsule(capsuleId), `/api/decision-capsules/${capsuleId}`);
-  assert.equal(decisionRecordHref.strategy(runId, "RNVDAUSDT"), `/strategies?symbol=RNVDAUSDT&researchRunId=${runId}`);
+  assert.equal(decisionRecordHref.strategy(runId, "RNVDAUSDT", "SPOT"), `/strategies?symbol=RNVDAUSDT&researchRunId=${runId}&market=SPOT`);
+  assert.equal(decisionRecordHref.strategy(runId, "NVDAUSDT", "USDT-FUTURES"), `/strategies?symbol=NVDAUSDT&researchRunId=${runId}&market=USDT-FUTURES`);
   assert.equal(decisionRecordHref.nightwatch(runId, "RNVDAUSDT"), `/nightwatch?symbol=RNVDAUSDT&researchRunId=${runId}`);
-  assert.equal(decisionRecordHref.strategy(runId, "bad symbol"), null);
+  assert.equal(decisionRecordHref.strategy(runId, "bad symbol", "SPOT"), null);
   assert.equal(decisionRecordHref.nightwatch(runId, "NVDA"), null);
   assert.doesNotMatch(decisionRecordHref.nightwatch(runId, "RNVDAUSDT"), /\/api\/nightwatch\/tick/);
 });
 
+test("a futures backtest keeps its market, and older links stay reachable", async () => {
+  const saved = rows.strategy_backtest_runs;
+  rows.strategy_backtest_runs = Array.from({ length: 51 }, (_, index) => ({
+    id: `12121212-1212-4121-8121-${String(index).padStart(12, "0")}`,
+    user_id: owner,
+    strategy_key: "sma_trend_v1",
+    symbol: "NVDAUSDT",
+    interval: "1H",
+    market_category: "USDT-FUTURES",
+    created_at: new Date(Date.UTC(2026, 10, 2, 12, 0, 0) - index * 1000).toISOString(),
+    parameters: { researchRunId: runId, candles: [1] },
+  }));
+  try {
+    const first = await resolveDecisionRecord(readers(owner).store, runId);
+    assert.equal(first.strategyBacktests.items.length, 50);
+    assert.equal(first.strategyBacktests.items[0].marketCategory, "USDT-FUTURES");
+    assert.equal(first.strategyBacktests.earlier, rows.strategy_backtest_runs[49].created_at);
+    assert.equal(decisionRecordHref.strategy(runId, "NVDAUSDT", first.strategyBacktests.items[0].marketCategory), `/strategies?symbol=NVDAUSDT&researchRunId=${runId}&market=USDT-FUTURES`);
+    const second = await resolveDecisionRecord(readers(owner).store, runId, { strategiesBefore: first.strategyBacktests.earlier });
+    assert.deepEqual(second.strategyBacktests.items.map(item => item.id), [rows.strategy_backtest_runs[50].id]);
+    assert.equal(second.strategyBacktests.earlier, null);
+  } finally {
+    rows.strategy_backtest_runs = saved;
+  }
+});
+
 test("the decision record page only reads and the research result links to it", async () => {
-  const [page, workspace, intelligence, flow] = await Promise.all([
+  const [page, workspace, intelligence, flow, strategies, lab] = await Promise.all([
     readFile(new URL("../app/decisions/[id]/page.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/ui/research-workspace.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/ui/intelligence-results.tsx", import.meta.url), "utf8"),
     readFile(new URL("../app/ui/agent-flow-desk.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/strategies/page.tsx", import.meta.url), "utf8"),
+    readFile(new URL("../app/ui/strategy-lab.tsx", import.meta.url), "utf8"),
   ]);
-  assert.match(page, /resolveDecisionRecord\(\{ userId: auth\.user\.id, user, capsules \}, id\)/);
+  assert.match(strategies, /initialMarketCategory=\{initialMarketCategory\}/);
+  assert.match(lab, /useState<AlphaMarketCategory>\(initialMarketCategory\)/);
+  assert.match(page, /Earlier strategy backtests|decisionRecordEarlierHref|strategiesBefore/);
+  assert.match(page, /resolveDecisionRecord\(\{ userId: auth\.user\.id, user, capsules \}, id, cursors\)/);
   assert.doesNotMatch(page, /\.insert\(|\.update\(|\.delete\(/);
   assert.match(workspace, /\/decisions\/\$\{brief\.research_run_id\}/);
   assert.match(workspace, /aria-label="Open decision record"/);

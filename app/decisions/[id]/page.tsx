@@ -2,7 +2,7 @@ import { notFound, redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getServerAuthState } from "@/lib/supabase/auth-user";
 import { createClient } from "@/lib/supabase/server";
-import { DecisionRecordUnavailable, resolveDecisionRecord, type DecisionRecordClient } from "@/lib/decision-record";
+import { DecisionRecordUnavailable, decisionRecordCursor, resolveDecisionRecord, type DecisionRecordClient } from "@/lib/decision-record";
 import { DecisionRecordView } from "@/app/ui/decision-record-view";
 import "./decision-record.css";
 
@@ -15,8 +15,9 @@ function unavailable() {
   return <main className="content-wrap inner-page decision-record"><h1>Decision record</h1><p role="alert">This record could not be loaded.</p></main>;
 }
 
-export default async function DecisionRecordPage({ params }: { params: Promise<{ id: string }> }) {
-  const { id } = await params;
+export default async function DecisionRecordPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ strategiesBefore?: string; schedulesBefore?: string; decisionsBefore?: string }> }) {
+  const [{ id }, query] = await Promise.all([params, searchParams]);
+  const cursors = { strategiesBefore: decisionRecordCursor(query.strategiesBefore), schedulesBefore: decisionRecordCursor(query.schedulesBefore), decisionsBefore: decisionRecordCursor(query.decisionsBefore) };
   if (!UUID.test(id)) notFound();
   const auth = await getServerAuthState();
   if (auth.errorCode) return <main className="content-wrap inner-page decision-record"><h1>Decision record</h1><p role="alert">Sign-in could not be verified.</p></main>;
@@ -33,12 +34,12 @@ export default async function DecisionRecordPage({ params }: { params: Promise<{
 
   let record;
   try {
-    record = await resolveDecisionRecord({ userId: auth.user.id, user, capsules }, id);
+    record = await resolveDecisionRecord({ userId: auth.user.id, user, capsules }, id, cursors);
   } catch (error) {
     if (error instanceof DecisionRecordUnavailable) return unavailable();
     throw error;
   }
   if (!record) notFound();
   if (record.id.toLowerCase() !== id.toLowerCase()) redirect(`/decisions/${record.id}`);
-  return <div className="content-wrap inner-page"><DecisionRecordView record={record} /></div>;
+  return <div className="content-wrap inner-page"><DecisionRecordView record={record} cursors={cursors} /></div>;
 }

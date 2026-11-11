@@ -6377,5 +6377,8 @@
   "Research run": "研究记录",
   "Open decision capsule": "打开决策胶囊",
   "Sign-in could not be verified.": "暂时无法验证登录状态。",
-  "This record could not be loaded.": "无法加载这条记录。"
+  "This record could not be loaded.": "无法加载这条记录。",
+  "Earlier strategy backtests": "更早的策略回测",
+  "Earlier Nightwatch schedules": "更早的 Nightwatch 日程",
+  "Earlier paper decisions": "更早的模拟决策"
 }
