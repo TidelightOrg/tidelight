@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getBitgetCredentials, bitgetPrivateRequest } from "@/lib/bitget-private";
 import { getBitgetAsset } from "@/lib/bitget-market";
 import { estimateOrderNotional, isLimitPriceWithinBand, MAX_ORDER_NOTIONAL_USDT, MAX_ORDER_ATTEMPTS_PER_HOUR } from "@/lib/bitget-order-policy";
-import { isLiveOrderExecutionEnabled, LIVE_ORDER_DISABLED_MESSAGE } from "@/lib/live-order-policy";
+import { isLiveOrderExecutionEnabled, LIVE_ORDER_DISABLED_MESSAGE, LiveOrderExecutionDisabledError, liveOrderBlockedAudit } from "@/lib/live-order-policy";
 
 export const runtime = "nodejs";
 export async function POST(request: Request) {
@@ -20,7 +20,14 @@ export async function POST(request: Request) {
   try {
     const credentials = await getBitgetCredentials(user.id);
     if (!credentials) return NextResponse.json({ error: "Connect and verify a Bitget account first." }, { status: 409 });
+    // Demo orders are Bitget virtual-funds orders (paptrading). They stay outside this switch.
     if (credentials.mode === "live" && !isLiveOrderExecutionEnabled()) {
+      const { error: blockedAuditError } = await supabase.from("security_events").insert({
+        user_id: user.id,
+        event_type: "bitget_order_attempt",
+        metadata: liveOrderBlockedAudit({ mode: "live", product: "SPOT", symbol, side, orderType }),
+      });
+      if (blockedAuditError) return NextResponse.json({ error: "Could not write the order audit record. No order was sent." }, { status: 503, headers: { "Cache-Control": "no-store" } });
       return NextResponse.json({ error: LIVE_ORDER_DISABLED_MESSAGE }, { status: 403, headers: { "Cache-Control": "no-store" } });
     }
     const expectedConfirmation = credentials.mode === "live" ? "PLACE LIVE ORDER" : "PLACE DEMO ORDER";
@@ -30,7 +37,7 @@ export async function POST(request: Request) {
       if (assurance?.currentLevel !== "aal2") return NextResponse.json({ error: "Complete an authenticator check before placing a live order.", mfaRequired: true }, { status: 403 });
     }
     const hourAgo = new Date(Date.now() - 60 * 60 * 1000).toISOString();
-    const { count: attempts, error: auditReadError } = await supabase.from("security_events").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "bitget_order_attempt").gte("created_at", hourAgo);
+    const { count: attempts, error: auditReadError } = await supabase.from("security_events").select("id", { count: "exact", head: true }).eq("user_id", user.id).eq("event_type", "bitget_order_attempt").gte("created_at", hourAgo).not("metadata", "cs", { blocked: true });
     if (auditReadError) return NextResponse.json({ error: "Could not check the order safety limit. No order was sent." }, { status: 503 });
     if ((attempts ?? 0) >= MAX_ORDER_ATTEMPTS_PER_HOUR) return NextResponse.json({ error: "This account has reached the five order attempts per hour safety limit." }, { status: 429 });
     const asset = await getBitgetAsset(symbol);
@@ -52,6 +59,15 @@ export async function POST(request: Request) {
     const result = await bitgetPrivateRequest(credentials, "POST", "/api/v3/trade/place-order", payload);
     return NextResponse.json({ accepted: true, mode: credentials.mode, symbol, side, orderType, estimatedNotional, order: result.data });
   } catch (error) {
+    if (error instanceof LiveOrderExecutionDisabledError) {
+      const { error: blockedAuditError } = await supabase.from("security_events").insert({
+        user_id: user.id,
+        event_type: "bitget_order_attempt",
+        metadata: liveOrderBlockedAudit({ mode: "live", product: "SPOT", symbol, side, orderType }),
+      });
+      if (blockedAuditError) return NextResponse.json({ error: "Could not write the order audit record. No order was sent." }, { status: 503, headers: { "Cache-Control": "no-store" } });
+      return NextResponse.json({ error: LIVE_ORDER_DISABLED_MESSAGE }, { status: 403, headers: { "Cache-Control": "no-store" } });
+    }
     const message = error instanceof Error ? error.message : "";
     if (message === "credential-encryption-not-configured") return NextResponse.json({ error: "Secure key storage is unavailable. No order was sent." }, { status: 503 });
     if (message === "connection-read-failed") return NextResponse.json({ error: "Could not load the verified account." }, { status: 503 });

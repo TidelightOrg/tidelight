@@ -6355,6 +6355,7 @@
   "The selected public sections could not be prepared.": "无法准备所选的公开部分。",
   "The public capsule could not be stored.": "无法保存公开胶囊。",
   "No active public capsule link was found.": "未找到有效的公开胶囊链接。",
+  "Versioned REST, webhooks, and MCP tools do not place exchange orders.": "版本化 REST、Webhook 和 MCP 工具不会下交易所订单。",
   "Public record": "公开记录",
   "Integrity verified": "完整性已验证",
   "Copy integrity verified": "副本完整性已验证",

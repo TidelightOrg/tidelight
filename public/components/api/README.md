@@ -22,6 +22,8 @@ The live, versioned REST API is at `https://api.tidelight.app/v1`. The OpenAPI 3
 | `PATCH, DELETE /webhooks/{endpoint_id}` | `alerts:manage` | Update, rotate or disable a project endpoint |
 | `GET /webhooks/deliveries` | `alerts:manage` | Read delivery attempts and safe failure details |
 
+These operations do not place exchange orders. Live Bitget orders are a separate server route and stay off unless `TIDELIGHT_LIVE_ORDER_EXECUTION_ENABLED` is exactly `true`.
+
 ## First request
 
 Create a developer project and a test key with `market:read`. Put the key in a local shell environment; do not commit it, send it to an untrusted service, or put it in browser code.
