@@ -51,4 +51,6 @@ The standalone TypeScript and Python SDK helpers retrieve a published capsule wi
 
 Isolated unit, route, localization, and PostgreSQL permission/revocation tests run in CI. No live production publication or revocation flow has been exercised as part of this implementation increment.
 
+The read-only Decision Record at `/decisions/[id]` references a capsule by id for the signed-in owner. It does not read `original_snapshot` into another store, and it does not update or append to the capsule.
+
 The capsule timeline summarizes hit rate and mean Brier score from resolved outcomes in that capsule. These calculations use the server-stored forecast/outcome fields from the integrity-verified chain; they are descriptive of the owner's reported observations and are not independent performance evidence. An exploratory five-bin calibration gap is withheld until at least 20 probability-bearing outcomes exist. Even above that threshold it is a small-sample diagnostic, not a validated skill or alpha claim. Outcome source links and their recorded source timestamps are shown for inspection; source authenticity is not checked.
