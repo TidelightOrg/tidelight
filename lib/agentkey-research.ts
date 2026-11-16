@@ -96,9 +96,22 @@ function readOnly(candidate: ToolCandidate) {
 }
 
 function describedAsMutating(description: unknown) {
-  let serialized: string;
-  try { serialized = JSON.stringify(unwrap(description)); } catch { return true; }
-  return MUTATING.test(serialized.toLowerCase().replace(/[_-]+/g, " "));
+  const operationText: string[] = [];
+  const schemaKeys = /^(?:inputSchema|input_schema|parameters|schema|argsSchema|args_schema|execute_as|properties|required|enum|items|type|format|additionalProperties)$/i;
+  function collect(value: unknown, depth = 0) {
+    if (depth > 8) return;
+    if (typeof value === "string") { operationText.push(value); return; }
+    if (Array.isArray(value)) { for (const child of value) collect(child, depth + 1); return; }
+    const object = asRecord(value);
+    if (!object) return;
+    for (const [key, child] of Object.entries(object)) {
+      if (schemaKeys.test(key)) continue;
+      operationText.push(key);
+      collect(child, depth + 1);
+    }
+  }
+  collect(unwrap(description));
+  return MUTATING.test(operationText.join(" ").toLowerCase().replace(/[_-]+/g, " "));
 }
 
 function providerMatch(candidate: ToolCandidate, query: string) {
@@ -165,11 +178,11 @@ function findSchema(value: unknown, depth = 0): RecordValue | null {
   return null;
 }
 
-function enumValue(property: RecordValue, preferred: unknown) {
+function enumValue(property: RecordValue, preferred: unknown, requireMatch = false) {
   const values = Array.isArray(property.enum) ? property.enum.filter(item => typeof item === "string" || typeof item === "number") : [];
   if (!values.length) return preferred;
   const match = values.find(item => String(item).toLowerCase() === String(preferred).toLowerCase());
-  return match ?? values[0];
+  return match ?? (requireMatch ? undefined : values[0]);
 }
 
 function paramsFor(description: unknown, candidate: ToolCandidate, query: string, ticker?: string): RecordValue | null {
@@ -184,8 +197,9 @@ function paramsFor(description: unknown, candidate: ToolCandidate, query: string
     if (!property) continue;
     const field = key.toLowerCase().replace(/[-_]/g, "");
     let value: unknown;
+    const identityField = /^(?:ticker|symbol|stock|tickersymbol)$/.test(field);
     if (/^(?:q|query|searchquery|searchterm|keywords|keyword|newsquery|prompt)$/.test(field)) value = query.slice(0, 420);
-    else if (/^(?:ticker|symbol|stock|tickersymbol)$/.test(field) && symbol) value = symbol;
+    else if (identityField && symbol) value = symbol;
     else if (/^(?:period|range|timeperiod)$/.test(field)) value = "1y";
     else if (/^(?:interval|frequency)$/.test(field)) value = "1d";
     else if (/^(?:limit|num|count|maxresults|numresults)$/.test(field)) value = Math.min(20, typeof property.maximum === "number" ? property.maximum : 20);
@@ -193,7 +207,11 @@ function paramsFor(description: unknown, candidate: ToolCandidate, query: string
     else if (/^(?:language|lang)$/.test(field)) value = "en";
     else if (field === "type" && candidate.name.toLowerCase() === "agentkey_search") value = "news";
     else if (required.includes(key)) return null;
-    if (value !== undefined) built[key] = enumValue(property, value);
+    if (value !== undefined) {
+      const resolved = enumValue(property, value, identityField);
+      if (resolved === undefined) return null;
+      built[key] = resolved;
+    }
   }
   if (required.some(key => !(key in built))) return null;
   return built;
@@ -261,17 +279,22 @@ export async function gatherAgentKeyResearch(
       if (!candidate) return empty("unsupported");
       selected.push(candidate);
     }
-    if (!requestedProviders.length) selected.push(...candidates.slice(0, MAX_RESULTS));
+    if (!requestedProviders.length) selected.push(...candidates);
     if (!selected.length) return empty("unsupported");
 
     const prepared: Array<{ candidate: ToolCandidate; cost: number; params: RecordValue }> = [];
     let reservedCredits = 0;
-    for (const candidate of selected.slice(0, MAX_RESULTS)) {
+    for (const candidate of selected) {
+      if (prepared.length >= MAX_RESULTS) break;
       const description = await client.describeTool(candidate.name);
       const cost = costCredits(description);
-      if (describedAsMutating(description) || cost === null || cost > MAX_CREDITS_PER_TOOL || reservedCredits + cost > MAX_CREDITS_PER_QUERY) return empty("unsupported");
       const params = paramsFor(description, candidate, normalized, ticker);
-      if (!params) return empty("unsupported");
+      const usable = !describedAsMutating(description) && cost !== null && cost <= MAX_CREDITS_PER_TOOL && reservedCredits + cost <= MAX_CREDITS_PER_QUERY && params !== null;
+      if (!usable) {
+        if (requestedProviders.length) return empty("unsupported");
+        continue;
+      }
+      if (cost === null || !params) continue;
       prepared.push({ candidate, cost, params });
       reservedCredits += cost;
     }

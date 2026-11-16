@@ -84,6 +84,17 @@ test("mutation detection normalizes tool names and rejects described write opera
   assert.equal(executions, 0);
 });
 
+test("financial schema fields named open, close, and execute_as do not look like operations", async () => {
+  const client = {
+    async findTools() { return { tools: [{ name: "yfinance/getChart", summary: "Read Yahoo Finance stock price history" }] }; },
+    async describeTool() { return { name: "yfinance/getChart", description: "Read historical OHLC data", cost: 1, execute_as: { type: "object", properties: { symbol: { type: "string" } }, required: ["symbol"] }, outputSchema: { properties: { open: { type: "number" }, close: { type: "number" } } } }; },
+    async executeTool() { return { chart: { open: 100, close: 110 } }; },
+  };
+  const result = await gatherAgentKeyResearch("Get Yahoo Finance chart for NVIDIA", client, "NVDA");
+  assert.equal(result.state, "used");
+  assert.deepEqual(result.tools[0].data, { chart: { open: 100, close: 110 } });
+});
+
 test("all requested provider schemas and costs pass before any provider is executed", async () => {
   const calls = [];
   const client = {
@@ -95,6 +106,35 @@ test("all requested provider schemas and costs pass before any provider is execu
     async executeTool(...args) { calls.push(args); return {}; },
   };
   const result = await gatherAgentKeyResearch(query, client, "NVDA");
+  assert.equal(result.state, "unsupported");
+  assert.deepEqual(calls, []);
+});
+
+test("unusable optional tools are skipped while valid tools still run", async () => {
+  const calls = [];
+  const client = {
+    async findTools() { return { tools: [{ name: "finance/getQuote", summary: "Read current market quote" }, { name: "news/search", summary: "Search current financial news" }] }; },
+    async describeTool(name) {
+      if (name === "finance/getQuote") return { cost: 1, inputSchema: { properties: { symbol: { type: "string" } }, required: ["symbol"] } };
+      return { cost: 5, inputSchema: { properties: { query: { type: "string" } }, required: ["query"] } };
+    },
+    async executeTool(name, args) { calls.push([name, args]); return { quote: { symbol: "NVDA" } }; },
+  };
+  const result = await gatherAgentKeyResearch("Get NVIDIA market data", client, "NVDA");
+  assert.equal(result.state, "used");
+  assert.equal(result.tools.length, 1);
+  assert.equal(result.tools[0].name, "finance/getQuote");
+  assert.deepEqual(calls.map(([name]) => name), ["finance/getQuote"]);
+});
+
+test("ticker enum mismatch rejects a tool instead of substituting another company", async () => {
+  const calls = [];
+  const client = {
+    async findTools() { return { tools: [{ name: "finance/getQuote", summary: "Read current market quote" }] }; },
+    async describeTool() { return { cost: 1, inputSchema: { properties: { symbol: { type: "string", enum: ["AAPL", "MSFT"] } }, required: ["symbol"] } }; },
+    async executeTool(...args) { calls.push(args); return { quote: { symbol: args[1].symbol } }; },
+  };
+  const result = await gatherAgentKeyResearch("Get NVIDIA market data", client, "NVDA");
   assert.equal(result.state, "unsupported");
   assert.deepEqual(calls, []);
 });
