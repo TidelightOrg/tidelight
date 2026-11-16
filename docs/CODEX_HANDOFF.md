@@ -1,19 +1,23 @@
 # Tidelight Codex handoff
 
 **Prepared:** 26 October 2026
-**Continuation refreshed:** 11 November 2026
+**Continuation refreshed:** 16 November 2026
 **Repository:** [`TidelightOrg/tidelight`](https://github.com/TidelightOrg/tidelight)
 **Purpose:** let a fresh session continue from current verified state without repeating completed work.
 
-## Current verified continuation point · 15 November 2026
+## Current verified continuation point · 16 November 2026
 
-**Git baseline.** The checked-out `work` branch is at `c19f8bd` (`Read Decision Records with the service role`, PR #498), following PRs #496 and #497 on 11 November. The tracked worktree is clean; an untracked `sdk/typescript/node_modules/` directory is present. This pass inspected the repository guidance, current roadmap/handoff, recent feature commits, and repository architecture; it did not run the test suite or verify production journeys.
+Resume here. Older sections titled “current” are historical notes from the day they were written.
+
+**Git baseline.** `main` is `08506ff3bce9f6ba51556c4f6e938eb91ae6d637`, the merge of PR #502. PRs #499–#502 are all merged: #499 updates `@hono/node-server`; #500 refreshed this handoff; #501 hides floating help controls on mobile Strategies and Nightwatch; and #502 hides the same controls on the mobile landing page. The working tree for this handoff refresh may contain unrelated untracked `work/` browser artifacts and `sdk/typescript/node_modules/`; do not stage them.
 
 **Recent product increments.** PR #496 added the shared in-memory instrument identity contract in `lib/instrument-identity.ts` and `docs/INSTRUMENT_IDENTITY.md`; it did not add a table or replace the distinct market, evidence-graph, TIC, and strategy models. PRs #497–#498 added the signed-in, read-only `/decisions/[id]` record, which references the owner's existing research run, capsule, strategy, Nightwatch, and paper-decision records. It uses the service role only after owner authorization and does not create a second decision store. These code increments are built; the broader instrument and decision-workspace questions below remain open.
 
-**Open PR.** PR #499 is Dependabot's `@hono/node-server` update from 2.1.5 to 2.1.8 in the root and public MCP server lockfiles. Its Vercel preview is READY and required checks passed in the latest GitHub inspection. CodeRabbit skipped review because the author is a bot. GitHub reports no submitted reviews and no review threads; the two issue comments are automated Vercel and CodeRabbit status messages, not actionable review findings. PR #499 remains open for owner review; do not merge or close it without the owner's approval.
+**Recent UI increments.** PR #501 adds `/strategies` and `/nightwatch` to the existing dense-workspace handling for the floating Product Quick Actions and Tide assistant. PR #502 hides those controls on the mobile landing page, which already has its own research entry points and trust row. Both preserve the controls on desktop. These changes reuse the existing controls and responsive behavior rather than adding a second help or navigation feature.
 
-**Continuation boundary.** No new feature brief after the 11 November product increments was found. The remaining product records are not all completed code tasks: the frozen benchmark still needs two independent reviewers and adjudication; the canonical instrument and Decision Record contracts still have explicit owner questions; first-time navigation needs a product decision and observed user session; and provider rights, recovery exercises, and production observations require external evidence. Do not mark those gates complete based on merged code. If the owner has a newer build guide, use it to select work that does not duplicate PRs #496–#498.
+**Validation and production evidence.** PR #501 passed lint, typecheck, and all 561 app tests. PR #502's required validation, CodeQL, Socket, database checks, and Vercel preview passed; GitHub recorded no submitted reviews or inline review threads. After #502 merged, Chromium verified `/`, `/strategies`, and `/nightwatch` at 390 px and 1440 px: all returned HTTP 200, had no page errors or horizontal overflow, and kept the research entry point available on the landing page. Both floating controls were hidden at 390 px and visible at 1440 px. `/api/system/health` returned deployment `08506ff3bce9`, matching the merge.
+
+**Continuation boundary.** No newer feature guide or unbuilt feature spec was found. The remaining product records include gates that require evidence or owner choices rather than duplicate code: the frozen benchmark needs two independent reviewers and adjudication; the instrument contract and Decision Record still have owner questions; first-time navigation needs an approved route plan and an observed user session; provider rights need confirmation; and restore/reliability work requires isolated recovery practice and production observations. Do not mark those gates complete based on merged code. If the owner has a newer build guide, use it to select the next feature without duplicating existing work.
 
 ## Current verified continuation point · 11 November 2026
 
