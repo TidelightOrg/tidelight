@@ -5,6 +5,16 @@
 **Repository:** [`TidelightOrg/tidelight`](https://github.com/TidelightOrg/tidelight)
 **Purpose:** let a fresh session continue from current verified state without repeating completed work.
 
+## Current verified continuation point · 15 November 2026
+
+**Git baseline.** The checked-out `work` branch is at `c19f8bd` (`Read Decision Records with the service role`, PR #498), following PRs #496 and #497 on 11 November. The tracked worktree is clean; an untracked `sdk/typescript/node_modules/` directory is present. This pass inspected the repository guidance, current roadmap/handoff, recent feature commits, and repository architecture; it did not run the test suite or verify production journeys.
+
+**Recent product increments.** PR #496 added the shared in-memory instrument identity contract in `lib/instrument-identity.ts` and `docs/INSTRUMENT_IDENTITY.md`; it did not add a table or replace the distinct market, evidence-graph, TIC, and strategy models. PRs #497–#498 added the signed-in, read-only `/decisions/[id]` record, which references the owner's existing research run, capsule, strategy, Nightwatch, and paper-decision records. It uses the service role only after owner authorization and does not create a second decision store. These code increments are built; the broader instrument and decision-workspace questions below remain open.
+
+**Open PR.** PR #499 is Dependabot's `@hono/node-server` update from 2.1.5 to 2.1.8 in the root and public MCP server lockfiles. Its Vercel preview is READY and required checks passed in the latest GitHub inspection. CodeRabbit skipped review because the author is a bot. GitHub reports no submitted reviews and no review threads; the two issue comments are automated Vercel and CodeRabbit status messages, not actionable review findings. PR #499 remains open for owner review; do not merge or close it without the owner's approval.
+
+**Continuation boundary.** No new feature brief after the 11 November product increments was found. The remaining product records are not all completed code tasks: the frozen benchmark still needs two independent reviewers and adjudication; the canonical instrument and Decision Record contracts still have explicit owner questions; first-time navigation needs a product decision and observed user session; and provider rights, recovery exercises, and production observations require external evidence. Do not mark those gates complete based on merged code. If the owner has a newer build guide, use it to select work that does not duplicate PRs #496–#498.
+
 ## Current verified continuation point · 11 November 2026
 
 Resume here. Older sections titled “current” are historical notes from the day they were written.
