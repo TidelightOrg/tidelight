@@ -44,3 +44,6 @@
 @media(max-width:780px){.product-quick-actions.is-dense-workspace{display:none}}
 
 .product-quick-actions.is-footer-visible{display:none}
+
+/* The mobile landing hero already has its own research entry point and trust row. */
+@media(max-width:800px){body:has(.landing-page) :is(.product-quick-actions,.tide-guide){display:none}}
