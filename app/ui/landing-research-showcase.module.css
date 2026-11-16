@@ -33,6 +33,7 @@
 .install{font-size:9px}
 .install code{padding:8px 10px;font-size:10px}
 .code{min-height:360px;padding:30px 32px;font-size:13px;line-height:2.05;letter-spacing:-.015em}
+.code:focus-visible{outline:2px solid #286a4d;outline-offset:3px}
 .code code{color:var(--text);font:inherit;white-space:pre}
 .codeKeyword{color:#c6a3ff}
 .codeString{color:#f1bd91}

@@ -36,6 +36,8 @@
 
 /* WCAG AA text contrast for the warm daylight palette. Brand teal remains in decorative surfaces. */
 :root:is([data-theme="daylight"], [data-theme="white"]) .tic-premium-landing :is(.tic-eyebrow,.tic-route-number,.tic-route-card code,.tic-showcase-copy>a,.tic-code-key,.tic-feature-grid span,.tic-core-pills span,.tic-hero-assurances i){color:#176b5c}
+:root:is([data-theme="daylight"], [data-theme="white"]) .tic-premium-landing{--tic-accent:#176b5c}
+:root:is([data-theme="daylight"], [data-theme="white"]) .tic-cta-band .tic-primary{background:var(--brand-teal);border-color:var(--brand-teal);color:var(--brand-ink,#06100e)}
 :root:is([data-theme="daylight"], [data-theme="white"]) .tic-premium-landing .tic-code-value{color:#315b76}
 :root:is([data-theme="daylight"], [data-theme="white"]) .tic-premium-landing .tic-code-fade{color:var(--muted);opacity:1}
 :root:is([data-theme="daylight"], [data-theme="white"]) .tic-doc-layout .tic-eyebrow,:root:is([data-theme="daylight"], [data-theme="white"]) .tic-doc-layout article code{color:#176b5c}

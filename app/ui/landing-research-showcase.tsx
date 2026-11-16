@@ -120,7 +120,7 @@ export default function LandingResearchShowcase() {
         </div>
         <div className={styles.codeHeading} id="integration-code-panel" role="tabpanel" aria-labelledby={`integration-tab-${integration.id}`}><div><span className={styles.codeDot}/><h3>{integration.title}</h3></div><button type="button" onClick={copyExample} aria-label="Copy integration example">{copied ? "Copied" : "Copy"}</button></div>
         <div className={styles.install}><span>GET STARTED</span><code>{integration.install}</code></div>
-        <pre className={styles.code} aria-label={`${integration.label} code example`}><code>{highlightCode(integration.code)}</code></pre>
+        <pre className={styles.code} aria-label={`${integration.label} code example`} tabIndex={0}><code>{highlightCode(integration.code)}</code></pre>
         <div className={styles.codeFoot}><span>SERVER-SIDE EXAMPLE</span><a href={integration.href} target="_blank" rel="noreferrer">Read the {integration.label} guide <b aria-hidden="true">↗</b></a></div>
       </div>
     </div>

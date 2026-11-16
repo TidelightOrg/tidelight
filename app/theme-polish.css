@@ -62,7 +62,9 @@
 }
 @media (prefers-reduced-motion:reduce) { .chart-brand-watermark { animation:none; } }
 :root[data-theme="white"] .data-status b,
+:root[data-theme="white"] .user-profile .user-profile-copy > b,
 :root[data-theme="white"] .account-identity > div:nth-child(2) b { color: #2d4437; }
+:root[data-theme="white"] .profile-link { color: #176b4c; }
 :root[data-theme="white"] .data-status small,
 :root[data-theme="white"] .user-profile small,
 :root[data-theme="white"] .account-identity > div:nth-child(2) small,
@@ -490,6 +492,21 @@
   background: color-mix(in srgb, var(--brand-teal) 15%, var(--panel));
 }
 .theme-option-copy small { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; }
+
+/* Keep small but meaningful workspace text readable in the white theme. */
+:root[data-theme="white"] :is(.workspace-label, .eyebrow, .small-eyebrow) { color: #58675d; }
+:root[data-theme="white"] .page-footer { color: #58675d; }
+:root[data-theme="white"] .page-footer a { color: #46584d; }
+:root[data-theme="white"] .app-shell :is(.route-footnote, .data-disclaimer) { color: #46584d; }
+:root[data-theme="white"] .app-shell .route-footnote a { color: #176b4c; }
+:root[data-theme="white"] .app-shell .positive { color: #176b4c !important; }
+:root[data-theme="white"] .app-shell .negative { color: #a33b32 !important; }
+:root[data-theme="white"] .app-shell .strategy-run-button { color: #fff; }
+:root[data-theme="white"] .app-shell .strategy-run-button .strategy-spinner {
+  border-color: #ffffff88;
+  border-top-color: #fff;
+}
+
 @media (max-width: 780px) {
   .mobile-utility-controls .theme-quick-icon { width: 12px; height: 12px; }
 }
