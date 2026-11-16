@@ -280,7 +280,7 @@ export async function POST(request: Request) {
           const market = perp.status === "fulfilled" ? perp.value : null;
           const spotAsset = spot.status === "fulfilled" && spot.value?.isReality && spot.value.underlyingTicker === ticker ? spot.value : null;
           const feedEvidence = sources.status === "fulfilled" ? sources.value : [];
-          const liveAgentKey = agentKeyResearch.status === "fulfilled" ? agentKeyResearch.value : { state: "unavailable" as const, sources: [], context: "", tools: [] };
+          const liveAgentKey = agentKeyResearch.status === "fulfilled" ? agentKeyResearch.value : { state: "unavailable" as const, reason: null, sources: [], context: "", tools: [] };
           const liveEvidence = liveAgentKey.sources;
           const secResearch = sec.status === "fulfilled" ? sec.value : null;
           const financialFacts: ResearchFact[] = [];
@@ -323,7 +323,7 @@ export async function POST(request: Request) {
               ? "AgentKey returned dated article links; public feeds were checked alongside it."
               : liveAgentKey.state === "used"
                 ? `AgentKey completed ${liveAgentKey.tools.length} read-only tool${liveAgentKey.tools.length === 1 ? "" : "s"}${liveAgentKey.tools.length ? ` (${liveAgentKey.tools.map(tool => tool.name).join(", ")})` : ""} but returned no eligible article links. ${feedEvidence.length ? "Public-feed results are shown below." : "Public feeds also returned no recent, attributable links."}`
-                : `AgentKey research was ${liveAgentKey.state}; ${feedEvidence.length ? "public-feed results are shown below." : "public feeds returned no recent, attributable links."}`}${omittedLongUrls ? ` Omitted ${omittedLongUrls} source link${omittedLongUrls === 1 ? "" : "s"} outside the database-safe 2,000-byte / 4,096-character URL limit.` : ""}`,
+                : `AgentKey research was ${liveAgentKey.state}${liveAgentKey.reason ? ` (${liveAgentKey.reason})` : ""}; ${feedEvidence.length ? "public-feed results are shown below." : "public feeds returned no recent, attributable links."}`}${omittedLongUrls ? ` Omitted ${omittedLongUrls} source link${omittedLongUrls === 1 ? "" : "s"} outside the database-safe 2,000-byte / 4,096-character URL limit.` : ""}`,
             ticker,
           );
           return { ticker, issuer: market?.name ?? spotAsset?.name ?? ticker, secStatus: sec.status === "fulfilled" ? "available" as const : "unavailable" as const, financialFacts: capturedFacts, agentKeyContext: liveAgentKey.context, agentKeyTools: liveAgentKey.tools.map(tool => ({ name: tool.name, provider: tool.provider, costCredits: tool.costCredits })), perp: market, spot: spotAsset,

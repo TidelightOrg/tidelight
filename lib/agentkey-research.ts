@@ -19,6 +19,7 @@ type ToolResult = { name: string; provider: string; costCredits: number; data: u
 export type AgentKeySource = { title: string; url: string; publisher: string; publishedAt: string | null; snippet: string; via: "AgentKey"; tool: string };
 export type AgentKeyResearch = {
   state: "used" | "unavailable" | "unsupported";
+  reason: "invalid-query" | "no-research-tool" | "requested-provider-missing" | "no-usable-schema" | "no-tool-executed" | null;
   query: string;
   tools: ToolResult[];
   sources: AgentKeySource[];
@@ -328,10 +329,10 @@ export async function gatherAgentKeyResearch(
   client: Pick<AgentKeyClient, "findTools" | "describeTool" | "executeTool"> | null = configuredAgentKey(8_000, 35_000),
   ticker?: string,
 ): Promise<AgentKeyResearch> {
-  const empty = (state: AgentKeyResearch["state"]): AgentKeyResearch => ({ state, query: query.slice(0, MAX_QUERY_LENGTH), tools: [], sources: [], context: "" });
+  const empty = (state: AgentKeyResearch["state"], reason: AgentKeyResearch["reason"] = null): AgentKeyResearch => ({ state, reason, query: query.slice(0, MAX_QUERY_LENGTH), tools: [], sources: [], context: "" });
   const normalized = query.trim().replace(/\s+/g, " ");
   if (!client) return empty("unavailable");
-  if (!normalized || normalized.length > MAX_QUERY_LENGTH) return empty("unsupported");
+  if (!normalized || normalized.length > MAX_QUERY_LENGTH) return empty("unsupported", "invalid-query");
 
   try {
     const discovery = await client.findTools(normalized);
@@ -347,12 +348,19 @@ export async function gatherAgentKeyResearch(
       else missingProvider = true;
     }
     if (missingProvider) {
-      const fallback = candidates.find(item => !selected.includes(item) && item.name.toLowerCase() === "agentkey_search");
-      if (!fallback) return empty("unsupported");
+      let fallback = candidates.find(item => !selected.includes(item) && item.name.toLowerCase() === "agentkey_search");
+      if (!fallback) {
+        // Catalog search is free; retry without provider names so a provider
+        // catalog can surface its generic read-only research tool.
+        const fallbackQuery = `Search recent public news and financial research for ${ticker ?? "a US listed company"}.`;
+        const fallbackDiscovery = await client.findTools(fallbackQuery);
+        fallback = agentKeyResearchCandidates(fallbackDiscovery, fallbackQuery).find(item => !selected.some(selectedItem => selectedItem.name === item.name));
+      }
+      if (!fallback) return empty("unsupported", "requested-provider-missing");
       selected.push(fallback);
     }
     if (!requestedProviders.length) selected.push(...candidates.slice(0, MAX_DESCRIBED_CANDIDATES));
-    if (!selected.length) return empty("unsupported");
+    if (!selected.length) return empty("unsupported", "no-research-tool");
 
     const prepared: Array<{ candidate: ToolCandidate; cost: number; params: RecordValue }> = [];
     let reservedCredits = 0;
@@ -363,7 +371,7 @@ export async function gatherAgentKeyResearch(
       const params = paramsFor(description, candidate, normalized, ticker);
       const usable = !describedAsMutating(description) && cost !== null && cost <= MAX_CREDITS_PER_TOOL && reservedCredits + cost <= MAX_CREDITS_PER_QUERY && params !== null;
       if (!usable) {
-        if (requestedProviders.length) return empty("unsupported");
+        if (requestedProviders.length) return empty("unsupported", "no-usable-schema");
         continue;
       }
       if (cost === null || !params) continue;
@@ -377,7 +385,7 @@ export async function gatherAgentKeyResearch(
       const result = await client.executeTool(candidate.name, params);
       const data = boundedJson(unwrap(result));
       if (data === null) {
-        if (requestedProviders.length) return empty("unsupported");
+        if (requestedProviders.length) return empty("unsupported", "no-tool-executed");
         continue;
       }
       tools.push({ name: candidate.name, provider: candidate.name.split("/", 1)[0], costCredits: cost, data });
@@ -386,9 +394,9 @@ export async function gatherAgentKeyResearch(
         if (source && !sources.some(item => item.url === source.url)) sources.push(source);
       }
     }
-    if (!tools.length) return empty("unsupported");
+    if (!tools.length) return empty("unsupported", "no-tool-executed");
     const context = contextForTools(tools);
-    return { state: "used", query: normalized, tools, sources: sources.slice(0, 40), context };
+    return { state: "used", reason: null, query: normalized, tools, sources: sources.slice(0, 40), context };
   } catch (cause) {
     if (!(cause instanceof AgentKeyError)) console.warn("agentkey-research-unavailable", cause instanceof Error ? cause.name : "unknown");
     return empty("unavailable");

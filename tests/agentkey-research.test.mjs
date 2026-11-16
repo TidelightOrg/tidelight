@@ -277,6 +277,34 @@ test("generic AgentKey news search backs up provider-specific discovery", async 
   assert.equal(calls.at(-1)[1], "agentkey_search");
 });
 
+test("provider-neutral rediscovery can find a general read-only news tool", async () => {
+  const calls = [];
+  const client = {
+    async findTools(query) {
+      calls.push(["find", query]);
+      return query.includes("Yahoo Finance")
+        ? { tools: [{ name: "yfinance/getChart", summary: "Yahoo Finance stock history" }] }
+        : { tools: [{ name: "web/search_news", summary: "Search recent public news" }] };
+    },
+    async describeTool(name) {
+      calls.push(["describe", name]);
+      return { name, cost: 1, inputSchema: { properties: { query: { type: "string" } }, required: ["query"] } };
+    },
+    async executeTool(name) { calls.push(["execute", name]); return { results: [] }; },
+  };
+  const result = await gatherAgentKeyResearch("Use AgentKey research with Yahoo Finance and Google News", client, "NVDA");
+  assert.equal(result.state, "used");
+  assert.deepEqual(result.tools.map(tool => tool.name), ["yfinance/getChart", "web/search_news"]);
+  assert.equal(calls.filter(([method]) => method === "find").length, 2);
+});
+
+test("unsupported provider discovery includes a safe diagnostic reason", async () => {
+  const client = { findTools: async () => ({ tools: [] }), describeTool: async () => ({}), executeTool: async () => ({}) };
+  const result = await gatherAgentKeyResearch("Use Yahoo Finance and Google News", client, "NVDA");
+  assert.equal(result.state, "unsupported");
+  assert.equal(result.reason, "requested-provider-missing");
+});
+
 test("unavailable AgentKey connections return a safe status", async () => {
   const result = await gatherAgentKeyResearch(query, { findTools: async () => { throw new Error("secret upstream response"); }, describeTool: async () => ({}), executeTool: async () => ({}) });
   assert.equal(result.state, "unavailable");
