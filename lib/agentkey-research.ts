@@ -179,11 +179,62 @@ function findSchema(value: unknown, depth = 0): RecordValue | null {
   return null;
 }
 
-function enumValue(property: RecordValue, preferred: unknown, requireMatch = false) {
+function enumValue(property: RecordValue, preferred: unknown) {
   const values = Array.isArray(property.enum) ? property.enum.filter(item => typeof item === "string" || typeof item === "number") : [];
   if (!values.length) return preferred;
   const match = values.find(item => String(item).toLowerCase() === String(preferred).toLowerCase());
-  return match ?? (requireMatch ? undefined : values[0]);
+  return match;
+}
+
+function schemaTypes(property: RecordValue): string[] {
+  const type = property.type;
+  return Array.isArray(type) ? type.filter((item): item is string => typeof item === "string") : typeof type === "string" ? [type] : [];
+}
+
+function valueMatchesSchema(property: RecordValue, value: unknown): boolean {
+  const types = schemaTypes(property);
+  if (types.length) {
+    const typeMatches = types.some(type => type === "string" ? typeof value === "string"
+      : type === "integer" ? typeof value === "number" && Number.isInteger(value)
+        : type === "number" ? typeof value === "number" && Number.isFinite(value)
+          : type === "array" ? Array.isArray(value)
+            : type === "object" ? asRecord(value) !== null
+              : type === "boolean" ? typeof value === "boolean"
+                : type === "null" ? value === null : true);
+    if (!typeMatches) return false;
+  }
+  if (typeof value === "string") {
+    if (typeof property.minLength === "number" && value.length < property.minLength) return false;
+    if (typeof property.maxLength === "number" && value.length > property.maxLength) return false;
+    if (typeof property.pattern === "string") {
+      try { if (!new RegExp(property.pattern).test(value)) return false; } catch { return false; }
+    }
+  }
+  if (typeof value === "number") {
+    if (typeof property.minimum === "number" && value < property.minimum) return false;
+    if (typeof property.maximum === "number" && value > property.maximum) return false;
+    if (typeof property.exclusiveMinimum === "number" && value <= property.exclusiveMinimum) return false;
+    if (typeof property.exclusiveMaximum === "number" && value >= property.exclusiveMaximum) return false;
+  }
+  if (Array.isArray(value)) {
+    if (typeof property.minItems === "number" && value.length < property.minItems) return false;
+    if (typeof property.maxItems === "number" && value.length > property.maxItems) return false;
+    const itemSchema = asRecord(property.items);
+    if (itemSchema && value.some(item => !valueMatchesSchema(itemSchema, item))) return false;
+  }
+  if (Array.isArray(property.enum) && !property.enum.some(item => JSON.stringify(item) === JSON.stringify(value))) return false;
+  return true;
+}
+
+function fitGeneratedValue(property: RecordValue, value: unknown): unknown {
+  const types = schemaTypes(property);
+  if (types.length && !types.some(type => type === "array" ? Array.isArray(value) : type === "string" ? typeof value === "string" : type === "integer" ? typeof value === "number" && Number.isInteger(value) : type === "number" ? typeof value === "number" : type === "object" ? asRecord(value) !== null : type === "boolean" ? typeof value === "boolean" : false)) {
+    if (typeof value === "string" && types.includes("array") && asRecord(property.items) && (!schemaTypes(asRecord(property.items)!).length || schemaTypes(asRecord(property.items)!).includes("string"))) value = [value];
+    else if (typeof value === "number" && types.includes("string")) value = String(value);
+    else if (typeof value === "string" && (types.includes("number") || types.includes("integer")) && /^-?\d+(?:\.\d+)?$/.test(value)) value = Number(value);
+    else return undefined;
+  }
+  return value;
 }
 
 function paramsFor(description: unknown, candidate: ToolCandidate, query: string, ticker?: string): RecordValue | null {
@@ -191,7 +242,7 @@ function paramsFor(description: unknown, candidate: ToolCandidate, query: string
   const properties = schema ? asRecord(schema.properties) : null;
   if (!schema || !properties) return null;
   const required = Array.isArray(schema.required) ? schema.required.filter((item): item is string => typeof item === "string") : [];
-  const symbol = ticker ?? /\b[A-Z][A-Z0-9.]{0,5}\b/.exec(query)?.[0];
+  const symbol = ticker;
   const built: RecordValue = {};
   for (const [key, rawProperty] of Object.entries(properties)) {
     const property = asRecord(rawProperty);
@@ -209,8 +260,10 @@ function paramsFor(description: unknown, candidate: ToolCandidate, query: string
     else if (field === "type" && candidate.name.toLowerCase() === "agentkey_search") value = "news";
     else if (required.includes(key)) return null;
     if (value !== undefined) {
-      const resolved = enumValue(property, value, identityField);
-      if (resolved === undefined) return null;
+      const fitted = fitGeneratedValue(property, value);
+      if (fitted === undefined) return null;
+      const resolved = enumValue(property, fitted);
+      if (resolved === undefined || !valueMatchesSchema(property, resolved)) return null;
       built[key] = resolved;
     }
   }
@@ -256,6 +309,16 @@ function boundedJson(value: unknown): unknown {
     if (json.length <= MAX_RESULT_BYTES) return JSON.parse(json) as unknown;
     return { truncated: true, preview: json.slice(0, MAX_RESULT_BYTES - 128) };
   } catch { return null; }
+}
+
+function contextForTools(tools: ToolResult[]): string {
+  if (!tools.length) return "";
+  const perToolBudget = Math.floor(MAX_CONTEXT / tools.length);
+  return tools.map(tool => {
+    const heading = `${tool.name} (${tool.costCredits} credits): `;
+    const payload = JSON.stringify(tool.data);
+    return `${heading}${payload.slice(0, Math.max(0, perToolBudget - heading.length))}`;
+  }).join("\n").slice(0, MAX_CONTEXT);
 }
 
 export async function gatherAgentKeyResearch(
@@ -316,7 +379,7 @@ export async function gatherAgentKeyResearch(
       }
     }
     if (!tools.length) return empty("unsupported");
-    const context = tools.map(item => `${item.name} (${item.costCredits} credits): ${JSON.stringify(item.data)}`).join("\n").slice(0, MAX_CONTEXT);
+    const context = contextForTools(tools);
     return { state: "used", query: normalized, tools, sources: sources.slice(0, 40), context };
   } catch (cause) {
     if (!(cause instanceof AgentKeyError)) console.warn("agentkey-research-unavailable", cause instanceof Error ? cause.name : "unknown");

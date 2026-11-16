@@ -156,6 +156,63 @@ test("ticker enum mismatch rejects a tool instead of substituting another compan
   assert.deepEqual(calls, []);
 });
 
+test("symbol tools require a resolved or explicit ticker instead of guessing an uppercase word", async () => {
+  let executions = 0;
+  const client = {
+    async findTools() { return { tools: [{ name: "yfinance/getChart", summary: "Read Yahoo Finance stock price history" }] }; },
+    async describeTool() { return { cost: 1, inputSchema: { properties: { symbol: { type: "string" } }, required: ["symbol"] } }; },
+    async executeTool() { executions++; return { chart: { close: [100] } }; },
+  };
+  const result = await gatherAgentKeyResearch("I want Yahoo Finance price history for Costco.", client);
+  assert.equal(result.state, "unsupported");
+  assert.deepEqual(result.tools, []);
+  assert.equal(executions, 0);
+});
+
+test("optional tools with incompatible array parameter schemas are skipped", async () => {
+  const executions = [];
+  const client = {
+    async findTools() { return { tools: [{ name: "news/search", summary: "Search financial news" }, { name: "finance/getQuote", summary: "Read current stock quote" }] }; },
+    async describeTool(name) {
+      return name === "news/search"
+        ? { cost: 1, inputSchema: { properties: { keywords: { type: "array", items: { type: "number" } } }, required: ["keywords"] } }
+        : { cost: 1, inputSchema: { properties: { symbol: { type: "string" } }, required: ["symbol"] } };
+    },
+    async executeTool(name, params) { executions.push([name, params]); return { quote: { symbol: "NVDA" } }; },
+  };
+  const result = await gatherAgentKeyResearch("Get NVIDIA news and price", client, "NVDA");
+  assert.equal(result.state, "used");
+  assert.deepEqual(executions, [["finance/getQuote", { symbol: "NVDA" }]]);
+});
+
+test("query values adapt to declared arrays of strings", async () => {
+  const executions = [];
+  const client = {
+    async findTools() { return { tools: [{ name: "news/search", summary: "Search financial news" }] }; },
+    async describeTool() { return { cost: 1, inputSchema: { properties: { keywords: { type: "array", items: { type: "string" }, minItems: 1, maxItems: 3 } }, required: ["keywords"] } }; },
+    async executeTool(name, params) { executions.push(params); return { results: [] }; },
+  };
+  const query = "Find NVIDIA earnings news";
+  const result = await gatherAgentKeyResearch(query, client);
+  assert.equal(result.state, "used");
+  assert.deepEqual(executions, [{ keywords: [query] }]);
+});
+
+test("bounded synthesis context preserves each executed provider's data", async () => {
+  const longArticles = Array.from({ length: 20 }, (_, index) => ({ title: `NVIDIA article ${index}`, snippet: "NVIDIA earnings coverage ".repeat(20), url: `https://news.example/${index}` }));
+  const client = {
+    async findTools() { return catalog; },
+    async describeTool(name) { return name === "GoogleNews/search" ? { cost: 1, inputSchema: { properties: { query: { type: "string" } }, required: ["query"] } } : { cost: 1, inputSchema: { properties: { symbol: { type: "string" } }, required: ["symbol"] } }; },
+    async executeTool(name) { return name === "GoogleNews/search" ? { results: longArticles } : { chart: { close: [190, 194] } }; },
+  };
+  const result = await gatherAgentKeyResearch(query, client, "NVDA");
+  assert.equal(result.state, "used");
+  assert.equal(result.tools.length, 2);
+  assert.ok(result.context.length <= 8_000);
+  assert.match(result.context, /yfinance\/getChart/);
+  assert.match(result.context, /194/);
+});
+
 test("structuredContent preserves deeply nested financial payloads", async () => {
   const payload = { chart: { result: [{ indicators: { quote: [{ close: [100, 102] }] } }] } };
   const client = {
