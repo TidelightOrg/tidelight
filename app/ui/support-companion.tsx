@@ -78,7 +78,7 @@ export default function SupportCompanion() {
   const draggedRef = useRef(false);
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
   const [footerVisible, setFooterVisible] = useState(false);
-  const denseWorkspace = pathname === "/futures" || pathname === "/trading" || pathname === "/flow" || pathname === "/markets";
+  const denseWorkspace = pathname === "/futures" || pathname === "/trading" || pathname === "/flow" || pathname === "/markets" || pathname === "/strategies" || pathname === "/nightwatch";
   const viewportBounds = useCallback(() => {
     const viewport = window.visualViewport;
     const width = Math.max(1, Math.floor(viewport?.width ?? document.documentElement.clientWidth ?? window.innerWidth));

@@ -20,7 +20,7 @@ export default function ProductQuickActions() {
   const suppressClick = useRef(false);
   const [position, setPosition] = useState<{ left: number; top: number } | null>(null);
   const [footerVisible, setFooterVisible] = useState(false);
-  const denseWorkspace = pathname === "/futures" || pathname === "/trading" || pathname === "/flow" || pathname === "/markets";
+  const denseWorkspace = pathname === "/futures" || pathname === "/trading" || pathname === "/flow" || pathname === "/markets" || pathname === "/strategies" || pathname === "/nightwatch";
   const publicCapsule = pathname.startsWith("/capsule/public/");
   const requestId = useRef(crypto.randomUUID());
 
