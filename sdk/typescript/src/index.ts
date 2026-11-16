@@ -303,6 +303,7 @@ export class TidelightClient {
     const url = `${this.baseUrl}${path}`;
     const retryLimit = retrySafe ? this.maxRetries : 0;
     for (let attempt = 0; ; attempt++) {
+      if (signal?.aborted) throw signal.reason ?? new DOMException("The operation was aborted.", "AbortError");
       const controller = new AbortController(); const abort = () => controller.abort(signal?.reason);
       const timer = setTimeout(() => controller.abort(), timeoutMs); signal?.addEventListener("abort", abort, { once: true });
       let response: Response; let payload: unknown;

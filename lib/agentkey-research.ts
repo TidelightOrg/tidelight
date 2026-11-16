@@ -4,6 +4,7 @@ import { AgentKeyError, configuredAgentKey, type AgentKeyClient } from "@/lib/ag
 
 const MAX_QUERY_LENGTH = 500;
 const MAX_RESULTS = 2;
+const MAX_DESCRIBED_CANDIDATES = 8;
 const MAX_CREDITS_PER_TOOL = 2;
 const MAX_CREDITS_PER_QUERY = 4;
 const MAX_RESULT_BYTES = 30_000;
@@ -279,7 +280,7 @@ export async function gatherAgentKeyResearch(
       if (!candidate) return empty("unsupported");
       selected.push(candidate);
     }
-    if (!requestedProviders.length) selected.push(...candidates);
+    if (!requestedProviders.length) selected.push(...candidates.slice(0, MAX_DESCRIBED_CANDIDATES));
     if (!selected.length) return empty("unsupported");
 
     const prepared: Array<{ candidate: ToolCandidate; cost: number; params: RecordValue }> = [];
@@ -304,7 +305,10 @@ export async function gatherAgentKeyResearch(
     for (const { candidate, cost, params } of prepared) {
       const result = await client.executeTool(candidate.name, params);
       const data = boundedJson(unwrap(result));
-      if (data === null) continue;
+      if (data === null) {
+        if (requestedProviders.length) return empty("unsupported");
+        continue;
+      }
       tools.push({ name: candidate.name, provider: candidate.name.split("/", 1)[0], costCredits: cost, data });
       for (const record of records(result)) {
         const source = sourceFrom(record, candidate.name);

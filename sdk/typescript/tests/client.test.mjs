@@ -53,6 +53,15 @@ test("AgentKey research is validated and never automatically retried", async () 
   assert.equal(attempts, 1);
 });
 
+test("already-aborted AgentKey research never sends a paid request", async () => {
+  const controller = new AbortController();
+  controller.abort(new Error("cancelled before dispatch"));
+  let calls = 0;
+  const client = new TidelightClient({ apiKey: key, fetch: async () => { calls++; return Response.json({}); } });
+  await assert.rejects(client.researchWithAgentKey("Explain NVIDIA earnings", { signal: controller.signal }), error => error === controller.signal.reason);
+  assert.equal(calls, 0);
+});
+
 test("rejects malformed research input before making a request", async () => {
   const client = new TidelightClient({ apiKey: key, fetch: async () => assert.fail("network should not run") });
   await assert.rejects(client.startCompanyResearch("NVDA", "short"), TypeError);

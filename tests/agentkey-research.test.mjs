@@ -110,6 +110,23 @@ test("all requested provider schemas and costs pass before any provider is execu
   assert.deepEqual(calls, []);
 });
 
+test("all explicitly requested providers must return usable results", async () => {
+  let executions = 0;
+  const client = {
+    async findTools() { return catalog; },
+    async describeTool(name) {
+      return name === "GoogleNews/search"
+        ? { cost: 1, inputSchema: { properties: { query: { type: "string" } }, required: ["query"] } }
+        : { cost: 1, inputSchema: { properties: { symbol: { type: "string" } }, required: ["symbol"] } };
+    },
+    async executeTool(name) { executions++; return name === "GoogleNews/search" ? { articles: [{ title: "NVIDIA", url: "https://news.example/nvda" }] } : undefined; },
+  };
+  const result = await gatherAgentKeyResearch(query, client, "NVDA");
+  assert.equal(result.state, "unsupported");
+  assert.deepEqual(result.tools, []);
+  assert.equal(executions, 2);
+});
+
 test("unusable optional tools are skipped while valid tools still run", async () => {
   const calls = [];
   const client = {
