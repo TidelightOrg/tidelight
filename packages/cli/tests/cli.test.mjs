@@ -24,6 +24,7 @@ function harness(overrides = {}) {
         startCompanyResearch: async (...args) => { calls.push(["start", ...args]); return { job_id: "00000000-0000-4000-8000-000000000001", status: "queued", duplicate: false, request_id: "r-start" }; },
         getResearchJob: async (...args) => { calls.push(["get", ...args]); return { job_id: args[0], status: "complete", result: { summary: "source-backed" }, request_id: "r-get" }; },
         waitForResearchJob: async (...args) => { calls.push(["wait", ...args]); return { job_id: args[0], status: "complete", request_id: "r-wait" }; },
+        researchWithAgentKey: async (...args) => { calls.push(["agentkey", ...args]); return { provider: "agentkey", query: args[0], status: "complete", tools: [], sources: [], limitations: [], request_id: "r-agentkey" }; },
         cancelResearchJob: async (...args) => { calls.push(["cancel", ...args]); return { job_id: args[0], status: "cancelled", request_id: "r-cancel" }; },
         listWebhooks: async () => ({ endpoints: [], request_id: "r-webhooks" }),
         createWebhook: async (...args) => { calls.push(["webhook-create", ...args]); return { endpoint: { id: "endpoint-1" }, signing_secret: "secret-once", request_id: "r-hook" }; },
@@ -110,6 +111,14 @@ test("JSON research start preserves the accepted job if wait times out", async (
   assert.equal(response.accepted.job_id, "00000000-0000-4000-8000-000000000001");
   assert.equal(response.polling_error.job_id, response.accepted.job_id);
   assert.match(h.err.join(""), /job .* was accepted/);
+});
+
+test("AgentKey research command forwards query and optional ticker", async () => {
+  const h = harness(); h.deps.env.TIDELIGHT_API_KEY = apiKey;
+  assert.equal(await runCli(["research", "agentkey", "Explain NVIDIA earnings", "--ticker", "nvda", "--json"], h.deps), 0);
+  assert.deepEqual(h.calls.find(item => item[0] === "agentkey"), ["agentkey", "Explain NVIDIA earnings", { ticker: "nvda", signal: undefined }]);
+  assert.match(h.out.join(""), /"provider": "agentkey"/);
+  assert.equal(await runCli(["research", "agentkey", "bad"], h.deps), 2);
 });
 
 test("webhook signing secret is shown once with an explicit warning", async () => {

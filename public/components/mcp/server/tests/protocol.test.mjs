@@ -37,11 +37,13 @@ test("research scope validates inputs and invokes durable job operations", async
   const { server, client } = await connect(["research:run"], async operation => {
     calls.push(operation);
     if (operation.operation === "capsule.public.get") return Response.json({ integrity: "valid", integrityHash: "a".repeat(64) });
+    if (operation.operation === "research.agentkey") return Response.json({ provider: "agentkey", status: "complete", tools: [], sources: [], request_id: "r-agentkey" });
     return Response.json({ job_id: "3d7fbd5c-a03c-4ba1-ae77-8ecf44dbdb5e", status: "queued", error: null });
   });
   const { tools } = await client.listTools();
-  assert.deepEqual(tools.map(tool => tool.name).sort(), ["tidelight_cancel_research_job", "tidelight_get_public_decision_capsule", "tidelight_get_research_job", "tidelight_start_company_research"]);
+  assert.deepEqual(tools.map(tool => tool.name).sort(), ["tidelight_cancel_research_job", "tidelight_get_public_decision_capsule", "tidelight_get_research_job", "tidelight_research_with_agentkey", "tidelight_start_company_research"]);
   assert.equal(tools.find(tool => tool.name === "tidelight_get_public_decision_capsule").annotations.readOnlyHint, true);
+  assert.equal(tools.find(tool => tool.name === "tidelight_research_with_agentkey").annotations.readOnlyHint, true);
   const invalid = await client.callTool({ name: "tidelight_start_company_research", arguments: { ticker: "NVDA;DROP" } });
   assert.equal(invalid.isError, true);
   assert.equal(calls.length, 0);
@@ -49,12 +51,15 @@ test("research scope validates inputs and invokes durable job operations", async
   assert.equal(started.structuredContent.status, "queued");
   assert.equal(calls[0].ticker, "NVDA");
   assert.equal(calls[0].idempotencyKey, "mcp-test-0001");
+  const agentkey = await client.callTool({ name: "tidelight_research_with_agentkey", arguments: { query: "Explain NVIDIA earnings", ticker: "nvda" } });
+  assert.equal(agentkey.structuredContent.provider, "agentkey");
+  assert.deepEqual(calls[1], { operation: "research.agentkey", query: "Explain NVIDIA earnings", ticker: "NVDA" });
   const invalidCapsule = await client.callTool({ name: "tidelight_get_public_decision_capsule", arguments: { token: "invalid" } });
   assert.equal(invalidCapsule.isError, true);
-  assert.equal(calls.length, 1);
+  assert.equal(calls.length, 2);
   const capsule = await client.callTool({ name: "tidelight_get_public_decision_capsule", arguments: { token: "a".repeat(43) } });
   assert.equal(capsule.structuredContent.integrity, "valid");
-  assert.deepEqual(calls[1], { operation: "capsule.public.get", token: "a".repeat(43) });
+  assert.deepEqual(calls[2], { operation: "capsule.public.get", token: "a".repeat(43) });
   await client.close();
   await server.close();
 });

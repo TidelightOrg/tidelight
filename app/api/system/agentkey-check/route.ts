@@ -1,5 +1,6 @@
 import { configuredAgentKey } from "@/lib/agentkey";
 import { inspectAgentKeySearchDescription } from "@/lib/agentkey-flow-sources";
+import { agentKeyResearchCandidates } from "@/lib/agentkey-research";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
@@ -22,10 +23,11 @@ export async function POST(request: Request) {
   let state = "available";
   let failure = "";
   try {
-    // Check the exact bounded search capability used by research, without a billable data query.
-    const catalog = await client.findTools("Search dated public news headlines for a US listed company with attributable article links");
-    if (!JSON.stringify(catalog).includes("agentkey_search")) throw new Error("research-search-tool-unavailable");
-    const description = await client.describeTool("agentkey_search");
+    // Check a discovered read-only capability and its price without a billable data query.
+    const catalog = await client.findTools("Search dated public news and financial research for a US listed company");
+    const candidate = agentKeyResearchCandidates(catalog, "Search dated public news and financial research for a US listed company")[0];
+    if (!candidate) throw new Error("research-tool-unavailable");
+    const description = await client.describeTool(candidate.name);
     if (!inspectAgentKeySearchDescription(description).withinBudget) throw new Error("research-search-cost-unverified");
   } catch (cause) {
     state = "unavailable";

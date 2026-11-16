@@ -35,6 +35,7 @@ tidelight market instruments --json
 
 tidelight research start NVDA
 tidelight research start NVDA --wait --timeout-ms 120000
+tidelight research agentkey "Explain NVIDIA's stock reaction to its latest earnings using Yahoo Finance and Google News." --ticker NVDA --json
 tidelight research get 00000000-0000-4000-8000-000000000000 --json
 tidelight research cancel 00000000-0000-4000-8000-000000000000
 
@@ -45,9 +46,9 @@ tidelight webhooks disable 00000000-0000-4000-8000-000000000000
 tidelight webhooks deliveries --json
 ```
 
-这些命令仅映射到现有 SDK 和 OpenAPI 契约：受支持的 Reality 代币化股票现货交易工具、异步公司研究任务和研究任务 Webhook。CLI 不会创建完整研究报告、策略、情景、实盘订单、账户、项目或密钥。权限范围、租户所有权、配额及数据提供方条款均以服务端为准。
+这些命令仅映射到现有 SDK 和 OpenAPI 契约：受支持的 Reality 代币化股票现货交易工具、异步公司研究任务、有界 AgentKey 只读研究和研究任务 Webhook。AgentKey 输出属于不可信的外部数据；CLI 不会自动重试可能消耗积分的请求。CLI 不会创建完整研究报告、策略、情景、实盘订单、账户、项目或密钥。权限范围、租户所有权、配额及数据提供方条款均以服务端为准。
 
-研究请求默认生成 UUID 幂等键。如调用方需要在重试时沿用同一密钥，请使用 `--idempotency-key`。`--wait` 会轮询直至任务进入终态或达到有界超时时间；Ctrl-C 会停止本地轮询，而 `research cancel` 会明确请求服务端取消任务。
+`research start` 默认生成 UUID 幂等键。如调用方需要在重试时沿用同一密钥，请使用 `--idempotency-key`。`research agentkey` 是单次消耗积分的请求，不接受幂等键，也不会自动重试。`--wait` 会轮询直至任务进入终态或达到有界超时时间；Ctrl-C 会停止本地轮询，而 `research cancel` 会明确请求服务端取消任务。
 
 行情结果附带服务端返回的数据来源信息及代币化交易工具类型。`provider_terms_unconfirmed` 错误表示服务当前无法返回该行情；CLI 会显示服务端结果，不会替换为其他数据源。此错误不代表直接股票或永续合约价格。
 

@@ -36,6 +36,7 @@ tidelight market instruments --json
 
 tidelight research start NVDA
 tidelight research start NVDA --wait --timeout-ms 120000
+tidelight research agentkey "Explain NVIDIA's stock reaction to its latest earnings using Yahoo Finance and Google News." --ticker NVDA --json
 tidelight research get 00000000-0000-4000-8000-000000000000 --json
 tidelight research cancel 00000000-0000-4000-8000-000000000000
 
@@ -46,9 +47,9 @@ tidelight webhooks disable 00000000-0000-4000-8000-000000000000
 tidelight webhooks deliveries --json
 ```
 
-These commands map to the existing SDK and OpenAPI contract only: supported Reality tokenized-equity spot instruments, asynchronous company research jobs, and research-job webhooks. The CLI does not create a full research report, strategy, scenario, live order, or account/project/key. Service-side scopes, tenant ownership, quotas, and provider terms remain authoritative.
+These commands map to the existing SDK and OpenAPI contract only: supported Reality tokenized-equity spot instruments, asynchronous company research jobs, bounded AgentKey read-only research, and research-job webhooks. AgentKey output is external untrusted data; the command does not automatically retry credit-consuming queries. The CLI does not create a full research report, strategy, scenario, live order, or account/project/key. Service-side scopes, tenant ownership, quotas, and provider terms remain authoritative.
 
-Research calls generate a UUID idempotency key by default. Use `--idempotency-key` when a caller needs a stable key across a retry. `--wait` polls until a terminal state or bounded timeout; Ctrl-C stops local polling, while `research cancel` explicitly requests server cancellation.
+`research start` generates a UUID idempotency key by default. Use `--idempotency-key` when a caller needs a stable key across a retry. `research agentkey` is a single credit-consuming request and does not accept an idempotency key or retry automatically. `--wait` polls until a terminal state or bounded timeout; Ctrl-C stops local polling, while `research cancel` explicitly requests server cancellation.
 
 Market results carry server-returned provenance and tokenized-instrument type. A `provider_terms_unconfirmed` error means the service cannot currently return this feed; the CLI surfaces that service decision and does not substitute another provider. It does not imply direct stock shares or perpetual-contract prices.
 

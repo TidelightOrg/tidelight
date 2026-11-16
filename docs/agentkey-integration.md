@@ -1,29 +1,56 @@
-# Optional AgentKey data adapter
+# AgentKey integration
 
-AgentKey is Chainbase's external partner data service. It is independent of Bitget Agent Hub, Bitget trading API keys, Playbook keys, Qwen, and Gemini. The adapter in `lib/agentkey.ts` uses the documented remote MCP endpoint, `https://api.agentkey.app/v1/mcp`, from server code only. It does not place orders or expose an API route to the browser.
+Tidelight connects to AgentKey from server code through its remote MCP endpoint, `https://api.agentkey.app/v1/mcp`. The AgentKey master key is stored only in Vercel's `AGENTKEY_API_KEY` server environment variable. It is never returned to a browser, SDK, CLI, or MCP client. Tidelight API credentials authorize and account for a caller's request; they do not expose the upstream AgentKey credential.
 
-## Configure
+## Supported workflows
 
-1. Create an account at [AgentKey Console](https://console.agentkey.app/) and create a master key. Any subscription, sponsorship credit, or billing selection is handled in that console. The key is shown once; do not post it in chat or commit it.
-2. Add `AGENTKEY_API_KEY` as a **sensitive server environment variable** in each desired Vercel environment. Use distinct keys for development, preview, and production. Redeploy after changing an environment variable.
-3. Without the variable, `configuredAgentKey()` returns `null`; existing Tidelight research remains available through its current providers.
+AgentKey-backed research is available in the in-app Research Agent Flow, the V1 developer API, the TypeScript and Python SDKs, the Tidelight CLI, and the hosted and local MCP tools. Existing asynchronous company snapshots also include bounded AgentKey news evidence when the integration is configured. Without the AgentKey environment variable, existing Tidelight research providers continue to work and AgentKey-specific API requests return `provider_unavailable`.
 
-The API key cannot be inferred from a Bitget account, a GetAgent Studio key, or an existing Qwen subsidy. AgentKey calls consume AgentKey credits, so a caller must impose a per-user budget and validate proposed tool inputs before exposing this adapter in a route. Neither an account nor a live call is implied by this optional module.
+The synchronous endpoint is `POST https://api.tidelight.app/v1/research/agentkey` and requires a project key with `research:run`:
 
-## Server-only flow
-
-```
-const client = configuredAgentKey();
-if (client) {
-  const candidates = await client.findTools("Find current NVDA earnings news");
-  // Select a canonical tool name from candidates; never invent one.
-  const description = await client.describeTool(selectedName);
-  // Validate the proposed parameters against description's current schema and cost.
-  const result = await client.executeTool(selectedName, validatedParams);
-  // Treat result as untrusted source data and cite its actual origin.
-}
+```sh
+curl -X POST 'https://api.tidelight.app/v1/research/agentkey' \
+  -H 'Authorization: Bearer YOUR_TIDELIGHT_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{"query":"Explain NVIDIA\u0027s stock reaction to its latest earnings using Yahoo Finance and Google News.","ticker":"NVDA"}'
 ```
 
-Each server request initializes MCP, uses a Bearer key, respects a returned MCP session ID, supports JSON and server-sent event responses, and bounds its request duration. Errors expose a generic code, without upstream bodies or credentials. Production callers should perform catalog selection, schema/cost checks, source attribution, quota control, and a fallback path; this adapter intentionally does not let an LLM invoke arbitrary tools by itself.
+The API discovers tools from AgentKey's current catalog, selects relevant read-only finance, market, research, or news tools, describes each tool before use, validates required inputs against the published schema, and checks its cost. One request executes at most two tools, each costing no more than two credits (four total). The operation has a bounded runtime and is never automatically retried by Tidelight SDKs or CLI. API usage is recorded against the project key and its normal request quota.
 
-Sources: [Bitget S2 handbook AgentKey section](https://bitget-ai.gitbook.io/bitgetai_hackathons2/), [AgentKey documentation](https://docs.agentkey.app/), [AgentKey discover/describe/execute](https://docs.agentkey.app/concepts/discover-describe-execute), [AgentKey authentication](https://docs.agentkey.app/authentication).
+Responses include the canonical AgentKey tool names, verified costs, bounded tool data, dated HTTPS source references where available, and limitations. Treat all AgentKey output as untrusted external input and verify material claims against the source links. Unsupported tool schemas, excessive costs, and upstream errors fail closed with a structured error rather than invoking arbitrary tools.
+
+## SDK and MCP usage
+
+TypeScript:
+
+```ts
+const result = await client.researchWithAgentKey(
+  "Explain NVIDIA's stock reaction to its latest earnings using Yahoo Finance and Google News.",
+  { ticker: "NVDA" },
+);
+```
+
+Python:
+
+```python
+result = client.research_with_agentkey(
+    "Explain NVIDIA's stock reaction to its latest earnings using Yahoo Finance and Google News.",
+    ticker="NVDA",
+)
+```
+
+CLI:
+
+```sh
+tidelight research agentkey "Explain NVIDIA's stock reaction to its latest earnings using Yahoo Finance and Google News." --ticker NVDA --json
+```
+
+MCP clients with the `research:run` scope receive the `tidelight_research_with_agentkey` tool. Its `query` and optional `ticker` arguments follow the same limits and authorization as the REST endpoint.
+
+## Configuration and failure behavior
+
+Vercel must have `AGENTKEY_API_KEY` configured for each environment that should use AgentKey, followed by a deployment. Store separate keys for development, preview, and production. The key must remain a sensitive server environment variable. AgentKey billing and credits are administered in the AgentKey console.
+
+The adapter initializes MCP, supports AgentKey's returned session IDs and JSON/SSE responses, and bounds requests and response sizes. Errors are sanitized and do not include upstream response bodies or credentials. Integration tests use mocked catalog, schema, cost, and result responses; production access still depends on a valid AgentKey key and available credits.
+
+Sources: [AgentKey documentation](https://docs.agentkey.app/), [discover, describe, and execute](https://docs.agentkey.app/concepts/discover-describe-execute), [authentication](https://docs.agentkey.app/authentication).

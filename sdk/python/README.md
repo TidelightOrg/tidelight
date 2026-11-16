@@ -8,7 +8,7 @@
 
 ---
 
-The official Python client supports tokenized-equity market listings, asynchronous company research jobs, research webhooks, and read-only public Decision Capsule verification. It preserves provider provenance, stable error codes, and request IDs while applying bounded timeouts and retries.
+The official Python client supports tokenized-equity market listings, asynchronous company research jobs, synchronous AgentKey research, research webhooks, and read-only public Decision Capsule verification. It preserves provider provenance, stable error codes, and request IDs while applying bounded timeouts and retries.
 
 ## Install
 
@@ -37,10 +37,23 @@ for instrument in page.data:
 | --- | --- | --- |
 | Tokenized-equity spot listings and pagination | `market:read` | `list_tokenized_equities`, `tokenized_equities` |
 | Company research snapshots | `research:run` | `start_company_research`, `get_research_job`, `cancel_research_job`, `wait_for_research_job` |
+| AgentKey research across discovered read-only tools | `research:run` | `research_with_agentkey` |
 | Research webhooks and delivery history | `alerts:manage` | `create_webhook`, `update_webhook`, `list_webhooks`, `list_webhook_deliveries` |
 | Public Decision Capsule copies | Public bearer link | `get_public_decision_capsule`, `verify_public_decision_capsule` |
 
 A tokenized-equity spot instrument is not a direct share or a stock perpetual. When provider terms block a market response, the SDK surfaces `provider_terms_unconfirmed` without retrying or substituting data.
+
+AgentKey research is synchronous and is never automatically retried because upstream tools may consume credits:
+
+```python
+result = client.research_with_agentkey(
+    "Explain NVIDIA's stock reaction to its latest earnings using Yahoo Finance and Google News.",
+    ticker="NVDA",
+)
+print(result["tools"], result["sources"])
+```
+
+The server selects and describes up to two relevant read-only AgentKey tools and returns cost and source provenance. Treat AgentKey data as untrusted external input. Your project key needs `research:run`; the AgentKey master key remains server-side.
 
 ## Reliability and security
 

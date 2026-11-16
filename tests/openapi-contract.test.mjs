@@ -36,7 +36,7 @@ test("versioned API contract covers every implemented public endpoint and method
   }
   assert.deepEqual([...operations].sort(), [
     "cancelResearchJob", "createWebhook", "disableWebhook", "getResearchJob",
-    "listTokenizedEquityInstruments", "listWebhookDeliveries", "listWebhooks",
+    "listTokenizedEquityInstruments", "listWebhookDeliveries", "listWebhooks", "researchWithAgentKey",
     "startCompanySnapshot", "updateWebhook",
   ]);
 });

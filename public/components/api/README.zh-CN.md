@@ -15,6 +15,7 @@
 | --- | --- | --- |
 | `GET /market/instruments` | `market:read` | 列出受支持的 Reality 代币化股票现货交易工具；分页前可按 `underlying_ticker` 筛选 |
 | `POST /research/jobs` | `research:run` | 启动异步、幂等的公司快照任务，发现最近 30 天的新闻 |
+| `POST /research/agentkey` | `research:run` | 通过已发现并描述的只读 AgentKey 工具运行有界同步研究 |
 | `GET /research/jobs/{job_id}` | `research:run` | 在密钥所属项目范围内读取状态与结果 |
 | `DELETE /research/jobs/{job_id}` | `research:run` | 取消排队任务或请求取消运行中的任务 |
 | `GET, POST /webhooks` | `alerts:manage` | 列出或创建研究事件订阅 |

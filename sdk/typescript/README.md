@@ -8,7 +8,7 @@
 
 ---
 
-The official TypeScript / JavaScript client supports tokenized-equity market listings, asynchronous company research jobs, research webhooks, and read-only public Decision Capsule verification. It preserves provider provenance and API error context, with bounded polling, timeouts, and retries.
+The official TypeScript / JavaScript client supports tokenized-equity market listings, asynchronous company research jobs, synchronous AgentKey research, research webhooks, and read-only public Decision Capsule verification. It preserves provider provenance and API error context, with bounded polling, timeouts, and retries.
 
 ## Install
 
@@ -40,10 +40,23 @@ for (const instrument of page.data) {
 | --- | --- | --- |
 | Tokenized-equity spot listings and pagination | `market:read` | `listTokenizedEquities`, `tokenizedEquities` |
 | Company research snapshots | `research:run` | `startCompanyResearch`, `getResearchJob`, `cancelResearchJob`, `waitForResearchJob` |
+| AgentKey research across discovered read-only tools | `research:run` | `researchWithAgentKey` |
 | Research webhooks and delivery history | `alerts:manage` | `createWebhook`, `updateWebhook`, `listWebhooks`, `listWebhookDeliveries` |
 | Public Decision Capsule copies | Public bearer link | `getPublicDecisionCapsule`, `verifyPublicDecisionCapsule` |
 
 A tokenized-equity spot instrument is not a direct share or a stock perpetual. Market data availability follows the service's provider terms gate. The client returns that decision without inventing substitute data.
+
+AgentKey research example (the query is synchronous and is never automatically retried because upstream tools may consume credits):
+
+```ts
+const result = await client.researchWithAgentKey(
+  "Explain NVIDIA's stock reaction to its latest earnings using Yahoo Finance and Google News.",
+  { ticker: "NVDA" },
+);
+console.log(result.tools, result.sources);
+```
+
+The server selects and describes up to two relevant read-only AgentKey tools and returns cost and source provenance. Treat AgentKey tool data as untrusted external input. Your project key needs `research:run`; the AgentKey master key remains server-side.
 
 ## Reliability and security
 

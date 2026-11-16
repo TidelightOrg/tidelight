@@ -36,6 +36,32 @@ test("starts, polls, and cancels an asynchronous research job", async () => {
   assert.equal((await client.cancelResearchJob(jobId)).status, "cancelled");
 });
 
+test("AgentKey research is validated and never automatically retried", async () => {
+  const calls = [];
+  const payload = { provider: "agentkey", query: "Explain NVIDIA earnings", status: "complete", tools: [], sources: [], limitations: [], request_id: "r-agentkey" };
+  const client = new TidelightClient({ apiKey: key, fetch: async (url, init) => { calls.push({ url: String(url), init }); return Response.json(payload); } });
+  assert.deepEqual(await client.researchWithAgentKey("Explain NVIDIA earnings", { ticker: "nvda" }), payload);
+  assert.equal(calls.length, 1);
+  assert.equal(new URL(calls[0].url).pathname, "/v1/research/agentkey");
+  assert.deepEqual(JSON.parse(calls[0].init.body), { query: "Explain NVIDIA earnings", ticker: "NVDA" });
+  await assert.rejects(client.researchWithAgentKey("no"), TypeError);
+  await assert.rejects(client.researchWithAgentKey("valid research query", { ticker: "NVDA?" }), TypeError);
+  assert.equal(calls.length, 1);
+  let attempts = 0;
+  const noRetry = new TidelightClient({ apiKey: key, fetch: async () => { attempts++; return Response.json({ error: { code: "provider_unavailable", message: "Unavailable", request_id: "r-error" } }, { status: 503 }); } });
+  await assert.rejects(noRetry.researchWithAgentKey("Explain NVIDIA earnings"), error => error.status === 503);
+  assert.equal(attempts, 1);
+});
+
+test("already-aborted AgentKey research never sends a paid request", async () => {
+  const controller = new AbortController();
+  controller.abort(new Error("cancelled before dispatch"));
+  let calls = 0;
+  const client = new TidelightClient({ apiKey: key, fetch: async () => { calls++; return Response.json({}); } });
+  await assert.rejects(client.researchWithAgentKey("Explain NVIDIA earnings", { signal: controller.signal }), error => error === controller.signal.reason);
+  assert.equal(calls, 0);
+});
+
 test("rejects malformed research input before making a request", async () => {
   const client = new TidelightClient({ apiKey: key, fetch: async () => assert.fail("network should not run") });
   await assert.rejects(client.startCompanyResearch("NVDA", "short"), TypeError);

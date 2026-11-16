@@ -253,6 +253,36 @@ class ClientTests(unittest.TestCase):
         Client(KEY, opener=opener).list_tokenized_equities(limit=1, underlying_ticker="aapl")
         self.assertEqual(calls[0]["underlying_ticker"], ["AAPL"])
 
+    def test_agentkey_research_is_validated_and_never_retried(self):
+        calls = []
+        response = {"provider": "agentkey", "query": "Explain NVIDIA earnings", "status": "complete", "tools": [], "sources": [], "limitations": [], "request_id": "r-agentkey"}
+
+        def opener(request, timeout):
+            calls.append((request.get_method(), request.full_url, json.loads(request.data), timeout))
+            return FakeResponse(response)
+
+        client = Client(KEY, opener=opener, max_retries=3)
+        result = client.research_with_agentkey("Explain NVIDIA earnings", ticker="nvda")
+        self.assertEqual(result["provider"], "agentkey")
+        self.assertEqual(calls[0][0], "POST")
+        self.assertEqual(urlparse(calls[0][1]).path, "/v1/research/agentkey")
+        self.assertEqual(calls[0][2], {"query": "Explain NVIDIA earnings", "ticker": "NVDA"})
+        self.assertEqual(calls[0][3], 45)
+        with self.assertRaises(ValueError):
+            client.research_with_agentkey("no")
+        with self.assertRaises(ValueError):
+            client.research_with_agentkey("valid question", ticker="NVDA?")
+        self.assertEqual(len(calls), 1)
+
+        attempts = []
+        def unavailable(request, timeout):
+            attempts.append(1)
+            raise HTTPError(request.full_url, 503, "Unavailable", {}, io.BytesIO(b'{"error":{"code":"provider_unavailable","message":"Unavailable"}}'))
+
+        with self.assertRaises(ApiError):
+            Client(KEY, opener=unavailable, max_retries=3).research_with_agentkey("Explain NVIDIA earnings")
+        self.assertEqual(len(attempts), 1)
+
     def test_webhook_management_and_delivery_history(self):
         endpoint_id = "01234567-89ab-4cde-8fab-0123456789ab"
         calls = []

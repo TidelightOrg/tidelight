@@ -65,7 +65,7 @@ export const classifyMacroQuestion = (question) => /FOMC/i.test(question) ? "mon
 export const buildMacroNewsQueries = () => ["site:federalreserve.gov FOMC", "FOMC Reuters"];
 export const macroResearchLookbackDays = () => 365;
 export const gatherMacroEvidence = async () => { globalThis.flowTest.macroCalls++; return globalThis.flowTest.macroRows; };
-export const agentKeyIssuerEvidence = async () => [];
+export const agentKeyIssuerResearch = async () => ({ sources: [], context: "", tools: [] });
 export const getSecCompanyResearch = async (ticker) => ({
   ticker,
   cik: "0000000001",

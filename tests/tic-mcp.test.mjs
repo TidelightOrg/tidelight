@@ -63,7 +63,7 @@ test("research scope exposes durable start, status, and cancellation tools over 
   });
   try {
     const tools = await client.listTools();
-    assert.deepEqual(tools.tools.map(tool => tool.name), ["tidelight_get_public_decision_capsule", "tidelight_start_company_research", "tidelight_get_research_job", "tidelight_cancel_research_job"]);
+    assert.deepEqual(tools.tools.map(tool => tool.name), ["tidelight_get_public_decision_capsule", "tidelight_start_company_research", "tidelight_research_with_agentkey", "tidelight_get_research_job", "tidelight_cancel_research_job"]);
     const sharedCapsule = await client.callTool({ name: "tidelight_get_public_decision_capsule", arguments: { token: "a".repeat(43) } });
     assert.equal(sharedCapsule.structuredContent.integrity, "valid");
     assert.deepEqual(operations[0], { operation: "capsule.public.get", token: "a".repeat(43) });
