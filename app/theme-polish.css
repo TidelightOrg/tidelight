@@ -62,7 +62,9 @@
 }
 @media (prefers-reduced-motion:reduce) { .chart-brand-watermark { animation:none; } }
 :root[data-theme="white"] .data-status b,
+:root[data-theme="white"] .user-profile .user-profile-copy > b,
 :root[data-theme="white"] .account-identity > div:nth-child(2) b { color: #2d4437; }
+:root[data-theme="white"] .profile-link { color: #176b4c; }
 :root[data-theme="white"] .data-status small,
 :root[data-theme="white"] .user-profile small,
 :root[data-theme="white"] .account-identity > div:nth-child(2) small,
