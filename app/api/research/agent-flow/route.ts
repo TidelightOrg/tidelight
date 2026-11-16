@@ -7,7 +7,7 @@ import type { ProviderRoutingDecision } from "@/lib/provider-health";
 import { buildEvidenceGraph } from "@/lib/evidence-graph";
 import { getBitgetAsset, getBitgetCandles, getBitgetStockPerp, getIssuerName, STOCK_PERP_UNIVERSE } from "@/lib/bitget-market";
 import { buildSignals, prepareBacktestCandles } from "@/lib/backtest";
-import { extractFlowTickers, gateFlowTrade, isTokenizedMarketQuestion, normalizeFlowAssessments, sourceOnlyAssessment, tokenizedMarketReview, type FlowAssessment, type FlowSource } from "@/lib/agent-flow-policy";
+import { extractFlowTickers, stripResearchProviderNames, gateFlowTrade, isTokenizedMarketQuestion, normalizeFlowAssessments, sourceOnlyAssessment, tokenizedMarketReview, type FlowAssessment, type FlowSource } from "@/lib/agent-flow-policy";
 import { buildIssuerNewsQueries, gatherIssuerEvidence, issuerEvidenceLookbackDays, type FlowEvidence } from "@/lib/agent-flow-sources";
 import { agentKeyIssuerResearch } from "@/lib/agentkey-flow-sources";
 import { buildMacroNewsQueries, classifyMacroQuestion, gatherMacroEvidence, macroResearchLookbackDays, type MacroEvidence, type MacroTopic } from "@/lib/macro-research-sources";
@@ -161,7 +161,7 @@ export async function POST(request: Request) {
     if (question !== expectedQuestion) return NextResponse.json({ error: "The saved thesis question changed. Reopen the monitor review to use the selected revision." }, { status: 409 });
     monitor = { id: owned.id, ticker: owned.ticker, thesis_revision: revision.revision };
   }
-  const tickers = extractFlowTickers(`${question} ${workspaceContext ?? ""}`, STOCK_PERP_UNIVERSE);
+  const tickers = extractFlowTickers(`${stripResearchProviderNames(question)} ${workspaceContext ?? ""}`, STOCK_PERP_UNIVERSE);
   const macroTopic: MacroTopic | null = tickers.length ? null : classifyMacroQuestion(question);
   if (monitor && (!tickers.includes(monitor.ticker) || macroTopic)) return NextResponse.json({ error: `Name ${monitor.ticker} in the company research question for this monitor.` }, { status: 422 });
   if (!tickers.length && !macroTopic) return NextResponse.json({ error: "Name a supported US stock, or ask about a dated FOMC, CPI, or employment release." }, { status: 422 });
@@ -280,7 +280,7 @@ export async function POST(request: Request) {
           const market = perp.status === "fulfilled" ? perp.value : null;
           const spotAsset = spot.status === "fulfilled" && spot.value?.isReality && spot.value.underlyingTicker === ticker ? spot.value : null;
           const feedEvidence = sources.status === "fulfilled" ? sources.value : [];
-          const liveAgentKey = agentKeyResearch.status === "fulfilled" ? agentKeyResearch.value : { sources: [], context: "", tools: [] };
+          const liveAgentKey = agentKeyResearch.status === "fulfilled" ? agentKeyResearch.value : { state: "unavailable" as const, sources: [], context: "", tools: [] };
           const liveEvidence = liveAgentKey.sources;
           const secResearch = sec.status === "fulfilled" ? sec.value : null;
           const financialFacts: ResearchFact[] = [];
@@ -321,9 +321,9 @@ export async function POST(request: Request) {
                 : `${ticker}: no attributable coverage`,
             `${liveEvidence.length
               ? "AgentKey returned dated article links; public feeds were checked alongside it."
-              : feedEvidence.length
-                ? "No attributable AgentKey headlines were available for this search. Public-feed results are shown below."
-              : "AgentKey and public feeds returned no recent, attributable article links."}${omittedLongUrls ? ` Omitted ${omittedLongUrls} source link${omittedLongUrls === 1 ? "" : "s"} outside the database-safe 2,000-byte / 4,096-character URL limit.` : ""}`,
+              : liveAgentKey.state === "used"
+                ? `AgentKey completed ${liveAgentKey.tools.length} read-only tool${liveAgentKey.tools.length === 1 ? "" : "s"}${liveAgentKey.tools.length ? ` (${liveAgentKey.tools.map(tool => tool.name).join(", ")})` : ""} but returned no eligible article links. ${feedEvidence.length ? "Public-feed results are shown below." : "Public feeds also returned no recent, attributable links."}`
+                : `AgentKey research was ${liveAgentKey.state}; ${feedEvidence.length ? "public-feed results are shown below." : "public feeds returned no recent, attributable links."}`}${omittedLongUrls ? ` Omitted ${omittedLongUrls} source link${omittedLongUrls === 1 ? "" : "s"} outside the database-safe 2,000-byte / 4,096-character URL limit.` : ""}`,
             ticker,
           );
           return { ticker, issuer: market?.name ?? spotAsset?.name ?? ticker, secStatus: sec.status === "fulfilled" ? "available" as const : "unavailable" as const, financialFacts: capturedFacts, agentKeyContext: liveAgentKey.context, agentKeyTools: liveAgentKey.tools.map(tool => ({ name: tool.name, provider: tool.provider, costCredits: tool.costCredits })), perp: market, spot: spotAsset,

@@ -64,6 +64,11 @@ export function extractFlowTickers(question: string, supportedContracts: readonl
   return [...found].slice(0, max);
 }
 
+/** Provider names describe research tools, not companies to add to the issuer scope. */
+export function stripResearchProviderNames(question: string): string {
+  return question.replace(/\b(?:Google\s+News|Yahoo(?:\s+Finance)?)\b/gi, " ");
+}
+
 /** An explanation alone cannot unlock a trade destination. */
 export function gateFlowTrade(input: FlowGateInput) {
   const reasons: string[] = [];

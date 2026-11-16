@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { extractFlowTickers, gateFlowTrade, isTokenizedMarketQuestion, normalizeFlowAssessment, normalizeFlowAssessments, sourceOnlyAssessment, tokenizedMarketReview } from "../lib/agent-flow-policy.ts";
+import { extractFlowTickers, stripResearchProviderNames, gateFlowTrade, isTokenizedMarketQuestion, normalizeFlowAssessment, normalizeFlowAssessments, sourceOnlyAssessment, tokenizedMarketReview } from "../lib/agent-flow-policy.ts";
 
 const now = Date.now();
 const sources = [
@@ -46,6 +46,11 @@ test("the coordinator recognizes only supported US stock underlyings", () => {
   assert.deepEqual(extractFlowTickers("rNVDAUSDT and NVIDIA", ["NVDAUSDT"]), ["NVDA"]);
   assert.deepEqual(extractFlowTickers("Should I check BTC?", ["NVDAUSDT"]), []);
   assert.deepEqual(extractFlowTickers("Is the rNVDA market worth reviewing?", ["NVDAUSDT"]), ["NVDA"]);
+});
+
+test("research provider names do not become issuer tickers", () => {
+  const question = "Use AgentKey to explain NVIDIA's stock reaction to its latest earnings using Yahoo Finance and Google News.";
+  assert.deepEqual(extractFlowTickers(stripResearchProviderNames(question), ["GOOGLUSDT", "NVDAUSDT"]), ["NVDA"]);
 });
 
 test("a handoff requires independently cited current coverage, fresh verified market, and agreeing new signal", () => {

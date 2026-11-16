@@ -8,7 +8,7 @@ const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
   if (["./agentkey", "./agentkey-research", "./agent-flow-sources"].includes(specifier)) return nextResolve(`${specifier}.ts`, context);
   return nextResolve(specifier, context);
 } });
-const { agentKeyIssuerEvidence } = await import("../lib/agentkey-flow-sources.ts");
+const { agentKeyIssuerEvidence, agentKeyIssuerResearch } = await import("../lib/agentkey-flow-sources.ts");
 hooks.deregister();
 
 const today = new Date().toISOString();
@@ -33,6 +33,14 @@ test("AgentKey admits attributable, relevant HTTPS headlines with provenance and
   assert.equal(evidence[0].via, "AgentKey");
   assert.equal(calls[2][1], "agentkey_search");
   assert.deepEqual(calls[2][2], { query: "Find recent news about NVIDIA (NVDA), including earnings, guidance, and market reaction. Include public, dated, attributable sources for NVIDIA (NVDA).", type: "news", num: 20 });
+});
+
+test("AgentKey issuer results preserve the execution state for diagnostics", async () => {
+  const { api } = client({ result: { results: [] } });
+  const result = await agentKeyIssuerResearch("NVDA", "NVIDIA", api);
+  assert.equal(result.state, "used");
+  assert.equal(result.tools.length, 1);
+  assert.deepEqual(result.sources, []);
 });
 
 test("no execution with undiscovered tool or ambiguous and over-budget cost", async () => {

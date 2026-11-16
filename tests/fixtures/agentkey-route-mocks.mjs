@@ -1,6 +1,7 @@
 export class AgentKeyError extends Error {}
 export const STOCK_PERP_UNIVERSE = ["NVDAUSDT"];
 export const extractFlowTickers = query => /\b(?:TSLA|TESLA)\b/i.test(query) ? ["TSLA"] : /\b(?:GOOGL|GOOGLE)\b/i.test(query) ? ["GOOGL"] : /\b(?:NVDA|NVIDIA)\b/i.test(query) ? ["NVDA"] : [];
+export const stripResearchProviderNames = query => query.replace(/\b(?:Google\s+News|Yahoo(?:\s+Finance)?)\b/gi, " ");
 export const configuredAgentKey = () => globalThis.agentKeyRouteClient ?? null;
 export const authorizeDeveloperRequest = async (_request, path, scope) => {
   globalThis.agentKeyRouteAuthCalls?.push({ path, scope });

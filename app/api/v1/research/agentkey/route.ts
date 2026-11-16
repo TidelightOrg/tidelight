@@ -1,7 +1,7 @@
 import { apiError, authorizeDeveloperRequest, finishUsage, RESEARCH_SCOPE } from "@/lib/tic/credentials";
 import { configuredAgentKey } from "@/lib/agentkey";
 import { gatherAgentKeyResearch } from "@/lib/agentkey-research";
-import { extractFlowTickers } from "@/lib/agent-flow-policy";
+import { extractFlowTickers, stripResearchProviderNames } from "@/lib/agent-flow-policy";
 import { STOCK_PERP_UNIVERSE } from "@/lib/bitget-market";
 
 export const dynamic = "force-dynamic";
@@ -62,7 +62,7 @@ export async function POST(request: Request) {
     await finishUsage(admin, usageId, 400, started);
     return apiError(400, "invalid_request", "ticker must be a valid stock symbol when provided.", requestId);
   }
-  const issuerQuery = query.replace(/\b(?:Yahoo(?:\s+Finance)?|Google\s+News)\b/gi, " ");
+  const issuerQuery = stripResearchProviderNames(query);
   const requestedTicker = typeof ticker === "string" ? ticker.toUpperCase() : extractFlowTickers(issuerQuery, STOCK_PERP_UNIVERSE, 1)[0];
   const research = await gatherAgentKeyResearch(query.trim(), agentKey, requestedTicker);
   if (research.state !== "used") {
