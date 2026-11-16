@@ -168,6 +168,20 @@ test("structuredContent preserves deeply nested financial payloads", async () =>
   assert.deepEqual(result.tools[0].data, payload);
 });
 
+test("structuredContent takes precedence over MCP display text and retains article sources", async () => {
+  const article = { title: "NVIDIA historical trading after earnings", url: "https://news.example/nvda-history", publisher: "News Desk", publishedAt: new Date().toISOString(), snippet: "NVIDIA share reaction." };
+  const payload = { chart: { close: [100, 102] }, results: [article] };
+  const client = {
+    async findTools() { return { tools: [{ name: "yfinance/getChart", summary: "Read Yahoo Finance stock price history" }] }; },
+    async describeTool() { return { cost: 1, inputSchema: { properties: { symbol: { type: "string" } }, required: ["symbol"] } }; },
+    async executeTool() { return { content: [{ type: "text", text: "Retrieved two historical prices." }], structuredContent: payload }; },
+  };
+  const result = await gatherAgentKeyResearch("Get Yahoo Finance chart for NVIDIA", client, "NVDA");
+  assert.equal(result.state, "used");
+  assert.deepEqual(result.tools[0].data, payload);
+  assert.deepEqual(result.sources.map(source => source.url), [article.url]);
+});
+
 test("plain text catalog discovery recognizes the legacy AgentKey search name", () => {
   assert.deepEqual(agentKeyResearchCandidates({ content: [{ type: "text", text: "agentkey_search — Search public news" }] }).map(item => item.name), ["agentkey_search"]);
 });
