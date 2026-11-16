@@ -54,3 +54,11 @@ test("legacy AgentKey search still requires a described execution schema", async
   assert.deepEqual(await agentKeyIssuerEvidence("NVDA", "NVIDIA", api), []);
   assert.equal(calls.some(([name]) => name === "execute"), false);
 });
+
+test("AgentKey evidence uses the same 30-day current window as public-feed snapshots", async () => {
+  const oldArticle = { title: "NVDA earnings results", url: "https://publisher.example/old", publisher: "Publisher", publishedAt: new Date(Date.now() - 180 * 86_400_000).toISOString(), snippet: "NVDA earnings results." };
+  const { api } = client({ result: { results: [oldArticle] } });
+  assert.deepEqual(await agentKeyIssuerEvidence("NVDA", "NVIDIA", api), []);
+  const historical = await agentKeyIssuerEvidence("NVDA", "NVIDIA", api, "Find NVDA 2026 earnings results");
+  assert.equal(historical.length, 1);
+});

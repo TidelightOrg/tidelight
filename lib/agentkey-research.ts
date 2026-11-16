@@ -36,9 +36,9 @@ function parseText(value: string): unknown {
 
 /** MCP results commonly wrap their JSON payload in one or more text content blocks. */
 function unwrap(value: unknown, depth = 0): unknown {
-  if (depth > 6) return null;
+  if (depth > 16) return value;
   if (typeof value === "string") return parseText(value);
-  if (Array.isArray(value)) return value.map(item => unwrap(item, depth + 1));
+  if (Array.isArray(value)) return value;
   const object = asRecord(value);
   if (!object) return value;
   if (Array.isArray(object.content)) {
@@ -50,7 +50,7 @@ function unwrap(value: unknown, depth = 0): unknown {
     if (payloads.length > 1) return payloads;
   }
   if (object.structuredContent) return unwrap(object.structuredContent, depth + 1);
-  return Object.fromEntries(Object.entries(object).map(([key, item]) => [key, unwrap(item, depth + 1)]));
+  return value;
 }
 
 function collectTools(value: unknown, into: Map<string, ToolCandidate>, depth = 0) {
@@ -71,6 +71,9 @@ function collectTools(value: unknown, into: Map<string, ToolCandidate>, depth = 
     return;
   }
   if (typeof parsed === "string") {
+    for (const match of parsed.matchAll(/\bagentkey_search\b/gi)) {
+      into.set("agentkey_search", { name: "agentkey_search", summary: parsed.slice(Math.max(0, match.index! - 180), match.index! + match[0].length + 280) });
+    }
     for (const match of parsed.matchAll(/[A-Za-z][A-Za-z0-9_.-]{0,79}\/[A-Za-z][A-Za-z0-9_.-]{0,119}/g)) {
       if (TOOL_NAME.test(match[0]) || match[0].toLowerCase() === "agentkey_search") into.set(match[0], { name: match[0], summary: parsed.slice(Math.max(0, match.index! - 180), match.index! + match[0].length + 280) });
     }
@@ -89,7 +92,13 @@ export function agentKeyResearchCandidates(discovery: unknown, query = "") {
 
 function readOnly(candidate: ToolCandidate) {
   const description = `${candidate.name} ${candidate.summary}`.toLowerCase().replace(/[_-]+/g, " ");
-  return RESEARCH_TOOL.test(description) && !MUTATING.test(candidate.name) && !MUTATING.test(candidate.summary);
+  return RESEARCH_TOOL.test(description) && !MUTATING.test(description);
+}
+
+function describedAsMutating(description: unknown) {
+  let serialized: string;
+  try { serialized = JSON.stringify(unwrap(description)); } catch { return true; }
+  return MUTATING.test(serialized.toLowerCase().replace(/[_-]+/g, " "));
 }
 
 function providerMatch(candidate: ToolCandidate, query: string) {
@@ -255,19 +264,24 @@ export async function gatherAgentKeyResearch(
     if (!requestedProviders.length) selected.push(...candidates.slice(0, MAX_RESULTS));
     if (!selected.length) return empty("unsupported");
 
-    const tools: ToolResult[] = [];
-    const sources: AgentKeySource[] = [];
-    let spent = 0;
+    const prepared: Array<{ candidate: ToolCandidate; cost: number; params: RecordValue }> = [];
+    let reservedCredits = 0;
     for (const candidate of selected.slice(0, MAX_RESULTS)) {
       const description = await client.describeTool(candidate.name);
       const cost = costCredits(description);
-      if (cost === null || cost > MAX_CREDITS_PER_TOOL || spent + cost > MAX_CREDITS_PER_QUERY) continue;
+      if (describedAsMutating(description) || cost === null || cost > MAX_CREDITS_PER_TOOL || reservedCredits + cost > MAX_CREDITS_PER_QUERY) return empty("unsupported");
       const params = paramsFor(description, candidate, normalized, ticker);
-      if (!params) continue;
+      if (!params) return empty("unsupported");
+      prepared.push({ candidate, cost, params });
+      reservedCredits += cost;
+    }
+
+    const tools: ToolResult[] = [];
+    const sources: AgentKeySource[] = [];
+    for (const { candidate, cost, params } of prepared) {
       const result = await client.executeTool(candidate.name, params);
       const data = boundedJson(unwrap(result));
       if (data === null) continue;
-      spent += cost;
       tools.push({ name: candidate.name, provider: candidate.name.split("/", 1)[0], costCredits: cost, data });
       for (const record of records(result)) {
         const source = sourceFrom(record, candidate.name);

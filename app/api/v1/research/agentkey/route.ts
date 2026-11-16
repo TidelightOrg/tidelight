@@ -62,7 +62,8 @@ export async function POST(request: Request) {
     await finishUsage(admin, usageId, 400, started);
     return apiError(400, "invalid_request", "ticker must be a valid stock symbol when provided.", requestId);
   }
-  const requestedTicker = typeof ticker === "string" ? ticker.toUpperCase() : extractFlowTickers(query, STOCK_PERP_UNIVERSE, 1)[0];
+  const issuerQuery = query.replace(/\b(?:Yahoo(?:\s+Finance)?|Google\s+News)\b/gi, " ");
+  const requestedTicker = typeof ticker === "string" ? ticker.toUpperCase() : extractFlowTickers(issuerQuery, STOCK_PERP_UNIVERSE, 1)[0];
   const research = await gatherAgentKeyResearch(query.trim(), agentKey, requestedTicker);
   if (research.state !== "used") {
     const status = research.state === "unavailable" ? 503 : 422;

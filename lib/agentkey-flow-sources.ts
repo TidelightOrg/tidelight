@@ -2,7 +2,7 @@ import "server-only";
 
 import { configuredAgentKey, type AgentKeyClient } from "./agentkey";
 import { gatherAgentKeyResearch, inspectAgentKeyResearchCost, type AgentKeyResearch, type AgentKeySource } from "./agentkey-research";
-import type { FlowEvidence } from "./agent-flow-sources";
+import { issuerEvidenceLookbackDays, type FlowEvidence } from "./agent-flow-sources";
 
 export { inspectAgentKeyResearchCost as inspectAgentKeySearchDescription };
 
@@ -11,7 +11,7 @@ const MAX_HISTORICAL_AGE_MS = 365 * 86_400_000;
 
 function safeIssuerEvidence(source: AgentKeySource, ticker: string, issuer: string, question: string, now: number): FlowEvidence | null {
   const publishedAt = source.publishedAt ? Date.parse(source.publishedAt) : NaN;
-  const maxAge = /\b(?:earnings?|results?|guidance|quarter|fiscal)\b/i.test(question) ? MAX_HISTORICAL_AGE_MS : MAX_CURRENT_AGE_MS;
+  const maxAge = issuerEvidenceLookbackDays(question) > 30 ? MAX_HISTORICAL_AGE_MS : MAX_CURRENT_AGE_MS;
   if (!Number.isFinite(publishedAt) || publishedAt > now + 300_000 || now - publishedAt > maxAge) return null;
   const excerpt = `${source.title} ${source.snippet}`;
   if (!new RegExp(`(^|[^a-z0-9])${ticker}([^a-z0-9]|$)`, "i").test(excerpt) && !excerpt.toLowerCase().includes(issuer.toLowerCase())) return null;

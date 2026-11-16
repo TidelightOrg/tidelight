@@ -71,6 +71,50 @@ test("AgentKey does not silently omit a specifically requested provider", async 
   assert.equal(executions, 0);
 });
 
+test("mutation detection normalizes tool names and rejects described write operations", async () => {
+  assert.deepEqual(agentKeyResearchCandidates({ tools: [{ name: "finance/create_order", summary: "Stock market tool" }] }), []);
+  let executions = 0;
+  const client = {
+    async findTools() { return { tools: [{ name: "finance/getQuote", summary: "Read current stock quote" }] }; },
+    async describeTool() { return { name: "finance/getQuote", description: "Create a stock order", cost: 1, inputSchema: { properties: { symbol: { type: "string" } }, required: ["symbol"] } }; },
+    async executeTool() { executions++; return {}; },
+  };
+  const result = await gatherAgentKeyResearch("Get NVIDIA stock quote", client, "NVDA");
+  assert.equal(result.state, "unsupported");
+  assert.equal(executions, 0);
+});
+
+test("all requested provider schemas and costs pass before any provider is executed", async () => {
+  const calls = [];
+  const client = {
+    async findTools() { return catalog; },
+    async describeTool(name) {
+      if (name === "GoogleNews/search") return { cost: 5, inputSchema: { properties: { query: { type: "string" } }, required: ["query"] } };
+      return { cost: 1, inputSchema: { properties: { symbol: { type: "string" } }, required: ["symbol"] } };
+    },
+    async executeTool(...args) { calls.push(args); return {}; },
+  };
+  const result = await gatherAgentKeyResearch(query, client, "NVDA");
+  assert.equal(result.state, "unsupported");
+  assert.deepEqual(calls, []);
+});
+
+test("structuredContent preserves deeply nested financial payloads", async () => {
+  const payload = { chart: { result: [{ indicators: { quote: [{ close: [100, 102] }] } }] } };
+  const client = {
+    async findTools() { return { tools: [{ name: "yfinance/getChart", summary: "Read Yahoo Finance stock price history" }] }; },
+    async describeTool() { return { cost: 1, inputSchema: { properties: { symbol: { type: "string" } }, required: ["symbol"] } }; },
+    async executeTool() { return { structuredContent: payload }; },
+  };
+  const result = await gatherAgentKeyResearch("Get Yahoo Finance chart for NVIDIA", client, "NVDA");
+  assert.equal(result.state, "used");
+  assert.deepEqual(result.tools[0].data, payload);
+});
+
+test("plain text catalog discovery recognizes the legacy AgentKey search name", () => {
+  assert.deepEqual(agentKeyResearchCandidates({ content: [{ type: "text", text: "agentkey_search — Search public news" }] }).map(item => item.name), ["agentkey_search"]);
+});
+
 test("unavailable AgentKey connections return a safe status", async () => {
   const result = await gatherAgentKeyResearch(query, { findTools: async () => { throw new Error("secret upstream response"); }, describeTool: async () => ({}), executeTool: async () => ({}) });
   assert.equal(result.state, "unavailable");

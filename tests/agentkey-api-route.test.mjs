@@ -13,10 +13,10 @@ const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
 const { POST } = await import("../app/api/v1/research/agentkey/route.ts");
 hooks.deregister();
 
-const query = "Use AgentKey to explain NVIDIA earnings using Yahoo Finance and Google News.";
+const query = "Explain Tesla's earnings reaction using Yahoo Finance and Google News.";
 function mockClient() {
   const calls = [];
-  const article = { title: "NVIDIA earnings and guidance", url: "https://news.example/nvidia", publisher: "News Desk", publishedAt: new Date().toISOString(), snippet: "NVIDIA earnings release." };
+  const article = { title: "Tesla earnings and guidance", url: "https://news.example/tesla", publisher: "News Desk", publishedAt: new Date().toISOString(), snippet: "Tesla earnings release." };
   const client = {
     calls,
     async findTools(text) { calls.push(["find", text]); return { content: [{ type: "text", text: JSON.stringify({ tools: [{ name: "GoogleNews/search", summary: "Search Google News" }, { name: "yfinance/getChart", summary: "Yahoo Finance price chart" }] }) }] }; },
@@ -38,7 +38,7 @@ test("developer endpoint uses project scope, described AgentKey tools, and retur
   assert.deepEqual(result.tools.map(tool => tool.name), ["GoogleNews/search", "yfinance/getChart"]);
   assert.equal(result.sources[0].via, "AgentKey");
   assert.equal(result.tools[1].data.chart[1].close, 110);
-  assert.deepEqual(client.calls.find(call => call[0] === "execute" && call[1] === "yfinance/getChart")[2], { symbol: "NVDA", range: "1y", interval: "1d" });
+  assert.deepEqual(client.calls.find(call => call[0] === "execute" && call[1] === "yfinance/getChart")[2], { symbol: "TSLA", range: "1y", interval: "1d" });
   assert.deepEqual(globalThis.agentKeyRouteAuthCalls, [{ path: "/v1/research/agentkey", scope: "research:run" }]);
   assert.deepEqual(globalThis.agentKeyRouteUsage, [{ usageId: "usage-agentkey", status: 200 }]);
   assert.equal(client.calls.filter(call => call[0] === "execute").length, 2);
