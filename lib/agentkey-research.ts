@@ -42,7 +42,7 @@ function unwrap(value: unknown, depth = 0): unknown {
   if (Array.isArray(value)) return value;
   const object = asRecord(value);
   if (!object) return value;
-  if (Object.prototype.hasOwnProperty.call(object, "structuredContent")) return unwrap(object.structuredContent, depth + 1);
+  if (object.structuredContent !== undefined && object.structuredContent !== null) return unwrap(object.structuredContent, depth + 1);
   if (Array.isArray(object.content)) {
     const payloads = object.content.flatMap(entry => {
       const item = asRecord(entry);
