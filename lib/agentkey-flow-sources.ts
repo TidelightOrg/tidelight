@@ -18,7 +18,7 @@ function safeIssuerEvidence(source: AgentKeySource, ticker: string, issuer: stri
   return { title: source.title, url: source.url, publisher: source.publisher, publishedAt: source.publishedAt, snippet: source.snippet.slice(0, 400), via: "AgentKey" };
 }
 
-export type AgentKeyIssuerResearch = { sources: FlowEvidence[]; context: string; tools: AgentKeyResearch["tools"] };
+export type AgentKeyIssuerResearch = { state: AgentKeyResearch["state"]; sources: FlowEvidence[]; context: string; tools: AgentKeyResearch["tools"] };
 
 /** One bounded AgentKey discovery pass, retaining bounded tool data for synthesis and attributable headlines for citations. */
 export async function agentKeyIssuerResearch(
@@ -27,17 +27,18 @@ export async function agentKeyIssuerResearch(
   client: Pick<AgentKeyClient, "findTools" | "describeTool" | "executeTool"> | null = configuredAgentKey(2_500, 10_000),
   question = `Find recent news about ${issuer} (${ticker}), including earnings, guidance, and market reaction.`,
 ): Promise<AgentKeyIssuerResearch> {
-  const empty = (): AgentKeyIssuerResearch => ({ sources: [], context: "", tools: [] });
-  if (!client || !/^[A-Z]{1,6}$/.test(ticker)) return empty();
+  const empty = (state: AgentKeyResearch["state"]): AgentKeyIssuerResearch => ({ state, sources: [], context: "", tools: [] });
+  if (!client) return empty("unavailable");
+  if (!/^[A-Z]{1,6}$/.test(ticker)) return empty("unsupported");
   const query = `${question.slice(0, 360)} Include public, dated, attributable sources for ${issuer} (${ticker}).`;
   const research = await gatherAgentKeyResearch(query, client, ticker);
-  if (research.state !== "used") return empty();
+  if (research.state !== "used") return empty(research.state);
   const now = Date.now();
   const sources = research.sources.flatMap(source => {
     const evidence = safeIssuerEvidence(source, ticker, issuer, question, now);
     return evidence ? [evidence] : [];
   }).slice(0, 20);
-  return { sources, context: research.context, tools: research.tools };
+  return { state: research.state, sources, context: research.context, tools: research.tools };
 }
 
 export async function agentKeyIssuerEvidence(
