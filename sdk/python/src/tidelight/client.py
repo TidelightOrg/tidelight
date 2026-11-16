@@ -268,6 +268,16 @@ class Client:
             raise ValueError("idempotency_key must be 8 to 128 valid characters.")
         return self._job_request("/research/jobs", "POST", {"ticker": ticker}, idempotency_key)
 
+    def research_with_agentkey(self, query: str, *, ticker: str | None = None) -> dict[str, Any]:
+        if not isinstance(query, str) or not 5 <= len(query.strip()) <= 500:
+            raise ValueError("query must be 5 to 500 characters.")
+        if ticker is not None and (not isinstance(ticker, str) or not re.fullmatch(r"[A-Za-z][A-Za-z0-9.]{0,9}", ticker)):
+            raise ValueError("ticker must be a valid stock symbol.")
+        body: dict[str, Any] = {"query": " ".join(query.split())}
+        if ticker is not None:
+            body["ticker"] = ticker.upper()
+        return self._job_request("/research/agentkey", "POST", body, retry_safe=False, timeout=45)
+
     def get_research_job(self, job_id: str) -> ResearchJob:
         if not isinstance(job_id, str) or not re.fullmatch(r"[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}", job_id, re.I):
             raise ValueError("Invalid research job ID.")
@@ -346,7 +356,7 @@ class Client:
         cls._validate_webhook_url(url)
         cls._validate_webhook_events(events)
 
-    def _job_request(self, path: str, method: str, body: dict[str, Any] | None = None, idempotency_key: str | None = None, *, retry_safe: bool = True) -> dict[str, Any]:
+    def _job_request(self, path: str, method: str, body: dict[str, Any] | None = None, idempotency_key: str | None = None, *, retry_safe: bool = True, timeout: float | None = None) -> dict[str, Any]:
         headers = {"Authorization": f"Bearer {self._api_key}", "Accept": "application/json"}
         data = None
         if body is not None:
@@ -356,10 +366,11 @@ class Client:
             headers["Idempotency-Key"] = idempotency_key
         url = f"{self._base_url}{path}"
         retry_limit = self._max_retries if retry_safe else 0
+        request_timeout = self._timeout if timeout is None else timeout
         for attempt in range(retry_limit + 1):
             request = Request(url, data=data, headers=headers, method=method)
             try:
-                with self._opener(request, timeout=self._timeout) as response:
+                with self._opener(request, timeout=request_timeout) as response:
                     payload = json.load(response)
                     if not isinstance(payload, dict):
                         raise ApiError(response.status, "invalid_response", "The Tidelight API returned an invalid response.", response.headers.get("X-Request-Id"))
@@ -373,7 +384,7 @@ class Client:
                     self._pause(attempt, error.headers.get("Retry-After")); continue
                 raise ApiError(error.code, details.get("code", "api_error"), details.get("message", "Tidelight API request failed."), details.get("request_id") or error.headers.get("X-Request-Id")) from None
             except (URLError, TimeoutError, OSError):
-                if attempt >= self._max_retries:
+                if attempt >= retry_limit:
                     raise ApiError(0, "network_error", "The Tidelight API could not be reached.") from None
                 self._pause(attempt, None)
         raise RuntimeError("Unreachable retry state")

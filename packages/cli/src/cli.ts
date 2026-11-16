@@ -11,6 +11,7 @@ Usage:
   tidelight auth login | status | logout
   tidelight market instruments [--ticker SYMBOL] [--limit 1..100] [--cursor CURSOR] [--json]
   tidelight research start SYMBOL [--idempotency-key KEY] [--wait] [--interval-ms N] [--timeout-ms N] [--json]
+  tidelight research agentkey QUERY [--ticker SYMBOL] [--json]
   tidelight research get JOB_ID [--json]
   tidelight research wait JOB_ID [--interval-ms N] [--timeout-ms N] [--json]
   tidelight research cancel JOB_ID [--json]
@@ -26,7 +27,7 @@ Credentials are read from TIDELIGHT_API_KEY or an OS keychain entry. API keys ar
 type JsonValue = Record<string, unknown>;
 type Client = Pick<TidelightClient,
   "listTokenizedEquities" | "startCompanyResearch" | "getResearchJob" | "waitForResearchJob" | "cancelResearchJob" |
-  "listWebhooks" | "createWebhook" | "updateWebhook" | "disableWebhook" | "listWebhookDeliveries">;
+  "researchWithAgentKey" | "listWebhooks" | "createWebhook" | "updateWebhook" | "disableWebhook" | "listWebhookDeliveries">;
 type CliDependencies = {
   stdout: { write(value: string): unknown };
   stderr: { write(value: string): unknown };
@@ -151,6 +152,15 @@ async function runAuthenticated(tokens: string[], deps: CliDependencies): Promis
       throw new ResearchPollingError(started, error);
     }
     print(result, deps, flags.json === true);
+    return;
+  }
+  if (area === "research" && action === "agentkey") {
+    const { positionals, flags } = options(rest, ["json"]); knownFlags(flags, ["ticker", "json"]);
+    const query = positionals.join(" ").trim();
+    if (query.length < 5 || query.length > 500) throw new Error("research agentkey requires a query between 5 and 500 characters.");
+    if (flags.ticker !== undefined && (typeof flags.ticker !== "string" || !/^[A-Za-z][A-Za-z0-9.]{0,9}$/.test(flags.ticker))) throw new Error("--ticker must be a valid stock symbol.");
+    const client = deps.createClient(await keyFrom(deps));
+    print(await client.researchWithAgentKey(query, { ...(typeof flags.ticker === "string" ? { ticker: flags.ticker } : {}), signal: deps.signal }), deps, flags.json === true);
     return;
   }
   if (area === "research" && ["get", "wait", "cancel"].includes(action ?? "")) {

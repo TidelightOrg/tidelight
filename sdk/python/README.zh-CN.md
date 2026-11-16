@@ -7,7 +7,7 @@
 
 ---
 
-官方 Python 客户端支持代币化股票行情列表、异步公司研究任务、研究 Webhook 和只读公开决策胶囊验证。客户端保留数据提供方来源、稳定错误代码和请求 ID，并使用有界超时与重试。
+官方 Python 客户端支持代币化股票行情列表、异步公司研究任务、同步 AgentKey 研究、研究 Webhook 和只读公开决策胶囊验证。客户端保留数据提供方来源、稳定错误代码和请求 ID，并使用有界超时与重试。
 
 ## 安装
 
@@ -36,10 +36,13 @@ for instrument in page.data:
 | --- | --- | --- |
 | 代币化股票现货列表与分页 | `market:read` | `list_tokenized_equities`、`tokenized_equities` |
 | 公司研究快照 | `research:run` | `start_company_research`、`get_research_job`、`cancel_research_job`、`wait_for_research_job` |
+| 使用已发现的只读工具进行 AgentKey 研究 | `research:run` | `research_with_agentkey` |
 | 研究 Webhook 与投递记录 | `alerts:manage` | `create_webhook`、`update_webhook`、`list_webhooks`、`list_webhook_deliveries` |
 | 公开决策胶囊副本 | 公开持有者链接 | `get_public_decision_capsule`、`verify_public_decision_capsule` |
 
 代币化股票现货交易工具并非直接持有的股票，也不是股票永续合约。当数据提供方条款阻止行情响应时，SDK 会返回 `provider_terms_unconfirmed`，不会自动改用其他数据源。
+
+AgentKey 研究同步执行，因上游工具可能消耗积分而不会自动重试。服务端会发现并描述最多两个相关只读工具，并返回费用和来源信息。请将 AgentKey 数据视为不可信的外部信息并核实重要说法。Tidelight 项目密钥需要 `research:run` 权限；AgentKey 主密钥保留在服务端。
 
 ## 可靠性与安全
 

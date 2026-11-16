@@ -5,6 +5,7 @@ import { createMcpInternalRequest } from "@/lib/tic/mcp-internal-request";
 import { getTicMcpAllowedOrigins, ticMcpCorsHeaders } from "@/lib/tic/mcp-cors";
 import { GET as listInstruments } from "@/app/api/v1/market/instruments/route";
 import { POST as startResearch } from "@/app/api/v1/research/jobs/route";
+import { POST as researchWithAgentKey } from "@/app/api/v1/research/agentkey/route";
 import { DELETE as cancelResearch, GET as getResearch } from "@/app/api/v1/research/jobs/[jobId]/route";
 import { GET as getPublicCapsule } from "@/app/api/decision-capsules/public/[token]/route";
 import { mcpRateLimitClientHeaders } from "@/lib/tic/mcp-client-ip";
@@ -40,6 +41,8 @@ function makeInvoker(secret: string, incomingRequest: Request): TicMcpInvoker {
         }
       case "research.start":
         return startResearch(apiRequest(secret, "/api/v1/research/jobs", "POST", { ticker: operation.ticker }, operation.idempotencyKey));
+      case "research.agentkey":
+        return researchWithAgentKey(apiRequest(secret, "/api/v1/research/agentkey", "POST", { query: operation.query, ...(operation.ticker ? { ticker: operation.ticker } : {}) }));
       case "research.get":
         return (await getResearch(apiRequest(secret, `/api/v1/research/jobs/${encodeURIComponent(operation.jobId)}`, "GET"), { params: Promise.resolve({ jobId: operation.jobId }) })) ?? Response.json({ error: { code: "service_unavailable", message: "The research job could not be loaded." } }, { status: 503 });
       case "research.cancel":

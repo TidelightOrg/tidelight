@@ -69,6 +69,7 @@ tidelight-mcp
 | --- | --- |
 | `tidelight_search_tokenized_equities`、`tidelight_get_tokenized_equity` | `market:read` |
 | `tidelight_start_company_research`、`tidelight_get_research_job`、`tidelight_cancel_research_job` | `research:run` |
+| `tidelight_research_with_agentkey` | `research:run` |
 
 工具结果会标识受支持的 Reality 代币化股票现货产品；这些不是直接持有的美国股票或股票永续合约。研究结果会保留来源背景，不会暴露私有模型推理内容。
 

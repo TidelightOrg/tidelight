@@ -25,6 +25,7 @@ test("contract is versioned OpenAPI 3.1 on the production API origin", () => {
 test("contract covers every currently supported public operation with unique IDs", () => {
   assert.deepEqual(methods("/market/instruments"), ["get"]);
   assert.deepEqual(methods("/research/jobs"), ["post"]);
+  assert.deepEqual(methods("/research/agentkey"), ["post"]);
   assert.deepEqual(methods("/research/jobs/{job_id}"), ["get", "delete"]);
   assert.deepEqual(methods("/webhooks"), ["get", "post"]);
   assert.deepEqual(methods("/webhooks/{endpoint_id}"), ["patch", "delete"]);
@@ -38,6 +39,9 @@ test("contract preserves async idempotency and distinct financial instrument pro
   const start = spec.paths["/research/jobs"].post;
   assert.equal(start.parameters.find(parameter => parameter.name === "Idempotency-Key")?.required, true);
   assert.ok(start.responses["202"]);
+  assert.equal(spec.paths["/research/agentkey"].post.operationId, "researchWithAgentKey");
+  assert.match(spec.paths["/research/agentkey"].post.description, /up to two tools/);
+  assert.equal(spec.components.schemas.AgentKeyResearchResponse.properties.tools.maxItems, 2);
   const schemas = spec.components.schemas;
   assert.equal(schemas.Instrument.properties.instrument_type.const, "tokenized_equity_spot");
   assert.equal(schemas.StockPerpetual.properties.instrument_type.const, "stock_perpetual");

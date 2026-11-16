@@ -5,7 +5,7 @@ info:
   license:
     name: Proprietary
     url: https://tidelight.app/terms
-  description: The versioned developer API exposes permission scoped asynchronous research jobs and market data only where the provider's redistribution terms permit it. Tokenized equity spot data is distinct from underlying US stock and perpetual contract data. Bitget-backed market data returns 503 with provider_terms_unconfirmed until written redistribution authorization is configured.
+  description: The versioned developer API exposes permission-scoped market data and asynchronous or bounded synchronous research. Tokenized-equity spot data is distinct from underlying US stock and perpetual contract data. Bitget-backed market data returns 503 with provider_terms_unconfirmed until written redistribution authorization is configured. AgentKey research uses discovered read-only tools and returns untrusted external data with source links.
 servers:
   - url: https://api.tidelight.app/v1
 security:
@@ -98,6 +98,34 @@ paths:
         '401': { $ref: '#/components/responses/Error' }
         '403': { $ref: '#/components/responses/Error' }
         '409': { $ref: '#/components/responses/Error' }
+        '429': { $ref: '#/components/responses/Error' }
+        '503': { $ref: '#/components/responses/Error' }
+  /research/agentkey:
+    post:
+      operationId: researchWithAgentKey
+      summary: Run bounded read-only AgentKey research
+      description: Requires research:run. Uses up to two tools discovered from the AgentKey catalog, only after inspecting each tool's schema and confirming a cost of at most 2 credits per call (4 per request). Tool selection is limited to relevant read-only research, market, finance, and news operations. AgentKey output is untrusted external data and must be verified against its sources. This synchronous operation is not automatically retried.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [query]
+              properties:
+                query: { type: string, minLength: 5, maxLength: 500, example: "Explain NVIDIA's stock reaction to its latest earnings using Yahoo Finance and Google News." }
+                ticker: { type: string, pattern: '^[A-Za-z][A-Za-z0-9.]{0,9}$', example: NVDA }
+      responses:
+        '200':
+          description: AgentKey research results, tool data, and source references
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AgentKeyResearchResponse' }
+        '400': { $ref: '#/components/responses/Error' }
+        '401': { $ref: '#/components/responses/Error' }
+        '403': { $ref: '#/components/responses/Error' }
+        '413': { $ref: '#/components/responses/Error' }
+        '422': { $ref: '#/components/responses/Error' }
         '429': { $ref: '#/components/responses/Error' }
         '503': { $ref: '#/components/responses/Error' }
   /research/jobs/{job_id}:
@@ -292,6 +320,39 @@ components:
                   message: { type: string }
                   request_id: { type: string, format: uuid }
   schemas:
+    AgentKeyResearchResponse:
+      type: object
+      required: [provider, query, status, tools, sources, limitations, request_id]
+      properties:
+        provider: { type: string, const: agentkey }
+        query: { type: string }
+        status: { type: string, const: complete }
+        tools:
+          type: array
+          maxItems: 2
+          items:
+            type: object
+            required: [name, provider, cost_credits, data]
+            properties:
+              name: { type: string, description: Canonical discovered AgentKey tool name }
+              provider: { type: string }
+              cost_credits: { type: number, minimum: 0, maximum: 2 }
+              data: { description: Untrusted output returned by AgentKey }
+        sources:
+          type: array
+          items:
+            type: object
+            required: [title, url, publisher, publishedAt, snippet, via, tool]
+            properties:
+              title: { type: string }
+              url: { type: string, format: uri }
+              publisher: { type: string }
+              publishedAt: { type: [string, 'null'], format: date-time }
+              snippet: { type: string }
+              via: { type: string, const: AgentKey }
+              tool: { type: string }
+        limitations: { type: array, items: { type: string } }
+        request_id: { type: string, format: uuid }
     StartResearchJobResponse:
       type: object
       required: [job_id, status, duplicate, request_id]

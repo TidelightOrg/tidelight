@@ -7,7 +7,7 @@
 
 ---
 
-官方 TypeScript / JavaScript 客户端支持代币化股票行情列表、异步公司研究任务、研究 Webhook 和只读公开决策胶囊验证。客户端保留数据提供方来源与 API 错误上下文，并采用有界轮询、超时和重试。
+官方 TypeScript / JavaScript 客户端支持代币化股票行情列表、异步公司研究任务、同步 AgentKey 研究、研究 Webhook 和只读公开决策胶囊验证。客户端保留数据提供方来源与 API 错误上下文，并采用有界轮询、超时和重试。
 
 ## 安装
 
@@ -39,10 +39,13 @@ for (const instrument of page.data) {
 | --- | --- | --- |
 | 代币化股票现货列表与分页 | `market:read` | `listTokenizedEquities`、`tokenizedEquities` |
 | 公司研究快照 | `research:run` | `startCompanyResearch`、`getResearchJob`、`cancelResearchJob`、`waitForResearchJob` |
+| 使用已发现的只读工具进行 AgentKey 研究 | `research:run` | `researchWithAgentKey` |
 | 研究 Webhook 与投递记录 | `alerts:manage` | `createWebhook`、`updateWebhook`、`listWebhooks`、`listWebhookDeliveries` |
 | 公开决策胶囊副本 | 公开持有者链接 | `getPublicDecisionCapsule`、`verifyPublicDecisionCapsule` |
 
 代币化股票现货交易工具并非直接持有的股票，也不是股票永续合约。行情数据是否可用取决于服务的数据提供方条款门控；客户端会原样返回该判断，不会编造替代数据。
+
+AgentKey 研究同步执行，因上游工具可能消耗积分而不会自动重试。服务端会发现并描述最多两个相关只读工具，并返回费用和来源信息。请将 AgentKey 数据视为不可信的外部信息并核实重要说法。Tidelight 项目密钥需要 `research:run` 权限；AgentKey 主密钥保留在服务端。
 
 ## 可靠性与安全
 

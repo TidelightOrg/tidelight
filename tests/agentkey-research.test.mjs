@@ -1,0 +1,78 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { registerHooks } from "node:module";
+
+const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
+  if (specifier === "server-only") return { url: "data:text/javascript,export {};", shortCircuit: true };
+  if (specifier === "@/lib/agentkey") return nextResolve(new URL("../lib/agentkey.ts", import.meta.url).href);
+  return nextResolve(specifier, context);
+} });
+const { gatherAgentKeyResearch, agentKeyResearchCandidates } = await import("../lib/agentkey-research.ts");
+hooks.deregister();
+
+const query = "Use AgentKey to explain NVIDIA's stock reaction to its latest earnings using Yahoo Finance and Google News.";
+const catalog = { content: [{ type: "text", text: JSON.stringify({ tools: [
+  { name: "GoogleNews/search", summary: "Search dated Google News articles" },
+  { name: "yfinance/getChart", summary: "Read Yahoo Finance stock price history" },
+  { name: "social/instagram/createPost", summary: "Create an Instagram post" },
+] }) }] };
+
+test("AgentKey discovers provider-specific read-only tools and uses their described schemas", async () => {
+  const calls = [];
+  const today = new Date().toISOString();
+  const client = {
+    async findTools(input) { calls.push(["find", input]); return catalog; },
+    async describeTool(name) {
+      calls.push(["describe", name]);
+      if (name === "GoogleNews/search") return { content: [{ type: "text", text: JSON.stringify({ cost: 1, inputSchema: { type: "object", properties: { query: { type: "string" }, num: { type: "integer", maximum: 20 } }, required: ["query"] } }) }] };
+      return { content: [{ type: "text", text: JSON.stringify({ cost: 2, inputSchema: { type: "object", properties: { symbol: { type: "string" }, range: { type: "string", enum: ["1mo", "1y"] }, interval: { type: "string", enum: ["1d", "1wk"] } }, required: ["symbol"] } }) }] };
+    },
+    async executeTool(name, params) {
+      calls.push(["execute", name, params]);
+      if (name === "GoogleNews/search") return { content: [{ type: "text", text: JSON.stringify({ results: [{ title: "NVIDIA shares rise after earnings", url: "https://news.example/nvidia", publisher: "News Desk", publishedAt: today, snippet: "NVIDIA reported earnings." }] }) }] };
+      return { content: [{ type: "text", text: JSON.stringify({ chart: [{ close: 190 }] }) }] };
+    },
+  };
+
+  assert.deepEqual(agentKeyResearchCandidates(catalog, query).map(item => item.name), ["GoogleNews/search", "yfinance/getChart"]);
+  const result = await gatherAgentKeyResearch(query, client, "NVDA");
+  assert.equal(result.state, "used");
+  assert.deepEqual(result.tools.map(item => item.name), ["GoogleNews/search", "yfinance/getChart"]);
+  assert.deepEqual(calls.filter(item => item[0] === "execute").map(item => item.slice(1)), [
+    ["GoogleNews/search", { query, num: 20 }],
+    ["yfinance/getChart", { symbol: "NVDA", range: "1y", interval: "1d" }],
+  ]);
+  assert.equal(result.sources.length, 1);
+  assert.equal(result.sources[0].via, "AgentKey");
+  assert.equal(result.sources[0].url, "https://news.example/nvidia");
+});
+
+test("AgentKey never executes a tool without a verified low-cost schema", async () => {
+  const calls = [];
+  const client = {
+    async findTools() { return { tools: [{ name: "GoogleNews/search" }] }; },
+    async describeTool() { return { content: [{ type: "text", text: JSON.stringify({ cost: 5, inputSchema: { properties: { query: { type: "string" } }, required: ["query"] } }) }] }; },
+    async executeTool(...args) { calls.push(args); return {}; },
+  };
+  const result = await gatherAgentKeyResearch("Search Google News about NVIDIA", client, "NVDA");
+  assert.equal(result.state, "unsupported");
+  assert.deepEqual(calls, []);
+});
+
+test("AgentKey does not silently omit a specifically requested provider", async () => {
+  let executions = 0;
+  const client = {
+    async findTools() { return { tools: [{ name: "GoogleNews/search", summary: "Search dated Google News articles" }] }; },
+    async describeTool() { return { cost: 1, inputSchema: { properties: { query: { type: "string" } }, required: ["query"] } }; },
+    async executeTool() { executions++; return {}; },
+  };
+  const result = await gatherAgentKeyResearch(query, client, "NVDA");
+  assert.equal(result.state, "unsupported");
+  assert.equal(executions, 0);
+});
+
+test("unavailable AgentKey connections return a safe status", async () => {
+  const result = await gatherAgentKeyResearch(query, { findTools: async () => { throw new Error("secret upstream response"); }, describeTool: async () => ({}), executeTool: async () => ({}) });
+  assert.equal(result.state, "unavailable");
+  assert.doesNotMatch(JSON.stringify(result), /secret upstream response/);
+});

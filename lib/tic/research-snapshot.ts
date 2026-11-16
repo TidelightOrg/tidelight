@@ -1,6 +1,7 @@
 import "server-only";
 import { getBitgetMarketUniverse, getBitgetStockPerp, STOCK_PERP_UNIVERSE, type MarketAsset } from "@/lib/bitget-market";
 import { gatherIssuerEvidence } from "@/lib/agent-flow-sources";
+import { agentKeyIssuerEvidence } from "@/lib/agentkey-flow-sources";
 import { canonicalKindForMarketAsset } from "@/lib/instrument-identity";
 
 const supportedTickers = new Set<string>(STOCK_PERP_UNIVERSE.map(symbol => symbol.slice(0, -4)));
@@ -60,7 +61,7 @@ export function buildCompanySnapshot(input: {
     },
     evidence: {
       mode: "multi_query_headline_discovery" as const,
-      note: "Recent public headline discovery across multiple bounded queries. Headlines and snippets are pointers, not verified article contents, complete coverage, or independent research conclusions.",
+      note: "Recent public headline discovery across bounded public feeds and AgentKey when configured. Headlines and snippets are pointers, not verified article contents, complete coverage, or independent research conclusions.",
       coverage: { query_count: 8, lookback_days: 30, source_domains: [...new Set(input.evidence.map(source => new URL(source.url).hostname))].length, retrieved_at: new Date(input.generatedAt ?? Date.now()).toISOString(), returned_items: input.evidence.length, publishers: [...new Set(input.evidence.map(source => source.publisher))].length },
       items: input.evidence.slice(0, 40).map(source => ({
         title: source.title.slice(0, 300),
@@ -80,10 +81,12 @@ export function buildCompanySnapshot(input: {
 
 export async function runCompanySnapshot(ticker: string) {
   const marketPromise = getBitgetMarketUniverse();
-  const [market, perpetual, evidence] = await Promise.all([
+  const [market, perpetual, feedEvidence, agentEvidence] = await Promise.all([
     marketPromise,
     getBitgetStockPerp(`${ticker}USDT`),
     gatherIssuerEvidence(ticker, ticker),
+    agentKeyIssuerEvidence(ticker, ticker),
   ]);
+  const evidence = [...new Map([...feedEvidence, ...agentEvidence].map(item => [item.url, item])).values()];
   return buildCompanySnapshot({ ticker, assets: market.assets, perpetual, evidence, generatedAt: Date.now() });
 }

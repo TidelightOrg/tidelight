@@ -16,6 +16,7 @@ The live, versioned REST API is at `https://api.tidelight.app/v1`. The OpenAPI 3
 | --- | --- | --- |
 | `GET /market/instruments` | `market:read` | List supported Reality tokenized-equity spot instruments; optionally filter by `underlying_ticker` before pagination |
 | `POST /research/jobs` | `research:run` | Start an asynchronous, idempotent company snapshot with 30-day headline discovery |
+| `POST /research/agentkey` | `research:run` | Run bounded synchronous research across discovered, described, read-only AgentKey tools |
 | `GET /research/jobs/{job_id}` | `research:run` | Read status/result within the key's project |
 | `DELETE /research/jobs/{job_id}` | `research:run` | Cancel queued work or request cancellation |
 | `GET, POST /webhooks` | `alerts:manage` | List or create research event subscriptions |

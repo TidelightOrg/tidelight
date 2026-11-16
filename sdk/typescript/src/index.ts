@@ -36,6 +36,16 @@ export type ResearchJob = {
   request_id: string;
 };
 
+export type AgentKeyResearchResponse = {
+  provider: "agentkey";
+  query: string;
+  status: "complete";
+  tools: Array<{ name: string; provider: string; cost_credits: number; data: unknown }>;
+  sources: Array<{ title: string; url: string; publisher: string; publishedAt: string | null; snippet: string; via: "AgentKey"; tool: string }>;
+  limitations: string[];
+  request_id: string;
+};
+
 export type WebhookEvent = "research.job.completed" | "research.job.failed";
 export type WebhookEndpoint = { id: string; project_id: string; organization_id: string; name: string; url: string; events: WebhookEvent[]; enabled: boolean; created_at: string; updated_at: string };
 export type WebhookDelivery = { id: string; endpoint_id: string; project_id: string; event_id: string; event_type: WebhookEvent; payload: Record<string, unknown>; status: "pending" | "sending" | "retry_wait" | "succeeded" | "failed" | "cancelled"; attempt_count: number; last_status_code: number | null; last_error_code: string | null; last_duration_ms: number | null; created_at: string; completed_at: string | null; endpoint_name: string; tic_webhook_delivery_attempts: Array<{ attempt_number: number; status_code: number | null; duration_ms: number | null; error_code: string | null; created_at: string }> };
@@ -200,6 +210,15 @@ export class TidelightClient {
     return this.jobRequest<{ job_id: string; status: ResearchJobStatus; duplicate: boolean; request_id: string }>("/research/jobs", "POST", { ticker }, idempotencyKey, options.signal);
   }
 
+  async researchWithAgentKey(query: string, options: { ticker?: string; timeoutMs?: number; signal?: AbortSignal } = {}): Promise<AgentKeyResearchResponse> {
+    const normalized = query.trim().replace(/\s+/g, " ");
+    if (normalized.length < 5 || normalized.length > 500) throw new TypeError("query must be 5 to 500 characters.");
+    if (options.ticker !== undefined && !/^[A-Za-z][A-Za-z0-9.]{0,9}$/.test(options.ticker)) throw new TypeError("ticker must be a valid stock symbol.");
+    const timeoutMs = options.timeoutMs ?? 45_000;
+    if (!Number.isInteger(timeoutMs) || timeoutMs < 1_000 || timeoutMs > 120_000) throw new RangeError("timeoutMs must be 1000 to 120000.");
+    return this.jobRequest<AgentKeyResearchResponse>("/research/agentkey", "POST", { query: normalized, ...(options.ticker ? { ticker: options.ticker.toUpperCase() } : {}) }, undefined, options.signal, false, timeoutMs);
+  }
+
   async getResearchJob(jobId: string, options: { signal?: AbortSignal } = {}): Promise<ResearchJob> {
     if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(jobId)) throw new TypeError("Invalid research job ID.");
     return this.jobRequest<ResearchJob>(`/research/jobs/${jobId}`, "GET", undefined, undefined, options.signal);
@@ -280,12 +299,12 @@ export class TidelightClient {
     if (input.rotate_secret !== undefined && input.rotate_secret !== true) throw new TypeError("rotate_secret can only be true.");
   }
 
-  private async jobRequest<T>(path: string, method: "GET" | "POST" | "PATCH" | "DELETE", body?: unknown, idempotencyKey?: string, signal?: AbortSignal, retrySafe = true): Promise<T> {
+  private async jobRequest<T>(path: string, method: "GET" | "POST" | "PATCH" | "DELETE", body?: unknown, idempotencyKey?: string, signal?: AbortSignal, retrySafe = true, timeoutMs = this.timeoutMs): Promise<T> {
     const url = `${this.baseUrl}${path}`;
     const retryLimit = retrySafe ? this.maxRetries : 0;
     for (let attempt = 0; ; attempt++) {
       const controller = new AbortController(); const abort = () => controller.abort(signal?.reason);
-      const timer = setTimeout(() => controller.abort(), this.timeoutMs); signal?.addEventListener("abort", abort, { once: true });
+      const timer = setTimeout(() => controller.abort(), timeoutMs); signal?.addEventListener("abort", abort, { once: true });
       let response: Response; let payload: unknown;
       try {
         const headers: Record<string, string> = { Authorization: `Bearer ${this.apiKey}`, Accept: "application/json" };
