@@ -175,7 +175,6 @@ function findSchema(value: unknown, depth = 0): RecordValue | null {
       if (match) return match;
     }
   }
-  for (const child of Object.values(object)) { const match = findSchema(child, depth + 1); if (match) return match; }
   return null;
 }
 

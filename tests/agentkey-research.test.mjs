@@ -198,6 +198,18 @@ test("query values adapt to declared arrays of strings", async () => {
   assert.deepEqual(executions, [{ keywords: [query] }]);
 });
 
+test("output schemas and examples cannot stand in for an execution input schema", async () => {
+  let executions = 0;
+  const client = {
+    async findTools() { return { tools: [{ name: "finance/getQuote", summary: "Read current stock quote" }] }; },
+    async describeTool() { return { cost: 1, outputSchema: { properties: { price: { type: "number" } } }, examples: [{ inputSchema: { properties: { symbol: { type: "string" } }, required: ["symbol"] } }] }; },
+    async executeTool() { executions++; return { price: 100 }; },
+  };
+  const result = await gatherAgentKeyResearch("Get NVIDIA stock price", client, "NVDA");
+  assert.equal(result.state, "unsupported");
+  assert.equal(executions, 0);
+});
+
 test("bounded synthesis context preserves each executed provider's data", async () => {
   const longArticles = Array.from({ length: 20 }, (_, index) => ({ title: `NVIDIA article ${index}`, snippet: "NVIDIA earnings coverage ".repeat(20), url: `https://news.example/${index}` }));
   const client = {
