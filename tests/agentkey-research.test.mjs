@@ -255,6 +255,28 @@ test("plain text catalog discovery recognizes the legacy AgentKey search name", 
   assert.deepEqual(agentKeyResearchCandidates({ content: [{ type: "text", text: "agentkey_search — Search public news" }] }).map(item => item.name), ["agentkey_search"]);
 });
 
+test("generic AgentKey news search backs up provider-specific discovery", async () => {
+  const calls = [];
+  const client = {
+    async findTools(query) {
+      calls.push(["find", query]);
+      return { tools: [{ name: "agentkey_search", summary: "Search public news" }] };
+    },
+    async describeTool(name) {
+      calls.push(["describe", name]);
+      return { name, cost: 1, inputSchema: { properties: { query: { type: "string" }, type: { type: "string", enum: ["news"] } }, required: ["query", "type"] } };
+    },
+    async executeTool(name, params) {
+      calls.push(["execute", name, params]);
+      return { results: [] };
+    },
+  };
+  const result = await gatherAgentKeyResearch("Use AgentKey to explain NVIDIA's stock reaction using Yahoo Finance and Google News", client, "NVDA");
+  assert.equal(result.state, "used");
+  assert.deepEqual(result.tools.map(tool => tool.name), ["agentkey_search"]);
+  assert.equal(calls.at(-1)[1], "agentkey_search");
+});
+
 test("unavailable AgentKey connections return a safe status", async () => {
   const result = await gatherAgentKeyResearch(query, { findTools: async () => { throw new Error("secret upstream response"); }, describeTool: async () => ({}), executeTool: async () => ({}) });
   assert.equal(result.state, "unavailable");
