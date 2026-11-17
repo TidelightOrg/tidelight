@@ -1,4 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isRequestCorrelationId } from "@/lib/request-correlation";
 import type { ProviderAttempt } from "@/lib/ai-fallback";
 
 export type ProviderHealthLabel = "qwen" | "gemini";
@@ -80,12 +81,14 @@ export async function getProviderRoutingDecision(providers: ProviderHealthLabel[
 }
 
 /** Persist at most six metadata-only attempts; abort the write after 1.5 seconds to protect research saves. */
-export async function recordProviderHealth(attempts: ProviderAttempt[]) {
+export async function recordProviderHealth(attempts: ProviderAttempt[], requestId: string | null = null) {
   if (!attempts.length) return;
   try {
     const admin = createAdminClient();
+    const safeRequestId = isRequestCorrelationId(requestId) ? requestId : null;
     const rows = attempts.slice(0, 6).map(({ provider, model, attempt, outcome, occurredAt, durationMs, httpStatus }) => ({
       occurred_at: occurredAt,
+      ...(safeRequestId ? { request_id: safeRequestId } : {}),
       provider,
       model: model.slice(0, 80),
       attempt,
