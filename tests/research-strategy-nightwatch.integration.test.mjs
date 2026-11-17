@@ -188,15 +188,29 @@ test("synthetic positive handoff preserves lineage through Research → paper St
   assert.deepEqual(captures.orders, ["hold"]);
 
   const nightwatchResponse = await nightwatchRoute.POST(new Request("https://tidelight.app/api/nightwatch/tick", {
-    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ symbol: "RNVDAUSDT", researchRunId: researchId }),
+    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ symbol: "RNVDAUSDT", researchRunId: researchId, playbookKey: "semi_breakout_v1" }),
   }));
   assert.equal(nightwatchResponse.status, 200);
   assert.equal(globalThis.flowTest.nightwatch.research.question, "Synthetic NVDA evidence fixture");
+  assert.equal(globalThis.flowTest.nightwatch.playbookKey, "semi_breakout_v1", "manual checks use the playbook shown for the current handoff");
   const nightwatchCommit = captures.rpc.find(call => call.name === "nightwatch_tick_from_server");
   assert.equal(nightwatchCommit.args.p_snapshot.researchRunId, researchId);
+  assert.equal(nightwatchCommit.args.p_snapshot.playbook.key, "semi_breakout_v1", "the decision snapshot records the local handoff playbook");
   assert.equal(nightwatchCommit.args.p_user_id, user.id);
   assert.equal(nightwatchCommit.args.p_signal, "hold");
   assert.deepEqual(captures.orders, ["hold"], "the fixture did not create a paper fill or any live order");
+});
+
+test("Nightwatch rejects an unimplemented local playbook before market or AI work", async () => {
+  const marketCalls = captures.marketCalls;
+  const aiCalls = globalThis.flowTest.aiCalls;
+  const response = await nightwatchRoute.POST(new Request("https://tidelight.app/api/nightwatch/tick", {
+    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ symbol: "RNVDAUSDT", playbookKey: "live_trading" }),
+  }));
+  assert.equal(response.status, 400);
+  assert.match((await response.json()).error, /available Nightwatch playbook/i);
+  assert.equal(captures.marketCalls, marketCalls);
+  assert.equal(globalThis.flowTest.aiCalls, aiCalls);
 });
 
 test("manual paper exit uses the verified user and rejects stale quotes", async () => {

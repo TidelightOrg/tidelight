@@ -56,7 +56,7 @@ export const getBitgetStockPerp = (...args) => globalThis.flowTest.perp(...args)
 export const getBitgetCandles = (...args) => globalThis.flowTest.candles(...args);
 export const buildSignals = () => Array.from({ length: 80 }, (_, index) => index === 79);
 export const prepareBacktestCandles = () => Array.from({ length: 80 }, (_, index) => ({ timestamp: Date.now() - (80 - index) * 14_400_000 - 60_000, close: 100 }));
-export const ALPHA_STRATEGIES = { sma_trend_v1: { label: "Synthetic SMA fixture" } };
+export const ALPHA_STRATEGIES = { sma_trend_v1: { label: "Synthetic SMA fixture" }, semi_breakout_v1: { label: "Synthetic semi-breakout fixture" } };
 
 export const buildIssuerNewsQueries = () => Array(5).fill("question-focused fixture query");
 export const gatherIssuerEvidence = async () => globalThis.flowTest.emptyIssuerNews ? [] : globalThis.flowTest.sourceRows;
@@ -100,6 +100,7 @@ export const decideNightwatch = async (input) => {
   return { action: "hold", signal: "hold", confidence: 0.9, rationale: "Synthetic Nightwatch fixture held; no order.", evidence: ["Synthetic linked research fixture"], risks: [], invalidation: "Fixture ends", horizon: "test only" };
 };
 export const normalizeNightwatchPreferences = (value) => ({ playbook_key: value.playbook_key ?? "sma_trend_v1" });
+export const isNightwatchPlaybookKey = (value) => ["sma_trend_v1", "rsi_reversion_v1", "channel_breakout_v1", "weekend_drift_v1", "trend_pullback_v1", "semi_breakout_v1"].includes(value);
 export const enqueueNightwatchEmail = async () => {};
 export const drainEmailQueue = async () => {};
 export const normalizeFuturesProposal = () => null;

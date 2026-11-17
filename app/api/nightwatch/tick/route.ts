@@ -3,8 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { getBitgetAsset, getBitgetCandles } from "@/lib/bitget-market";
 import { evaluateSmaCrossover } from "@/lib/nightwatch-signal";
 import { decideNightwatch } from "@/lib/nightwatch-agent";
-import { normalizeNightwatchPreferences } from "@/lib/nightwatch-preferences";
-import { ALPHA_STRATEGIES } from "@/lib/backtest";
+import { isNightwatchPlaybookKey, normalizeNightwatchPreferences } from "@/lib/nightwatch-preferences";
+import { ALPHA_STRATEGIES, type StrategyKey } from "@/lib/backtest";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { enqueueNightwatchEmail } from "@/lib/email/nightwatch";
 import { drainEmailQueue } from "@/lib/email/delivery";
@@ -21,11 +21,16 @@ export async function POST(request: Request) {
 
   let symbol = "";
   let researchRunId: string | null = null;
+  let playbookKeyOverride: StrategyKey | null = null;
   let linkedResearch: { question: string; summary: unknown; status: string } | null = null;
   try {
-    const body = await request.json() as { symbol?: unknown; researchRunId?: unknown };
+    const body = await request.json() as { symbol?: unknown; researchRunId?: unknown; playbookKey?: unknown };
     symbol = typeof body.symbol === "string" ? body.symbol.toUpperCase() : "";
     researchRunId = typeof body.researchRunId === "string" ? body.researchRunId : null;
+    if (body.playbookKey !== undefined) {
+      if (!isNightwatchPlaybookKey(body.playbookKey)) return NextResponse.json({ error: "Choose an available Nightwatch playbook." }, { status: 400 });
+      playbookKeyOverride = body.playbookKey;
+    }
     if (researchRunId && !/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(researchRunId)) return NextResponse.json({ error: "The linked research run ID is invalid." }, { status: 400 });
     if (researchRunId) {
       const { data: linkedRun, error: linkedRunError } = await supabase.from("research_runs").select("id,question,summary,status").eq("id", researchRunId).maybeSingle();
@@ -67,7 +72,8 @@ export async function POST(request: Request) {
     const account = { cashUsd: Number(accountResult.data?.cash_balance ?? 10000), positionQuantity: Number(positionResult.data?.quantity ?? 0), averageCostUsd: positionResult.data?.average_cost == null ? null : Number(positionResult.data.average_cost), dailyRealizedPnlUsd: dailyOrders.reduce((sum, order) => sum + Number(order.realized_pnl ?? 0), 0), fillsToday: dailyOrders.length };
     const { data: savedPreferences } = await supabase.from("nightwatch_preferences").select("playbook_key").maybeSingle();
     const selectedPreferences = normalizeNightwatchPreferences(savedPreferences ?? {});
-    const aiDecision = await decideNightwatch({ symbol, issuer: asset.name, candles: closed.slice(-90), account, playbookKey: selectedPreferences.playbook_key, research: linkedResearch?.status === "complete" ? { question: linkedResearch.question, summary: linkedResearch.summary } : null }, { budgetMs: 38000, deadlineAt });
+    const playbookKey = playbookKeyOverride ?? selectedPreferences.playbook_key;
+    const aiDecision = await decideNightwatch({ symbol, issuer: asset.name, candles: closed.slice(-90), account, playbookKey, research: linkedResearch?.status === "complete" ? { question: linkedResearch.question, summary: linkedResearch.summary } : null }, { budgetMs: 38000, deadlineAt });
     const signal = aiDecision.signal;
     const decision = signal === aiDecision.action ? aiDecision : { ...aiDecision, rationale: aiDecision.rationale + " Confidence was below the 0.66 execution threshold, so the agent held." };
     const { data, error } = await admin.rpc("nightwatch_tick_from_server", {
@@ -93,7 +99,7 @@ export async function POST(request: Request) {
         feeRate: 0.001,
         slippageRate: 0.0005,
         indicators: { sma20: fast, sma50: slow, previousSma20: previousFast, previousSma50: previousSlow },
-        playbook: { key: selectedPreferences.playbook_key, label: ALPHA_STRATEGIES[selectedPreferences.playbook_key].label },
+        playbook: { key: playbookKey, label: ALPHA_STRATEGIES[playbookKey].label },
         rule: "AI-led evidence and risk decision v1",
       },
     });
