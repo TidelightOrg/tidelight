@@ -3,7 +3,7 @@ import { getBitgetMarketUniverse } from "@/lib/bitget-market";
 export async function GET() {
   try {
     const market = await getBitgetMarketUniverse();
-    return Response.json(market, {
+    return Response.json({ ...market, marketCategory: "SPOT" }, {
       headers: { "Cache-Control": "public, s-maxage=12, stale-while-revalidate=24" },
     });
   } catch (error) {
