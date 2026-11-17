@@ -41,10 +41,14 @@ export type DecisionRecordBacktest = { id: string; strategyKey: string; symbol: 
 export type DecisionRecordSchedule = { id: string; label: string; symbol: string; playbookKey: string; enabled: boolean };
 /** Paper decision identity. The outcome is the recorded action. */
 export type DecisionRecordPaperDecision = { id: string; symbol: string; signal: string; outcome: string; createdAt: string };
+/** Owner-scoped source citation. Excerpts and query strings are deliberately omitted. */
+export type DecisionRecordSource = { id: string; title: string; publisher: string | null; sourceType: "web" | "market_data" | "filing" | "user_note"; href: string | null; publishedAt: string | null; retrievedAt: string };
+/** Owner-scoped claim summary. Supporting quotes are deliberately omitted. */
+export type DecisionRecordEvidence = { id: string; sourceId: string | null; claim: string; stance: "supports" | "contradicts" | "context"; confidence: number | null; createdAt: string };
 /** One page of linked rows. `earlier` is the cursor for the next older page. */
 export type DecisionRecordList<T> = { items: T[]; earlier: string | null };
 /** Optional cursors. Each linked list pages on its own. */
-export type DecisionRecordWindow = { strategiesBefore?: string | null; schedulesBefore?: string | null; decisionsBefore?: string | null };
+export type DecisionRecordWindow = { strategiesBefore?: string | null; schedulesBefore?: string | null; decisionsBefore?: string | null; sourcesBefore?: string | null; evidenceBefore?: string | null };
 
 /** Owner-scoped references. The stable id is the research run while that run exists. */
 export type DecisionRecord = {
@@ -56,6 +60,8 @@ export type DecisionRecord = {
   strategyBacktests: DecisionRecordList<DecisionRecordBacktest>;
   nightwatchSchedules: DecisionRecordList<DecisionRecordSchedule>;
   paperDecisions: DecisionRecordList<DecisionRecordPaperDecision>;
+  sources: DecisionRecordList<DecisionRecordSource>;
+  evidence: DecisionRecordList<DecisionRecordEvidence>;
 };
 
 type DecisionRecordRead = { userId: string; user: DecisionRecordClient; capsules: DecisionRecordClient };
@@ -111,15 +117,38 @@ async function single(query: DecisionRecordQuery): Promise<Record<string, unknow
   return data === null ? null : row(data);
 }
 
-function before(query: DecisionRecordQuery, cursor: string | null | undefined) {
-  return cursor && TIMESTAMP.test(cursor) ? query.lt("created_at", cursor) : query;
+function before(query: DecisionRecordQuery, cursor: string | null | undefined, column: string) {
+  return cursor && TIMESTAMP.test(cursor) ? query.lt(column, cursor) : query;
 }
 
-async function many(query: DecisionRecordQuery): Promise<{ rows: Record<string, unknown>[]; earlier: string | null }> {
-  const { data, error } = await query.order("created_at", { ascending: false }).limit(LINK_LIMIT + 1);
+async function many(query: DecisionRecordQuery, timestampColumn = "created_at"): Promise<{ rows: Record<string, unknown>[]; earlier: string | null }> {
+  const { data, error } = await query.order(timestampColumn, { ascending: false }).limit(LINK_LIMIT + 1);
   if (error || !Array.isArray(data)) failRead(error);
   const visible = data.slice(0, LINK_LIMIT).map(row);
-  return { rows: visible, earlier: data.length > LINK_LIMIT ? text(visible.at(-1)?.created_at, 80) : null };
+  return { rows: visible, earlier: data.length > LINK_LIMIT ? text(visible.at(-1)?.[timestampColumn], 80) : null };
+}
+
+function optionalText(value: unknown, max: number): string | null {
+  return value == null || value === "" ? null : text(value, max);
+}
+
+function sourceHref(value: unknown): string | null {
+  if (typeof value !== "string" || value.length > 2048) return null;
+  try {
+    const url = new URL(value);
+    if (url.protocol !== "https:" || url.username || url.password) return null;
+    url.search = "";
+    url.hash = "";
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+function confidence(value: unknown): number | null {
+  if (value == null || value === "") return null;
+  const parsed = typeof value === "number" ? value : typeof value === "string" ? Number(value) : Number.NaN;
+  return Number.isFinite(parsed) && parsed >= 0 && parsed <= 1 ? parsed : failRead(null);
 }
 
 function marketCategory(value: unknown, symbol: string): DecisionRecordMarket {
@@ -145,12 +174,14 @@ function emptyList<T>(): DecisionRecordList<T> {
   return { items: [], earlier: null };
 }
 
-async function linked(read: DecisionRecordRead, researchRunId: string, saved: DecisionRecordCapsule | null, window: DecisionRecordWindow): Promise<Pick<DecisionRecord, "capsule" | "strategyBacktests" | "nightwatchSchedules" | "paperDecisions">> {
-  const [savedCapsule, backtests, schedules, decisions] = await Promise.all([
+async function linked(read: DecisionRecordRead, researchRunId: string, saved: DecisionRecordCapsule | null, window: DecisionRecordWindow): Promise<Pick<DecisionRecord, "capsule" | "strategyBacktests" | "nightwatchSchedules" | "paperDecisions" | "sources" | "evidence">> {
+  const [savedCapsule, backtests, schedules, decisions, sources, evidence] = await Promise.all([
     saved ? Promise.resolve(saved) : single(read.capsules.from("decision_capsules").select("id,created_at").eq("user_id", read.userId).eq("research_run_id", researchRunId)).then(item => item ? capsule(item) : null),
-    many(before(read.user.from("strategy_backtest_runs").select("id,strategy_key,symbol,interval,created_at,market_category:parameters->>marketCategory").eq("user_id", read.userId).filter("parameters->>researchRunId", "ilike", researchRunId), window.strategiesBefore)),
-    many(before(read.user.from("nightwatch_schedules").select("id,label,symbol,playbook_key,enabled,created_at").eq("user_id", read.userId).eq("research_run_id", researchRunId), window.schedulesBefore)),
-    many(before(read.user.from("nightwatch_runs").select("id,symbol,signal,outcome,created_at").eq("user_id", read.userId).filter("snapshot->>researchRunId", "ilike", researchRunId), window.decisionsBefore)),
+    many(before(read.user.from("strategy_backtest_runs").select("id,strategy_key,symbol,interval,created_at,market_category:parameters->>marketCategory").eq("user_id", read.userId).filter("parameters->>researchRunId", "ilike", researchRunId), window.strategiesBefore, "created_at")),
+    many(before(read.user.from("nightwatch_schedules").select("id,label,symbol,playbook_key,enabled,created_at").eq("user_id", read.userId).eq("research_run_id", researchRunId), window.schedulesBefore, "created_at")),
+    many(before(read.user.from("nightwatch_runs").select("id,symbol,signal,outcome,created_at").eq("user_id", read.userId).filter("snapshot->>researchRunId", "ilike", researchRunId), window.decisionsBefore, "created_at")),
+    many(before(read.user.from("research_sources").select("id,title,publisher,source_type,url,published_at,retrieved_at").eq("research_run_id", researchRunId), window.sourcesBefore, "retrieved_at"), "retrieved_at"),
+    many(before(read.user.from("research_evidence").select("id,source_id,claim,stance,confidence,created_at").eq("research_run_id", researchRunId), window.evidenceBefore, "created_at")),
   ]);
   return {
     capsule: savedCapsule,
@@ -188,6 +219,29 @@ async function linked(read: DecisionRecordRead, researchRunId: string, saved: De
       })),
       earlier: decisions.earlier,
     },
+    sources: {
+      items: sources.rows.map(item => ({
+        id: uuid(item.id),
+        title: text(item.title, 240),
+        publisher: optionalText(item.publisher, 120),
+        sourceType: oneOf(item.source_type, ["web", "market_data", "filing", "user_note"]) as DecisionRecordSource["sourceType"],
+        href: sourceHref(item.url),
+        publishedAt: optionalText(item.published_at, 80),
+        retrievedAt: text(item.retrieved_at, 80),
+      })),
+      earlier: sources.earlier,
+    },
+    evidence: {
+      items: evidence.rows.map(item => ({
+        id: uuid(item.id),
+        sourceId: item.source_id == null ? null : uuid(item.source_id),
+        claim: text(item.claim, 1200),
+        stance: oneOf(item.stance, ["supports", "contradicts", "context"]) as DecisionRecordEvidence["stance"],
+        confidence: confidence(item.confidence),
+        createdAt: text(item.created_at, 80),
+      })),
+      earlier: evidence.earlier,
+    },
   };
 }
 
@@ -219,7 +273,7 @@ export async function resolveDecisionRecord(read: DecisionRecordRead, id: string
   if (!capsuleRow) return null;
   const saved = capsule(capsuleRow);
   if (capsuleRow.research_run_id == null) {
-    return { schemaVersion: 1, id: saved.id, anchor: "decision_capsule", researchRun: null, capsule: saved, strategyBacktests: emptyList(), nightwatchSchedules: emptyList(), paperDecisions: emptyList() };
+    return { schemaVersion: 1, id: saved.id, anchor: "decision_capsule", researchRun: null, capsule: saved, strategyBacktests: emptyList(), nightwatchSchedules: emptyList(), paperDecisions: emptyList(), sources: emptyList(), evidence: emptyList() };
   }
   const linkedRunRow = await single(read.user.from("research_runs").select("id,question,status,created_at").eq("id", uuid(capsuleRow.research_run_id)).eq("user_id", read.userId));
   if (!linkedRunRow) return null;

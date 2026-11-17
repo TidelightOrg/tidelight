@@ -18,6 +18,8 @@ const backtestId = "88888888-8888-4888-8888-888888888888";
 const otherBacktest = "99999999-9999-4999-8999-999999999999";
 const scheduleId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const paperId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+const sourceId = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
+const evidenceId = "ffffffff-ffff-4fff-8fff-ffffffffffff";
 
 const rows = {
   research_runs: [
@@ -41,9 +43,17 @@ const rows = {
     { id: paperId, user_id: owner, symbol: "RNVDAUSDT", signal: "buy", outcome: "executed", created_at: "2026-11-02T04:00:00.000Z", snapshot: { researchRunId: runId, referencePrice: 100 }, reason: "private", reference_price: 100 },
     { id: "dddddddd-dddd-4ddd-8ddd-dddddddddddd", user_id: other, symbol: "RNVDAUSDT", signal: "sell", outcome: "executed", created_at: "2026-11-02T04:00:00.000Z", snapshot: { researchRunId: runId }, reason: "private" },
   ],
+  research_sources: [
+    { id: sourceId, research_run_id: runId, title: "NVIDIA earnings release", publisher: "NVIDIA", source_type: "filing", url: "https://investor.example/release?token=secret#section", published_at: "2026-11-01T12:00:00.000Z", retrieved_at: "2026-11-02T00:02:00.000Z", excerpt: "private excerpt", content_hash: "x".repeat(64) },
+    { id: "12121212-aaaa-4121-8121-121212121212", research_run_id: otherRun, title: "Other account", publisher: "Other", source_type: "web", url: "https://example.org", published_at: null, retrieved_at: "2026-11-02T00:02:00.000Z", excerpt: "private" },
+  ],
+  research_evidence: [
+    { id: evidenceId, research_run_id: runId, source_id: sourceId, claim: "Revenue guidance increased year over year.", supporting_quote: "private quote", stance: "supports", confidence: "0.875", created_at: "2026-11-02T00:03:00.000Z" },
+    { id: "12121212-bbbb-4121-8121-121212121212", research_run_id: otherRun, source_id: null, claim: "Other account claim", supporting_quote: "private", stance: "context", confidence: 0.5, created_at: "2026-11-02T00:03:00.000Z" },
+  ],
 };
 
-const forbiddenSelect = /original_snapshot|integrity_hash|(?:^|,)parameters(?:,|$)|(?:^|,)snapshot(?:,|$)|candles|train_metrics|test_metrics|summary|reason|reference_price/;
+const forbiddenSelect = /original_snapshot|integrity_hash|(?:^|,)parameters(?:,|$)|(?:^|,)snapshot(?:,|$)|candles|train_metrics|test_metrics|summary|reason|reference_price|excerpt|supporting_quote|content_hash/;
 
 function matches(row, op, column, value) {
   const current = column.includes("->>")
@@ -117,13 +127,23 @@ test("an owned research run resolves linked ids without copying stored payloads"
   assert.ok(calls.some(call => call.table === "strategy_backtest_runs" && call.columns.includes("market_category:parameters->>marketCategory")));
   assert.deepEqual(record.nightwatchSchedules, { items: [{ id: scheduleId, label: "Daily review", symbol: "RNVDAUSDT", playbookKey: "sma_trend_v1", enabled: true }], earlier: null });
   assert.deepEqual(record.paperDecisions, { items: [{ id: paperId, symbol: "RNVDAUSDT", signal: "buy", outcome: "executed", createdAt: "2026-11-02T04:00:00.000Z" }], earlier: null });
+  assert.deepEqual(record.sources, { items: [{ id: sourceId, title: "NVIDIA earnings release", publisher: "NVIDIA", sourceType: "filing", href: "https://investor.example/release", publishedAt: "2026-11-01T12:00:00.000Z", retrievedAt: "2026-11-02T00:02:00.000Z" }], earlier: null });
+  assert.deepEqual(record.evidence, { items: [{ id: evidenceId, sourceId, claim: "Revenue guidance increased year over year.", stance: "supports", confidence: 0.875, createdAt: "2026-11-02T00:03:00.000Z" }], earlier: null });
   assert.equal("summary" in record.researchRun, false);
   assert.equal(JSON.stringify(record).includes("original_snapshot"), false);
   assert.equal(JSON.stringify(record).includes("referencePrice"), false);
+  assert.equal(JSON.stringify(record).includes("private quote"), false);
+  assert.equal(JSON.stringify(record).includes("?token=secret"), false);
   for (const call of calls) assert.doesNotMatch(call.columns, forbiddenSelect);
   assert.deepEqual(calls.filter(call => call.table === "decision_capsules").map(call => call.source), ["capsules"]);
   assert.ok(calls.filter(call => call.table !== "decision_capsules").every(call => call.source === "user"));
-  assert.ok(calls.every(call => call.filters.some(([op, column, value]) => op === "eq" && column === "user_id" && value === owner)));
+  for (const call of calls) {
+    if (call.table === "research_sources" || call.table === "research_evidence") {
+      assert.ok(call.filters.some(([op, column, value]) => op === "eq" && column === "research_run_id" && value === runId));
+    } else {
+      assert.ok(call.filters.some(([op, column, value]) => op === "eq" && column === "user_id" && value === owner));
+    }
+  }
 });
 
 test("another account's run, capsule, backtest, schedule, and paper decision stay hidden", async () => {
@@ -135,6 +155,8 @@ test("another account's run, capsule, backtest, schedule, and paper decision sta
   assert.deepEqual(record.strategyBacktests.items.map(item => item.id), [backtestId]);
   assert.deepEqual(record.nightwatchSchedules.items.map(item => item.id), [scheduleId]);
   assert.deepEqual(record.paperDecisions.items.map(item => item.id), [paperId]);
+  assert.deepEqual(record.sources.items.map(item => item.id), [sourceId]);
+  assert.deepEqual(record.evidence.items.map(item => item.id), [evidenceId]);
 });
 
 test("a capsule whose research run was removed stays a reference to that capsule only", async () => {
@@ -146,6 +168,8 @@ test("a capsule whose research run was removed stays a reference to that capsule
   assert.deepEqual(record.strategyBacktests, { items: [], earlier: null });
   assert.deepEqual(record.nightwatchSchedules, { items: [], earlier: null });
   assert.deepEqual(record.paperDecisions, { items: [], earlier: null });
+  assert.deepEqual(record.sources, { items: [], earlier: null });
+  assert.deepEqual(record.evidence, { items: [], earlier: null });
 });
 
 test("opening a capsule uses the research run id when that run is still visible", async () => {
@@ -214,6 +238,45 @@ test("a futures backtest keeps its market, and older links stay reachable", asyn
   }
 });
 
+test("source captures and evidence claims use independent older-page cursors", async () => {
+  const savedSources = rows.research_sources;
+  const savedEvidence = rows.research_evidence;
+  rows.research_sources = Array.from({ length: 51 }, (_, index) => ({
+    id: `34343434-3434-4343-8343-${String(index).padStart(12, "0")}`,
+    research_run_id: runId,
+    title: `Source ${index}`,
+    publisher: "Publisher",
+    source_type: "web",
+    url: "https://example.org/article",
+    published_at: null,
+    retrieved_at: new Date(Date.UTC(2026, 10, 2, 12, 0, 0) - index * 1000).toISOString(),
+  }));
+  rows.research_evidence = Array.from({ length: 51 }, (_, index) => ({
+    id: `45454545-4545-4454-8454-${String(index).padStart(12, "0")}`,
+    research_run_id: runId,
+    source_id: null,
+    claim: `Claim ${index}`,
+    stance: "context",
+    confidence: null,
+    created_at: new Date(Date.UTC(2026, 10, 2, 13, 0, 0) - index * 1000).toISOString(),
+  }));
+  try {
+    const first = await resolveDecisionRecord(readers(owner).store, runId);
+    assert.equal(first.sources.items.length, 50);
+    assert.equal(first.evidence.items.length, 50);
+    const sourceCursor = first.sources.earlier;
+    const evidenceCursor = first.evidence.earlier;
+    assert.equal(sourceCursor, rows.research_sources[49].retrieved_at);
+    assert.equal(evidenceCursor, rows.research_evidence[49].created_at);
+    const second = await resolveDecisionRecord(readers(owner).store, runId, { sourcesBefore: sourceCursor, evidenceBefore: evidenceCursor });
+    assert.deepEqual(second.sources.items.map(item => item.id), [rows.research_sources[50].id]);
+    assert.deepEqual(second.evidence.items.map(item => item.id), [rows.research_evidence[50].id]);
+  } finally {
+    rows.research_sources = savedSources;
+    rows.research_evidence = savedEvidence;
+  }
+});
+
 test("the decision record page only reads and the research result links to it", async () => {
   const [page, workspace, intelligence, flow, strategies, lab] = await Promise.all([
     readFile(new URL("../app/decisions/[id]/page.tsx", import.meta.url), "utf8"),
@@ -226,6 +289,8 @@ test("the decision record page only reads and the research result links to it", 
   assert.match(strategies, /initialMarketCategory=\{initialMarketCategory\}/);
   assert.match(lab, /useState<AlphaMarketCategory>\(initialMarketCategory\)/);
   assert.match(page, /Earlier strategy backtests|decisionRecordEarlierHref|strategiesBefore/);
+  assert.match(page, /sourcesBefore/);
+  assert.match(page, /evidenceBefore/);
   assert.match(page, /resolveDecisionRecord\(\{ userId: auth\.user\.id, user: records, capsules: records \}, id, cursors\)/);
   assert.match(page, /records = createAdminClient\(\)/);
   assert.doesNotMatch(page, /createClient\(/);
@@ -239,4 +304,8 @@ test("the decision record page only reads and the research result links to it", 
   assert.match(intelligence, /aria-label="Open decision record"/);
   assert.match(flow, /\/decisions\/\$\{result\.researchRunId\}/);
   assert.match(flow, /aria-label=\{translate\("Open decision record"\)\}/);
+  const decisionView = await readFile(new URL("../app/ui/decision-record-view.tsx", import.meta.url), "utf8");
+  assert.match(decisionView, /Research sources/);
+  assert.match(decisionView, /Evidence claims/);
+  assert.match(decisionView, /rel: "noreferrer noopener"/);
 });
