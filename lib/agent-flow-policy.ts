@@ -4,6 +4,27 @@ export type FlowSource = { title: string; url: string; publisher: string; publis
 export type FlowStance = "bullish" | "bearish" | "mixed" | "unclear";
 export type FlowEvidencePoint = { text: string; citedUrls: string[] };
 export type FlowAssessment = { summary: string; stance: FlowStance; confidence: number; confidenceCapped?: boolean; citedUrls: string[]; supportingEvidence: FlowEvidencePoint[]; counterEvidence: FlowEvidencePoint[]; risks: string[]; nextCheck: string };
+
+export function buildFlowInstrumentDefinitions(snapshots: Array<{
+  ticker: string;
+  issuer: string;
+  perp: { symbol: string; providerTimestamp: number | null; lastPrice: number } | null;
+  spot: { symbol: string; name: string; providerTimestamp: number | null; lastPrice: number } | null;
+}>, tokenizedMarketQuestion: boolean) {
+  return snapshots.map(({ ticker, issuer, perp, spot }) => ({
+    issuerTicker: ticker,
+    issuer,
+    ...(tokenizedMarketQuestion ? {
+      tokenizedSpot: spot
+        ? { symbol: spot.symbol, name: spot.name, providerTimestamp: spot.providerTimestamp, lastPrice: spot.lastPrice, available: true }
+        : { available: false, limitation: "No verified rToken market quote was returned." },
+    } : {}),
+    stockPerpetual: perp
+      ? { symbol: perp.symbol, providerTimestamp: perp.providerTimestamp, lastPrice: perp.lastPrice, available: true }
+      : { available: false, limitation: "No verified stock-perpetual contract was returned." },
+    marketDataNote: tokenizedMarketQuestion ? "These are distinct instruments with different market structure." : "Issuer research scope. Do not infer or discuss tokenized markets.",
+  }));
+}
 export type FlowGateInput = {
   assessment: FlowAssessment;
   sources: FlowSource[];
