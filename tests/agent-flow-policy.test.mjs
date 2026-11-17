@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { extractFlowTickers, stripResearchProviderNames, gateFlowTrade, isTokenizedMarketQuestion, normalizeFlowAssessment, normalizeFlowAssessments, sourceOnlyAssessment, tokenizedMarketReview } from "../lib/agent-flow-policy.ts";
+import { readFile } from "node:fs/promises";
+import { buildFlowInstrumentDefinitions, extractFlowTickers, stripResearchProviderNames, gateFlowTrade, isTokenizedMarketQuestion, normalizeFlowAssessment, normalizeFlowAssessments, sourceOnlyAssessment, tokenizedMarketReview } from "../lib/agent-flow-policy.ts";
 
 const now = Date.now();
 const sources = [
@@ -16,6 +17,28 @@ test("rToken research scope requires explicit instrument wording or an rTicker",
   assert.equal(isTokenizedMarketQuestion("Review RNVDAUSDT liquidity", ["NVDA"]), true);
   assert.equal(isTokenizedMarketQuestion("Review the tokenized market for NVIDIA", ["NVDA"]), true);
   assert.equal(isTokenizedMarketQuestion("Is the NVDA stock market worth reviewing?", ["NVDA"]), false);
+});
+
+test("AI instrument context omits symbols for unavailable markets", () => {
+  const [definition] = buildFlowInstrumentDefinitions([{ ticker: "NVDA", issuer: "NVIDIA", perp: null, spot: null }], true);
+  assert.equal(definition.tokenizedSpot.available, false);
+  assert.equal("symbol" in definition.tokenizedSpot, false);
+  assert.equal(definition.stockPerpetual.available, false);
+  assert.equal("symbol" in definition.stockPerpetual, false);
+});
+
+test("AI instrument context includes only symbols verified in the market snapshot", () => {
+  const [definition] = buildFlowInstrumentDefinitions([{ ticker: "NVDA", issuer: "NVIDIA", perp: { symbol: "NVDAUSDT", providerTimestamp: now, lastPrice: 200 }, spot: { symbol: "RNVDAUSDT", name: "NVIDIA token", providerTimestamp: now, lastPrice: 201 } }], true);
+  assert.equal(definition.stockPerpetual.symbol, "NVDAUSDT");
+  assert.equal(definition.tokenizedSpot.symbol, "RNVDAUSDT");
+  assert.equal(definition.stockPerpetual.available, true);
+  assert.equal(definition.tokenizedSpot.available, true);
+});
+
+test("Agent Flow uses the verified instrument context builder in its provider prompt", async () => {
+  const route = await readFile(new URL("../app/api/research/agent-flow/route.ts", import.meta.url), "utf8");
+  assert.match(route, /instrumentDefinitions: buildFlowInstrumentDefinitions\(snapshots, tokenizedMarketQuestion\)/);
+  assert.doesNotMatch(route, /symbol: `R\$\{snap\.ticker\}USDT`|symbol: `\$\{snap\.ticker\}USDT`/);
 });
 
 test("source-only rToken research distinguishes issuer coverage from token-market evidence", () => {
