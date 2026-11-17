@@ -24,7 +24,7 @@ There is no symbol-construction fallback for product identity. A Reality token i
 
 `describeInstrumentFreshness` records the provider timestamp, the time it was evaluated, a stale window, and a future skew. The default window is 120 seconds, the value already on the Bitget market universe and in research quote gates. The default future skew is 60 seconds, the research quote gate. Nightwatch exit quotes keep a 5 second skew; pass `futureSkewMs: 5_000` to describe that observation. Status is `fresh`, `stale`, or `unverified`. A missing quote stays the caller's existing `unavailable` state.
 
-Research, replay, and paper gates still apply their own checks. This increment does not replace them.
+Research and paper gates apply the shared descriptor while retaining their established thresholds. Agent Flow uses the default 120-second stale window and 60-second future skew; the Nightwatch manual-exit check uses the same stale window with a five-second future skew. The caller still decides whether a missing quote is unavailable and whether a fresh quote is sufficient for its workflow. Historical replay remains tied to the archived data and manifest rather than a live-quote freshness test.
 
 ## Approved decisions · 17 November 2026
 

@@ -1,3 +1,5 @@
+import { describeInstrumentFreshness } from "./instrument-identity.ts";
+
 export type FlowSource = { title: string; url: string; publisher: string; publishedAt: string | null; via?: "Public feeds" | "AgentKey" | "Issuer primary source" | "Official source" | "Independent reporting" };
 export type FlowStance = "bullish" | "bearish" | "mixed" | "unclear";
 export type FlowEvidencePoint = { text: string; citedUrls: string[] };
@@ -34,13 +36,12 @@ export function sourceOnlyAssessment(input: { ticker: string; headlineCount: num
 /** Deterministic instrument-specific conclusion, independent of model prose. */
 export function tokenizedMarketReview(input: { ticker: string; spotSymbol: string | null; spotPrice: number | null; spotTimestamp: number | null; now: number }) {
   const quoteAvailable = Boolean(input.spotSymbol && typeof input.spotPrice === "number" && Number.isFinite(input.spotPrice) && input.spotPrice > 0);
-  const timestampKnown = typeof input.spotTimestamp === "number" && Number.isFinite(input.spotTimestamp) && input.spotTimestamp > 0 && input.spotTimestamp <= input.now + 60_000;
-  const quoteFresh = Boolean(quoteAvailable && timestampKnown && input.now - input.spotTimestamp! <= 120_000);
+  const freshness = describeInstrumentFreshness({ providerTimestampMs: input.spotTimestamp, evaluatedAtMs: input.now });
   return {
     verdict: !quoteAvailable
       ? `Not enough evidence for an r${input.ticker} market review: no verified tokenized-spot quote was returned.`
       : `Worth a closer due-diligence review; the available evidence does not establish r${input.ticker} tradability.`,
-    quoteStatus: !quoteAvailable ? "unavailable" as const : !timestampKnown ? "unverified" as const : quoteFresh ? "fresh" as const : "stale" as const,
+    quoteStatus: !quoteAvailable ? "unavailable" as const : freshness.status,
     limitations: ["Order-book liquidity and depth were not measured.", "Bid–ask spread was not measured.", "Premium or discount to the underlying was not measured."],
   };
 }
@@ -80,7 +81,8 @@ export function gateFlowTrade(input: FlowGateInput) {
   const publishers = new Set(recent.filter(source => cited.has(source.url)).map(source => source.publisher.trim().toLowerCase()).filter(Boolean));
   if (publishers.size < 2 || cited.size < 2) reasons.push("Fewer than two distinct, recent publishers are cited.");
   const validNow = Number.isFinite(input.now) && input.now > 0;
-  if (!validNow || !input.marketVerified || !Number.isFinite(input.marketTimestamp) || !input.marketTimestamp || input.marketTimestamp <= 0 || input.now - input.marketTimestamp > 120_000 || input.marketTimestamp > input.now + 60_000) reasons.push("The verified Bitget market price is unavailable or stale.");
+  const marketFreshness = describeInstrumentFreshness({ providerTimestampMs: input.marketTimestamp, evaluatedAtMs: input.now });
+  if (!validNow || !input.marketVerified || marketFreshness.status !== "fresh") reasons.push("The verified Bitget market price is unavailable or stale.");
   if (!validNow || !Number.isInteger(input.completedCandles) || input.completedCandles < 60 || !Number.isFinite(input.lastCompletedCandleEnd) || !input.lastCompletedCandleEnd || input.lastCompletedCandleEnd <= 0 || input.now - input.lastCompletedCandleEnd > 6 * 3_600_000 || input.lastCompletedCandleEnd > input.now) reasons.push("The completed Bitget candle series is incomplete or stale.");
   if (!Number.isFinite(input.assessment.confidence) || input.assessment.confidence < 0.75 || input.assessment.confidence > 1) reasons.push("Research confidence is below the 75% review threshold.");
   if (input.assessment.stance !== "bullish" && input.assessment.stance !== "bearish") reasons.push("The evidence does not support a directional scenario.");
