@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { composeIntelligenceBlocks, parseIntelligenceResult } from "../lib/intelligence-ui.ts";
+import { readFile } from "node:fs/promises";
+import { composeIntelligenceBlocks, intelligenceMarketActionLinks, parseIntelligenceResult } from "../lib/intelligence-ui.ts";
 
 const result = {
   researchRunId: "5405bd14-f2a9-4b56-9c48-4f35c774b7c0",
@@ -33,4 +34,21 @@ test("invalid, unsafe, or out of range payloads are rejected before rendering", 
   assert.equal(parseIntelligenceResult({ ...result, tradeable: true }), null);
   assert.equal(parseIntelligenceResult({ ...result, assets: [{ ...result.assets[0], handoff: { destinations: [{ mode: "live_spot", label: "Go", href: "https://evil.example" }], reason: "review" } }] }), null);
   assert.equal(parseIntelligenceResult({ ...result, assets: [{ ...result.assets[0], market: { ...result.assets[0].market, candles: [{ timestamp: 1, close: Infinity }] } }] }), null);
+});
+
+test("research market handoffs require an observed exchange symbol", () => {
+  assert.deepEqual(intelligenceMarketActionLinks(result.assets[0], result.researchRunId), {
+    strategy: "/strategies?symbol=NVDAUSDT&researchRunId=5405bd14-f2a9-4b56-9c48-4f35c774b7c0",
+    nightwatch: "/nightwatch?symbol=RNVDAUSDT&researchRunId=5405bd14-f2a9-4b56-9c48-4f35c774b7c0",
+  });
+  assert.deepEqual(intelligenceMarketActionLinks({ ...result.assets[0], market: { ...result.assets[0].market, perpSymbol: null, spotSymbol: null } }, result.researchRunId), {
+    strategy: null,
+    nightwatch: null,
+  });
+});
+
+test("Research result cards do not invent fallback market symbols for handoffs", async () => {
+  const component = await readFile(new URL("../app/ui/intelligence-results.tsx", import.meta.url), "utf8");
+  assert.match(component, /intelligenceMarketActionLinks\(asset, result\.researchRunId\)/);
+  assert.doesNotMatch(component, /asset\.ticker\}USDT|R\$\{asset\.ticker\}USDT/);
 });
