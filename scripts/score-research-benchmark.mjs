@@ -176,6 +176,8 @@ export function scoreBenchmark(benchmark) {
     if (!brief || typeof brief !== "object" || typeof brief.counterEvidencePresent !== "boolean") {
       errors.push(`${label}.brief.counterEvidencePresent must be true or false.`);
     }
+    const displayedText = typeof brief?.displayedText === "string" ? brief.displayedText : "";
+    if (!displayedText.trim()) errors.push(`${label}.brief.displayedText must contain the exact captured Tidelight output before review.`);
     if (review?.counterEvidenceInCapturedSources === true) {
       counterEvidenceExpected += 1;
       if (brief?.counterEvidencePresent === true) counterEvidenceCaptured += 1;
@@ -192,6 +194,7 @@ export function scoreBenchmark(benchmark) {
       const claimLabel = `${label}.claims[${claimIndex}]`;
       if (!claim || typeof claim !== "object") { errors.push(`${claimLabel} must be an object.`); continue; }
       if (typeof claim.text !== "string" || !claim.text.trim()) errors.push(`${claimLabel}.text is required.`);
+      else if (displayedText && !displayedText.includes(claim.text)) errors.push(`${claimLabel}.text must appear verbatim in the captured displayed output.`);
       if (!new Set(["factual", "analyst_inference"]).has(claim.kind)) errors.push(`${claimLabel}.kind must be factual or analyst_inference.`);
       const quote = typeof claim.quote === "string" ? claim.quote : "";
       if (!quote.trim()) errors.push(`${claimLabel}.quote is required.`);

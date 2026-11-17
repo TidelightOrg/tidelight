@@ -28,7 +28,7 @@ function event(index, options = {}) {
       resolution: { quoteMatch: "exact", entailment: "supported", sourceFit: "primary", interpretationBoundary: "sourced_fact", adjudicatorId: "a" },
     }],
     review: { counterEvidenceInCapturedSources: index === 0 },
-    brief: { counterEvidencePresent: index === 0 && options.counterEvidenceCaptured === true },
+    brief: { displayedText: `A factual claim for event ${index}`, counterEvidencePresent: index === 0 && options.counterEvidenceCaptured === true },
     ...options.overrides,
   };
 }
@@ -44,6 +44,20 @@ test("scores rates with raw counts and leaves empty counter-evidence denominator
   assert.deepEqual(result.metrics.counterEvidenceCoverage, { status: "measured", numerator: 0, denominator: 1, ratePct: 0 });
   assert.equal(result.metrics.sourceDiversity.meanDistinctDomainsPerEvent, 2);
   assert.deepEqual(result.metrics.taskTimeSeconds, { count: 10, median: 44.5, minimum: 40, maximum: 49 });
+});
+
+test("requires the exact displayed output and verifies every reviewed claim came from it", () => {
+  const missingOutput = completeBenchmark();
+  delete missingOutput.events[0].brief.displayedText;
+  const missingResult = scoreBenchmark(missingOutput);
+  assert.equal(missingResult.complete, false);
+  assert.ok(missingResult.errors.some(error => error.includes("brief.displayedText must contain the exact captured Tidelight output")));
+
+  const inventedClaim = completeBenchmark();
+  inventedClaim.events[0].claims[0].text = "Claim absent from the recorded report";
+  const inventedResult = scoreBenchmark(inventedClaim);
+  assert.equal(inventedResult.complete, false);
+  assert.ok(inventedResult.errors.some(error => error.includes("text must appear verbatim in the captured displayed output")));
 });
 
 test("allows protocol task time to remain explicitly unmeasured", () => {
@@ -154,6 +168,7 @@ test("frozen production captures expose operational observations without inventi
   const result = scoreBenchmark(frozen);
   assert.equal(result.complete, false);
   assert.equal(result.metrics, null);
+  assert.ok(result.errors.some(error => error.includes("brief.displayedText must contain the exact captured Tidelight output")), "the frozen repository record lacks full captured output and cannot enter claim-level review");
   assert.deepEqual(result.operationalObservations.captureCoverage, { status: "measured", numerator: 9, denominator: 10, ratePct: 90 });
   assert.equal(result.operationalObservations.unmatchedRunCaptures.length, 1);
   assert.equal(result.operationalObservations.unmatchedRunCaptures[0].reportedQuestion, "Federal Reserve January 2026 decision");
