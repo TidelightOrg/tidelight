@@ -65,6 +65,10 @@ export type DecisionRecordPaperDecision = { id: string; symbol: string; signal: 
 export type DecisionRecordSource = { id: string; title: string; publisher: string | null; sourceType: "web" | "market_data" | "filing" | "user_note"; href: string | null; publishedAt: string | null; retrievedAt: string };
 /** Owner-scoped claim summary. Supporting quotes are deliberately omitted. */
 export type DecisionRecordEvidence = { id: string; sourceId: string | null; source: { id: string; title: string; publisher: string | null; href: string | null } | null; claim: string; stance: "supports" | "contradicts" | "context"; confidence: number | null; createdAt: string };
+/** Bounded identity trace projected from the existing saved evidence graph. */
+export type DecisionRecordExposure = { id: string; ticker: string; name: string; subjectType: "issuer" | "macro_topic" };
+export type DecisionRecordInstrument = { id: string; symbol: string; marketType: "reality_tokenized_spot" | "us_stock_perpetual" };
+export type DecisionRecordGraph = { eventId: string; asOf: string; subjects: DecisionRecordExposure[]; instruments: DecisionRecordInstrument[] };
 /** One page of linked rows. `earlier` is the cursor for the next older page. */
 export type DecisionRecordList<T> = { items: T[]; earlier: string | null };
 /** Optional cursors. Each linked list pages on its own. */
@@ -76,6 +80,7 @@ export type DecisionRecord = {
   id: string;
   anchor: "research_run" | "decision_capsule";
   researchRun: DecisionRecordResearchRun | null;
+  evidenceGraph: DecisionRecordGraph | null;
   capsule: DecisionRecordCapsule | null;
   strategyBacktests: DecisionRecordList<DecisionRecordBacktest>;
   nightwatchSchedules: DecisionRecordList<DecisionRecordSchedule>;
@@ -247,6 +252,36 @@ function researchRun(data: Record<string, unknown>): DecisionRecordResearchRun {
   };
 }
 
+function graphIdentity(value: unknown, kinds: readonly string[]): string | null {
+  if (typeof value !== "string") return null;
+  const match = value.match(/^([a-z_]+):([0-9a-f]{24})$/i);
+  return match && kinds.includes(match[1]) ? value : null;
+}
+
+function evidenceGraph(value: unknown): DecisionRecordGraph | null {
+  const saved = object(value);
+  if (saved.version !== 1 || typeof saved.asOf !== "string" || !TIMESTAMP.test(saved.asOf) || !Array.isArray(saved.nodes)) return null;
+  const nodes = saved.nodes.map(object);
+  const event = nodes.find(node => node.type === "event");
+  const eventId = graphIdentity(event?.id, ["event"]);
+  if (!eventId) return null;
+  const subjects: DecisionRecordExposure[] = [];
+  const instruments: DecisionRecordInstrument[] = [];
+  for (const node of nodes) {
+    if (node.type === "subject" && subjects.length < 3) {
+      const id = graphIdentity(node.id, ["subject"]);
+      const ticker = typeof node.ticker === "string" && /^[A-Z0-9.]{1,16}$/.test(node.ticker) ? node.ticker : null;
+      const name = safeLabel(node.name, 120);
+      if (id && ticker && name && (node.subjectType === "issuer" || node.subjectType === "macro_topic")) subjects.push({ id, ticker, name, subjectType: node.subjectType });
+    } else if (node.type === "instrument" && instruments.length < 6) {
+      const id = graphIdentity(node.id, ["instrument"]);
+      const symbol = typeof node.symbol === "string" && /^[A-Z0-9.]{1,32}$/.test(node.symbol) ? node.symbol : null;
+      if (id && symbol && (node.marketType === "reality_tokenized_spot" || node.marketType === "us_stock_perpetual")) instruments.push({ id, symbol, marketType: node.marketType });
+    }
+  }
+  return { eventId, asOf: saved.asOf, subjects, instruments };
+}
+
 function capsule(data: Record<string, unknown>): DecisionRecordCapsule {
   return { id: uuid(data.id), createdAt: text(data.created_at, 80) };
 }
@@ -350,22 +385,22 @@ export function decisionRecordEarlierHref(id: string, cursors: DecisionRecordWin
 /** Read this owner's research, capsule, strategy, and Nightwatch ids. Does not copy snapshots or write. Returns null when this owner cannot see the id. */
 export async function resolveDecisionRecord(read: DecisionRecordRead, id: string, window: DecisionRecordWindow = {}): Promise<DecisionRecord | null> {
   if (!UUID.test(id)) return null;
-  const runRow = await single(read.user.from("research_runs").select("id,question,status,created_at").eq("id", id).eq("user_id", read.userId));
+  const runRow = await single(read.user.from("research_runs").select("id,question,status,created_at,evidence_graph:summary->evidenceGraph").eq("id", id).eq("user_id", read.userId));
   if (runRow) {
     const run = researchRun(runRow);
     const links = await linked(read, run.id, null, window);
-    return { schemaVersion: 1, id: run.id, anchor: "research_run", researchRun: run, ...links };
+    return { schemaVersion: 1, id: run.id, anchor: "research_run", researchRun: run, evidenceGraph: evidenceGraph(runRow.evidence_graph), ...links };
   }
 
   const capsuleRow = await single(read.capsules.from("decision_capsules").select("id,created_at,research_run_id").eq("id", id).eq("user_id", read.userId));
   if (!capsuleRow) return null;
   const saved = capsule(capsuleRow);
   if (capsuleRow.research_run_id == null) {
-    return { schemaVersion: 1, id: saved.id, anchor: "decision_capsule", researchRun: null, capsule: saved, strategyBacktests: emptyList(), nightwatchSchedules: emptyList(), paperDecisions: emptyList(), sources: emptyList(), evidence: emptyList() };
+    return { schemaVersion: 1, id: saved.id, anchor: "decision_capsule", researchRun: null, evidenceGraph: null, capsule: saved, strategyBacktests: emptyList(), nightwatchSchedules: emptyList(), paperDecisions: emptyList(), sources: emptyList(), evidence: emptyList() };
   }
-  const linkedRunRow = await single(read.user.from("research_runs").select("id,question,status,created_at").eq("id", uuid(capsuleRow.research_run_id)).eq("user_id", read.userId));
+  const linkedRunRow = await single(read.user.from("research_runs").select("id,question,status,created_at,evidence_graph:summary->evidenceGraph").eq("id", uuid(capsuleRow.research_run_id)).eq("user_id", read.userId));
   if (!linkedRunRow) return null;
   const run = researchRun(linkedRunRow);
   const links = await linked(read, run.id, saved, window);
-  return { schemaVersion: 1, id: run.id, anchor: "research_run", researchRun: run, ...links };
+  return { schemaVersion: 1, id: run.id, anchor: "research_run", researchRun: run, evidenceGraph: evidenceGraph(linkedRunRow.evidence_graph), ...links };
 }
