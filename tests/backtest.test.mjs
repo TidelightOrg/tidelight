@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { buildSignals, runBacktest, runCostSensitivity, runRandomEntryPlacebo, runWalkForward } from "../lib/backtest.ts";
+import { backtestMetricsMatch } from "../lib/backtest-result-integrity.ts";
 
 const FOUR_HOURS = 4 * 60 * 60 * 1000;
 const ONE_DAY = 24 * 60 * 60 * 1000;
@@ -40,6 +41,14 @@ test("runs a chronological holdout over at least 60 days with costs and a trade 
   assert.ok(result.validation.holdoutDays >= 30);
   assert.equal(result.validation.holdoutExcessReturnPct, result.test.totalReturnPct - result.test.buyAndHoldReturnPct);
   assert.ok(["outperformed_benchmark", "matched_benchmark", "underperformed_benchmark", "insufficient_trades"].includes(result.validation.verdict));
+});
+
+test("a deterministic replay matches its archived training and holdout metrics", () => {
+  const candles = fixture(540);
+  const result = runBacktest("RAAPLUSDT", "4H", candles, candles.at(-1).timestamp + FOUR_HOURS);
+  assert.equal(backtestMetricsMatch(result.train, result.train), true);
+  assert.equal(backtestMetricsMatch(result.test, result.test), true);
+  assert.equal(backtestMetricsMatch({ ...result.test, totalReturnPct: result.test.totalReturnPct + 1 }, result.test), false);
 });
 
 test("uses current Bitget-sized 4H history while preserving 30-day training and holdout windows", () => {
