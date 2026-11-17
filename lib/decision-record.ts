@@ -118,35 +118,29 @@ async function single(query: DecisionRecordQuery): Promise<Record<string, unknow
   return data === null ? null : row(data);
 }
 
-function before(query: DecisionRecordQuery, cursor: string | null | undefined, column: string) {
-  return cursor && TIMESTAMP.test(cursor) ? query.lt(column, cursor) : query;
-}
-
-async function many(query: DecisionRecordQuery, timestampColumn = "created_at"): Promise<{ rows: Record<string, unknown>[]; earlier: string | null }> {
-  const { data, error } = await query.order(timestampColumn, { ascending: false }).limit(LINK_LIMIT + 1);
-  if (error || !Array.isArray(data)) failRead(error);
-  const visible = data.slice(0, LINK_LIMIT).map(row);
-  return { rows: visible, earlier: data.length > LINK_LIMIT ? text(visible.at(-1)?.[timestampColumn], 80) : null };
-}
-
-function beforeSources(query: DecisionRecordQuery, cursor: string | null | undefined): DecisionRecordQuery {
+function before(query: DecisionRecordQuery, cursor: string | null | undefined, column: string): DecisionRecordQuery {
   if (!cursor) return query;
   const [timestamp, id, extra] = cursor.split("~");
   if (!TIMESTAMP.test(timestamp ?? "") || !UUID.test(id ?? "") || extra !== undefined) return query;
-  return query.or(`retrieved_at.lt.${timestamp},and(retrieved_at.eq.${timestamp},id.lt.${id})`);
+  return query.or(`${column}.lt.${timestamp},and(${column}.eq.${timestamp},id.lt.${id})`);
 }
 
-async function manySources(query: DecisionRecordQuery): Promise<{ rows: Record<string, unknown>[]; earlier: string | null }> {
-  const { data, error } = await query.order("retrieved_at", { ascending: false }).order("id", { ascending: false }).limit(LINK_LIMIT + 1);
+async function many(query: DecisionRecordQuery, timestampColumn = "created_at"): Promise<{ rows: Record<string, unknown>[]; earlier: string | null }> {
+  const { data, error } = await query.order(timestampColumn, { ascending: false }).order("id", { ascending: false }).limit(LINK_LIMIT + 1);
   if (error || !Array.isArray(data)) failRead(error);
   const visible = data.slice(0, LINK_LIMIT).map(row);
   const last = visible.at(-1);
-  const earlier = data.length > LINK_LIMIT && last ? `${text(last.retrieved_at, 80)}~${uuid(last.id)}` : null;
+  const earlier = data.length > LINK_LIMIT && last ? `${text(last[timestampColumn], 80)}~${uuid(last.id)}` : null;
   return { rows: visible, earlier };
 }
 
 function optionalText(value: unknown, max: number): string | null {
   return value == null || value === "" ? null : text(value, max);
+}
+
+function displayText(value: unknown, maxCodepoints: number): string {
+  if (typeof value !== "string" || value.length === 0) throw new DecisionRecordUnavailable();
+  return Array.from(value).slice(0, maxCodepoints).join("");
 }
 
 function sourceHref(value: unknown): string | null {
@@ -203,7 +197,7 @@ async function linked(read: DecisionRecordRead, researchRunId: string, saved: De
     many(before(read.user.from("strategy_backtest_runs").select("id,strategy_key,symbol,interval,created_at,market_category:parameters->>marketCategory").eq("user_id", read.userId).filter("parameters->>researchRunId", "ilike", researchRunId), window.strategiesBefore, "created_at")),
     many(before(read.user.from("nightwatch_schedules").select("id,label,symbol,playbook_key,enabled,created_at").eq("user_id", read.userId).eq("research_run_id", researchRunId), window.schedulesBefore, "created_at")),
     many(before(read.user.from("nightwatch_runs").select("id,symbol,signal,outcome,created_at").eq("user_id", read.userId).filter("snapshot->>researchRunId", "ilike", researchRunId), window.decisionsBefore, "created_at")),
-    manySources(beforeSources(read.user.from("research_sources").select("id,title,publisher,source_type,url,published_at,retrieved_at").eq("research_run_id", researchRunId), window.sourcesBefore)),
+    many(before(read.user.from("research_sources").select("id,title,publisher,source_type,url,published_at,retrieved_at").eq("research_run_id", researchRunId), window.sourcesBefore, "retrieved_at"), "retrieved_at"),
     many(before(read.user.from("research_evidence").select("id,source_id,claim,stance,confidence,created_at,source:research_sources!research_evidence_source_run_fkey(id,title,publisher,url)").eq("research_run_id", researchRunId), window.evidenceBefore, "created_at")),
   ]);
   return {
@@ -245,7 +239,7 @@ async function linked(read: DecisionRecordRead, researchRunId: string, saved: De
     sources: {
       items: sources.rows.map(item => ({
         id: uuid(item.id),
-        title: text(item.title, 300),
+        title: displayText(item.title, 300),
         publisher: optionalText(item.publisher, 120),
         sourceType: oneOf(item.source_type, ["web", "market_data", "filing", "user_note"]) as DecisionRecordSource["sourceType"],
         href: sourceHref(item.url),
@@ -259,7 +253,7 @@ async function linked(read: DecisionRecordRead, researchRunId: string, saved: De
         id: uuid(item.id),
         sourceId: item.source_id == null ? null : uuid(item.source_id),
         source: evidenceSource(item.source),
-        claim: text(item.claim, 1200),
+        claim: displayText(item.claim, 2000),
         stance: oneOf(item.stance, ["supports", "contradicts", "context"]) as DecisionRecordEvidence["stance"],
         confidence: confidence(item.confidence),
         createdAt: text(item.created_at, 80),
@@ -270,11 +264,7 @@ async function linked(read: DecisionRecordRead, researchRunId: string, saved: De
 }
 
 /** Accept only an ISO timestamp cursor. Any other value is ignored. */
-export function decisionRecordCursor(value: string | undefined): string | null {
-  return value && TIMESTAMP.test(value) ? value : null;
-}
-
-export function decisionRecordSourceCursor(value: string | undefined): string | null {
+export function decisionRecordCompositeCursor(value: string | undefined): string | null {
   if (!value) return null;
   const [timestamp, id, extra] = value.split("~");
   return TIMESTAMP.test(timestamp ?? "") && UUID.test(id ?? "") && extra === undefined ? value : null;

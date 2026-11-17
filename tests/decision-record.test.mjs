@@ -3,8 +3,8 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import {
   DecisionRecordUnavailable,
+  decisionRecordCompositeCursor,
   decisionRecordHref,
-  decisionRecordSourceCursor,
   resolveDecisionRecord,
 } from "../lib/decision-record.ts";
 
@@ -58,10 +58,10 @@ const forbiddenSelect = /original_snapshot|integrity_hash|(?:^|,)parameters(?:,|
 
 function matches(row, op, column, value) {
   if (op === "or") {
-    const cursor = value.match(/^retrieved_at\.lt\.(.+),and\(retrieved_at\.eq\.(.+),id\.lt\.([0-9a-f-]+)\)$/i);
+    const cursor = value.match(/^([a-z_]+)\.lt\.(.+),and\(\1\.eq\.(.+),id\.lt\.([0-9a-f-]+)\)$/i);
     if (!cursor) return false;
-    const retrievedAt = String(row.retrieved_at ?? "");
-    return retrievedAt < cursor[1] || (retrievedAt === cursor[2] && String(row.id) < cursor[3]);
+    const current = String(row[cursor[1]] ?? "");
+    return current < cursor[2] || (current === cursor[3] && String(row.id) < cursor[4]);
   }
   const current = column.includes("->>")
     ? row[column.split("->>")[0]]?.[column.split("->>")[1]]
@@ -81,7 +81,7 @@ function clientFor(source, calls, { fail } = {}) {
         eq(column, value) { state.filters.push(["eq", column, value]); return api; },
         lt(column, value) { state.filters.push(["lt", column, value]); return api; },
         filter(column, op, value) { state.filters.push([op, column, value]); return api; },
-        or(value) { state.filters.push(["or", "retrieved_at", value]); return api; },
+        or(value) { state.filters.push(["or", "", value]); return api; },
         order(column, options) { state.orders.push([column, options?.ascending !== false]); return api; },
         limit(count) { state.limit = count; return api; },
         insert() { throw new Error(`decision record must not write ${table}`); },
@@ -259,7 +259,7 @@ test("a futures backtest keeps its market, and older links stay reachable", asyn
     const first = await resolveDecisionRecord(readers(owner).store, runId);
     assert.equal(first.strategyBacktests.items.length, 50);
     assert.equal(first.strategyBacktests.items[0].marketCategory, "USDT-FUTURES");
-    assert.equal(first.strategyBacktests.earlier, rows.strategy_backtest_runs[49].created_at);
+    assert.equal(first.strategyBacktests.earlier, `${rows.strategy_backtest_runs[49].created_at}~${rows.strategy_backtest_runs[49].id}`);
     assert.equal(decisionRecordHref.strategy(runId, "NVDAUSDT", first.strategyBacktests.items[0].marketCategory), `/strategies?symbol=NVDAUSDT&researchRunId=${runId}&market=USDT-FUTURES`);
     const second = await resolveDecisionRecord(readers(owner).store, runId, { strategiesBefore: first.strategyBacktests.earlier });
     assert.deepEqual(second.strategyBacktests.items.map(item => item.id), [rows.strategy_backtest_runs[50].id]);
@@ -298,9 +298,9 @@ test("source captures and evidence claims use independent older-page cursors", a
     const sourceCursor = first.sources.earlier;
     const evidenceCursor = first.evidence.earlier;
     assert.equal(sourceCursor, `${rows.research_sources[49].retrieved_at}~${rows.research_sources[49].id}`);
-    assert.equal(decisionRecordSourceCursor(sourceCursor), sourceCursor);
-    assert.equal(decisionRecordSourceCursor("invalid"), null);
-    assert.equal(evidenceCursor, rows.research_evidence[49].created_at);
+    assert.equal(decisionRecordCompositeCursor(sourceCursor), sourceCursor);
+    assert.equal(decisionRecordCompositeCursor("invalid"), null);
+    assert.equal(evidenceCursor, `${rows.research_evidence[49].created_at}~${rows.research_evidence[49].id}`);
     const second = await resolveDecisionRecord(readers(owner).store, runId, { sourcesBefore: sourceCursor, evidenceBefore: evidenceCursor });
     assert.deepEqual(second.sources.items.map(item => item.id), [rows.research_sources[50].id]);
     assert.deepEqual(second.evidence.items.map(item => item.id), [rows.research_evidence[50].id]);
@@ -310,7 +310,7 @@ test("source captures and evidence claims use independent older-page cursors", a
   }
 });
 
-test("source pagination keeps same-batch timestamps reachable with a stable id tie-breaker", async () => {
+test("source citations stay reachable and resolvable when source rows share a batch timestamp", async () => {
   const saved = rows.research_sources;
   const savedEvidence = rows.research_evidence;
   const retrievedAt = "2026-11-02T14:00:00.000Z";
@@ -338,6 +338,38 @@ test("source pagination keeps same-batch timestamps reachable with a stable id t
   } finally { rows.research_sources = saved; rows.research_evidence = savedEvidence; }
 });
 
+test("same-batch evidence claims stay reachable with a stable id tie-breaker", async () => {
+  const saved = rows.research_evidence;
+  const createdAt = "2026-11-02T15:00:00.000Z";
+  rows.research_evidence = Array.from({ length: 51 }, (_, index) => ({
+    id: `78787878-7878-4787-8787-${String(index).padStart(12, "0")}`,
+    research_run_id: runId,
+    source_id: null,
+    claim: `Batch claim ${index}`,
+    stance: "context",
+    confidence: null,
+    created_at: createdAt,
+  }));
+  try {
+    const first = await resolveDecisionRecord(readers(owner).store, runId);
+    assert.equal(first.evidence.items.length, 50);
+    const cursor = first.evidence.earlier;
+    assert.equal(cursor, `${createdAt}~78787878-7878-4787-8787-000000000001`);
+    const second = await resolveDecisionRecord(readers(owner).store, runId, { evidenceBefore: cursor });
+    assert.deepEqual(second.evidence.items.map(item => item.id), [rows.research_evidence[0].id]);
+    assert.equal(second.evidence.earlier, null);
+  } finally { rows.research_evidence = saved; }
+});
+
+test("decision records display all saved evidence claims up to the existing 2,000-character limit", async () => {
+  const previous = rows.research_evidence[0].claim;
+  rows.research_evidence[0].claim = "C".repeat(2000);
+  try {
+    const record = await resolveDecisionRecord(readers(owner).store, runId);
+    assert.equal(record.evidence.items[0].claim.length, 2000);
+  } finally { rows.research_evidence[0].claim = previous; }
+});
+
 test("the decision record page only reads and the research result links to it", async () => {
   const [page, workspace, intelligence, flow, strategies, lab] = await Promise.all([
     readFile(new URL("../app/decisions/[id]/page.tsx", import.meta.url), "utf8"),
@@ -351,7 +383,7 @@ test("the decision record page only reads and the research result links to it", 
   assert.match(lab, /useState<AlphaMarketCategory>\(initialMarketCategory\)/);
   assert.match(page, /Earlier strategy backtests|decisionRecordEarlierHref|strategiesBefore/);
   assert.match(page, /sourcesBefore/);
-  assert.match(page, /decisionRecordSourceCursor/);
+  assert.match(page, /decisionRecordCompositeCursor/);
   assert.match(page, /evidenceBefore/);
   assert.match(page, /resolveDecisionRecord\(\{ userId: auth\.user\.id, user: records, capsules: records \}, id, cursors\)/);
   assert.match(page, /records = createAdminClient\(\)/);
