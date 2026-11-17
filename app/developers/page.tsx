@@ -130,17 +130,6 @@ export default function DevelopersPage() {
       <IntelligenceUiPreview />
     </section>
 
-    <section className="tic-core-render"><div className="tic-core-copy"><p className="tic-eyebrow">ONE SHARED INTELLIGENCE CORE</p><h2>Different interfaces.<br/><em>One source-aware foundation.</em></h2><p>The API and remote MCP server expose supported Tidelight capabilities through the same service boundaries. The developer console keeps keys, activity, and access under your account.</p><div className="tic-core-pills"><span>SHARED SERVICES</span><i/><span>SCOPED ACCESS</span><i/><span>VISIBLE ACTIVITY</span></div></div><Image src="/tic-intelligence-glass.webp" alt="Abstract translucent glass illustration of one central intelligence service connected to three developer interfaces" width={1536} height={1024} sizes="(max-width: 760px) 100vw, 50vw" className="tic-core-image" /></section>
-
-    <section className="tic-capabilities">
-      <div className="tic-section-heading"><p className="tic-eyebrow">A CONNECTED WORKFLOW</p><h2>One platform. Clear boundaries.</h2><p>Move from authorized requests to inspectable work, with the same access rules across interfaces.</p></div>
-      <div className="tic-capability-grid">
-        <article className="tic-capability-card tic-capability-featured"><span className="tic-card-index">01 / ACCESS</span><div className="tic-card-visual tic-access-visual"><i/><i/><i/><span>RESEARCH:READ</span></div><h3>Credentials with intent</h3><p>Project keys are scope-limited, shown once, stored as hashes, and can be rotated or revoked from your console.</p><Link href="https://tidelight.app/developers/console">Manage credentials <span aria-hidden="true">→</span></Link></article>
-        <article className="tic-capability-card"><span className="tic-card-index">02 / RESEARCH</span><div className="tic-card-visual tic-research-visual"><span>REQUEST</span><i/><span>JOB</span><i/><span>SNAPSHOT</span></div><h3>Long work, tracked</h3><p>Company research uses durable jobs with status, bounded retries, and explicit cancellation.</p><Link href="https://dev.tidelight.app#research">See research jobs <span aria-hidden="true">→</span></Link></article>
-        <article className="tic-capability-card"><span className="tic-card-index">03 / VISIBILITY</span><div className="tic-card-visual tic-usage-visual" role="img" aria-label="Illustrative chart treatment only; no live account activity is shown"><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/><i/></div><h3>Activity you can inspect</h3><p>Review actual authorized requests, timing, response status, credential history, and webhook delivery.</p><Link href="https://tidelight.app/developers/console">Open developer console <span aria-hidden="true">→</span></Link></article>
-      </div>
-    </section>
-
     <section className="tic-cta-band"><div><p className="tic-eyebrow">BUILD WITH TIDELIGHT</p><h2>Start with the service that fits your workflow.</h2><p>Set up a project, grant only what you need, then explore the live API or connect an MCP client.</p></div><div><Link href="https://tidelight.app/developers/console" className="tic-button tic-primary">Open developer console <span aria-hidden="true">→</span></Link><Link href="https://dev.tidelight.app#quickstart" className="tic-cta-text">Read the quickstart ↗</Link></div></section>
     <TidelightSignatureFooter surface="intelligence" />
   </main>;
