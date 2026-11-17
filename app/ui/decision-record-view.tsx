@@ -26,7 +26,16 @@ export function DecisionRecordView({ record, cursors }: { record: DecisionRecord
     <ol aria-label="Decision record">
       {record.researchRun ? <Entry href={null} title="Research run" meta={<><code>{record.researchRun.id}</code><span>{record.researchRun.status}</span><time dateTime={record.researchRun.createdAt}>{when(record.researchRun.createdAt)}</time></>} /> : null}
       {record.capsule ? <Entry href={decisionRecordHref.capsule(record.capsule.id)} title="Decision Capsule" meta={<><code>{record.capsule.id}</code><time dateTime={record.capsule.createdAt}>{when(record.capsule.createdAt)}</time></>} /> : null}
-      {record.strategyBacktests.items.map(item => <Entry key={item.id} href={runId ? decisionRecordHref.strategy(runId, item.symbol, item.marketCategory) : null} title={`${item.strategyKey} · ${item.symbol} · ${item.interval}`} meta={<><code>{item.id}</code><time dateTime={item.createdAt}>{when(item.createdAt)}</time></>} />)}
+      {record.strategyBacktests.items.map(item => <Entry key={item.id} href={runId ? decisionRecordHref.strategy(runId, item.symbol, item.marketCategory) : null} title={`${item.strategyKey} · ${item.assetName ?? item.symbol} · ${item.interval}`} meta={<>
+        <code>{item.id}</code><time dateTime={item.createdAt}>{when(item.createdAt)}</time>
+        <span>{item.assetKind ?? item.marketCategory} · {item.candleCount ?? "—"} candles · {when(item.dataStart)} – {when(item.dataEnd)}</span>
+        {item.feeBpsPerSide === null || item.slippageBpsPerSide === null ? <span>Replay costs unavailable</span> : <span>Assumed costs: {item.feeBpsPerSide} bps fee + {item.slippageBpsPerSide} bps slippage per side</span>}
+        {item.initialEquity === null ? null : <span>Starting equity ${item.initialEquity.toLocaleString("en-US", { maximumFractionDigits: 2 })}</span>}
+        {item.providerTimestamp === null ? null : <time dateTime={new Date(item.providerTimestamp).toISOString()}>Provider observation {when(new Date(item.providerTimestamp).toISOString())}</time>}
+        {item.candleFingerprint ? <span>Dataset SHA-256 <code>{item.candleFingerprint}</code></span> : <span>Dataset fingerprint unavailable</span>}
+        {item.manifestDigest ? <span>Experiment manifest SHA-256 <code>{item.manifestDigest}</code></span> : null}
+        {item.funding === "excluded" ? <span>Funding excluded</span> : null}
+      </>} />)}
       <Earlier id={record.id} cursors={cursors} name="strategiesBefore" earlier={record.strategyBacktests.earlier} title="Earlier strategy backtests" />
       {record.nightwatchSchedules.items.map(item => <Entry key={item.id} href={runId ? decisionRecordHref.nightwatch(runId, item.symbol) : null} title={`${item.label} · ${item.symbol}`} meta={<><code>{item.id}</code><span>{item.playbookKey}</span>{item.enabled ? null : <span>Disabled</span>}</>} />)}
       <Earlier id={record.id} cursors={cursors} name="schedulesBefore" earlier={record.nightwatchSchedules.earlier} title="Earlier Nightwatch schedules" />

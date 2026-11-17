@@ -33,7 +33,7 @@ const rows = {
     { id: orphanCapsule, user_id: owner, research_run_id: null, created_at: "2026-11-03T01:00:00.000Z", original_snapshot: { copied: true }, integrity_hash: "c".repeat(64) },
   ],
   strategy_backtest_runs: [
-    { id: backtestId, user_id: owner, strategy_key: "sma_trend_v1", symbol: "NVDAUSDT", interval: "4H", created_at: "2026-11-02T02:00:00.000Z", parameters: { researchRunId: runId.toUpperCase(), marketCategory: "SPOT", candles: [1], feeBpsPerSide: 10 }, train_metrics: { returnPct: 1 }, candles: [1] },
+    { id: backtestId, user_id: owner, strategy_key: "sma_trend_v1", symbol: "NVDAUSDT", interval: "4H", created_at: "2026-11-02T02:00:00.000Z", data_start: "2026-08-01T00:00:00.000Z", data_end: "2026-11-02T00:00:00.000Z", candle_count: 100, parameters: { researchRunId: runId.toUpperCase(), marketCategory: "SPOT", assetName: "NVIDIA", assetKind: "Reality rToken", candles: [1], feeBpsPerSide: 10, experimentManifest: { instrument: { assetName: "NVIDIA", assetKind: "Reality rToken" }, dataset: { providerTimestamp: 1793577600000, fingerprint: { value: "a".repeat(64) } }, execution: { initialEquity: 10000, feeBpsPerSide: 10, slippageBpsPerSide: 5, funding: "not_applicable" }, integrity: { manifestDigest: "b".repeat(64) } } }, train_metrics: { returnPct: 1 }, candles: [1] },
     { id: otherBacktest, user_id: other, strategy_key: "sma_trend_v1", symbol: "RNVDAUSDT", interval: "4H", created_at: "2026-11-02T02:00:00.000Z", parameters: { researchRunId: runId, candles: [1] }, candles: [9] },
   ],
   nightwatch_schedules: [
@@ -54,7 +54,7 @@ const rows = {
   ],
 };
 
-const forbiddenSelect = /original_snapshot|integrity_hash|(?:^|,)parameters(?:,|$)|(?:^|,)snapshot(?:,|$)|candles|train_metrics|test_metrics|summary|reason|reference_price|excerpt|supporting_quote|content_hash/;
+const forbiddenSelect = /original_snapshot|integrity_hash|(?:^|,)snapshot(?:,|$)|candles|train_metrics|test_metrics|summary|reason|reference_price|excerpt|supporting_quote|content_hash/;
 
 function matches(row, op, column, value) {
   if (op === "or") {
@@ -144,13 +144,15 @@ test("an owned research run resolves linked ids without copying stored payloads"
   assert.equal(record.schemaVersion, 1);
   assert.deepEqual(record.researchRun, { id: runId, question: "What changed for NVDA?", status: "complete", createdAt: "2026-11-02T00:00:00.000Z" });
   assert.deepEqual(record.capsule, { id: capsuleId, createdAt: "2026-11-02T01:00:00.000Z" });
-  assert.deepEqual(record.strategyBacktests, { items: [{ id: backtestId, strategyKey: "sma_trend_v1", symbol: "NVDAUSDT", interval: "4H", marketCategory: "SPOT", createdAt: "2026-11-02T02:00:00.000Z" }], earlier: null });
-  assert.ok(calls.some(call => call.table === "strategy_backtest_runs" && call.columns.includes("market_category:parameters->>marketCategory")));
+  assert.deepEqual(record.strategyBacktests, { items: [{ id: backtestId, strategyKey: "sma_trend_v1", symbol: "NVDAUSDT", interval: "4H", marketCategory: "SPOT", createdAt: "2026-11-02T02:00:00.000Z", assetName: "NVIDIA", assetKind: "Reality rToken", dataStart: "2026-08-01T00:00:00.000Z", dataEnd: "2026-11-02T00:00:00.000Z", candleCount: 100, providerTimestamp: 1793577600000, candleFingerprint: "a".repeat(64), manifestDigest: "b".repeat(64), initialEquity: 10000, feeBpsPerSide: 10, slippageBpsPerSide: 5, funding: "not_applicable" }], earlier: null });
+  assert.ok(calls.some(call => call.table === "strategy_backtest_runs" && call.columns.includes("market_category:parameters->>marketCategory") && call.columns.includes(",parameters,data_start,data_end,candle_count")));
   assert.deepEqual(record.nightwatchSchedules, { items: [{ id: scheduleId, label: "Daily review", symbol: "RNVDAUSDT", playbookKey: "sma_trend_v1", enabled: true }], earlier: null });
   assert.deepEqual(record.paperDecisions, { items: [{ id: paperId, symbol: "RNVDAUSDT", signal: "buy", outcome: "executed", createdAt: "2026-11-02T04:00:00.000Z" }], earlier: null });
   assert.deepEqual(record.sources, { items: [{ id: sourceId, title: "NVIDIA earnings release", publisher: "NVIDIA", sourceType: "filing", href: "https://investor.example/release", publishedAt: "2026-11-01T12:00:00.000Z", retrievedAt: "2026-11-02T00:02:00.000Z" }], earlier: null });
   assert.deepEqual(record.evidence, { items: [{ id: evidenceId, sourceId, source: { id: sourceId, title: "NVIDIA earnings release", publisher: "NVIDIA", href: "https://investor.example/release" }, claim: "Revenue guidance increased year over year.", stance: "supports", confidence: 0.875, createdAt: "2026-11-02T00:03:00.000Z" }], earlier: null });
   assert.equal("summary" in record.researchRun, false);
+  assert.equal(JSON.stringify(record).includes("experimentManifest"), false);
+  assert.equal(JSON.stringify(record).includes("researchRunId"), false);
   assert.equal(JSON.stringify(record).includes("original_snapshot"), false);
   assert.equal(JSON.stringify(record).includes("referencePrice"), false);
   assert.equal(JSON.stringify(record).includes("private quote"), false);
@@ -165,6 +167,18 @@ test("an owned research run resolves linked ids without copying stored payloads"
       assert.ok(call.filters.some(([op, column, value]) => op === "eq" && column === "user_id" && value === owner));
     }
   }
+});
+
+test("missing or malformed legacy replay assumptions remain visibly unavailable", async () => {
+  const previous = rows.strategy_backtest_runs[0].parameters;
+  rows.strategy_backtest_runs[0].parameters = { researchRunId: runId, marketCategory: "SPOT", feeBpsPerSide: -1, slippageBpsPerSide: "unknown" };
+  try {
+    const record = await resolveDecisionRecord(readers(owner).store, runId);
+    assert.equal(record.strategyBacktests.items[0].feeBpsPerSide, null);
+    assert.equal(record.strategyBacktests.items[0].slippageBpsPerSide, null);
+    assert.equal(record.strategyBacktests.items[0].candleFingerprint, null);
+    assert.equal(record.strategyBacktests.items[0].manifestDigest, null);
+  } finally { rows.strategy_backtest_runs[0].parameters = previous; }
 });
 
 test("another account's run, capsule, backtest, schedule, and paper decision stay hidden", async () => {
@@ -253,6 +267,9 @@ test("a futures backtest keeps its market, and older links stay reachable", asyn
     symbol: "NVDAUSDT",
     interval: "1H",
     created_at: new Date(Date.UTC(2026, 10, 2, 12, 0, 0) - index * 1000).toISOString(),
+    data_start: "2026-10-01T00:00:00.000Z",
+    data_end: "2026-11-02T00:00:00.000Z",
+    candle_count: 100,
     parameters: { researchRunId: runId, marketCategory: "USDT-FUTURES", candles: [1] },
   }));
   try {
@@ -402,6 +419,8 @@ test("the decision record page only reads and the research result links to it", 
   const decisionView = await readFile(new URL("../app/ui/decision-record-view.tsx", import.meta.url), "utf8");
   assert.match(decisionView, /Research sources/);
   assert.match(decisionView, /Evidence claims/);
+  assert.match(decisionView, /Assumed costs/);
+  assert.match(decisionView, /candleFingerprint/);
   assert.match(decisionView, /rel: "noreferrer noopener"/);
   assert.match(decisionView, /item\.source\.title/);
 });
