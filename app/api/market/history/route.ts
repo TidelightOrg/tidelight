@@ -13,6 +13,7 @@ export async function GET(request: Request) {
   }
   const fourHours = 4 * 60 * 60 * 1000;
   const receivedAt = Date.now();
-  const completed = candles.filter((candle) => candle.timestamp + fourHours <= receivedAt);
-  return NextResponse.json({ source: "Bitget", marketCategory: "SPOT", symbol, interval: "4H", providerTimestamp: completed.find(candle => candle.providerTimestamp)?.providerTimestamp ?? null, receivedAt, timestampTimezone: "UTC", candleFinality: "closed", candles: completed.map((candle) => ({ t: candle.timestamp, c: candle.close, providerTimestamp: candle.providerTimestamp ?? null, finality: "closed" })) }, { headers: { "Cache-Control": "no-store" } });
+  const providerTimestamp = candles.find(candle => candle.providerTimestamp != null)?.providerTimestamp ?? null;
+  const completed = candles.filter((candle) => candle.providerTimestamp != null && candle.timestamp + fourHours <= candle.providerTimestamp && candle.timestamp + fourHours <= receivedAt);
+  return NextResponse.json({ source: "Bitget", marketCategory: "SPOT", symbol, interval: "4H", providerTimestamp, receivedAt, timestampTimezone: "UTC", candleFinality: providerTimestamp == null ? "unverified" : "provider_timestamp_checked", candles: completed.map((candle) => ({ t: candle.timestamp, c: candle.close, providerTimestamp: candle.providerTimestamp, finality: "verified_closed" })) }, { headers: { "Cache-Control": "no-store" } });
 }

@@ -24,11 +24,23 @@ test("market history labels its source, UTC receipt, and finalized candles", asy
   assert.equal(result.marketCategory, "SPOT");
   assert.equal(result.interval, "4H");
   assert.equal(result.timestampTimezone, "UTC");
-  assert.equal(result.candleFinality, "closed");
+  assert.equal(result.candleFinality, "provider_timestamp_checked");
   assert.equal(result.providerTimestamp, 1_800_000_000_000);
   assert.equal(result.candles.length, 1);
-  assert.equal(result.candles[0].finality, "closed");
+  assert.equal(result.candles[0].finality, "verified_closed");
   assert.ok(result.candles[0].t + step <= result.receivedAt);
+  assert.ok(result.candles[0].t + step <= result.candles[0].providerTimestamp);
+});
+
+test("a cached response clock before candle close cannot mark the candle finalized", async () => {
+  const now = Date.now();
+  const step = 4 * 60 * 60 * 1000;
+  globalThis.marketHistoryFixtures = [{ timestamp: now - step - 10_000, close: 100, providerTimestamp: now - 60_000 }];
+  const response = await GET(new Request("https://tidelight.app/api/market/history?symbol=RNVDAUSDT"));
+  const result = await response.json();
+  assert.equal(response.status, 200);
+  assert.equal(result.candles.length, 0, "the cached provider observation predates the candle close");
+  assert.equal(result.candleFinality, "provider_timestamp_checked");
 });
 
 test("market history reports provider outages instead of an empty successful series", async () => {
