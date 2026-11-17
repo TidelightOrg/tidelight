@@ -18,7 +18,7 @@ Canonical kinds are the decision-capsule names `us_equity`, `reality_token`, and
 
 `linkCanonicalInstrument` requires the caller to name the leg. `RNVDAUSDT` matches both the Reality token pattern and the perpetual pattern. `NVDAUSDT` matches both `us_equity` and `us_stock_perpetual`. The symbol string does not choose the product.
 
-`conventionalBitgetIdentity` spells the Bitget symbols the app already uses: `R{TICKER}USDT` and `{TICKER}USDT`. That spelling is not a listing, a quote, or permission to treat the legs as the same price. `getBitgetStockPerp` still accepts only `STOCK_PERP_UNIVERSE`.
+There is no symbol-construction fallback for product identity. A Reality token is exposed only when the provider catalog marks a listed symbol as Reality spot and supplies its underlying ticker. Stock perpetuals remain limited to provider-confirmed members of `STOCK_PERP_UNIVERSE`. A familiar spelling is not proof of a listing.
 
 ## Freshness
 
@@ -26,16 +26,17 @@ Canonical kinds are the decision-capsule names `us_equity`, `reality_token`, and
 
 Research, replay, and paper gates still apply their own checks. This increment does not replace them.
 
-## Call sites
+## Approved decisions · 17 November 2026
 
-Decision-capsule forecast validation uses these symbol patterns instead of a second copy. Company snapshots use `canonicalKindForMarketAsset` for the existing Reality-spot and stored-perpetual filters. Response fields are unchanged.
+1. **Catalog confirmation:** only provider-returned instrument rows with a valid type and underlying may form a Reality or perpetual leg. Missing, stale, or ambiguous catalog data leaves the leg unavailable. Do not generate an rToken or perpetual symbol from a ticker.
+2. **Stored types:** retain legacy `kind` strings in persisted rows for compatibility. Map them to canonical kinds at read boundaries; do not add a migration to rewrite history.
+3. **Time windows:** preserve the 120 second quote stale window, the 60 second research future-skew allowance, and the 5 second Nightwatch future-skew allowance. Keep the windows separate until measurements support changing them. Record provider time and local receipt/evaluation time in UTC when a data contract supports both.
+4. **Issuer identity:** use a normalized SEC CIK as the stable issuer ID when verified. Keep each ticker as a distinct instrument identity; GOOG and GOOGL may share an issuer ID while remaining separate equity instruments. Treat ETFs as US equity instruments with a fund issuer type when the issuer record confirms it. Never fabricate a CIK or mapping.
+5. **Unsupported symbols:** do not infer a BRK.B perpetual symbol. Add it only after the provider catalog supplies an exact live contract and the model accepts its actual format.
+6. **Persistence:** keep the identity contract in memory and reference existing run/source/instrument IDs. Add no identity or Decision Record table unless a demonstrated query or retention requirement cannot be served by the existing records.
 
-## Open questions
+Decision-capsule forecast validation uses these symbol patterns instead of a second copy. Company snapshots use `canonicalKindForMarketAsset` for the existing Reality-spot and stored-perpetual filters. Exposure lookup now requires the live catalog and does not fall back to a hard-coded product symbol. This increment does not unify separate quote, candle, TIC, evidence-graph, and strategy data models.
 
-1. Should `R{TICKER}USDT` and `{TICKER}USDT` be the canonical spellings, or should a leg exist only after the live Bitget catalog returns it? Agent Flow and the exposure map still spell the rToken inline.
-2. Should `getBitgetStockPerp` stop storing `kind: "rtoken"`? Saved backtests and the company snapshot still read that string.
-3. Should one freshness window replace the research 60 second skew and the Nightwatch 5 second skew, or do those stay separate?
-4. Provider received time, timezone, session, currency, candle finality, and contract status are still the market-data contract in the roadmap. This descriptor does not include them.
-5. Are ETFs in `STOCK_PERP_UNIVERSE`, such as QQQ, `us_equity`? The capsule pattern accepts them.
-6. `BRK.B` fits `us_equity` and `reality_token` (`RBRK.BUSDT`) and does not fit `us_stock_perpetual`, because that pattern rejects the dot. What is the perpetual symbol?
-7. GOOG and GOOGL are one issuer and two tickers. This identity is one underlying ticker, not an issuer id.
+## Next implementation gate
+
+Complete the additive market-data observation contract for received timestamp, timezone, currency, session, candle finality, and contract status after confirming which fields the current provider endpoints actually return. Unknown values remain `null`/unavailable; no values are inferred from a ticker or display name.
