@@ -300,6 +300,7 @@ test("source captures and evidence claims use independent older-page cursors", a
     assert.equal(sourceCursor, `${rows.research_sources[49].retrieved_at}~${rows.research_sources[49].id}`);
     assert.equal(decisionRecordCompositeCursor(sourceCursor), sourceCursor);
     assert.equal(decisionRecordCompositeCursor("invalid"), null);
+    assert.equal(decisionRecordCompositeCursor([sourceCursor, sourceCursor]), null);
     assert.equal(evidenceCursor, `${rows.research_evidence[49].created_at}~${rows.research_evidence[49].id}`);
     const second = await resolveDecisionRecord(readers(owner).store, runId, { sourcesBefore: sourceCursor, evidenceBefore: evidenceCursor });
     assert.deepEqual(second.sources.items.map(item => item.id), [rows.research_sources[50].id]);

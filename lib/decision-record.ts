@@ -264,8 +264,8 @@ async function linked(read: DecisionRecordRead, researchRunId: string, saved: De
 }
 
 /** Accept only an ISO timestamp cursor. Any other value is ignored. */
-export function decisionRecordCompositeCursor(value: string | undefined): string | null {
-  if (!value) return null;
+export function decisionRecordCompositeCursor(value: string | string[] | undefined): string | null {
+  if (typeof value !== "string" || !value) return null;
   const [timestamp, id, extra] = value.split("~");
   return TIMESTAMP.test(timestamp ?? "") && UUID.test(id ?? "") && extra === undefined ? value : null;
 }

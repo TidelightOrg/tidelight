@@ -14,7 +14,7 @@ function unavailable() {
   return <main className="content-wrap inner-page decision-record"><h1>Decision record</h1><p role="alert">This record could not be loaded.</p></main>;
 }
 
-export default async function DecisionRecordPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ strategiesBefore?: string; schedulesBefore?: string; decisionsBefore?: string; sourcesBefore?: string; evidenceBefore?: string }> }) {
+export default async function DecisionRecordPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ strategiesBefore?: string | string[]; schedulesBefore?: string | string[]; decisionsBefore?: string | string[]; sourcesBefore?: string | string[]; evidenceBefore?: string | string[] }> }) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
   const cursors = { strategiesBefore: decisionRecordCompositeCursor(query.strategiesBefore), schedulesBefore: decisionRecordCompositeCursor(query.schedulesBefore), decisionsBefore: decisionRecordCompositeCursor(query.decisionsBefore), sourcesBefore: decisionRecordCompositeCursor(query.sourcesBefore), evidenceBefore: decisionRecordCompositeCursor(query.evidenceBefore) };
   if (!UUID.test(id)) notFound();
