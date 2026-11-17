@@ -21,10 +21,22 @@ const scheduleId = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
 const paperId = "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
 const sourceId = "eeeeeeee-eeee-4eee-8eee-eeeeeeeeeeee";
 const evidenceId = "ffffffff-ffff-4fff-8fff-ffffffffffff";
+const graphEventId = "event:111111111111111111111111";
+const graphSubjectId = "subject:222222222222222222222222";
+const graphInstrumentId = "instrument:333333333333333333333333";
+
+function savedGraph() {
+  return { evidenceGraph: { version: 1, asOf: "2026-11-02T00:01:00.000Z", nodes: [
+    { id: graphEventId, type: "event", question: "private question", asOf: "2026-11-02T00:01:00.000Z" },
+    { id: graphSubjectId, type: "subject", subjectType: "issuer", ticker: "NVDA", name: "NVIDIA" },
+    { id: graphInstrumentId, type: "instrument", symbol: "RNVDAUSDT", marketType: "reality_tokenized_spot", lastPrice: 123, availability: "observed" },
+    { id: "source:" + "a".repeat(24), type: "source", excerpt: "private excerpt" },
+  ] } };
+}
 
 const rows = {
   research_runs: [
-    { id: runId, user_id: owner, question: "What changed for NVDA?", status: "complete", created_at: "2026-11-02T00:00:00.000Z", summary: { secret: true } },
+    { id: runId, user_id: owner, question: "What changed for NVDA?", status: "complete", created_at: "2026-11-02T00:00:00.000Z", summary: { secret: true, ...savedGraph() } },
     { id: otherRun, user_id: other, question: "Other account", status: "complete", created_at: "2026-11-02T00:00:00.000Z", summary: { secret: true } },
   ],
   decision_capsules: [
@@ -54,7 +66,7 @@ const rows = {
   ],
 };
 
-const forbiddenSelect = /original_snapshot|integrity_hash|(?:^|,)snapshot(?:,|$)|candles|train_metrics|test_metrics|summary|reason|reference_price|excerpt|supporting_quote|content_hash/;
+const forbiddenSelect = /original_snapshot|integrity_hash|(?:^|,)snapshot(?:,|$)|candles|train_metrics|test_metrics|reason|reference_price|excerpt|supporting_quote|content_hash/;
 
 function matches(row, op, column, value) {
   if (op === "or") {
@@ -96,8 +108,8 @@ function clientFor(source, calls, { fail } = {}) {
         const projection = state.columns.replace("source:research_sources!research_evidence_source_run_fkey(id,title,publisher,url)", "source:research_sources!research_evidence_source_run_fkey");
         for (const part of projection.split(",")) {
           const piece = part.trim();
-          const alias = piece.match(/^([A-Za-z_][A-Za-z0-9_]*):([A-Za-z_][A-Za-z0-9_]*)->>(([A-Za-z_][A-Za-z0-9_]*))$/);
-          if (alias) out[alias[1]] = row[alias[2]]?.[alias[3]] ?? null;
+          const alias = piece.match(/^([A-Za-z_][A-Za-z0-9_]*):([A-Za-z_][A-Za-z0-9_]*)(->>|->)([A-Za-z_][A-Za-z0-9_]*)$/);
+          if (alias) out[alias[1]] = row[alias[2]]?.[alias[4]] ?? null;
           else if (piece === "source:research_sources!research_evidence_source_run_fkey") {
             const source = rows.research_sources?.find(item => item.id === row.source_id && item.research_run_id === row.research_run_id);
             out.source = source ? { id: source.id, title: source.title, publisher: source.publisher, url: source.url } : null;
@@ -143,6 +155,8 @@ test("an owned research run resolves linked ids without copying stored payloads"
   assert.equal(record.anchor, "research_run");
   assert.equal(record.schemaVersion, 1);
   assert.deepEqual(record.researchRun, { id: runId, question: "What changed for NVDA?", status: "complete", createdAt: "2026-11-02T00:00:00.000Z" });
+  assert.deepEqual(record.evidenceGraph, { eventId: graphEventId, asOf: "2026-11-02T00:01:00.000Z", subjects: [{ id: graphSubjectId, ticker: "NVDA", name: "NVIDIA", subjectType: "issuer" }], instruments: [{ id: graphInstrumentId, symbol: "RNVDAUSDT", marketType: "reality_tokenized_spot" }] });
+  assert.ok(calls.some(call => call.table === "research_runs" && call.columns === "id,question,status,created_at,evidence_graph:summary->evidenceGraph"));
   assert.deepEqual(record.capsule, { id: capsuleId, createdAt: "2026-11-02T01:00:00.000Z" });
   assert.deepEqual(record.strategyBacktests, { items: [{ id: backtestId, strategyKey: "sma_trend_v1", symbol: "NVDAUSDT", interval: "4H", marketCategory: "SPOT", createdAt: "2026-11-02T02:00:00.000Z", assetName: "NVIDIA", assetKind: "Reality rToken", dataStart: "2026-08-01T00:00:00.000Z", dataEnd: "2026-11-02T00:00:00.000Z", candleCount: 100, providerTimestamp: 1793577600000, candleFingerprint: "a".repeat(64), manifestDigest: "b".repeat(64), initialEquity: 10000, feeBpsPerSide: 10, slippageBpsPerSide: 5, funding: "not_applicable" }], earlier: null });
   assert.ok(calls.some(call => call.table === "strategy_backtest_runs" && call.columns.includes("market_category:parameters->>marketCategory") && call.columns.includes(",parameters,data_start,data_end,candle_count")));
@@ -151,6 +165,8 @@ test("an owned research run resolves linked ids without copying stored payloads"
   assert.deepEqual(record.sources, { items: [{ id: sourceId, title: "NVIDIA earnings release", publisher: "NVIDIA", sourceType: "filing", href: "https://investor.example/release", publishedAt: "2026-11-01T12:00:00.000Z", retrievedAt: "2026-11-02T00:02:00.000Z" }], earlier: null });
   assert.deepEqual(record.evidence, { items: [{ id: evidenceId, sourceId, source: { id: sourceId, title: "NVIDIA earnings release", publisher: "NVIDIA", href: "https://investor.example/release" }, claim: "Revenue guidance increased year over year.", stance: "supports", confidence: 0.875, createdAt: "2026-11-02T00:03:00.000Z" }], earlier: null });
   assert.equal("summary" in record.researchRun, false);
+  assert.equal(JSON.stringify(record).includes("private excerpt"), false);
+  assert.equal(JSON.stringify(record).includes("123"), false);
   assert.equal(JSON.stringify(record).includes("experimentManifest"), false);
   assert.equal(JSON.stringify(record).includes("researchRunId"), false);
   assert.equal(JSON.stringify(record).includes("original_snapshot"), false);

@@ -25,6 +25,11 @@ export function DecisionRecordView({ record, cursors }: { record: DecisionRecord
     <h1>{record.researchRun?.question ?? "Decision record"}</h1>
     <ol aria-label="Decision record">
       {record.researchRun ? <Entry href={null} title="Research run" meta={<><code>{record.researchRun.id}</code><span>{record.researchRun.status}</span><time dateTime={record.researchRun.createdAt}>{when(record.researchRun.createdAt)}</time></>} /> : null}
+      {record.evidenceGraph ? <>
+        <Entry href={null} title="Evidence graph event" meta={<><code>{record.evidenceGraph.eventId}</code><time dateTime={record.evidenceGraph.asOf}>Captured {when(record.evidenceGraph.asOf)}</time></>} />
+        {record.evidenceGraph.subjects.map(subject => <Entry key={subject.id} href={null} title={`${subject.name} · ${subject.ticker}`} meta={<><span>{subject.subjectType === "macro_topic" ? "Macro topic" : "Issuer"}</span><code>{subject.id}</code></>} />)}
+        {record.evidenceGraph.instruments.map(instrument => <Entry key={instrument.id} href={null} title={instrument.symbol} meta={<><span>{instrument.marketType === "reality_tokenized_spot" ? "Reality tokenized spot" : "US stock perpetual"}</span><code>{instrument.id}</code></>} />)}
+      </> : null}
       {record.capsule ? <Entry href={decisionRecordHref.capsule(record.capsule.id)} title="Decision Capsule" meta={<><code>{record.capsule.id}</code><time dateTime={record.capsule.createdAt}>{when(record.capsule.createdAt)}</time></>} /> : null}
       {record.strategyBacktests.items.map(item => <Entry key={item.id} href={decisionRecordHref.savedStrategyRun(item.id)} title={`${item.strategyKey} · ${item.assetName ?? item.symbol} · ${item.interval}`} meta={<>
         <code>{item.id}</code><time dateTime={item.createdAt}>{when(item.createdAt)}</time>
