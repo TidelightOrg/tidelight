@@ -63,6 +63,9 @@
       "observation": null
     },
     "review": { "counterEvidenceInCapturedSources": false },
-    "brief": { "counterEvidencePresent": false }
+    "brief": {
+      "displayedText": "Paste the exact complete Tidelight output captured for this event before review. Preserve displayed claims, citations, counter-evidence, and limitations verbatim.",
+      "counterEvidencePresent": false
+    }
   }
 }

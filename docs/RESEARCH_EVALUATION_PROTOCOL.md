@@ -18,6 +18,8 @@ Use events with a clear public record. Exclude rumors, paywalled claims that can
 
 ## Reviewer labels
 
+Before review, preserve the exact complete Tidelight output for each frozen event in `brief.displayedText`, including claim wording, citations, counter-evidence, and limitations. Copy each reviewed claim's `text` verbatim from that captured output. The scorer rejects missing output text and claims that cannot be found in it. Keep the capture separate from the human-authored reference note; the note is not a substitute for the output.
+
 Two reviewers label each displayed claim independently:
 
 1. **Quote match:** exact, substantially exact, or unsupported.
@@ -59,7 +61,7 @@ Current implementation supports up to three fetched public sources in Mini and u
 
 ## Reproducible scoring
 
-Copy `docs/benchmarks/research-benchmark-template.json`, replace the example with the frozen event set, and preserve two independent reviewer labels plus the resolved adjudication for every claim. Include exact captured passages when a source was accessible. The scorer rejects incomplete review sets and does not convert an empty denominator into a 0% score.
+Copy `docs/benchmarks/research-benchmark-template.json`, replace the example with the frozen event set, preserve the exact displayed output, and retain two independent reviewer labels plus the resolved adjudication for every claim. Include exact captured source passages when accessible. The scorer verifies that each claim text occurs verbatim in the captured output, rejects incomplete review sets, and does not convert an empty denominator into a 0% score.
 
 Reviewer identifiers must be nonempty and distinct after trimming whitespace. An adjudicated `exact` quote must appear verbatim in the accessible captured source text; use a different reviewer label where the passage is paraphrased or unavailable. These checks validate the record, but cannot establish reviewers' real-world independence or verify a source's truth.
 
