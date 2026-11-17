@@ -54,8 +54,15 @@ export function apiError(status: number, code: string, message: string, requestI
   return Response.json({ error: { code, message, request_id: requestId } }, { status, headers: { "Cache-Control": "no-store", "X-Request-Id": requestId } });
 }
 
+function requestIdFor(request: Request) {
+  const requestId = request.headers.get("x-tidelight-request-id");
+  return requestId && /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(requestId)
+    ? requestId
+    : crypto.randomUUID();
+}
+
 export async function authorizeDeveloperRequest(request: Request, endpoint: string, scope = MARKET_SCOPE) {
-  const requestId = crypto.randomUUID();
+  const requestId = requestIdFor(request);
   let credential: Awaited<ReturnType<typeof resolveDeveloperCredential>>;
   try {
     credential = await resolveDeveloperCredential(request, scope);
