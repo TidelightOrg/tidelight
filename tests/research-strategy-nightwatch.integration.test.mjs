@@ -25,7 +25,7 @@ function queryFor(table) {
     update(values) { captures.research.push({ table, operation: "update", values }); return this; },
     eq() { return this; }, gte() { return this; }, limit() { return this; },
     single() { return Promise.resolve({ data: { id: researchId }, error: null }); },
-    maybeSingle() { return Promise.resolve({ data: table === "research_runs" ? { id: researchId, question: "Synthetic NVDA evidence fixture", summary: { assets: [{ ticker: "NVDA", summary: "Synthetic fixture assessment." }] }, status: "complete" } : table === "nightwatch_preferences" ? { playbook_key: "sma_trend_v1", alert_on_signal: false, alert_on_fill: false } : null, error: null }); },
+    maybeSingle() { return Promise.resolve({ data: table === "research_runs" ? { id: researchId, question: "Synthetic NVDA evidence fixture", summary: globalThis.flowTest.savedResearchSummary ?? { assets: [{ ticker: "NVDA", summary: "Synthetic fixture assessment." }] }, status: "complete" } : table === "nightwatch_preferences" ? { playbook_key: "sma_trend_v1", alert_on_signal: false, alert_on_fill: false } : null, error: null }); },
     then(resolve, reject) {
       const result = table === "research_runs" && this.columns === "id" ? { count: 0, error: null } : { data: [], error: null };
       return Promise.resolve(result).then(resolve, reject);
@@ -90,6 +90,7 @@ const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
   if (specifier === "@/lib/research-source-limits") return { url: new URL("../lib/research-source-limits.js", import.meta.url).href, shortCircuit: true };
   if (specifier === "@/lib/agent-flow-policy") return { url: new URL("../lib/agent-flow-policy.ts", import.meta.url).href, shortCircuit: true };
   if (specifier === "@/lib/evidence-graph") return { url: new URL("../lib/evidence-graph.ts", import.meta.url).href, shortCircuit: true };
+  if (specifier === "@/lib/backtest-manifest") return { url: new URL("../lib/backtest-manifest.ts", import.meta.url).href, shortCircuit: true };
   if (specifier === "@/lib/nightwatch-exit-quote") return { url: new URL("../lib/nightwatch-exit-quote.ts", import.meta.url).href, shortCircuit: true };
   return nextResolve(specifier, context);
 } });
@@ -174,7 +175,23 @@ test("synthetic positive handoff preserves lineage through Research → paper St
   assert.equal(research.assets[0].sources[0].publisher, "SEC EDGAR", "primary SEC evidence remains available within downstream source caps");
   assert.ok(captures.research.find(row => row.table === "research_sources")?.rows.some(source => source.publisher === "SEC EDGAR"), "SEC citations are persisted alongside the run");
   assert.equal(research.assets[0].handoff.destinations[0].mode, "paper_futures");
+  assert.equal(research.assets[0].marketObservation.interval, "4H");
+  assert.equal(research.assets[0].marketObservation.candleFinality, "closed_by_interval_at_capture");
+  assert.match(research.assets[0].marketObservationDigest, /^[a-f0-9]{64}$/);
   assert.ok(research.assets[0].handoff.destinations[0].href.includes("researchRunId=d475bd46-5035-4ae5-9f19-e2959a4f0734"));
+
+  globalThis.flowTest.savedResearchSummary = { assets: [{ ...research.assets[0] }] };
+  const reopenedResponse = await researchRoute.GET(new Request(`https://tidelight.app/api/research/agent-flow?id=${researchId}`));
+  assert.equal(reopenedResponse.status, 200);
+  const reopened = await reopenedResponse.json();
+  assert.equal(reopened.summary.assets[0].marketObservationStatus, "verified");
+  assert.equal(reopened.summary.assets[0].marketObservationDigest, research.assets[0].marketObservationDigest);
+  globalThis.flowTest.savedResearchSummary.assets[0].marketObservationDigest = "0".repeat(64);
+  const tamperedResponse = await researchRoute.GET(new Request(`https://tidelight.app/api/research/agent-flow?id=${researchId}`));
+  const tampered = await tamperedResponse.json();
+  assert.equal(tampered.summary.assets[0].marketObservationStatus, "unverified");
+  assert.equal("marketObservation" in tampered.summary.assets[0], false, "tampered saved snapshots are withheld on reopen");
+  globalThis.flowTest.savedResearchSummary = null;
 
   const strategyResponse = await strategyRoute.POST(new Request("https://tidelight.app/api/futures/paper", {
     method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ symbol: "NVDAUSDT", researchRunId: research.researchRunId, mode: "check" }),
@@ -185,6 +202,9 @@ test("synthetic positive handoff preserves lineage through Research → paper St
   assert.equal(strategyCommit.args.p_snapshot.researchRunId, researchId);
   assert.equal(strategyCommit.args.p_snapshot.paperOnly, true);
   assert.equal(strategyCommit.args.p_snapshot.marketCategory, "USDT-FUTURES");
+  assert.equal(strategyCommit.args.p_snapshot.marketObservation.interval, "4H");
+  assert.equal(strategyCommit.args.p_snapshot.marketObservation.candleFinality, "closed_by_interval_at_capture");
+  assert.match(strategyCommit.args.p_snapshot.marketObservationDigest, /^[a-f0-9]{64}$/);
   assert.deepEqual(captures.orders, ["hold"]);
 
   const nightwatchResponse = await nightwatchRoute.POST(new Request("https://tidelight.app/api/nightwatch/tick", {
@@ -196,6 +216,9 @@ test("synthetic positive handoff preserves lineage through Research → paper St
   const nightwatchCommit = captures.rpc.find(call => call.name === "nightwatch_tick_from_server");
   assert.equal(nightwatchCommit.args.p_snapshot.researchRunId, researchId);
   assert.equal(nightwatchCommit.args.p_snapshot.playbook.key, "semi_breakout_v1", "the decision snapshot records the local handoff playbook");
+  assert.equal(nightwatchCommit.args.p_snapshot.marketObservation.interval, "4H");
+  assert.equal(nightwatchCommit.args.p_snapshot.marketObservation.candleFinality, "closed_by_interval_at_capture");
+  assert.match(nightwatchCommit.args.p_snapshot.marketObservationDigest, /^[a-f0-9]{64}$/);
   assert.equal(nightwatchCommit.args.p_user_id, user.id);
   assert.equal(nightwatchCommit.args.p_signal, "hold");
   assert.deepEqual(captures.orders, ["hold"], "the fixture did not create a paper fill or any live order");

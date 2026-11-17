@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createBacktestMarketObservation } from "@/lib/backtest-manifest";
 import { getBitgetCandles, getBitgetStockPerp, STOCK_PERP_UNIVERSE } from "@/lib/bitget-market";
 import { decideFuturesPaper } from "@/lib/futures-paper-agent";
 import { ALPHA_STRATEGIES, type StrategyKey } from "@/lib/backtest";
@@ -51,6 +52,7 @@ export async function POST(request: Request) {
     const latest = closed.at(-1)!;
     const candleEnd = latest.timestamp + FOUR_HOURS;
     if (now - candleEnd > 6 * 60 * 60 * 1000) return NextResponse.json({ error: "The stock perpetual candle is stale; no paper decision was sent." }, { status: 422 });
+    const marketObservation = createBacktestMarketObservation({ asset, candles: closed.slice(-90), interval: "4H", capturedAt: now });
 
     const [accountResult, positionResult, priorResult, researchResult] = await Promise.all([
       supabase.from("futures_paper_accounts").select("cash_balance,paused").maybeSingle(),
@@ -79,7 +81,8 @@ export async function POST(request: Request) {
       p_user_id: user.id, p_symbol: symbol, p_as_of_ms: asOfMs, p_reference_price: mark, p_action: decision.action,
       p_snapshot: { agent: decision, playbook: { key: actualPlaybook, label: ALPHA_STRATEGIES[actualPlaybook].label },
         source: mode === "close" ? "Bitget verified USDT-FUTURES ticker" : "Bitget completed USDT-FUTURES 4H candle",
-        researchRunId, candleEnd: new Date(candleEnd).toISOString(), marketCategory: "USDT-FUTURES", paperOnly: true, maxLeverage: 1 },
+        researchRunId, candleEnd: new Date(candleEnd).toISOString(), marketCategory: "USDT-FUTURES", paperOnly: true, maxLeverage: 1,
+        marketObservation: marketObservation.observation, marketObservationDigest: marketObservation.digest },
     });
     if (error) { console.error("Futures paper persistence failed", error.code); return NextResponse.json({ error: "Could not save the futures paper decision." }, { status: 503 }); }
     return NextResponse.json({ result: data, decision, market: { symbol, name: asset.name, price: mark, asOf: new Date(asOfMs).toISOString() } }, { headers: { "Cache-Control": "no-store" } });

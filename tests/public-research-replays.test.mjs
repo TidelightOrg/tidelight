@@ -159,12 +159,14 @@ test("publishing requires the owning session and serializes only cited public ev
     assert.equal(laterClaimResponse.status, 200);
     const laterClaimPayload = calls.filter(call => call.table === "public_research_replays").at(-1).values.payload;
     assert.equal(laterClaimPayload.assets[0].evidenceBalance.supporting[0].text, "Eligible later claim.");
-    context.run.summary = { assets: [{ ticker: "NVDA", issuer: "NVIDIA", summary: "Two sources.", sources: ["https://news.example/story", "https://NOT-CITED.example:443/story"], evidenceBalance: { supporting: [{ text: "A source-bound claim.", quote: "Other source text.", citedUrls: ["https://news.example/story", "https://NOT-CITED.example:443/story", "https://forged.example/story"] }] } }] };
+    context.run.summary = { assets: [{ ticker: "NVDA", issuer: "NVIDIA", summary: "Two sources.", sources: ["https://news.example/story", "https://NOT-CITED.example:443/story"], marketObservation: { private: true }, marketObservationDigest: "private-digest", evidenceBalance: { supporting: [{ text: "A source-bound claim.", quote: "Other source text.", citedUrls: ["https://news.example/story", "https://NOT-CITED.example:443/story", "https://forged.example/story"] }] } }] };
     const multiSourceResponse = await route.POST(new Request("https://tidelight.app/api/research/replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ researchRunId: token }) }));
     assert.equal(multiSourceResponse.status, 200);
     const multiSourcePayload = calls.filter(call => call.table === "public_research_replays").at(-1).values.payload;
     assert.equal(multiSourcePayload.assets[0].evidenceBalance.supporting[0].quoteSourceUrl, "https://not-cited.example/story", "the quote points to the source that actually matched, not the first citation");
     assert.deepEqual(multiSourcePayload.assets[0].evidenceBalance.supporting[0].citedUrls, ["https://news.example/story", "https://not-cited.example/story"]);
+    assert.equal("marketObservation" in multiSourcePayload.assets[0], false, "private market observations never enter public research replay payloads");
+    assert.equal("marketObservationDigest" in multiSourcePayload.assets[0], false);
     assert.equal(multiSourcePayload.sources.some(source => "excerpt" in source), false);
     context.run.summary = { summary: "An evidence-first public brief.", sources: [{ url: "https://news.example/story" }], claims: [] };
     context.run.summary = { ...context.run.summary, claims: [{ claim: "A fabricated source-linked claim.", quote: "This quotation was not present in the captured source excerpt.", source_url: "https://news.example/story" }] };

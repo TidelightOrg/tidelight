@@ -14,6 +14,7 @@ import { buildMacroNewsQueries, classifyMacroQuestion, gatherMacroEvidence, macr
 import { filterPersistableResearchSources } from "@/lib/research-source-limits";
 import { recordProviderHealth } from "@/lib/provider-health";
 import { getSecCompanyResearch } from "@/lib/sec-fundamentals";
+import { createBacktestMarketObservation, verifyBacktestMarketObservation } from "@/lib/backtest-manifest";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 120;
@@ -101,7 +102,21 @@ export async function GET(request: Request) {
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(id)) return NextResponse.json({ error: "A valid research record is required." }, { status: 400, headers: { "Cache-Control": "no-store" } });
   const { data, error } = await supabase.from("research_runs").select("summary").eq("id", id).eq("user_id", user.id).eq("event_type", "agent_flow").eq("status", "complete").maybeSingle();
   if (error || !data) return NextResponse.json({ error: "That saved research record is unavailable." }, { status: 404, headers: { "Cache-Control": "no-store" } });
-  return NextResponse.json({ summary: data.summary }, { headers: { "Cache-Control": "private, no-store" } });
+  const summary = data.summary && typeof data.summary === "object" && !Array.isArray(data.summary) ? { ...data.summary } as Record<string, unknown> : null;
+  if (summary && Array.isArray(summary.assets)) {
+    summary.assets = summary.assets.map((raw) => {
+      if (!raw || typeof raw !== "object" || Array.isArray(raw)) return raw;
+      const asset = { ...raw } as Record<string, unknown>;
+      if (!("marketObservation" in asset) && !("marketObservationDigest" in asset)) return asset;
+      asset.marketObservationStatus = verifyBacktestMarketObservation(asset.marketObservation, asset.marketObservationDigest) ? "verified" : "unverified";
+      if (asset.marketObservationStatus === "unverified") {
+        delete asset.marketObservation;
+        delete asset.marketObservationDigest;
+      }
+      return asset;
+    });
+  }
+  return NextResponse.json({ summary }, { headers: { "Cache-Control": "private, no-store" } });
 }
 
 /** Starts an authenticated research run and streams progress until its private result is saved. */
@@ -363,6 +378,10 @@ export async function POST(request: Request) {
           let completed: MarketSnapshot["candles"] = [];
           try { completed = prepareBacktestCandles(snap.candles, "4H", now); }
           catch { /* Malformed candles keep this asset's trading gate closed. */ }
+          // Keep a bounded, digest-checked provider snapshot in the owner's saved research
+          // record. Public replay publishing has an explicit allowlist and omits this private
+          // observation until redistribution rights are confirmed.
+          const marketObservation = snap.perp ? createBacktestMarketObservation({ asset: snap.perp, candles: completed, interval: "4H", capturedAt: now }) : null;
           const signals = completed.length >= 60 ? buildSignals(completed, "sma_trend_v1") : [];
           const latestEnd = completed.length ? completed.at(-1)!.timestamp + 4 * 3_600_000 : null;
           const gate = gateFlowTrade({ assessment, sources: snap.sources, marketVerified: Boolean(snap.perp), marketTimestamp: snap.perp?.providerTimestamp ?? null,
@@ -377,6 +396,7 @@ export async function POST(request: Request) {
           return { ticker: snap.ticker, issuer: snap.issuer, summary: assessment.summary, stance: assessment.stance, confidence: assessment.confidence, confidenceCapped: Boolean(assessment.confidenceCapped), ...(tokenizedMarketQuestion ? { tokenizedMarketReview: tokenizedMarketReview({ ticker: snap.ticker, spotSymbol: snap.spot?.symbol ?? null, spotPrice: snap.spot?.lastPrice ?? null, spotTimestamp: snap.spot?.providerTimestamp ?? null, now }) } : {}),
             tradeable: gate.tradeable, gateReasons, sources: researchSourcesFor(snap).slice(0, 30).map(({ title, url, publisher, publishedAt, via }): FlowSource => ({ title, url, publisher, publishedAt, via })),
             market: { perpSymbol: snap.perp?.symbol ?? null, perpLastPrice: snap.perp?.lastPrice ?? null, perpProviderTimestamp: snap.perp?.providerTimestamp ?? null, ...(tokenizedMarketQuestion ? { spotSymbol: snap.spot?.symbol ?? null, spotLastPrice: snap.spot?.lastPrice ?? null, spotProviderTimestamp: snap.spot?.providerTimestamp ?? null } : {}), lastPrice: snap.perp?.lastPrice ?? null, providerTimestamp: snap.perp?.providerTimestamp ?? null, interval: "4H", candles: completed.slice(-30).map(candle => ({ timestamp: candle.timestamp, close: candle.close })) },
+            ...(user && marketObservation ? { marketObservation: marketObservation.observation, marketObservationDigest: marketObservation.digest } : {}),
             handoff: gate.tradeable ? { destinations, reason: tokenizedMarketQuestion ? "Eligible for a separate, user-confirmed order review. Paper futures and live rToken spot use different instruments and accounts." : "Eligible for a separate, user-confirmed paper review. No order has been sent." } : null,
             evidenceBalance: { supporting: assessment.supportingEvidence, counter: assessment.counterEvidence },
             risks: assessment.risks, nextCheck: assessment.nextCheck };

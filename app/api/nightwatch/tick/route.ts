@@ -8,6 +8,7 @@ import { ALPHA_STRATEGIES, type StrategyKey } from "@/lib/backtest";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { enqueueNightwatchEmail } from "@/lib/email/nightwatch";
 import { drainEmailQueue } from "@/lib/email/delivery";
+import { createBacktestMarketObservation } from "@/lib/backtest-manifest";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
@@ -55,6 +56,7 @@ export async function POST(request: Request) {
 
     const current = closed.at(-1)!;
     const previous = closed.at(-2)!;
+    const marketObservation = createBacktestMarketObservation({ asset, candles: closed.slice(-90), interval: "4H", capturedAt: now });
     const closes = closed.map((candle) => candle.close);
     const { fastSma: fast, slowSma: slow, previousFastSma: previousFast, previousSlowSma: previousSlow } = evaluateSmaCrossover(closes);
     const asOfMs = current.timestamp + FOUR_HOURS;
@@ -89,6 +91,8 @@ export async function POST(request: Request) {
         ...(researchRunId ? { researchRunId } : {}),
         provider: "Bitget public Spot candles",
         interval: "4H",
+        marketObservation: marketObservation.observation,
+        marketObservationDigest: marketObservation.digest,
         closedCandleStart: new Date(current.timestamp).toISOString(),
         closedCandleEnd: new Date(asOfMs).toISOString(),
         previousCandleStart: new Date(previous.timestamp).toISOString(),
