@@ -20,7 +20,7 @@ hooks.deregister();
 const nvda = { symbol: "RNVDAUSDT", baseCoin: "rNVDA", name: "NVIDIA Corporation", underlyingTicker: "NVDA", kind: "rtoken", isReality: true, providerTimestamp: 1_800_000_000_000 };
 
 test("exposure route returns the exact catalog-listed Reality instrument", async () => {
-  globalThis.researchExposureCatalog = { generatedAt: 1_800_000_000_000, assets: [nvda, { ...nvda, symbol: "NVDAUSDT", kind: "rtoken", isReality: false }] };
+  globalThis.researchExposureCatalog = { generatedAt: 1_800_000_000_000, metadataStatus: "available", assets: [nvda, { ...nvda, symbol: "NVDAUSDT", kind: "rtoken", isReality: false }] };
   const response = await POST(new Request("https://tidelight.app/api/research/exposure", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token: "NVIDIA" }) }));
   const result = await response.json();
   assert.equal(response.status, 200);
@@ -39,8 +39,17 @@ test("catalog failure returns unavailable instead of inferring a conventional Re
   assert.equal("matches" in result, false);
 });
 
+test("partial catalog without Reality issuer metadata returns unavailable", async () => {
+  globalThis.researchExposureCatalog = { generatedAt: 1_800_000_000_000, metadataStatus: "partial", assets: [nvda] };
+  const response = await POST(new Request("https://tidelight.app/api/research/exposure", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token: "NVIDIA" }) }));
+  const result = await response.json();
+  assert.equal(response.status, 503);
+  assert.match(result.error, /issuer metadata is unavailable/i);
+  assert.equal("matches" in result, false);
+});
+
 test("unlisted issuer has no instrument match", async () => {
-  globalThis.researchExposureCatalog = { generatedAt: 1_800_000_000_000, assets: [] };
+  globalThis.researchExposureCatalog = { generatedAt: 1_800_000_000_000, metadataStatus: "available", assets: [] };
   const response = await POST(new Request("https://tidelight.app/api/research/exposure", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ token: "NVIDIA" }) }));
   const result = await response.json();
   assert.equal(response.status, 200);

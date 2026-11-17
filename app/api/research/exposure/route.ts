@@ -27,6 +27,9 @@ export async function POST(request: Request) {
   } catch {
     return NextResponse.json({error:"The live Reality market catalog is unavailable. Exposure cannot be confirmed right now."},{status:503});
   }
+  if (universe.metadataStatus !== "available") {
+    return NextResponse.json({error:"Reality issuer metadata is unavailable. Exposure cannot be confirmed right now."},{status:503});
+  }
   const matches=findCatalogRealityAssets(query,universe.assets).map(asset=>{
     const ticker=asset.underlyingTicker?.toUpperCase()??null, details=context(ticker);
     return {symbol:asset.symbol,name:asset.name,instrument:"rtoken",issuer:asset.name,underlying:ticker??asset.name,sector:details.sector,catalysts:details.catalysts,risks:details.risks,providerTimestamp:asset.providerTimestamp};
