@@ -112,3 +112,15 @@ export function composeIntelligenceBlocks(result: IntelligenceResult): Intellige
     { id: "actions", type: "actions", title: "Continue with Tidelight", assets: result.assets },
   ];
 }
+
+/** Build market handoffs only from exchange-verified symbols returned with the research snapshot. */
+export function intelligenceMarketActionLinks(asset: IntelligenceAsset, researchRunId: string) {
+  return {
+    strategy: asset.market.perpSymbol
+      ? `/strategies?symbol=${encodeURIComponent(asset.market.perpSymbol)}&researchRunId=${encodeURIComponent(researchRunId)}`
+      : null,
+    nightwatch: asset.market.spotSymbol
+      ? `/nightwatch?symbol=${encodeURIComponent(asset.market.spotSymbol)}&researchRunId=${encodeURIComponent(researchRunId)}`
+      : null,
+  };
+}
