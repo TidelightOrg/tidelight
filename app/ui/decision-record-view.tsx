@@ -34,11 +34,11 @@ export function DecisionRecordView({ record, cursors }: { record: DecisionRecord
       <Earlier id={record.id} cursors={cursors} name="decisionsBefore" earlier={record.paperDecisions.earlier} title="Earlier paper decisions" />
     </ol>
     {record.sources.items.length || record.sources.earlier ? <section aria-labelledby="decision-record-sources"><h2 id="decision-record-sources">Research sources</h2><ol aria-label="Research sources">
-      {record.sources.items.map(item => <Entry key={item.id} href={item.href} external title={item.title} meta={<><span>{item.publisher ?? item.sourceType}</span>{item.publishedAt ? <time dateTime={item.publishedAt}>Published {when(item.publishedAt)}</time> : null}<time dateTime={item.retrievedAt}>Captured {when(item.retrievedAt)}</time></>} />)}
+      {record.sources.items.map(item => <Entry key={item.id} href={item.href} external title={item.title} meta={<><code>{item.id}</code><span>{item.publisher ?? item.sourceType}</span>{item.publishedAt ? <time dateTime={item.publishedAt}>Published {when(item.publishedAt)}</time> : null}<time dateTime={item.retrievedAt}>Captured {when(item.retrievedAt)}</time></>} />)}
       <Earlier id={record.id} cursors={cursors} name="sourcesBefore" earlier={record.sources.earlier} title="Earlier sources" />
     </ol></section> : null}
     {record.evidence.items.length || record.evidence.earlier ? <section aria-labelledby="decision-record-evidence"><h2 id="decision-record-evidence">Evidence claims</h2><ol aria-label="Evidence claims">
-      {record.evidence.items.map(item => <Entry key={item.id} href={null} title={item.claim} meta={<><span>{item.stance}</span>{item.confidence === null ? null : <span>{Math.round(item.confidence * 100)}% confidence</span>}<time dateTime={item.createdAt}>{when(item.createdAt)}</time>{item.sourceId ? <code>Source {item.sourceId}</code> : <span>Source not retained</span>}</>} />)}
+      {record.evidence.items.map(item => <Entry key={item.id} href={item.source?.href ?? null} external title={item.claim} meta={<><span>{item.stance}</span>{item.confidence === null ? null : <span>{Math.round(item.confidence * 100)}% confidence</span>}<time dateTime={item.createdAt}>{when(item.createdAt)}</time>{item.source ? <span>Source: {item.source.title} {item.source.publisher ? `· ${item.source.publisher}` : ""} <code>{item.source.id}</code></span> : <span>Source not retained</span>}</>} />)}
       <Earlier id={record.id} cursors={cursors} name="evidenceBefore" earlier={record.evidence.earlier} title="Earlier claims" />
     </ol></section> : null}
   </main>;

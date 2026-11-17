@@ -1,7 +1,7 @@
 import { notFound, redirect } from "next/navigation";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getServerAuthState } from "@/lib/supabase/auth-user";
-import { DecisionRecordUnavailable, decisionRecordCursor, resolveDecisionRecord, type DecisionRecordClient } from "@/lib/decision-record";
+import { DecisionRecordUnavailable, decisionRecordCursor, decisionRecordSourceCursor, resolveDecisionRecord, type DecisionRecordClient } from "@/lib/decision-record";
 import { DecisionRecordView } from "@/app/ui/decision-record-view";
 import "./decision-record.css";
 
@@ -16,7 +16,7 @@ function unavailable() {
 
 export default async function DecisionRecordPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ strategiesBefore?: string; schedulesBefore?: string; decisionsBefore?: string; sourcesBefore?: string; evidenceBefore?: string }> }) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
-  const cursors = { strategiesBefore: decisionRecordCursor(query.strategiesBefore), schedulesBefore: decisionRecordCursor(query.schedulesBefore), decisionsBefore: decisionRecordCursor(query.decisionsBefore), sourcesBefore: decisionRecordCursor(query.sourcesBefore), evidenceBefore: decisionRecordCursor(query.evidenceBefore) };
+  const cursors = { strategiesBefore: decisionRecordCursor(query.strategiesBefore), schedulesBefore: decisionRecordCursor(query.schedulesBefore), decisionsBefore: decisionRecordCursor(query.decisionsBefore), sourcesBefore: decisionRecordSourceCursor(query.sourcesBefore), evidenceBefore: decisionRecordCursor(query.evidenceBefore) };
   if (!UUID.test(id)) notFound();
   const auth = await getServerAuthState();
   if (auth.errorCode) return <main className="content-wrap inner-page decision-record"><h1>Decision record</h1><p role="alert">Sign-in could not be verified.</p></main>;

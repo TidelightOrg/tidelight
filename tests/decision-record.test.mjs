@@ -4,6 +4,7 @@ import { readFile } from "node:fs/promises";
 import {
   DecisionRecordUnavailable,
   decisionRecordHref,
+  decisionRecordSourceCursor,
   resolveDecisionRecord,
 } from "../lib/decision-record.ts";
 
@@ -56,6 +57,12 @@ const rows = {
 const forbiddenSelect = /original_snapshot|integrity_hash|(?:^|,)parameters(?:,|$)|(?:^|,)snapshot(?:,|$)|candles|train_metrics|test_metrics|summary|reason|reference_price|excerpt|supporting_quote|content_hash/;
 
 function matches(row, op, column, value) {
+  if (op === "or") {
+    const cursor = value.match(/^retrieved_at\.lt\.(.+),and\(retrieved_at\.eq\.(.+),id\.lt\.([0-9a-f-]+)\)$/i);
+    if (!cursor) return false;
+    const retrievedAt = String(row.retrieved_at ?? "");
+    return retrievedAt < cursor[1] || (retrievedAt === cursor[2] && String(row.id) < cursor[3]);
+  }
   const current = column.includes("->>")
     ? row[column.split("->>")[0]]?.[column.split("->>")[1]]
     : row[column];
@@ -68,13 +75,14 @@ function matches(row, op, column, value) {
 function clientFor(source, calls, { fail } = {}) {
   return {
     from(table) {
-      const state = { table, filters: [], columns: "" };
+      const state = { table, filters: [], columns: "", orders: [] };
       const api = {
         select(columns) { state.columns = columns; return api; },
         eq(column, value) { state.filters.push(["eq", column, value]); return api; },
         lt(column, value) { state.filters.push(["lt", column, value]); return api; },
         filter(column, op, value) { state.filters.push([op, column, value]); return api; },
-        order() { return api; },
+        or(value) { state.filters.push(["or", "retrieved_at", value]); return api; },
+        order(column, options) { state.orders.push([column, options?.ascending !== false]); return api; },
         limit(count) { state.limit = count; return api; },
         insert() { throw new Error(`decision record must not write ${table}`); },
         update() { throw new Error(`decision record must not write ${table}`); },
@@ -85,10 +93,15 @@ function clientFor(source, calls, { fail } = {}) {
       function project(row) {
         if (!state.columns) return { ...row };
         const out = {};
-        for (const part of state.columns.split(",")) {
+        const projection = state.columns.replace("source:research_sources!research_evidence_source_run_fkey(id,title,publisher,url)", "source:research_sources!research_evidence_source_run_fkey");
+        for (const part of projection.split(",")) {
           const piece = part.trim();
           const alias = piece.match(/^([A-Za-z_][A-Za-z0-9_]*):([A-Za-z_][A-Za-z0-9_]*)->>(([A-Za-z_][A-Za-z0-9_]*))$/);
           if (alias) out[alias[1]] = row[alias[2]]?.[alias[3]] ?? null;
+          else if (piece === "source:research_sources!research_evidence_source_run_fkey") {
+            const source = rows.research_sources?.find(item => item.id === row.source_id && item.research_run_id === row.research_run_id);
+            out.source = source ? { id: source.id, title: source.title, publisher: source.publisher, url: source.url } : null;
+          }
           else out[piece] = row[piece];
         }
         return out;
@@ -97,6 +110,14 @@ function clientFor(source, calls, { fail } = {}) {
         calls.push({ source, ...state });
         if (fail?.table === table) return { data: null, error: { code: fail.code, message: fail.message ?? "unavailable" } };
         let found = (rows[table] ?? []).filter(row => state.filters.every(([op, column, value]) => matches(row, op, column, value)));
+        if (state.orders.length) found.sort((left, right) => {
+          for (const [column, ascending] of state.orders) {
+            const a = left[column]; const b = right[column];
+            if (a === b) continue;
+            return (String(a) < String(b) ? -1 : 1) * (ascending ? 1 : -1);
+          }
+          return 0;
+        });
         if (state.limit) found = found.slice(0, state.limit);
         const projected = found.map(project);
         return { data: single ? projected[0] ?? null : projected, error: null };
@@ -128,7 +149,7 @@ test("an owned research run resolves linked ids without copying stored payloads"
   assert.deepEqual(record.nightwatchSchedules, { items: [{ id: scheduleId, label: "Daily review", symbol: "RNVDAUSDT", playbookKey: "sma_trend_v1", enabled: true }], earlier: null });
   assert.deepEqual(record.paperDecisions, { items: [{ id: paperId, symbol: "RNVDAUSDT", signal: "buy", outcome: "executed", createdAt: "2026-11-02T04:00:00.000Z" }], earlier: null });
   assert.deepEqual(record.sources, { items: [{ id: sourceId, title: "NVIDIA earnings release", publisher: "NVIDIA", sourceType: "filing", href: "https://investor.example/release", publishedAt: "2026-11-01T12:00:00.000Z", retrievedAt: "2026-11-02T00:02:00.000Z" }], earlier: null });
-  assert.deepEqual(record.evidence, { items: [{ id: evidenceId, sourceId, claim: "Revenue guidance increased year over year.", stance: "supports", confidence: 0.875, createdAt: "2026-11-02T00:03:00.000Z" }], earlier: null });
+  assert.deepEqual(record.evidence, { items: [{ id: evidenceId, sourceId, source: { id: sourceId, title: "NVIDIA earnings release", publisher: "NVIDIA", href: "https://investor.example/release" }, claim: "Revenue guidance increased year over year.", stance: "supports", confidence: 0.875, createdAt: "2026-11-02T00:03:00.000Z" }], earlier: null });
   assert.equal("summary" in record.researchRun, false);
   assert.equal(JSON.stringify(record).includes("original_snapshot"), false);
   assert.equal(JSON.stringify(record).includes("referencePrice"), false);
@@ -157,6 +178,16 @@ test("another account's run, capsule, backtest, schedule, and paper decision sta
   assert.deepEqual(record.paperDecisions.items.map(item => item.id), [paperId]);
   assert.deepEqual(record.sources.items.map(item => item.id), [sourceId]);
   assert.deepEqual(record.evidence.items.map(item => item.id), [evidenceId]);
+});
+
+test("decision records accept source titles up to the existing 300-character storage limit", async () => {
+  const previous = rows.research_sources[0].title;
+  rows.research_sources[0].title = "T".repeat(300);
+  try {
+    const record = await resolveDecisionRecord(readers(owner).store, runId);
+    assert.equal(record.sources.items[0].title.length, 300);
+    assert.equal(record.evidence.items[0].source.title.length, 300);
+  } finally { rows.research_sources[0].title = previous; }
 });
 
 test("a capsule whose research run was removed stays a reference to that capsule only", async () => {
@@ -266,7 +297,9 @@ test("source captures and evidence claims use independent older-page cursors", a
     assert.equal(first.evidence.items.length, 50);
     const sourceCursor = first.sources.earlier;
     const evidenceCursor = first.evidence.earlier;
-    assert.equal(sourceCursor, rows.research_sources[49].retrieved_at);
+    assert.equal(sourceCursor, `${rows.research_sources[49].retrieved_at}~${rows.research_sources[49].id}`);
+    assert.equal(decisionRecordSourceCursor(sourceCursor), sourceCursor);
+    assert.equal(decisionRecordSourceCursor("invalid"), null);
     assert.equal(evidenceCursor, rows.research_evidence[49].created_at);
     const second = await resolveDecisionRecord(readers(owner).store, runId, { sourcesBefore: sourceCursor, evidenceBefore: evidenceCursor });
     assert.deepEqual(second.sources.items.map(item => item.id), [rows.research_sources[50].id]);
@@ -275,6 +308,34 @@ test("source captures and evidence claims use independent older-page cursors", a
     rows.research_sources = savedSources;
     rows.research_evidence = savedEvidence;
   }
+});
+
+test("source pagination keeps same-batch timestamps reachable with a stable id tie-breaker", async () => {
+  const saved = rows.research_sources;
+  const savedEvidence = rows.research_evidence;
+  const retrievedAt = "2026-11-02T14:00:00.000Z";
+  rows.research_sources = Array.from({ length: 51 }, (_, index) => ({
+    id: `56565656-5656-4565-8565-${String(index).padStart(12, "0")}`,
+    research_run_id: runId,
+    title: `Batch source ${index}`,
+    publisher: "Batch publisher",
+    source_type: "web",
+    url: "https://example.org/batch",
+    published_at: null,
+    retrieved_at: retrievedAt,
+  }));
+  rows.research_evidence = [{ id: "67676767-6767-4676-8676-767676767676", research_run_id: runId, source_id: rows.research_sources[0].id, claim: "This claim references a source on the next source page.", stance: "context", confidence: null, created_at: "2026-11-02T14:01:00.000Z" }];
+  try {
+    const first = await resolveDecisionRecord(readers(owner).store, runId);
+    assert.equal(first.sources.items.length, 50);
+    assert.ok(!first.sources.items.some(item => item.id === rows.research_sources[0].id));
+    assert.equal(first.evidence.items[0].source.title, "Batch source 0");
+    assert.equal(first.evidence.items[0].source.id, rows.research_sources[0].id);
+    assert.equal(first.sources.earlier, `${retrievedAt}~56565656-5656-4565-8565-000000000001`);
+    const second = await resolveDecisionRecord(readers(owner).store, runId, { sourcesBefore: first.sources.earlier });
+    assert.deepEqual(second.sources.items.map(item => item.id), [rows.research_sources[0].id]);
+    assert.equal(second.sources.earlier, null);
+  } finally { rows.research_sources = saved; rows.research_evidence = savedEvidence; }
 });
 
 test("the decision record page only reads and the research result links to it", async () => {
@@ -290,6 +351,7 @@ test("the decision record page only reads and the research result links to it", 
   assert.match(lab, /useState<AlphaMarketCategory>\(initialMarketCategory\)/);
   assert.match(page, /Earlier strategy backtests|decisionRecordEarlierHref|strategiesBefore/);
   assert.match(page, /sourcesBefore/);
+  assert.match(page, /decisionRecordSourceCursor/);
   assert.match(page, /evidenceBefore/);
   assert.match(page, /resolveDecisionRecord\(\{ userId: auth\.user\.id, user: records, capsules: records \}, id, cursors\)/);
   assert.match(page, /records = createAdminClient\(\)/);
@@ -308,4 +370,5 @@ test("the decision record page only reads and the research result links to it", 
   assert.match(decisionView, /Research sources/);
   assert.match(decisionView, /Evidence claims/);
   assert.match(decisionView, /rel: "noreferrer noopener"/);
+  assert.match(decisionView, /item\.source\.title/);
 });
