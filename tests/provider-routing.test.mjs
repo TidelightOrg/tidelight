@@ -103,10 +103,15 @@ test("provider telemetry persists attempt time instead of write-batch time", asy
     return { insert(rows) { inserted = rows; return { abortSignal: () => Promise.resolve({ error: null }) }; } };
   } });
   const occurredAt = "2026-10-31T21:15:00.000Z";
-  await health.recordProviderHealth([{ provider: "qwen", model: "qwen-test", attempt: 1, outcome: "timeout", occurredAt, durationMs: 500, httpStatus: undefined }]);
+  const requestId = "c4f780c9-2877-4e22-8d14-8e23ffb4f4bc";
+  await health.recordProviderHealth([{ provider: "qwen", model: "qwen-test", attempt: 1, outcome: "timeout", occurredAt, durationMs: 500, httpStatus: undefined }], requestId);
   assert.equal(inserted[0].occurred_at, occurredAt);
   assert.equal(inserted[0].duration_ms, 500);
+  assert.equal(inserted[0].request_id, requestId);
   assert.equal(JSON.stringify(inserted).includes("prompt"), false);
+
+  await health.recordProviderHealth([{ provider: "qwen", model: "qwen-test", attempt: 1, outcome: "timeout", occurredAt, durationMs: 500, httpStatus: undefined }], "not-a-uuid");
+  assert.equal("request_id" in inserted[0], false);
 });
 
 test("hung telemetry operations cannot block routing or research persistence", async t => {
