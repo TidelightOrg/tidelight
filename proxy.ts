@@ -27,6 +27,10 @@ function routeResponse(request: NextRequest): NextResponse {
 }
 
 export async function proxy(request: NextRequest) {
+  // Generate a fresh server-side correlation ID for every request. Never use
+  // a caller-supplied value, which could be used to forge or collide with logs.
+  const requestId = crypto.randomUUID();
+  request.headers.set("x-tidelight-request-id", requestId);
   // Never trust an identity header supplied by the browser. It is populated
   // below only after Supabase has verified the request's signed access token.
   request.headers.delete("x-tidelight-verified-auth-user");
@@ -83,6 +87,7 @@ export async function proxy(request: NextRequest) {
       response.cookies.set(name, "", { domain: ".tidelight.app", path: "/", sameSite: "lax", secure, maxAge: 0, expires: new Date(0) });
     }
   }
+  response.headers.set("X-Request-Id", requestId);
   return response;
 }
 
