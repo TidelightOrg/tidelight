@@ -52,3 +52,10 @@ test("Research result cards do not invent fallback market symbols for handoffs",
   assert.match(component, /intelligenceMarketActionLinks\(asset, result\.researchRunId\)/);
   assert.doesNotMatch(component, /asset\.ticker\}USDT|R\$\{asset\.ticker\}USDT/);
 });
+
+test("Agent Flow instrument checks do not display inferred fallback symbols", async () => {
+  const component = await readFile(new URL("../app/ui/agent-flow-desk.tsx", import.meta.url), "utf8");
+  assert.match(component, /No verified spot symbol/);
+  assert.match(component, /No verified contract symbol/);
+  assert.doesNotMatch(component, /R\$\{asset\.ticker\}USDT|\$\{asset\.ticker\}USDT/);
+});
