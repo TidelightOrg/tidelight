@@ -15,7 +15,7 @@ test("strategy replay publish serializes an owned reproducible run and strips pr
   const calls = [];
   const run = {
     id: runId, symbol: "RAAPLUSDT", interval: "4H", strategy_key: "sma_trend_v1",
-    parameters: { fast: 20, slow: 50, initialEquity: 10_000, feeBpsPerSide: 10, slippageBpsPerSide: 5, marketCategory: "SPOT", candleHash: "a".repeat(64), researchRunId: "private-research-run", assetName: "Apple Inc.", assetKind: "Reality rToken", experimentManifest },
+    parameters: { fast: 20, slow: 50, initialEquity: 10_000, feeBpsPerSide: 10, slippageBpsPerSide: 5, marketCategory: "SPOT", candleHash: "a".repeat(64), researchRunId: "private-research-run", marketObservation: { quoteCurrency: "USDT" }, marketObservationDigest: "b".repeat(64), assetName: "Apple Inc.", assetKind: "Reality rToken", experimentManifest },
     train_metrics: { totalReturnPct: 4.2 }, test_metrics: { totalReturnPct: -0.58, benchmarkReturnPct: 2.02 },
     data_start: new Date(candles[0].timestamp).toISOString(), data_end: new Date(candles.at(-1).timestamp).toISOString(), candle_count: candles.length,
     candles, created_at: "2026-10-24T00:00:00Z",
@@ -66,6 +66,8 @@ test("strategy replay publish serializes an owned reproducible run and strips pr
     assert.equal(insert.values.payload.experimentManifest.engine.version, "alpha-backtest-v1");
     assert.equal(insert.values.payload.experimentManifest.integrity.manifestDigest, experimentManifest.integrity.manifestDigest);
     assert.equal("researchRunId" in insert.values.payload.run.parameters, false);
+    assert.equal("marketObservation" in insert.values.payload.run.parameters, false);
+    assert.equal("marketObservationDigest" in insert.values.payload.run.parameters, false);
     assert.match(insert.values.payload.notice, /not a forecast/);
     assert.ok(Date.parse(insert.values.expires_at) > Date.now() + 29 * 86_400_000);
     assert.ok(Date.parse(insert.values.expires_at) <= Date.now() + 30 * 86_400_000 + 1000);

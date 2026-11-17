@@ -23,6 +23,8 @@ export async function POST(request: Request) {
   const params = run.parameters && typeof run.parameters === "object" && !Array.isArray(run.parameters) ? run.parameters as Record<string, unknown> : {};
   const publicParameters = { ...params };
   delete publicParameters.researchRunId;
+  delete publicParameters.marketObservation;
+  delete publicParameters.marketObservationDigest;
   const candles = Array.isArray(run.candles) ? run.candles : [];
   if (!candles.length || candles.length > 1000 || typeof params.candleHash !== "string" || !/^[0-9a-f]{64}$/i.test(params.candleHash)) return NextResponse.json({ error: "This run does not contain a complete reproducible candle archive." }, { status: 422 });
   const experimentManifest = params.experimentManifest ?? null;

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { backtestManifestMatchesRun, createBacktestExperimentManifest, fingerprintBacktestCandles, verifyBacktestExperimentManifest } from "../lib/backtest-manifest.ts";
+import { backtestManifestMatchesRun, createBacktestExperimentManifest, createBacktestMarketObservation, fingerprintBacktestCandles, verifyBacktestExperimentManifest, verifyBacktestMarketObservation } from "../lib/backtest-manifest.ts";
 import { backtestMetricsMatch } from "../lib/backtest-result-integrity.ts";
 
 const candles = [
@@ -40,6 +40,22 @@ test("fingerprints are stable to object-key order and change when an OHLCV value
   const reordered = candles.map(candle => ({ close: candle.close, timestamp: candle.timestamp, turnover: candle.turnover, low: candle.low, open: candle.open, volume: candle.volume, high: candle.high }));
   assert.equal(fingerprintBacktestCandles(candles), fingerprintBacktestCandles(reordered));
   assert.notEqual(fingerprintBacktestCandles(candles), fingerprintBacktestCandles(candles.map((candle, index) => index === 0 ? { ...candle, close: candle.close + 0.01 } : candle)));
+});
+
+test("private market observations preserve provider context and verify their bounded digest", () => {
+  const providerTimestamp = 1_800_029_000_000;
+  const asset = { quoteCoin: "USDT", instrumentStatus: "online", providerTimestamp, receivedAt: 1_800_029_500_000, marketSessionStatus: "available", tradingSessions: ["24/7"], weekendTradable: true, marketSession: { market: "US", daylightType: "DST", schedule: [{ state: "open", timeZone: "America/New_York", startTime: "09:30", endTime: "16:00" }] } };
+  const archivedCandles = candles.map(candle => ({ ...candle, providerTimestamp }));
+  const capturedAt = candles.at(-1).timestamp + 4 * 60 * 60 * 1000;
+  const result = createBacktestMarketObservation({ asset, candles: archivedCandles, interval: "4H", capturedAt });
+  assert.deepEqual(result.observation, { capturedAt, quoteCurrency: "USDT", instrumentStatus: "online", providerTimestamp, receivedAt: 1_800_029_500_000, candleProviderTimestamp: providerTimestamp, interval: "4H", timestampTimezone: "UTC", candleFinality: "closed_by_interval_at_capture", marketSessionStatus: "available", tradingSessions: ["24/7"], weekendTradable: true, marketSession: asset.marketSession });
+  assert.equal(verifyBacktestMarketObservation(result.observation, result.digest, archivedCandles), true);
+  assert.equal(verifyBacktestMarketObservation(result.observation, result.digest, archivedCandles.map((candle, index) => index ? candle : { ...candle, providerTimestamp: providerTimestamp + 1 })), false);
+  assert.equal(verifyBacktestMarketObservation(result.observation, result.digest, [...archivedCandles, { ...archivedCandles.at(-1), timestamp: capturedAt - 60_000 }]), false, "the observation must reject a candle that had not closed by capture time");
+  assert.throws(() => createBacktestMarketObservation({ asset, candles: archivedCandles, interval: "4H", capturedAt: capturedAt - 60_000 }), /closed by its capture time/);
+  assert.equal(verifyBacktestMarketObservation({ ...result.observation, quoteCurrency: "USD" }, result.digest), false);
+  assert.equal(verifyBacktestMarketObservation({ ...result.observation, extra: "unbounded" }, result.digest), false);
+  assert.equal(verifyBacktestMarketObservation({ ...result.observation, tradingSessions: Array(17).fill("invalid") }, result.digest), false);
 });
 
 test("archive or manifest edits fail integrity verification", () => {
