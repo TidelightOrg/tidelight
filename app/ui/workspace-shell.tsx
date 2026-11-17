@@ -11,34 +11,37 @@ import { NavigationIcon, NavigationTrail, type NavigationIconName } from "@/app/
 import { LanguageToggle } from "@/app/ui/language-provider";
 
 const navigationGroups: { label: string; items: { href: string; label: string; icon: NavigationIconName; technical?: boolean; operatorOnly?: boolean }[] }[] = [
-  { label: "Research", items: [
+  { label: "Discover", items: [
     { href: "/overview", label: "Overview", icon: "overview" },
-    { href: "/flow", label: "Market research", icon: "flow" },
-    { href: "/monitor", label: "Research Monitor", icon: "monitor" },
     { href: "/markets", label: "Market map", icon: "markets" },
     { href: "/watchlist", label: "Watchlist", icon: "watchlist" },
-    { href: "/briefs", label: "Saved briefs", icon: "briefs", technical: true },
-  ] },
-  { label: "Tools", items: [
-    { href: "/strategies", label: "Strategy lab", icon: "strategies", technical: true },
-    { href: "/nightwatch", label: "Nightwatch", icon: "nightwatch", technical: true },
-    { href: "/futures", label: "Futures paper desk", icon: "futures", technical: true },
-    { href: "/trading", label: "Bitget trading", icon: "trading", technical: true },
-    { href: "/notifications", label: "Notifications", icon: "notifications" },
-    { href: "/systems", label: "Research systems", icon: "systems", technical: true },
-  ] },
-  { label: "Community", items: [{ href: "/community", label: "Research community", icon: "community" }] },
-  { label: "Workspace", items: [
-    { href: "/settings", label: "Settings", icon: "settings" },
-    { href: "/operator", label: "Operator console", icon: "settings", technical: true, operatorOnly: true },
-  ] },
-  { label: "Learn", items: [
+    { href: "/community", label: "Research community", icon: "community" },
     { href: "/guide", label: "Getting started", icon: "guide" },
     { href: "/demo", label: "Product walkthrough", icon: "demo", technical: true },
     { href: "/status", label: "System status", icon: "systems" },
+    { href: "/settings", label: "Settings", icon: "settings" },
+  ] },
+  { label: "Research", items: [
+    { href: "/flow", label: "Market research", icon: "flow" },
+    { href: "/monitor", label: "Research Monitor", icon: "monitor" },
+    { href: "/briefs", label: "Saved briefs", icon: "briefs", technical: true },
+    { href: "/notifications", label: "Notifications", icon: "notifications" },
+  ] },
+  { label: "Strategy Lab", items: [
+    { href: "/strategies", label: "Strategy lab", icon: "strategies", technical: true },
+    { href: "/systems", label: "Research systems", icon: "systems", technical: true },
+  ] },
+  { label: "Paper Desk", items: [
+    { href: "/nightwatch", label: "Nightwatch", icon: "nightwatch", technical: true },
+    { href: "/futures", label: "Futures paper desk", icon: "futures", technical: true },
+    { href: "/trading", label: "Bitget trading", icon: "trading", technical: true },
+  ] },
+  { label: "Developers", items: [
+    { href: "/developers", label: "Developer documentation", icon: "research", technical: true },
+    { href: "/operator", label: "Operator console", icon: "settings", technical: true, operatorOnly: true },
   ] },
 ];
-const resourceLinks = [{ href: "/help", label: "Help", glyph: "?" }, { href: "/developers", label: "Documentation", glyph: "</>" }];
+const resourceLinks = [{ href: "/help", label: "Help", glyph: "?" }];
 const miniModeBlockedRoutes = ["/strategies", "/nightwatch", "/futures", "/trading", "/briefs", "/demo", "/systems", "/judge"];
 const mobilePrimaryNavigation = [
   { href: "/overview", label: "Overview", icon: "overview" as NavigationIconName },
