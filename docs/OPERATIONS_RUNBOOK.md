@@ -45,6 +45,25 @@ To stop live orders, unset the variable or set it to anything other than `true`,
 5. Preserve the research run, candle fingerprint, Nightwatch decision and operator action IDs before changing configuration.
 6. For account isolation or unexpected paper-ledger writes, disable the scheduled secret in Vercel and inspect the corresponding Supabase audit records before resuming.
 
+### Tabletop exercise record
+
+Run the tabletop without changing production state. Assign an incident lead, technical operator, and communications owner before starting. Use synthetic IDs and a staging environment for any command practice; never expose secrets or use a production restore as an exercise. Stop if the scenario would require a live order, credential disclosure, destructive migration, or production data restore.
+
+Exercise one scenario at a time:
+
+1. **Deployment unavailable:** the app returns `DEPLOYMENT_DISABLED` while API, status, and custom-domain project records disagree. Identify the serving deployment, preserve evidence, and name the escalation path without changing aliases.
+2. **Provider credential concern:** a provider key is reported exposed. Locate the secret owner, rotation process, affected call paths, log-redaction boundary, and communication decision. Do not paste a key into the exercise record.
+3. **Stale or unavailable market feed:** a provider timestamp is old or missing while a user is considering a paper check. Show how the freshness gate stops the action and how status explains the outage.
+4. **Research queue backlog:** accepted jobs stop completing. Identify queue age, worker and provider health signals, safe retry/idempotency controls, and the customer-facing update.
+5. **Unexpected duplicate paper action:** a duplicate cron delivery or lease race is reported. Trace the schedule and run lineage in staging, prove the idempotency control, and verify whether an order or position changed before resuming.
+6. **Database recovery:** a recent backup is restored to an isolated recovery target. Record the backup timestamp, restore start/end, recovered data point, migration head, row-count checks, and owner-isolation checks. Do not use the production project restore operation.
+
+| Scenario | Date / commit | Participants and roles | Detection time | Containment time | Recovery time | Data point recovered | Customer update decision | Findings / owner / due date |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- |
+|  |  |  |  |  |  |  |  |  |
+
+Record gaps as follow-up work with an owner and due date. A tabletop demonstrates decision readiness only; it does not count as a successful isolated restore, incident resolution, security assessment, or measured RTO/RPO. Keep those gates open until the corresponding exercise is actually completed.
+
 ### Research provider health telemetry
 
 Provider routing reads recent health events with a 300 ms deadline. If the store is unavailable or the read does not settle, routing keeps the configured provider order. Health-event writes have a 1.5 second deadline and cannot prevent a research result from saving. The deadline also aborts the store request; a transport that ignores cancellation may still finish later, so these events are operational observations rather than a transactional audit log.
