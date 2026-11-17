@@ -6,6 +6,7 @@ const hooks = registerHooks({ resolve(specifier, context, nextResolve) {
   if (specifier === "server-only") return { url: "data:text/javascript,export {};", shortCircuit: true };
   if (specifier === "@/lib/supabase/admin") return { url: "data:text/javascript,export const createAdminClient=()=>globalThis.__providerHealthAdmin();", shortCircuit: true };
   if (specifier === "@/lib/ai-fallback") return { url: "data:text/javascript,export {};", shortCircuit: true };
+  if (specifier === "@/lib/request-correlation") return { url: new URL("../lib/request-correlation.ts", import.meta.url).href, shortCircuit: true };
   return nextResolve(specifier, context);
 } });
 const health = await import("../lib/provider-health.ts");
