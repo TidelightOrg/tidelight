@@ -14,9 +14,9 @@ function unavailable() {
   return <main className="content-wrap inner-page decision-record"><h1>Decision record</h1><p role="alert">This record could not be loaded.</p></main>;
 }
 
-export default async function DecisionRecordPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ strategiesBefore?: string | string[]; schedulesBefore?: string | string[]; decisionsBefore?: string | string[]; sourcesBefore?: string | string[]; evidenceBefore?: string | string[] }> }) {
+export default async function DecisionRecordPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ strategiesBefore?: string | string[]; schedulesBefore?: string | string[]; decisionsBefore?: string | string[]; sourcesBefore?: string | string[]; evidenceBefore?: string | string[]; publicReplaysBefore?: string | string[] }> }) {
   const [{ id }, query] = await Promise.all([params, searchParams]);
-  const cursors = { strategiesBefore: decisionRecordCompositeCursor(query.strategiesBefore), schedulesBefore: decisionRecordCompositeCursor(query.schedulesBefore), decisionsBefore: decisionRecordCompositeCursor(query.decisionsBefore), sourcesBefore: decisionRecordCompositeCursor(query.sourcesBefore), evidenceBefore: decisionRecordCompositeCursor(query.evidenceBefore) };
+  const cursors = { strategiesBefore: decisionRecordCompositeCursor(query.strategiesBefore), schedulesBefore: decisionRecordCompositeCursor(query.schedulesBefore), decisionsBefore: decisionRecordCompositeCursor(query.decisionsBefore), sourcesBefore: decisionRecordCompositeCursor(query.sourcesBefore), evidenceBefore: decisionRecordCompositeCursor(query.evidenceBefore), publicReplaysBefore: decisionRecordCompositeCursor(query.publicReplaysBefore) };
   if (!UUID.test(id)) notFound();
   const auth = await getServerAuthState();
   if (auth.errorCode) return <main className="content-wrap inner-page decision-record"><h1>Decision record</h1><p role="alert">Sign-in could not be verified.</p></main>;

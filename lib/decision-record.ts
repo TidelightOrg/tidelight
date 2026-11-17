@@ -72,7 +72,11 @@ export type DecisionRecordGraph = { eventId: string; asOf: string; subjects: Dec
 /** One page of linked rows. `earlier` is the cursor for the next older page. */
 export type DecisionRecordList<T> = { items: T[]; earlier: string | null };
 /** Optional cursors. Each linked list pages on its own. */
-export type DecisionRecordWindow = { strategiesBefore?: string | null; schedulesBefore?: string | null; decisionsBefore?: string | null; sourcesBefore?: string | null; evidenceBefore?: string | null };
+export type DecisionRecordWindow = { strategiesBefore?: string | null; schedulesBefore?: string | null; decisionsBefore?: string | null; sourcesBefore?: string | null; evidenceBefore?: string | null; publicReplaysBefore?: string | null };
+/** Existing public link metadata only. The replay payload is deliberately never selected. */
+export type DecisionRecordPublicReplay = { id: string; createdAt: string; expiresAt: string; status: "active" | "expired" | "revoked" };
+/** Owner's existing Nightwatch settings linked to this research run. */
+export type DecisionRecordNightwatchPreferences = { triggerMode: "manual" | "every_check"; symbol: string | null; playbookKey: string; alertOnSignal: boolean; alertOnFill: boolean };
 
 /** Owner-scoped references. The stable id is the research run while that run exists. */
 export type DecisionRecord = {
@@ -84,7 +88,9 @@ export type DecisionRecord = {
   capsule: DecisionRecordCapsule | null;
   strategyBacktests: DecisionRecordList<DecisionRecordBacktest>;
   nightwatchSchedules: DecisionRecordList<DecisionRecordSchedule>;
+  nightwatchPreferences: DecisionRecordNightwatchPreferences | null;
   paperDecisions: DecisionRecordList<DecisionRecordPaperDecision>;
+  publicReplays: DecisionRecordList<DecisionRecordPublicReplay>;
   sources: DecisionRecordList<DecisionRecordSource>;
   evidence: DecisionRecordList<DecisionRecordEvidence>;
 };
@@ -260,7 +266,7 @@ function graphIdentity(value: unknown, kinds: readonly string[]): string | null 
 
 function evidenceGraph(value: unknown): DecisionRecordGraph | null {
   const saved = object(value);
-  if (saved.version !== 1 || typeof saved.asOf !== "string" || !TIMESTAMP.test(saved.asOf) || !Array.isArray(saved.nodes)) return null;
+  if (saved.version !== 1 || typeof saved.asOf !== "string" || !TIMESTAMP.test(saved.asOf) || !Number.isFinite(Date.parse(saved.asOf)) || !Array.isArray(saved.nodes)) return null;
   const nodes = saved.nodes.map(object);
   const event = nodes.find(node => node.type === "event");
   const eventId = graphIdentity(event?.id, ["event"]);
@@ -290,14 +296,16 @@ function emptyList<T>(): DecisionRecordList<T> {
   return { items: [], earlier: null };
 }
 
-async function linked(read: DecisionRecordRead, researchRunId: string, saved: DecisionRecordCapsule | null, window: DecisionRecordWindow): Promise<Pick<DecisionRecord, "capsule" | "strategyBacktests" | "nightwatchSchedules" | "paperDecisions" | "sources" | "evidence">> {
-  const [savedCapsule, backtests, schedules, decisions, sources, evidence] = await Promise.all([
+async function linked(read: DecisionRecordRead, researchRunId: string, saved: DecisionRecordCapsule | null, window: DecisionRecordWindow): Promise<Pick<DecisionRecord, "capsule" | "strategyBacktests" | "nightwatchSchedules" | "nightwatchPreferences" | "paperDecisions" | "publicReplays" | "sources" | "evidence">> {
+  const [savedCapsule, backtests, schedules, preferences, decisions, sources, evidence, replays] = await Promise.all([
     saved ? Promise.resolve(saved) : single(read.capsules.from("decision_capsules").select("id,created_at").eq("user_id", read.userId).eq("research_run_id", researchRunId)).then(item => item ? capsule(item) : null),
     many(before(read.user.from("strategy_backtest_runs").select("id,strategy_key,symbol,interval,created_at,market_category:parameters->>marketCategory,parameters,data_start,data_end,candle_count").eq("user_id", read.userId).filter("parameters->>researchRunId", "ilike", researchRunId), window.strategiesBefore, "created_at")),
     many(before(read.user.from("nightwatch_schedules").select("id,label,symbol,playbook_key,enabled,created_at").eq("user_id", read.userId).eq("research_run_id", researchRunId), window.schedulesBefore, "created_at")),
+    single(read.user.from("nightwatch_preferences").select("trigger_mode,monitor_symbol,playbook_key,alert_on_signal,alert_on_fill").eq("user_id", read.userId).eq("research_run_id", researchRunId)),
     many(before(read.user.from("nightwatch_runs").select("id,symbol,signal,outcome,created_at").eq("user_id", read.userId).filter("snapshot->>researchRunId", "ilike", researchRunId), window.decisionsBefore, "created_at")),
     many(before(read.user.from("research_sources").select("id,title,publisher,source_type,url,published_at,retrieved_at").eq("research_run_id", researchRunId), window.sourcesBefore, "retrieved_at"), "retrieved_at"),
     many(before(read.user.from("research_evidence").select("id,source_id,claim,stance,confidence,created_at,source:research_sources!research_evidence_source_run_fkey(id,title,publisher,url)").eq("research_run_id", researchRunId), window.evidenceBefore, "created_at")),
+    many(before(read.capsules.from("public_research_replays").select("public_id,created_at,expires_at,revoked_at").eq("user_id", read.userId).eq("research_run_id", researchRunId), window.publicReplaysBefore, "created_at")),
   ]);
   return {
     capsule: savedCapsule,
@@ -329,6 +337,13 @@ async function linked(read: DecisionRecordRead, researchRunId: string, saved: De
       })),
       earlier: schedules.earlier,
     },
+    nightwatchPreferences: preferences ? {
+      triggerMode: oneOf(preferences.trigger_mode, ["manual", "every_check"]) as DecisionRecordNightwatchPreferences["triggerMode"],
+      symbol: typeof preferences.monitor_symbol === "string" && NIGHTWATCH_SYMBOL.test(preferences.monitor_symbol) ? preferences.monitor_symbol : null,
+      playbookKey: oneOf(preferences.playbook_key, ["sma_trend_v1", "rsi_reversion_v1", "channel_breakout_v1", "weekend_drift_v1", "trend_pullback_v1", "semi_breakout_v1"]),
+      alertOnSignal: flag(preferences.alert_on_signal),
+      alertOnFill: flag(preferences.alert_on_fill),
+    } : null,
     paperDecisions: {
       items: decisions.rows.map(item => ({
         id: uuid(item.id),
@@ -338,6 +353,16 @@ async function linked(read: DecisionRecordRead, researchRunId: string, saved: De
         createdAt: text(item.created_at, 80),
       })),
       earlier: decisions.earlier,
+    },
+    publicReplays: {
+      items: replays.rows.map(item => {
+        const revoked = item.revoked_at != null;
+        const createdAt = text(item.created_at, 80);
+        const expiresAt = text(item.expires_at, 80);
+        if (!TIMESTAMP.test(createdAt) || !Number.isFinite(Date.parse(createdAt)) || !TIMESTAMP.test(expiresAt) || !Number.isFinite(Date.parse(expiresAt))) return failRead(null);
+        return { id: uuid(item.public_id), createdAt, expiresAt, status: revoked ? "revoked" : Date.parse(expiresAt) <= Date.now() ? "expired" : "active" };
+      }),
+      earlier: replays.earlier,
     },
     sources: {
       items: sources.rows.map(item => ({
@@ -396,7 +421,7 @@ export async function resolveDecisionRecord(read: DecisionRecordRead, id: string
   if (!capsuleRow) return null;
   const saved = capsule(capsuleRow);
   if (capsuleRow.research_run_id == null) {
-    return { schemaVersion: 1, id: saved.id, anchor: "decision_capsule", researchRun: null, evidenceGraph: null, capsule: saved, strategyBacktests: emptyList(), nightwatchSchedules: emptyList(), paperDecisions: emptyList(), sources: emptyList(), evidence: emptyList() };
+    return { schemaVersion: 1, id: saved.id, anchor: "decision_capsule", researchRun: null, evidenceGraph: null, capsule: saved, strategyBacktests: emptyList(), nightwatchSchedules: emptyList(), nightwatchPreferences: null, paperDecisions: emptyList(), publicReplays: emptyList(), sources: emptyList(), evidence: emptyList() };
   }
   const linkedRunRow = await single(read.user.from("research_runs").select("id,question,status,created_at,evidence_graph:summary->evidenceGraph").eq("id", uuid(capsuleRow.research_run_id)).eq("user_id", read.userId));
   if (!linkedRunRow) return null;
