@@ -150,3 +150,25 @@ export function verifyBacktestExperimentManifest(value: unknown, candles: Market
   try { return digestManifest(core as Omit<BacktestExperimentManifest, "integrity">) === integrity.manifestDigest; }
   catch { return false; }
 }
+
+/** Confirm a verified manifest still describes the persisted run row and its execution assumptions. */
+export function backtestManifestMatchesRun(
+  row: Record<string, unknown>,
+  parameters: Record<string, unknown>,
+  manifest: BacktestExperimentManifest,
+): boolean {
+  const firstTimestamp = typeof row.data_start === "string" ? Date.parse(row.data_start) : Number.NaN;
+  const lastTimestamp = typeof row.data_end === "string" ? Date.parse(row.data_end) : Number.NaN;
+  return manifest.instrument.symbol === row.symbol
+    && manifest.instrument.interval === row.interval
+    && manifest.strategy.key === row.strategy_key
+    && manifest.instrument.marketCategory === parameters.marketCategory
+    && manifest.instrument.assetName === parameters.assetName
+    && manifest.instrument.assetKind === parameters.assetKind
+    && manifest.execution.initialEquity === parameters.initialEquity
+    && manifest.execution.feeBpsPerSide === parameters.feeBpsPerSide
+    && manifest.execution.slippageBpsPerSide === parameters.slippageBpsPerSide
+    && manifest.dataset.rowCount === row.candle_count
+    && manifest.dataset.firstTimestamp === firstTimestamp
+    && manifest.dataset.lastTimestamp === lastTimestamp;
+}

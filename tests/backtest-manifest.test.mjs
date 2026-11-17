@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { createBacktestExperimentManifest, fingerprintBacktestCandles, verifyBacktestExperimentManifest } from "../lib/backtest-manifest.ts";
+import { backtestManifestMatchesRun, createBacktestExperimentManifest, fingerprintBacktestCandles, verifyBacktestExperimentManifest } from "../lib/backtest-manifest.ts";
 
 const candles = [
   { timestamp: 1_800_000_000_000, open: 100, high: 102, low: 99, close: 101, volume: 20, turnover: 2020 },
@@ -49,6 +49,16 @@ test("archive or manifest edits fail integrity verification", () => {
   const changed = { ...manifest, execution: { ...manifest.execution, feeBpsPerSide: 0 } };
   assert.equal(verifyBacktestExperimentManifest(changed, candles), false);
   assert.equal(verifyBacktestExperimentManifest({ ...manifest, dataset: { ...manifest.dataset, fingerprint: { ...manifest.dataset.fingerprint, value: "f".repeat(64) } } }, candles), false);
+});
+
+test("a verified experiment manifest must also match its private saved run identity", () => {
+  const manifest = createBacktestExperimentManifest(input);
+  const row = { symbol: input.symbol, interval: input.interval, strategy_key: input.strategyKey, candle_count: candles.length, data_start: new Date(candles[0].timestamp).toISOString(), data_end: new Date(candles.at(-1).timestamp).toISOString() };
+  const parameters = { marketCategory: input.marketCategory, assetName: input.assetName, assetKind: input.assetKind, initialEquity: input.initialEquity, feeBpsPerSide: input.feeBpsPerSide, slippageBpsPerSide: input.slippageBpsPerSide };
+  assert.equal(backtestManifestMatchesRun(row, parameters, manifest), true);
+  assert.equal(backtestManifestMatchesRun({ ...row, symbol: "AAPLUSDT" }, parameters, manifest), false);
+  assert.equal(backtestManifestMatchesRun({ ...row, data_start: new Date(candles[1].timestamp).toISOString() }, parameters, manifest), false);
+  assert.equal(backtestManifestMatchesRun(row, { ...parameters, feeBpsPerSide: 0 }, manifest), false);
 });
 
 test("invalid archived candle structure fails verification even when its fingerprint is recomputed", () => {

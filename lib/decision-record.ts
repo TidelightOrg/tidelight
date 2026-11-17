@@ -95,6 +95,9 @@ export const decisionRecordHref = {
     if (!UUID.test(researchRunId) || !STRATEGY_SYMBOL.test(symbol) || (market !== "SPOT" && market !== "USDT-FUTURES")) return null;
     return `/strategies?${new URLSearchParams({ symbol, researchRunId, market }).toString()}`;
   },
+  savedStrategyRun(id: string) {
+    return UUID.test(id) ? `/strategies/runs/${encodeURIComponent(id)}` : null;
+  },
   nightwatch(researchRunId: string, symbol: string) {
     if (!UUID.test(researchRunId) || !NIGHTWATCH_SYMBOL.test(symbol)) return null;
     return `/nightwatch?symbol=${encodeURIComponent(symbol)}&researchRunId=${encodeURIComponent(researchRunId)}`;
