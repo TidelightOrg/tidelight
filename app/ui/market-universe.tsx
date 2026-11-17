@@ -9,6 +9,8 @@ import IssuerLogo from "@/app/ui/issuer-logo";
 type MarketPayload = {
   provider: string;
   generatedAt: number;
+  receivedAt: number;
+  timestampTimezone: "UTC";
   assets: MarketAsset[];
   session: { market: string; daylightType: string | null; schedule: Array<{ state: string; startTime: string; endTime: string }> } | null;
   coverage: { total: number; rTokens: number; listedRTokens?: number; listedSpotPairs?: number; unavailableRTokens?: number; rwa: number; crypto: number };
@@ -53,7 +55,6 @@ export default function MarketUniverse() {
   const [filter, setFilter] = useState<Filter>("all");
   const [visibleCount, setVisibleCount] = useState(6);
   const [error, setError] = useState("");
-  const [checkedAt, setCheckedAt] = useState<number | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -62,7 +63,7 @@ export default function MarketUniverse() {
         const response = await fetch("/api/market/universe", { cache: "no-store" });
         const body = await response.json();
         if (!response.ok) throw new Error(body.error ?? "Market data unavailable");
-        if (active) { setPayload(body as MarketPayload); setError(""); setCheckedAt(Date.now()); }
+        if (active) { setPayload(body as MarketPayload); setError(""); }
       } catch (cause) {
         if (active) setError(cause instanceof Error ? cause.message : "Could not load market data");
       }
@@ -88,7 +89,7 @@ export default function MarketUniverse() {
   return <section className="universe-section" aria-labelledby="universe-title">
     <div className="universe-heading">
       <div><div className="eyebrow small-eyebrow">BITGET SPOT · LIVE MARKET FEED</div><h2 id="universe-title">The tradable universe</h2><p>Bitget instruments, current tickers, token classification, and stock reference data.</p></div>
-      <div className="universe-source"><span className={error ? "universe-status stale" : "universe-status"}><i /> {error ? "Feed unavailable" : "Bitget connected"}</span><small>{checkedAt ? `Checked ${new Date(checkedAt).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", second: "2-digit" })}` : "Connecting to public market data…"}</small></div>
+      <div className="universe-source"><span className={error ? "universe-status stale" : "universe-status"}><i /> {error ? "Feed unavailable" : "Bitget connected"}</span><small>{payload?.receivedAt ? `Received ${new Date(payload.receivedAt).toLocaleString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit", second: "2-digit", timeZone: "UTC" })} UTC` : "Connecting to public market data…"}</small></div>
     </div>
     <div className="universe-stats" aria-label="Market coverage">
       <div><span>LIVE REALITY rTOKENS</span><b>{payload?.coverage.rTokens ?? "—"}</b><small>{payload ? `${payload.coverage.listedRTokens ?? payload.coverage.rTokens} in Bitget catalog${payload.coverage.unavailableRTokens ? ` · ${payload.coverage.unavailableRTokens} without live quotes` : ""}` : "Bitget classified"}</small></div>

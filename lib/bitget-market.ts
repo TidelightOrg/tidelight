@@ -64,6 +64,10 @@ export type MarketAsset = {
   volume24h: number | null;
   turnover24h: number | null;
   providerTimestamp: number | null;
+  /** Server receipt time for the current provider observation, in epoch milliseconds. */
+  receivedAt?: number;
+  /** Exact provider status when present; null means the catalog omitted it. */
+  instrumentStatus?: string | null;
   logoUrl: string | null;
 };
 
@@ -72,6 +76,8 @@ export type AlphaMarketCategory = "SPOT" | "USDT-FUTURES";
 export const STOCK_PERP_UNIVERSE = ["NVDAUSDT", "AMDUSDT", "MSFTUSDT", "AAPLUSDT", "METAUSDT", "AMZNUSDT", "GOOGLUSDT", "TSLAUSDT", "INTCUSDT", "ASMLUSDT", "QCOMUSDT", "MUUSDT", "MSTRUSDT", "CRCLUSDT", "QQQUSDT", "ACNUSDT", "RDDTUSDT", "PLTRUSDT", "HOODUSDT", "UNHUSDT", "LLYUSDT", "FUTUUSDT", "APPUSDT", "ORCLUSDT", "BABAUSDT", "MRVLUSDT", "ARMUSDT", "PEPUSDT", "GMEUSDT", "MAUSDT", "JDUSDT", "IBMUSDT", "CSCOUSDT", "MCDUSDT", "GEUSDT"] as const;
 export type MarketCandle = {
   timestamp: number;
+  /** Bitget response clock when the provider supplies it. */
+  providerTimestamp?: number | null;
   open: number;
   high: number;
   low: number;
@@ -203,6 +209,7 @@ export async function getBitgetMarketUniverse() {
   if (instrumentsResult.status === "rejected") throw instrumentsResult.reason;
   if (tickersResult.status === "rejected") throw tickersResult.reason;
   if (sessionsResult.status === "rejected") console.warn("bitget-market-session-fetch-failed", sessionsResult.reason instanceof Error ? sessionsResult.reason.message : "unknown");
+  const receivedAt = Date.now();
   const instruments = instrumentsResult.value.data;
   const tickers = tickersResult.value.data;
   const stocks = stockInfoResult.status === "fulfilled" ? stockInfoResult.value.data : [];
@@ -234,6 +241,8 @@ export async function getBitgetMarketUniverse() {
         tradingSessions: sessions,
         marketSession: session ? { market: session.market, daylightType: session.daylightType ?? null, schedule: session.stateList ?? [] } : null,
         marketSessionStatus: sessionsResult.status === "rejected" ? "unavailable" : "available",
+        receivedAt,
+        instrumentStatus: instrument.status ?? null,
         lastPrice,
         open24h: numberOrNull(ticker.openPrice24h),
         change24h: numberOrNull(ticker.price24hPcnt),
@@ -255,7 +264,9 @@ export async function getBitgetMarketUniverse() {
   return {
     provider: "Bitget",
     source: `${API}/market/tickers?category=SPOT`,
-    generatedAt: Date.now(),
+    generatedAt: receivedAt,
+    receivedAt,
+    timestampTimezone: "UTC",
     assets,
     session: session ? { market: session.market, daylightType: session.daylightType ?? null, schedule: session.stateList ?? [] } : null,
     marketSessionStatus: sessionsResult.status === "rejected" ? "unavailable" : session?.stateList?.length ? "available" : "empty",
@@ -303,6 +314,8 @@ export async function getBitgetAsset(symbol: string): Promise<MarketAsset | null
     tradingSessions: sessions,
     marketSession: marketSession ? { market: marketSession.market, daylightType: marketSession.daylightType ?? null, schedule: marketSession.stateList ?? [] } : null,
     marketSessionStatus: states && marketSession?.stateList?.length ? "available" : "unavailable",
+    receivedAt: Date.now(),
+    instrumentStatus: instrument.status ?? null,
     lastPrice,
     open24h: numberOrNull(ticker.openPrice24h),
     change24h: numberOrNull(ticker.price24hPcnt),
@@ -348,6 +361,7 @@ export async function getBitgetStockPerp(symbol: string): Promise<MarketAsset | 
     underlyingTicker: underlying, kind: "rtoken", isReality: false, isRwa: false,
     weekendTradable: null, tradingSessions: [], lastPrice: price, open24h: numberOrNull(ticker.openPrice24h),
     marketSession: null, marketSessionStatus: "unavailable",
+    receivedAt: Date.now(), instrumentStatus: instrument.status ?? null,
     change24h: numberOrNull(ticker.price24hPcnt), high24h: numberOrNull(ticker.highPrice24h),
     low24h: numberOrNull(ticker.lowPrice24h), volume24h: numberOrNull(ticker.volume24h),
     turnover24h: numberOrNull(ticker.turnover24h), providerTimestamp: numberOrNull(ticker.ts),
@@ -359,10 +373,11 @@ export async function getBitgetCandles(symbol: string, interval: CandleInterval,
   const safeLimit = Math.max(1, Math.min(1000, Math.floor(limit)));
   const query = new URLSearchParams({ category, symbol, interval, type: "market", limit: String(safeLimit) });
   const response = await fetchBitget<string[][]>(`/market/candles?${query.toString()}`, interval === "15m" || interval === "1H" ? 15 : 120);
+  const providerTimestamp = typeof response.requestTime === "number" && Number.isSafeInteger(response.requestTime) && response.requestTime > 0 ? response.requestTime : null;
   return response.data.flatMap((row): MarketCandle[] => {
     if (row.length < 5) return [];
     const [timestamp, open, high, low, close, volume, turnover] = row.map((value) => numberOrNull(value));
     if (timestamp === null || open === null || high === null || low === null || close === null) return [];
-    return [{ timestamp, open, high, low, close, volume, turnover }];
+    return [{ timestamp, providerTimestamp, open, high, low, close, volume, turnover }];
   }).sort((left, right) => left.timestamp - right.timestamp);
 }
