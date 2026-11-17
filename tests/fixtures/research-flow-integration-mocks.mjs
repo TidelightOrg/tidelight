@@ -50,9 +50,15 @@ export const aiJsonWithFallback = async (messages) => {
 
 export const STOCK_PERP_UNIVERSE = ["NVDAUSDT"];
 export const getIssuerName = () => "Synthetic NVIDIA";
-export const getBitgetAsset = (...args) => globalThis.flowTest.asset(...args);
+export const getBitgetAsset = async (...args) => {
+  const asset = await globalThis.flowTest.asset(...args);
+  return asset ? { baseCoin: "RNVDA", quoteCoin: "USDT", marketSessionStatus: "unavailable", tradingSessions: [], marketSession: null, weekendTradable: false, instrumentStatus: "online", receivedAt: Date.now(), ...asset } : null;
+};
 export const getBitgetRealityTradeQuote = (...args) => globalThis.flowTest.tradeQuote(...args);
-export const getBitgetStockPerp = (...args) => globalThis.flowTest.perp(...args);
+export const getBitgetStockPerp = async (...args) => {
+  const asset = await globalThis.flowTest.perp(...args);
+  return asset ? { baseCoin: "NVDA", quoteCoin: "USDT", underlyingTicker: "NVDA", kind: "rtoken", isReality: false, isRwa: false, weekendTradable: false, tradingSessions: ["US stock session"], marketSession: null, marketSessionStatus: "unavailable", instrumentStatus: "online", receivedAt: Date.now(), ...asset } : null;
+};
 export const getBitgetCandles = (...args) => globalThis.flowTest.candles(...args);
 export const buildSignals = () => Array.from({ length: 80 }, (_, index) => index === 79);
 export const prepareBacktestCandles = () => Array.from({ length: 80 }, (_, index) => ({ timestamp: Date.now() - (80 - index) * 14_400_000 - 60_000, close: 100 }));
