@@ -13,8 +13,9 @@ test("private saved replay route is owner-scoped and verifies the archived exper
   assert.match(page, /\.eq\("id", runId\)\.eq\("user_id", auth\.user\.id\)/);
   assert.match(page, /verifyBacktestExperimentManifest/);
   assert.match(page, /backtestManifestMatchesRun/);
-  assert.match(page, /ARCHIVE MATCHES ITS EXPERIMENT MANIFEST/);
-  assert.match(page, /does not fetch new market data or rerun the strategy/);
+  assert.match(page, /backtestMetricsMatch/);
+  assert.match(page, /ARCHIVE AND METRICS REPRODUCED/);
+  assert.match(page, /does not request new market data/);
   assert.doesNotMatch(page, /\.insert\(|\.update\(|\.delete\(/);
   assert.match(history, /strategy-history-row-link/);
   assert.match(history, /strategies\/runs\/\$\{encodeURIComponent\(item\.id\)\}/);

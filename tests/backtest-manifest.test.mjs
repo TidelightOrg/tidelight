@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { backtestManifestMatchesRun, createBacktestExperimentManifest, fingerprintBacktestCandles, verifyBacktestExperimentManifest } from "../lib/backtest-manifest.ts";
+import { backtestMetricsMatch } from "../lib/backtest-result-integrity.ts";
 
 const candles = [
   { timestamp: 1_800_000_000_000, open: 100, high: 102, low: 99, close: 101, volume: 20, turnover: 2020 },
@@ -59,6 +60,14 @@ test("a verified experiment manifest must also match its private saved run ident
   assert.equal(backtestManifestMatchesRun({ ...row, symbol: "AAPLUSDT" }, parameters, manifest), false);
   assert.equal(backtestManifestMatchesRun({ ...row, data_start: new Date(candles[1].timestamp).toISOString() }, parameters, manifest), false);
   assert.equal(backtestManifestMatchesRun(row, { ...parameters, feeBpsPerSide: 0 }, manifest), false);
+});
+
+test("saved results reproduce only when metrics, trades, and equity points agree", () => {
+  const metric = { totalReturnPct: 1.25, buyAndHoldReturnPct: 0.75, maxDrawdownPct: 0.5, sharpeRatio: 0.4, sortinoRatio: 0.5, trades: 1, winRatePct: 100, endingEquity: 10125, candles: 2, tradeLog: [{ entryTime: 10, exitTime: 20, entryPrice: 100, exitPrice: 102, returnPct: 1.25 }], equityCurve: [{ timestamp: 10, equity: 10_000 }, { timestamp: 20, equity: 10_125 }] };
+  assert.equal(backtestMetricsMatch(metric, metric), true);
+  assert.equal(backtestMetricsMatch({ ...metric, totalReturnPct: 1.5 }, metric), false);
+  assert.equal(backtestMetricsMatch({ ...metric, tradeLog: [] }, metric), false);
+  assert.equal(backtestMetricsMatch({ ...metric, equityCurve: [{ timestamp: 10, equity: 10_000 }] }, metric), false);
 });
 
 test("invalid archived candle structure fails verification even when its fingerprint is recomputed", () => {
