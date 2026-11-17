@@ -7,6 +7,14 @@ export const INSTRUMENT_SYMBOL_PATTERNS = {
 
 export type CanonicalInstrumentKind = keyof typeof INSTRUMENT_SYMBOL_PATTERNS;
 export const CANONICAL_INSTRUMENT_KINDS = ["us_equity", "reality_token", "us_stock_perpetual"] as const satisfies readonly CanonicalInstrumentKind[];
+export type CanonicalIssuerId = `sec-cik:${string}`;
+
+/** Normalize a verified SEC CIK without inventing issuer mappings. */
+export function canonicalIssuerIdFromSecCik(value: string | number): CanonicalIssuerId | null {
+  const raw = String(value).trim();
+  if (!/^\d{1,10}$/.test(raw) || Number(raw) <= 0) return null;
+  return `sec-cik:${raw.padStart(10, "0")}`;
+}
 
 /**
  * Stored names that already mean one of the canonical kinds.
@@ -26,6 +34,13 @@ export type LegacyInstrumentKind = keyof typeof LEGACY_INSTRUMENT_KINDS;
 export type InstrumentLeg<K extends CanonicalInstrumentKind = CanonicalInstrumentKind> = {
   kind: K;
   symbol: string;
+};
+
+export type RealityCatalogInstrument = {
+  symbol: string;
+  underlyingTicker: string | null;
+  kind: string;
+  isReality: boolean;
 };
 
 /** Three linked symbols. They are not the same product and not interchangeable prices. */
@@ -65,6 +80,15 @@ export function canonicalKindForMarketAsset(asset: { kind: string; isReality: bo
   return canonicalKindFromLegacy(asset.kind);
 }
 
+/** A Reality symbol is supported only when its provider catalog row identifies it as Reality spot. */
+export function isRealityCatalogInstrument(asset: RealityCatalogInstrument): boolean {
+  return asset.kind === "rtoken"
+    && asset.isReality
+    && typeof asset.underlyingTicker === "string"
+    && isCanonicalInstrumentSymbol("us_equity", asset.underlyingTicker.toUpperCase())
+    && isCanonicalInstrumentSymbol("reality_token", asset.symbol.toUpperCase());
+}
+
 /** Link supplied symbols. An invalid supplied leg rejects the identity; an omitted leg stays unknown. */
 export function linkCanonicalInstrument(input: {
   usEquitySymbol: string;
@@ -81,19 +105,6 @@ export function linkCanonicalInstrument(input: {
     reality_token: realityTokenSymbol === null ? null : { kind: "reality_token", symbol: realityTokenSymbol },
     us_stock_perpetual: usStockPerpetualSymbol === null ? null : { kind: "us_stock_perpetual", symbol: usStockPerpetualSymbol },
   };
-}
-
-/**
- * Bitget spellings already used for an underlying ticker: `R{TICKER}USDT` and `{TICKER}USDT`.
- * A spelling is not a listing, a quote, or proof the products are equivalent.
- */
-export function conventionalBitgetIdentity(underlyingTicker: string): CanonicalInstrumentIdentity | null {
-  const ticker = underlyingTicker.trim().toUpperCase();
-  return linkCanonicalInstrument({
-    usEquitySymbol: ticker,
-    realityTokenSymbol: `R${ticker}USDT`,
-    usStockPerpetualSymbol: `${ticker}USDT`,
-  });
 }
 
 /** Classify a provider timestamp. A missing quote is the caller's own `unavailable` state. */

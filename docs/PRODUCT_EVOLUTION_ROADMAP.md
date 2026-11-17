@@ -366,13 +366,20 @@ All thresholds in this table are targets to agree and measure; none are current 
 - SSO/SCIM, SOC 2/ISO certification, and service decomposition without customer demand and an accountable operating owner.
 - Inferred uptime, fabricated backfill, or model-generated historical results presented as observed facts.
 
-## Decisions the product owner should make before Phase 1 expands
+## Approved build policy · 17 November 2026
 
-1. Confirm the public product stays a research and paper-testing product. Live Bitget orders are refused unless `TIDELIGHT_LIVE_ORDER_EXECUTION_ENABLED` is exactly `true`. Keep production unset or any value other than `true`.
-2. Confirm primary launch user: active self-directed rToken researcher, strategy tester, or developer/platform integrator. The initial navigation and beta should optimize one primary user, not all segments equally.
-3. Confirm which rToken issuers/instruments are in scope and what provider agreements allow for public display, retention, and redistribution.
-4. Approve the proposed initial research-quality thresholds and the sample size/reviewer process.
-5. Agree recovery targets, beta support expectations, and the budget/owner for independent security and legal reviews.
+The product owner approved this direction as a whole. These choices resolve product-policy questions; they do not replace outside evidence or make a legal, vendor, or security review complete.
+
+- **Audience and product:** optimize the primary workflow for self-directed US equity and Reality-token researchers. Keep Developers as a separate secondary lane. Tidelight remains a research, historical-replay, and paper-testing product; live order execution stays disabled.
+- **Navigation:** work toward Discover, Research, Strategy Lab, Paper Desk, and Developers while keeping current URLs. Validate the proposed navigation with five first-time users; require four to finish the research-to-paper-review task without coaching before calling it validated.
+- **Instrument identity:** use provider-catalog-confirmed instruments; keep shares, Reality tokens, and stock perpetuals distinct. Use verified SEC CIKs for stable issuer IDs, preserve tickers as distinct instruments, treat confirmed ETFs as equity instruments with fund issuer type, and do not infer unsupported contract symbols. Keep existing persisted kinds and avoid a duplicate identity table.
+- **Evidence:** complete two independent labels and adjudication on the frozen set before prompt changes; then expand and freeze a 50-event set. Proposed release targets remain 98% quote fidelity, 95% citation coverage, under 2% unsupported/not-established claims, and 80% counter-evidence coverage where qualifying evidence exists. Report denominators; these are targets, not current results.
+- **Provider rights and commerce:** keep the existing owner-authorized read-only market path; do not expand redistribution, caching, commercial claims, billing, or credits until written rights and actual cost/payment inputs are verified.
+- **Strategy and paper:** retain exploratory labels until independent out-of-sample evidence supports stronger claims. Keep paper testing opt-in. The supervised observation target is at least 90 days and 100 eligible decisions across ordinary and stressed conditions; live execution stays off.
+- **Operations and beta:** target RPO ≤15 minutes and RTO ≤4 hours subject to hosting-plan capability; prove recovery in isolation. Do not advertise a support SLA before an accountable owner and coverage exist. Begin beta with a small invited cohort and research/paper scope after evidence, usability, recovery, and security gates pass.
+- **Privacy:** minimize stored data; never use private research or customer records for model training without explicit opt-in.
+
+The build proceeds in dependency order through small, reviewable PRs. For each PR, complete one review pass, address its findings, and merge when checks and comments are clear; do not repeatedly trigger review bots. External terms, independent review, user research, and observation periods remain real completion gates.
 
 ## Source of truth and related records
 

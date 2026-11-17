@@ -8,15 +8,16 @@ import {
   MARKET_QUOTE_STALE_AFTER_MS,
   canonicalKindForMarketAsset,
   canonicalKindFromLegacy,
-  conventionalBitgetIdentity,
+  canonicalIssuerIdFromSecCik,
   describeInstrumentFreshness,
+  isRealityCatalogInstrument,
   linkCanonicalInstrument,
 } from "../lib/instrument-identity.ts";
 
 const now = Date.parse("2026-11-11T12:00:00.000Z");
 
-test("one identity links an issuer share, its Bitget rToken, and its stock perpetual as different symbols", () => {
-  const identity = conventionalBitgetIdentity(" nvda ");
+test("one explicit identity links distinct, caller-verified instrument legs", () => {
+  const identity = linkCanonicalInstrument({ usEquitySymbol: "NVDA", realityTokenSymbol: "RNVDAUSDT", usStockPerpetualSymbol: "NVDAUSDT" });
   assert.deepEqual(identity, {
     us_equity: { kind: "us_equity", symbol: "NVDA" },
     reality_token: { kind: "reality_token", symbol: "RNVDAUSDT" },
@@ -24,6 +25,13 @@ test("one identity links an issuer share, its Bitget rToken, and its stock perpe
   });
   const symbols = [identity.us_equity.symbol, identity.reality_token.symbol, identity.us_stock_perpetual.symbol];
   assert.equal(new Set(symbols).size, symbols.length);
+});
+
+test("Reality identity validation requires the catalog's Reality flag and underlying ticker", () => {
+  assert.equal(isRealityCatalogInstrument({ symbol: "RNVDAUSDT", underlyingTicker: "NVDA", kind: "rtoken", isReality: true }), true);
+  assert.equal(isRealityCatalogInstrument({ symbol: "NVDAUSDT", underlyingTicker: "NVDA", kind: "rtoken", isReality: false }), false);
+  assert.equal(isRealityCatalogInstrument({ symbol: "RNVDAUSDT", underlyingTicker: null, kind: "rtoken", isReality: true }), false);
+  assert.equal(isRealityCatalogInstrument({ symbol: "RNVDAUSDT", underlyingTicker: "NVDA", kind: "crypto", isReality: false }), false);
 });
 
 test("a leg is omitted only when the caller does not supply it", () => {
@@ -52,6 +60,16 @@ test("legacy kind names map onto the capsule and evidence-graph vocabulary", () 
   assert.equal(canonicalKindForMarketAsset({ kind: "rtoken", isReality: true }), "reality_token");
   assert.equal(canonicalKindForMarketAsset({ kind: "rtoken", isReality: false }), "us_stock_perpetual");
   assert.equal(canonicalKindForMarketAsset({ kind: "stock-perpetual", isReality: false }), "us_stock_perpetual");
+});
+
+test("verified SEC CIK values normalize to one stable issuer ID format", () => {
+  assert.equal(canonicalIssuerIdFromSecCik("320193"), "sec-cik:0000320193");
+  assert.equal(canonicalIssuerIdFromSecCik(320193), "sec-cik:0000320193");
+  assert.equal(canonicalIssuerIdFromSecCik("0001652044"), "sec-cik:0001652044");
+  assert.equal(canonicalIssuerIdFromSecCik(""), null);
+  assert.equal(canonicalIssuerIdFromSecCik("0000000000"), null);
+  assert.equal(canonicalIssuerIdFromSecCik("12345678901"), null);
+  assert.equal(canonicalIssuerIdFromSecCik("CIK123"), null);
 });
 
 test("symbol shape does not choose the leg", () => {
@@ -92,12 +110,8 @@ test("nightwatch can keep its shorter future skew on the same descriptor", () =>
   assert.equal(ahead.status, "unverified");
 });
 
-test("every supported stock-perpetual underlying keeps a distinct three-leg spelling", () => {
-  for (const contract of STOCK_PERP_UNIVERSE) {
-    const ticker = contract.slice(0, -4);
-    const identity = conventionalBitgetIdentity(ticker);
-    assert.equal(identity?.us_equity.symbol, ticker);
-    assert.equal(identity?.reality_token?.symbol, `R${ticker}USDT`);
-    assert.equal(identity?.us_stock_perpetual?.symbol, contract);
-  }
+test("the stock-perpetual universe remains explicit and is never inferred from a Reality prefix", () => {
+  assert.ok(STOCK_PERP_UNIVERSE.includes("NVDAUSDT"));
+  assert.ok(!STOCK_PERP_UNIVERSE.includes("BRK.BUSDT"));
+  assert.equal(canonicalKindForMarketAsset({ kind: "rtoken", isReality: false }), "us_stock_perpetual");
 });

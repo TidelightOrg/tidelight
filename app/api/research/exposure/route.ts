@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { getBitgetMarketUniverse } from "@/lib/bitget-market";
-import { mapResearchExposure } from "@/lib/exposure-map";
+import { findCatalogRealityAssets } from "@/lib/exposure-map";
 
 function sectorFor(ticker: string | null) {
   const groups: Record<string,string> = {
@@ -21,27 +21,15 @@ export async function POST(request: Request) {
   let query="";
   try { const body=await request.json() as {token?:unknown}; query=typeof body.token==="string"?body.token.trim().replace(/\s+/g," ").slice(0,80):""; } catch {}
   if (!query) return NextResponse.json({ error: "Enter a token or issuer name." }, { status: 400 });
-  const normalized=query.toUpperCase().replace(/[^A-Z0-9]/g,"");
+  let universe: Awaited<ReturnType<typeof getBitgetMarketUniverse>>;
   try {
-    const {assets}=await getBitgetMarketUniverse();
-    const equityAssets=assets.filter(asset=>asset.isReality);
-    const direct=equityAssets.filter(asset=>asset.symbol.toUpperCase()===normalized || asset.baseCoin.toUpperCase()===normalized || asset.underlyingTicker?.toUpperCase()===normalized);
-    const exact=(direct.length ? direct : equityAssets.filter(asset=>{
-      const symbol=asset.symbol.toUpperCase(), base=asset.baseCoin.toUpperCase(), underlying=asset.underlyingTicker?.toUpperCase()??"";
-      const issuer=asset.name.toUpperCase().replace(/[^A-Z0-9]/g,"");
-      return symbol===normalized || base===normalized || underlying===normalized || issuer===normalized ||
-        (normalized.length>=4 && issuer.includes(normalized));
-    })).sort((a,b)=>{
-      const rank=(x:typeof a)=>x.symbol.toUpperCase()===normalized?0:x.baseCoin.toUpperCase()===normalized?1:x.underlyingTicker?.toUpperCase()===normalized?2:3;
-      return rank(a)-rank(b);
-    }).slice(0,5);
-    const matches=exact.map(asset=>{
-      const ticker=asset.underlyingTicker?.toUpperCase()??null, details=context(ticker);
-      return {symbol:asset.symbol,name:asset.name,instrument:"rtoken",issuer:asset.name,underlying:ticker??asset.name,sector:details.sector,catalysts:details.catalysts,risks:details.risks};
-    });
-    if (matches.length) return NextResponse.json({query,matches,disclaimer:"Reality rToken exposure mapped to its underlying US issuer. Token and underlying prices, liquidity, trading hours, and legal rights can differ; this is research context, not a recommendation."});
-  } catch {}
-  const fallback=mapResearchExposure(query);
-  const matches=fallback.map(item=>({symbol:item.realityPair,name:item.issuer,instrument:"rtoken",issuer:item.issuer,underlying:item.ticker,sector:item.sector,catalysts:[item.scenarios.upside],risks:[item.scenarios.downside,item.scenarios.invalidation]}));
-  return NextResponse.json({query,matches,disclaimer:"Exposure mapping covers supported Reality rTokens and their US issuers. A missing match means the live market catalog did not confirm an instrument."});
+    universe=await getBitgetMarketUniverse();
+  } catch {
+    return NextResponse.json({error:"The live Reality market catalog is unavailable. Exposure cannot be confirmed right now."},{status:503});
+  }
+  const matches=findCatalogRealityAssets(query,universe.assets).map(asset=>{
+    const ticker=asset.underlyingTicker?.toUpperCase()??null, details=context(ticker);
+    return {symbol:asset.symbol,name:asset.name,instrument:"rtoken",issuer:asset.name,underlying:ticker??asset.name,sector:details.sector,catalysts:details.catalysts,risks:details.risks,providerTimestamp:asset.providerTimestamp};
+  });
+  return NextResponse.json({query,matches,catalogObservedAt:new Date(universe.generatedAt).toISOString(),disclaimer:"Reality rToken exposure is returned only when the live Bitget catalog confirms the instrument and underlying ticker. Token and underlying prices, liquidity, trading hours, and legal rights can differ; this is research context, not a recommendation."});
 }
