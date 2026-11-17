@@ -219,7 +219,7 @@ export default function NightwatchDesk({ signedIn, assets, initialRuns, initialO
     if (!signedIn) { router.push("/login"); return; }
     setRunning(true); setError(""); setNotice(""); setLocalRun(null);
     try {
-      const response = await fetch("/api/nightwatch/tick", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ symbol, researchRunId }) });
+      const response = await fetch("/api/nightwatch/tick", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ symbol, researchRunId, playbookKey: preferences.playbook_key }) });
       const payload = await response.json() as { error?: string; signal?: string; fastSma?: number; slowSma?: number; asOf?: string; price?: number; decision?: { confidence:number; rationale:string; evidence:string[]; risks:string[]; invalidation:string; horizon:string }; history?: Mark[]; result?: { run_id: string; outcome: string; reason: string } };
       if (!response.ok || !payload.result) throw new Error(payload.error ?? "Market check could not complete.");
       setHistory(payload.history ?? []);

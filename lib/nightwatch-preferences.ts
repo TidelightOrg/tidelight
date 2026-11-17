@@ -15,6 +15,10 @@ export function applyNightwatchHandoffPlaybook<T extends { playbook_key: string 
   return playbookKey ? { ...preferences, playbook_key: playbookKey } : preferences;
 }
 
+export function isNightwatchPlaybookKey(value: unknown): value is NightwatchPlaybookKey {
+  return typeof value === "string" && PLAYBOOK_KEYS.has(value);
+}
+
 export function normalizeNightwatchPreferences(input: Record<string, unknown>): NightwatchPreferences {
   const symbol = typeof input.monitor_symbol === "string" && /^[A-Z0-9]{2,24}USDT$/.test(input.monitor_symbol.toUpperCase()) ? input.monitor_symbol.toUpperCase() : null;
   return {
@@ -24,6 +28,6 @@ export function normalizeNightwatchPreferences(input: Record<string, unknown>): 
     daily_summary: input.daily_summary !== false,
     monitor_symbol: symbol,
     research_run_id: typeof input.research_run_id === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(input.research_run_id) ? input.research_run_id : null,
-    playbook_key: typeof input.playbook_key === "string" && PLAYBOOK_KEYS.has(input.playbook_key) ? input.playbook_key as NightwatchPlaybookKey : "sma_trend_v1",
+    playbook_key: isNightwatchPlaybookKey(input.playbook_key) ? input.playbook_key : "sma_trend_v1",
   };
 }
