@@ -4,6 +4,8 @@ Every new Strategy Lab backtest stores an optional, versioned `experimentManifes
 
 The manifest records the engine version and deployment revision when available, strategy key/version, exact market category and instrument, Bitget capture time, completed-candle window, train/holdout boundary, fees, slippage, leverage and funding treatment. The US stock perpetual model remains an unlevered price replay with funding excluded; a Reality spot run is labeled separately.
 
+The private saved run stores an adjacent, digest-checked market observation with provider quote time, local receipt time, quote currency, contract status, session metadata, UTC candle timestamp convention, and the capture-clock method used to exclude unfinished intervals. Unknown provider values stay null or unavailable. `closed_by_interval_at_capture` does not claim that Bitget separately certified each candle's finality. This private observation is omitted from public replay exports; the public manifest contract remains unchanged.
+
 `dataset.fingerprint` uses SHA-256 over the ordered `ohlcv-v1` rows:
 
 ```text

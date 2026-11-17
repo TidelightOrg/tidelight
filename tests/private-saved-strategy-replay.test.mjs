@@ -12,6 +12,8 @@ test("private saved replay route is owner-scoped and verifies the archived exper
   assert.match(page, /getServerAuthState\(\)/);
   assert.match(page, /\.eq\("id", runId\)\.eq\("user_id", auth\.user\.id\)/);
   assert.match(page, /verifyBacktestExperimentManifest/);
+  assert.match(page, /verifyBacktestMarketObservation/);
+  assert.match(page, /Session schedule/);
   assert.match(page, /backtestManifestMatchesRun/);
   assert.match(page, /backtestMetricsMatch/);
   assert.match(page, /ARCHIVE AND METRICS REPRODUCED/);

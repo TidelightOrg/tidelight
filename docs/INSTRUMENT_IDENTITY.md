@@ -39,4 +39,4 @@ Decision-capsule forecast validation uses these symbol patterns instead of a sec
 
 ## Next implementation gate
 
-Complete the additive market-data observation contract for received timestamp, timezone, currency, session, candle finality, and contract status after confirming which fields the current provider endpoints actually return. Unknown values remain `null`/unavailable; no values are inferred from a ticker or display name.
+The private saved strategy replay now captures a bounded, digest-checked observation of provider quote/receipt times, quote currency, provider contract status, session schedules, UTC candle timestamps, and the capture-clock candle-finality method. It remains separate from the existing public experiment manifest and is omitted from public replay exports until provider redistribution rights are confirmed. Unknown values remain `null`/unavailable; no values are inferred from a ticker or display name. Extending the same observation contract across Research and Paper Desk remains open and must preserve each workflow's current freshness gates.

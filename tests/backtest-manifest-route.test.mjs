@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { registerHooks } from "node:module";
-import { fingerprintBacktestCandles, verifyBacktestExperimentManifest } from "../lib/backtest-manifest.ts";
+import { fingerprintBacktestCandles, verifyBacktestExperimentManifest, verifyBacktestMarketObservation } from "../lib/backtest-manifest.ts";
 
 const intervalMs = 4 * 60 * 60 * 1000;
 const first = Date.UTC(2025, 0, 1);
@@ -17,7 +17,7 @@ for (let index = 0; index < 600; index += 1) {
 test("backtest route returns and persists a manifest over the exact completed fixture candle set", async () => {
   globalThis.backtestManifestTest = {
     candles,
-    asset: { symbol: "RNVDAUSDT", baseCoin: "RNVDA", quoteCoin: "USDT", name: "NVIDIA", underlyingTicker: "NVDA", kind: "rtoken", isReality: true, isRwa: true, weekendTradable: true, tradingSessions: ["24/7"], marketSession: null, marketSessionStatus: "available", lastPrice: 200, open24h: 198, change24h: 1, high24h: 201, low24h: 197, volume24h: 1000, turnover24h: 200000, providerTimestamp: Date.now(), logoUrl: null },
+    asset: { symbol: "RNVDAUSDT", baseCoin: "RNVDA", quoteCoin: "USDT", name: "NVIDIA", underlyingTicker: "NVDA", kind: "rtoken", isReality: true, isRwa: true, weekendTradable: true, tradingSessions: ["24/7"], marketSession: { market: "US", daylightType: "DST", schedule: [{ state: "open", timeZone: "America/New_York", startTime: "09:30", endTime: "16:00" }] }, marketSessionStatus: "available", receivedAt: Date.now(), instrumentStatus: "online", lastPrice: 200, open24h: 198, change24h: 1, high24h: 201, low24h: 197, volume24h: 1000, turnover24h: 200000, providerTimestamp: Date.now(), logoUrl: null },
   };
   const mocks = {
     "next/server": "export const NextResponse=class extends Response { static json(data,init={}) { return Response.json(data,init); } };",
@@ -48,6 +48,13 @@ test("backtest route returns and persists a manifest over the exact completed fi
     assert.equal(verifyBacktestExperimentManifest(run.experimentManifest, run.candles), true);
     assert.deepEqual(globalThis.backtestManifestTest.inserted.values.parameters.experimentManifest, run.experimentManifest);
     assert.equal(globalThis.backtestManifestTest.inserted.values.parameters.marketCategory, "SPOT");
+    assert.equal(run.marketObservation.quoteCurrency, "USDT");
+    assert.equal(run.marketObservation.instrumentStatus, "online");
+    assert.equal(run.marketObservation.timestampTimezone, "UTC");
+    assert.equal(run.marketObservation.candleFinality, "closed_by_interval_at_capture");
+    assert.equal(verifyBacktestMarketObservation(run.marketObservation, run.marketObservationDigest, run.candles), true);
+    assert.deepEqual(globalThis.backtestManifestTest.inserted.values.parameters.marketObservation, run.marketObservation);
+    assert.equal(verifyBacktestExperimentManifest(run.experimentManifest, run.candles), true, "private-only observation metadata does not alter the public experiment manifest");
   } finally {
     hooks.deregister();
     delete globalThis.backtestManifestTest;
