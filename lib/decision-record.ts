@@ -305,7 +305,7 @@ async function linked(read: DecisionRecordRead, researchRunId: string, saved: De
     many(before(read.user.from("nightwatch_runs").select("id,symbol,signal,outcome,created_at").eq("user_id", read.userId).filter("snapshot->>researchRunId", "ilike", researchRunId), window.decisionsBefore, "created_at")),
     many(before(read.user.from("research_sources").select("id,title,publisher,source_type,url,published_at,retrieved_at").eq("research_run_id", researchRunId), window.sourcesBefore, "retrieved_at"), "retrieved_at"),
     many(before(read.user.from("research_evidence").select("id,source_id,claim,stance,confidence,created_at,source:research_sources!research_evidence_source_run_fkey(id,title,publisher,url)").eq("research_run_id", researchRunId), window.evidenceBefore, "created_at")),
-    many(before(read.capsules.from("public_research_replays").select("public_id,created_at,expires_at,revoked_at").eq("user_id", read.userId).eq("research_run_id", researchRunId), window.publicReplaysBefore, "created_at")),
+    many(before(read.capsules.from("public_research_replays").select("id,public_id,created_at,expires_at,revoked_at").eq("user_id", read.userId).eq("research_run_id", researchRunId), window.publicReplaysBefore, "created_at")),
   ]);
   return {
     capsule: savedCapsule,

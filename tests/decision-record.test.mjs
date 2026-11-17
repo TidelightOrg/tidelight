@@ -26,6 +26,8 @@ const graphSubjectId = "subject:222222222222222222222222";
 const graphInstrumentId = "instrument:333333333333333333333333";
 const replayId = "abababab-abab-4bab-8bab-abababababab";
 const revokedReplayId = "cdcdcdcd-cdcd-4dcd-8dcd-cdcdcdcdcdcd";
+const replayRowId = "10101010-1010-4010-8010-101010101010";
+const revokedReplayRowId = "20202020-2020-4020-8020-202020202020";
 
 function savedGraph() {
   return { evidenceGraph: { version: 1, asOf: "2026-11-02T00:01:00.000Z", nodes: [
@@ -46,9 +48,9 @@ const rows = {
     { user_id: other, research_run_id: runId, trigger_mode: "manual", monitor_symbol: null, playbook_key: "sma_trend_v1", alert_on_signal: true, alert_on_fill: true },
   ],
   public_research_replays: [
-    { public_id: replayId, user_id: owner, research_run_id: runId, created_at: "2026-11-02T05:00:00.000Z", expires_at: "2026-12-02T05:00:00.000Z", revoked_at: null, payload: { private: true } },
-    { public_id: revokedReplayId, user_id: owner, research_run_id: runId, created_at: "2026-11-02T04:00:00.000Z", expires_at: "2026-12-02T04:00:00.000Z", revoked_at: "2026-11-03T00:00:00.000Z", payload: { private: true } },
-    { public_id: "edededed-eded-4ede-8ede-edededededed", user_id: other, research_run_id: runId, created_at: "2026-11-02T06:00:00.000Z", expires_at: "2026-12-02T06:00:00.000Z", revoked_at: null, payload: { private: true } },
+    { id: replayRowId, public_id: replayId, user_id: owner, research_run_id: runId, created_at: "2026-11-02T05:00:00.000Z", expires_at: "2026-12-02T05:00:00.000Z", revoked_at: null, payload: { private: true } },
+    { id: revokedReplayRowId, public_id: revokedReplayId, user_id: owner, research_run_id: runId, created_at: "2026-11-02T04:00:00.000Z", expires_at: "2026-12-02T04:00:00.000Z", revoked_at: "2026-11-03T00:00:00.000Z", payload: { private: true } },
+    { id: "30303030-3030-4030-8030-303030303030", public_id: "edededed-eded-4ede-8ede-edededededed", user_id: other, research_run_id: runId, created_at: "2026-11-02T06:00:00.000Z", expires_at: "2026-12-02T06:00:00.000Z", revoked_at: null, payload: { private: true } },
   ],
   decision_capsules: [
     { id: capsuleId, user_id: owner, research_run_id: runId, created_at: "2026-11-02T01:00:00.000Z", original_snapshot: { copied: true }, integrity_hash: "a".repeat(64) },
@@ -177,7 +179,7 @@ test("an owned research run resolves linked ids without copying stored payloads"
     { id: replayId, createdAt: "2026-11-02T05:00:00.000Z", expiresAt: "2026-12-02T05:00:00.000Z", status: "active" },
     { id: revokedReplayId, createdAt: "2026-11-02T04:00:00.000Z", expiresAt: "2026-12-02T04:00:00.000Z", status: "revoked" },
   ], earlier: null });
-  assert.ok(calls.some(call => call.table === "public_research_replays" && call.source === "capsules" && call.columns === "public_id,created_at,expires_at,revoked_at"));
+  assert.ok(calls.some(call => call.table === "public_research_replays" && call.source === "capsules" && call.columns === "id,public_id,created_at,expires_at,revoked_at"));
   assert.ok(calls.some(call => call.table === "nightwatch_preferences" && call.source === "user"));
   assert.equal(JSON.stringify(record).includes('"private":true'), false);
   assert.deepEqual(record.paperDecisions, { items: [{ id: paperId, symbol: "RNVDAUSDT", signal: "buy", outcome: "executed", createdAt: "2026-11-02T04:00:00.000Z" }], earlier: null });
@@ -203,6 +205,32 @@ test("an owned research run resolves linked ids without copying stored payloads"
       assert.ok(call.filters.some(([op, column, value]) => op === "eq" && column === "user_id" && value === owner));
     }
   }
+});
+
+test("public replay pagination uses the internal row ID while exposing only the public ID", async () => {
+  const previous = rows.public_research_replays;
+  rows.public_research_replays = Array.from({ length: 51 }, (_, index) => {
+    const part = String(index + 1).padStart(12, "0");
+    return {
+      id: `00000000-0000-4000-8000-${part}`,
+      public_id: `10000000-0000-4000-8000-${part}`,
+      user_id: owner,
+      research_run_id: runId,
+      created_at: new Date(Date.UTC(2026, 10, 1, 0, index)).toISOString(),
+      expires_at: "2026-12-02T00:00:00.000Z",
+      revoked_at: null,
+      payload: { private: true },
+    };
+  });
+  try {
+    const first = await resolveDecisionRecord(readers(owner).store, runId);
+    assert.equal(first.publicReplays.items.length, 50);
+    assert.match(first.publicReplays.earlier, /~00000000-0000-4000-8000-\d{12}$/);
+    const next = await resolveDecisionRecord(readers(owner).store, runId, { publicReplaysBefore: first.publicReplays.earlier });
+    assert.equal(next.publicReplays.items.length, 1);
+    assert.equal(next.publicReplays.items[0].id, "10000000-0000-4000-8000-000000000001");
+    assert.equal(JSON.stringify(next.publicReplays).includes("00000000-"), false);
+  } finally { rows.public_research_replays = previous; }
 });
 
 test("missing or malformed legacy replay assumptions remain visibly unavailable", async () => {
