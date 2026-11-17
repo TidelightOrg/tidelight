@@ -252,6 +252,8 @@ test("workspace links are read-only paths to the existing desks", () => {
   assert.equal(decisionRecordHref.capsule(capsuleId), `/api/decision-capsules/${capsuleId}`);
   assert.equal(decisionRecordHref.strategy(runId, "RNVDAUSDT", "SPOT"), `/strategies?symbol=RNVDAUSDT&researchRunId=${runId}&market=SPOT`);
   assert.equal(decisionRecordHref.strategy(runId, "NVDAUSDT", "USDT-FUTURES"), `/strategies?symbol=NVDAUSDT&researchRunId=${runId}&market=USDT-FUTURES`);
+  assert.equal(decisionRecordHref.savedStrategyRun(backtestId), `/strategies/runs/${backtestId}`);
+  assert.equal(decisionRecordHref.savedStrategyRun("invalid"), null);
   assert.equal(decisionRecordHref.nightwatch(runId, "RNVDAUSDT"), `/nightwatch?symbol=RNVDAUSDT&researchRunId=${runId}`);
   assert.equal(decisionRecordHref.strategy(runId, "bad symbol", "SPOT"), null);
   assert.equal(decisionRecordHref.nightwatch(runId, "NVDA"), null);
@@ -277,7 +279,7 @@ test("a futures backtest keeps its market, and older links stay reachable", asyn
     assert.equal(first.strategyBacktests.items.length, 50);
     assert.equal(first.strategyBacktests.items[0].marketCategory, "USDT-FUTURES");
     assert.equal(first.strategyBacktests.earlier, `${rows.strategy_backtest_runs[49].created_at}~${rows.strategy_backtest_runs[49].id}`);
-    assert.equal(decisionRecordHref.strategy(runId, "NVDAUSDT", first.strategyBacktests.items[0].marketCategory), `/strategies?symbol=NVDAUSDT&researchRunId=${runId}&market=USDT-FUTURES`);
+    assert.equal(decisionRecordHref.savedStrategyRun(first.strategyBacktests.items[0].id), `/strategies/runs/${first.strategyBacktests.items[0].id}`);
     const second = await resolveDecisionRecord(readers(owner).store, runId, { strategiesBefore: first.strategyBacktests.earlier });
     assert.deepEqual(second.strategyBacktests.items.map(item => item.id), [rows.strategy_backtest_runs[50].id]);
     assert.equal(second.strategyBacktests.earlier, null);
@@ -421,6 +423,7 @@ test("the decision record page only reads and the research result links to it", 
   assert.match(decisionView, /Evidence claims/);
   assert.match(decisionView, /Assumed costs/);
   assert.match(decisionView, /candleFingerprint/);
+  assert.match(decisionView, /savedStrategyRun/);
   assert.match(decisionView, /rel: "noreferrer noopener"/);
   assert.match(decisionView, /item\.source\.title/);
 });

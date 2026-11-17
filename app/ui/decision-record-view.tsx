@@ -26,7 +26,7 @@ export function DecisionRecordView({ record, cursors }: { record: DecisionRecord
     <ol aria-label="Decision record">
       {record.researchRun ? <Entry href={null} title="Research run" meta={<><code>{record.researchRun.id}</code><span>{record.researchRun.status}</span><time dateTime={record.researchRun.createdAt}>{when(record.researchRun.createdAt)}</time></>} /> : null}
       {record.capsule ? <Entry href={decisionRecordHref.capsule(record.capsule.id)} title="Decision Capsule" meta={<><code>{record.capsule.id}</code><time dateTime={record.capsule.createdAt}>{when(record.capsule.createdAt)}</time></>} /> : null}
-      {record.strategyBacktests.items.map(item => <Entry key={item.id} href={runId ? decisionRecordHref.strategy(runId, item.symbol, item.marketCategory) : null} title={`${item.strategyKey} · ${item.assetName ?? item.symbol} · ${item.interval}`} meta={<>
+      {record.strategyBacktests.items.map(item => <Entry key={item.id} href={decisionRecordHref.savedStrategyRun(item.id)} title={`${item.strategyKey} · ${item.assetName ?? item.symbol} · ${item.interval}`} meta={<>
         <code>{item.id}</code><time dateTime={item.createdAt}>{when(item.createdAt)}</time>
         <span>{item.assetKind ?? item.marketCategory} · {item.candleCount ?? "—"} candles · {when(item.dataStart)} – {when(item.dataEnd)}</span>
         {item.feeBpsPerSide === null || item.slippageBpsPerSide === null ? <span>Replay costs unavailable</span> : <span>Assumed costs: {item.feeBpsPerSide} bps fee + {item.slippageBpsPerSide} bps slippage per side</span>}
