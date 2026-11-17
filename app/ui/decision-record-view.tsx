@@ -44,6 +44,7 @@ export function DecisionRecordView({ record, cursors }: { record: DecisionRecord
       <Earlier id={record.id} cursors={cursors} name="strategiesBefore" earlier={record.strategyBacktests.earlier} title="Earlier strategy backtests" />
       {record.nightwatchSchedules.items.map(item => <Entry key={item.id} href={runId ? decisionRecordHref.nightwatch(runId, item.symbol) : null} title={`${item.label} · ${item.symbol}`} meta={<><code>{item.id}</code><span>{item.playbookKey}</span>{item.enabled ? null : <span>Disabled</span>}</>} />)}
       <Earlier id={record.id} cursors={cursors} name="schedulesBefore" earlier={record.nightwatchSchedules.earlier} title="Earlier Nightwatch schedules" />
+      {record.nightwatchPreferences ? <Entry href={runId && record.nightwatchPreferences.symbol ? decisionRecordHref.nightwatch(runId, record.nightwatchPreferences.symbol) : null} title="Nightwatch preferences" meta={<><span>Saved trigger preference · {record.nightwatchPreferences.triggerMode === "every_check" ? "every check" : "manual"}</span><span>{record.nightwatchPreferences.symbol ?? "No monitor symbol"} · {record.nightwatchPreferences.playbookKey}</span><span>Signal alerts {record.nightwatchPreferences.alertOnSignal ? "on" : "off"} · fill alerts {record.nightwatchPreferences.alertOnFill ? "on" : "off"}</span></>} /> : null}
       {record.paperDecisions.items.map(item => <Entry key={item.id} href={runId ? decisionRecordHref.nightwatch(runId, item.symbol) : null} title={`${item.symbol} · ${item.signal} · ${item.outcome}`} meta={<><code>{item.id}</code><time dateTime={item.createdAt}>{when(item.createdAt)}</time></>} />)}
       <Earlier id={record.id} cursors={cursors} name="decisionsBefore" earlier={record.paperDecisions.earlier} title="Earlier paper decisions" />
     </ol>
@@ -54,6 +55,10 @@ export function DecisionRecordView({ record, cursors }: { record: DecisionRecord
     {record.evidence.items.length || record.evidence.earlier ? <section aria-labelledby="decision-record-evidence"><h2 id="decision-record-evidence">Evidence claims</h2><ol aria-label="Evidence claims">
       {record.evidence.items.map(item => <Entry key={item.id} href={item.source?.href ?? null} external title={item.claim} meta={<><span>{item.stance}</span>{item.confidence === null ? null : <span>{Math.round(item.confidence * 100)}% confidence</span>}<time dateTime={item.createdAt}>{when(item.createdAt)}</time>{item.source ? <span>Source: {item.source.title} {item.source.publisher ? `· ${item.source.publisher}` : ""} <code>{item.source.id}</code></span> : <span>Source not retained</span>}</>} />)}
       <Earlier id={record.id} cursors={cursors} name="evidenceBefore" earlier={record.evidence.earlier} title="Earlier claims" />
+    </ol></section> : null}
+    {record.publicReplays.items.length || record.publicReplays.earlier ? <section aria-labelledby="decision-record-public-replays"><h2 id="decision-record-public-replays">Public research replays</h2><ol aria-label="Public research replays">
+      {record.publicReplays.items.map(item => <Entry key={item.id} href={item.status === "active" ? `/replay/${encodeURIComponent(item.id)}` : null} title={`${item.status === "active" ? "Active" : item.status === "revoked" ? "Revoked" : "Expired"} public link`} meta={<><code>{item.id}</code><time dateTime={item.createdAt}>Created {when(item.createdAt)}</time><time dateTime={item.expiresAt}>Expires {when(item.expiresAt)}</time></>} />)}
+      <Earlier id={record.id} cursors={cursors} name="publicReplaysBefore" earlier={record.publicReplays.earlier} title="Earlier public replay links" />
     </ol></section> : null}
   </main>;
 }

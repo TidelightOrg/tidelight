@@ -24,6 +24,10 @@ const evidenceId = "ffffffff-ffff-4fff-8fff-ffffffffffff";
 const graphEventId = "event:111111111111111111111111";
 const graphSubjectId = "subject:222222222222222222222222";
 const graphInstrumentId = "instrument:333333333333333333333333";
+const replayId = "abababab-abab-4bab-8bab-abababababab";
+const revokedReplayId = "cdcdcdcd-cdcd-4dcd-8dcd-cdcdcdcdcdcd";
+const replayRowId = "10101010-1010-4010-8010-101010101010";
+const revokedReplayRowId = "20202020-2020-4020-8020-202020202020";
 
 function savedGraph() {
   return { evidenceGraph: { version: 1, asOf: "2026-11-02T00:01:00.000Z", nodes: [
@@ -38,6 +42,15 @@ const rows = {
   research_runs: [
     { id: runId, user_id: owner, question: "What changed for NVDA?", status: "complete", created_at: "2026-11-02T00:00:00.000Z", summary: { secret: true, ...savedGraph() } },
     { id: otherRun, user_id: other, question: "Other account", status: "complete", created_at: "2026-11-02T00:00:00.000Z", summary: { secret: true } },
+  ],
+  nightwatch_preferences: [
+    { user_id: owner, research_run_id: runId, trigger_mode: "every_check", monitor_symbol: "RNVDAUSDT", playbook_key: "sma_trend_v1", alert_on_signal: true, alert_on_fill: false },
+    { user_id: other, research_run_id: runId, trigger_mode: "manual", monitor_symbol: null, playbook_key: "sma_trend_v1", alert_on_signal: true, alert_on_fill: true },
+  ],
+  public_research_replays: [
+    { id: replayRowId, public_id: replayId, user_id: owner, research_run_id: runId, created_at: "2026-11-02T05:00:00.000Z", expires_at: "2026-12-02T05:00:00.000Z", revoked_at: null, payload: { private: true } },
+    { id: revokedReplayRowId, public_id: revokedReplayId, user_id: owner, research_run_id: runId, created_at: "2026-11-02T04:00:00.000Z", expires_at: "2026-12-02T04:00:00.000Z", revoked_at: "2026-11-03T00:00:00.000Z", payload: { private: true } },
+    { id: "30303030-3030-4030-8030-303030303030", public_id: "edededed-eded-4ede-8ede-edededededed", user_id: other, research_run_id: runId, created_at: "2026-11-02T06:00:00.000Z", expires_at: "2026-12-02T06:00:00.000Z", revoked_at: null, payload: { private: true } },
   ],
   decision_capsules: [
     { id: capsuleId, user_id: owner, research_run_id: runId, created_at: "2026-11-02T01:00:00.000Z", original_snapshot: { copied: true }, integrity_hash: "a".repeat(64) },
@@ -66,7 +79,7 @@ const rows = {
   ],
 };
 
-const forbiddenSelect = /original_snapshot|integrity_hash|(?:^|,)snapshot(?:,|$)|candles|train_metrics|test_metrics|reason|reference_price|excerpt|supporting_quote|content_hash/;
+const forbiddenSelect = /original_snapshot|integrity_hash|(?:^|,)snapshot(?:,|$)|candles|train_metrics|test_metrics|reason|reference_price|excerpt|supporting_quote|content_hash|payload/;
 
 function matches(row, op, column, value) {
   if (op === "or") {
@@ -161,6 +174,14 @@ test("an owned research run resolves linked ids without copying stored payloads"
   assert.deepEqual(record.strategyBacktests, { items: [{ id: backtestId, strategyKey: "sma_trend_v1", symbol: "NVDAUSDT", interval: "4H", marketCategory: "SPOT", createdAt: "2026-11-02T02:00:00.000Z", assetName: "NVIDIA", assetKind: "Reality rToken", dataStart: "2026-08-01T00:00:00.000Z", dataEnd: "2026-11-02T00:00:00.000Z", candleCount: 100, providerTimestamp: 1793577600000, candleFingerprint: "a".repeat(64), manifestDigest: "b".repeat(64), initialEquity: 10000, feeBpsPerSide: 10, slippageBpsPerSide: 5, funding: "not_applicable" }], earlier: null });
   assert.ok(calls.some(call => call.table === "strategy_backtest_runs" && call.columns.includes("market_category:parameters->>marketCategory") && call.columns.includes(",parameters,data_start,data_end,candle_count")));
   assert.deepEqual(record.nightwatchSchedules, { items: [{ id: scheduleId, label: "Daily review", symbol: "RNVDAUSDT", playbookKey: "sma_trend_v1", enabled: true }], earlier: null });
+  assert.deepEqual(record.nightwatchPreferences, { triggerMode: "every_check", symbol: "RNVDAUSDT", playbookKey: "sma_trend_v1", alertOnSignal: true, alertOnFill: false });
+  assert.deepEqual(record.publicReplays, { items: [
+    { id: replayId, createdAt: "2026-11-02T05:00:00.000Z", expiresAt: "2026-12-02T05:00:00.000Z", status: "active" },
+    { id: revokedReplayId, createdAt: "2026-11-02T04:00:00.000Z", expiresAt: "2026-12-02T04:00:00.000Z", status: "revoked" },
+  ], earlier: null });
+  assert.ok(calls.some(call => call.table === "public_research_replays" && call.source === "capsules" && call.columns === "id,public_id,created_at,expires_at,revoked_at"));
+  assert.ok(calls.some(call => call.table === "nightwatch_preferences" && call.source === "user"));
+  assert.equal(JSON.stringify(record).includes('"private":true'), false);
   assert.deepEqual(record.paperDecisions, { items: [{ id: paperId, symbol: "RNVDAUSDT", signal: "buy", outcome: "executed", createdAt: "2026-11-02T04:00:00.000Z" }], earlier: null });
   assert.deepEqual(record.sources, { items: [{ id: sourceId, title: "NVIDIA earnings release", publisher: "NVIDIA", sourceType: "filing", href: "https://investor.example/release", publishedAt: "2026-11-01T12:00:00.000Z", retrievedAt: "2026-11-02T00:02:00.000Z" }], earlier: null });
   assert.deepEqual(record.evidence, { items: [{ id: evidenceId, sourceId, source: { id: sourceId, title: "NVIDIA earnings release", publisher: "NVIDIA", href: "https://investor.example/release" }, claim: "Revenue guidance increased year over year.", stance: "supports", confidence: 0.875, createdAt: "2026-11-02T00:03:00.000Z" }], earlier: null });
@@ -175,7 +196,8 @@ test("an owned research run resolves linked ids without copying stored payloads"
   assert.equal(JSON.stringify(record).includes("?token=secret"), false);
   for (const call of calls) assert.doesNotMatch(call.columns, forbiddenSelect);
   assert.deepEqual(calls.filter(call => call.table === "decision_capsules").map(call => call.source), ["capsules"]);
-  assert.ok(calls.filter(call => call.table !== "decision_capsules").every(call => call.source === "user"));
+  assert.ok(calls.filter(call => !["decision_capsules", "public_research_replays"].includes(call.table)).every(call => call.source === "user"));
+  assert.ok(calls.filter(call => call.source === "capsules").every(call => ["decision_capsules", "public_research_replays"].includes(call.table)));
   for (const call of calls) {
     if (call.table === "research_sources" || call.table === "research_evidence") {
       assert.ok(call.filters.some(([op, column, value]) => op === "eq" && column === "research_run_id" && value === runId));
@@ -183,6 +205,32 @@ test("an owned research run resolves linked ids without copying stored payloads"
       assert.ok(call.filters.some(([op, column, value]) => op === "eq" && column === "user_id" && value === owner));
     }
   }
+});
+
+test("public replay pagination uses the internal row ID while exposing only the public ID", async () => {
+  const previous = rows.public_research_replays;
+  rows.public_research_replays = Array.from({ length: 51 }, (_, index) => {
+    const part = String(index + 1).padStart(12, "0");
+    return {
+      id: `00000000-0000-4000-8000-${part}`,
+      public_id: `10000000-0000-4000-8000-${part}`,
+      user_id: owner,
+      research_run_id: runId,
+      created_at: new Date(Date.UTC(2026, 10, 1, 0, index)).toISOString(),
+      expires_at: "2026-12-02T00:00:00.000Z",
+      revoked_at: null,
+      payload: { private: true },
+    };
+  });
+  try {
+    const first = await resolveDecisionRecord(readers(owner).store, runId);
+    assert.equal(first.publicReplays.items.length, 50);
+    assert.match(first.publicReplays.earlier, /~00000000-0000-4000-8000-\d{12}$/);
+    const next = await resolveDecisionRecord(readers(owner).store, runId, { publicReplaysBefore: first.publicReplays.earlier });
+    assert.equal(next.publicReplays.items.length, 1);
+    assert.equal(next.publicReplays.items[0].id, "10000000-0000-4000-8000-000000000001");
+    assert.equal(JSON.stringify(next.publicReplays).includes("00000000-"), false);
+  } finally { rows.public_research_replays = previous; }
 });
 
 test("missing or malformed legacy replay assumptions remain visibly unavailable", async () => {
@@ -419,6 +467,7 @@ test("the decision record page only reads and the research result links to it", 
   assert.match(lab, /useState<AlphaMarketCategory>\(initialMarketCategory\)/);
   assert.match(page, /Earlier strategy backtests|decisionRecordEarlierHref|strategiesBefore/);
   assert.match(page, /sourcesBefore/);
+  assert.match(page, /publicReplaysBefore/);
   assert.match(page, /decisionRecordCompositeCursor/);
   assert.match(page, /evidenceBefore/);
   assert.match(page, /resolveDecisionRecord\(\{ userId: auth\.user\.id, user: records, capsules: records \}, id, cursors\)/);
@@ -442,4 +491,6 @@ test("the decision record page only reads and the research result links to it", 
   assert.match(decisionView, /savedStrategyRun/);
   assert.match(decisionView, /rel: "noreferrer noopener"/);
   assert.match(decisionView, /item\.source\.title/);
+  assert.match(decisionView, /Public research replays/);
+  assert.match(decisionView, /Nightwatch preferences/);
 });
