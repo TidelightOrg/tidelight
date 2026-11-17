@@ -11,6 +11,10 @@ export type NightwatchPreferences = {
   playbook_key: NightwatchPlaybookKey;
 };
 
+export function applyNightwatchHandoffPlaybook<T extends { playbook_key: string }>(preferences: T, playbookKey: string | null): T {
+  return playbookKey ? { ...preferences, playbook_key: playbookKey } : preferences;
+}
+
 export function normalizeNightwatchPreferences(input: Record<string, unknown>): NightwatchPreferences {
   const symbol = typeof input.monitor_symbol === "string" && /^[A-Z0-9]{2,24}USDT$/.test(input.monitor_symbol.toUpperCase()) ? input.monitor_symbol.toUpperCase() : null;
   return {

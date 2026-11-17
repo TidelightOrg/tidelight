@@ -1,6 +1,15 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { normalizeNightwatchPreferences } from "../lib/nightwatch-preferences.ts";
+import { applyNightwatchHandoffPlaybook, normalizeNightwatchPreferences } from "../lib/nightwatch-preferences.ts";
+
+test("a Nightwatch handoff selects its playbook for the current view without mutating saved preferences", () => {
+  const saved = { playbook_key: "sma_trend_v1", trigger_mode: "manual" };
+  const handoff = applyNightwatchHandoffPlaybook(saved, "semi_breakout_v1");
+
+  assert.deepEqual(handoff, { playbook_key: "semi_breakout_v1", trigger_mode: "manual" });
+  assert.deepEqual(saved, { playbook_key: "sma_trend_v1", trigger_mode: "manual" });
+  assert.equal(applyNightwatchHandoffPlaybook(saved, null), saved);
+});
 
 test("scheduled checks require a valid Reality-style symbol and otherwise remain manual", () => {
   assert.deepEqual(normalizeNightwatchPreferences({ trigger_mode: "every_check" }), {

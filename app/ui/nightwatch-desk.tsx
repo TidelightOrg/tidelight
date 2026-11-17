@@ -10,6 +10,7 @@ import PnlShareCard from "@/app/ui/pnl-share-card";
 import AssetSearchPicker from "@/app/ui/asset-search-picker";
 import NightwatchSchedules from "@/app/ui/nightwatch-schedules";
 import { ALPHA_STRATEGIES, BACKTEST_STRATEGY, type StrategyKey } from "@/lib/backtest";
+import { applyNightwatchHandoffPlaybook } from "@/lib/nightwatch-preferences";
 
 type Asset = { symbol: string; name: string; ticker: string | null; lastPrice: number; change24h: number | null; logoUrl: string | null };
 type Run = { id: string; symbol: string; signal: string; outcome: string; reason: string; as_of: string; reference_price: number; fast_sma: number; slow_sma: number; created_at: string; snapshot?: { playbook?: { key: string; label: string }; agent?: { confidence: number; rationale: string; evidence?: string[]; risks?: string[]; invalidation?: string; horizon?: string } } };
@@ -187,7 +188,7 @@ export default function NightwatchDesk({ signedIn, assets, initialRuns, initialO
     return () => { cancelled = true; };
   }, [symbol]);
 
-  useEffect(() => { if (signedIn) void fetch("/api/nightwatch/preferences").then((response) => response.ok ? response.json() : null).then((data: (NightwatchPreferences & { scheduler_available?: boolean }) | null) => { if (data) { const loaded = initialPlaybookKey ? { ...data, playbook_key: initialPlaybookKey } : data; setPreferences(loaded); if (initialPlaybookKey && data.playbook_key !== initialPlaybookKey) void fetch("/api/nightwatch/preferences", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(loaded) }); } }).catch(() => undefined); }, [signedIn, initialPlaybookKey]);
+  useEffect(() => { if (signedIn) void fetch("/api/nightwatch/preferences").then((response) => response.ok ? response.json() : null).then((data: (NightwatchPreferences & { scheduler_available?: boolean }) | null) => { if (data) setPreferences(applyNightwatchHandoffPlaybook(data, initialPlaybookKey)); }).catch(() => undefined); }, [signedIn, initialPlaybookKey]);
 
   async function savePreferences(next: Partial<NightwatchPreferences>) {
     if (!signedIn) { router.push("/login"); return; }
