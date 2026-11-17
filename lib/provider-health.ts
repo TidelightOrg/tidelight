@@ -1,5 +1,5 @@
 import { createAdminClient } from "@/lib/supabase/admin";
-import { isRequestCorrelationId } from "@/lib/request-correlation";
+import { isRequestCorrelationId } from "./request-correlation.ts";
 import type { ProviderAttempt } from "@/lib/ai-fallback";
 
 export type ProviderHealthLabel = "qwen" | "gemini";
