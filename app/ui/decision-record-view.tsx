@@ -7,10 +7,10 @@ function when(value: string) {
   return `${date.toLocaleString("en-US", { month: "short", day: "numeric", year: "numeric", hour: "numeric", minute: "2-digit", timeZone: "UTC" })} UTC`;
 }
 
-function Entry({ href, title, meta }: { href: string | null; title: string; meta: ReactNode }) {
+function Entry({ href, title, meta, external = false }: { href: string | null; title: string; meta: ReactNode; external?: boolean }) {
   const body = <><span className="decision-record-title">{title}</span>{meta ? <span className="decision-record-meta">{meta}</span> : null}</>;
   if (!href) return <li><div>{body}</div></li>;
-  return <li><a href={href}>{body}</a></li>;
+  return <li><a href={href} {...(external ? { target: "_blank", rel: "noreferrer noopener" } : {})}>{body}</a></li>;
 }
 
 function Earlier({ id, cursors, name, earlier, title }: { id: string; cursors: DecisionRecordWindow; name: keyof DecisionRecordWindow; earlier: string | null; title: string }) {
@@ -33,5 +33,13 @@ export function DecisionRecordView({ record, cursors }: { record: DecisionRecord
       {record.paperDecisions.items.map(item => <Entry key={item.id} href={runId ? decisionRecordHref.nightwatch(runId, item.symbol) : null} title={`${item.symbol} · ${item.signal} · ${item.outcome}`} meta={<><code>{item.id}</code><time dateTime={item.createdAt}>{when(item.createdAt)}</time></>} />)}
       <Earlier id={record.id} cursors={cursors} name="decisionsBefore" earlier={record.paperDecisions.earlier} title="Earlier paper decisions" />
     </ol>
+    {record.sources.items.length || record.sources.earlier ? <section aria-labelledby="decision-record-sources"><h2 id="decision-record-sources">Research sources</h2><ol aria-label="Research sources">
+      {record.sources.items.map(item => <Entry key={item.id} href={item.href} external title={item.title} meta={<><code>{item.id}</code><span>{item.publisher ?? item.sourceType}</span>{item.publishedAt ? <time dateTime={item.publishedAt}>Published {when(item.publishedAt)}</time> : null}<time dateTime={item.retrievedAt}>Captured {when(item.retrievedAt)}</time></>} />)}
+      <Earlier id={record.id} cursors={cursors} name="sourcesBefore" earlier={record.sources.earlier} title="Earlier sources" />
+    </ol></section> : null}
+    {record.evidence.items.length || record.evidence.earlier ? <section aria-labelledby="decision-record-evidence"><h2 id="decision-record-evidence">Evidence claims</h2><ol aria-label="Evidence claims">
+      {record.evidence.items.map(item => <Entry key={item.id} href={item.source?.href ?? null} external title={item.claim} meta={<><span>{item.stance}</span>{item.confidence === null ? null : <span>{Math.round(item.confidence * 100)}% confidence</span>}<time dateTime={item.createdAt}>{when(item.createdAt)}</time>{item.source ? <span>Source: {item.source.title} {item.source.publisher ? `· ${item.source.publisher}` : ""} <code>{item.source.id}</code></span> : <span>Source not retained</span>}</>} />)}
+      <Earlier id={record.id} cursors={cursors} name="evidenceBefore" earlier={record.evidence.earlier} title="Earlier claims" />
+    </ol></section> : null}
   </main>;
 }
