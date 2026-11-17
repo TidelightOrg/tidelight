@@ -37,7 +37,26 @@ export type DecisionRecordCapsule = { id: string; createdAt: string };
 /** Market stored on a strategy backtest. */
 export type DecisionRecordMarket = "SPOT" | "USDT-FUTURES";
 /** Strategy backtest identity, including the saved market. */
-export type DecisionRecordBacktest = { id: string; strategyKey: string; symbol: string; interval: string; marketCategory: DecisionRecordMarket; createdAt: string };
+export type DecisionRecordBacktest = {
+  id: string;
+  strategyKey: string;
+  symbol: string;
+  interval: string;
+  marketCategory: DecisionRecordMarket;
+  createdAt: string;
+  assetName: string | null;
+  assetKind: string | null;
+  dataStart: string;
+  dataEnd: string;
+  candleCount: number | null;
+  providerTimestamp: number | null;
+  candleFingerprint: string | null;
+  manifestDigest: string | null;
+  initialEquity: number | null;
+  feeBpsPerSide: number | null;
+  slippageBpsPerSide: number | null;
+  funding: "excluded" | "not_applicable" | null;
+};
 /** Nightwatch schedule identity. */
 export type DecisionRecordSchedule = { id: string; label: string; symbol: string; playbookKey: string; enabled: boolean };
 /** Paper decision identity. The outcome is the recorded action. */
@@ -105,6 +124,48 @@ function oneOf(value: unknown, allowed: readonly string[]): string {
 function flag(value: unknown): boolean {
   if (typeof value !== "boolean") throw new DecisionRecordUnavailable();
   return value;
+}
+
+function object(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+function safeLabel(value: unknown, max: number): string | null {
+  return typeof value === "string" && value.trim().length > 0 ? value.trim().slice(0, max) : null;
+}
+
+function nonnegative(value: unknown): number | null {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0 ? value : null;
+}
+
+function positiveInteger(value: unknown): number | null {
+  return typeof value === "number" && Number.isSafeInteger(value) && value > 0 ? value : null;
+}
+
+function digest(value: unknown): string | null {
+  return typeof value === "string" && /^[0-9a-f]{64}$/i.test(value) ? value : null;
+}
+
+function replayAssumptions(item: Record<string, unknown>): Pick<DecisionRecordBacktest, "assetName" | "assetKind" | "providerTimestamp" | "candleFingerprint" | "manifestDigest" | "initialEquity" | "feeBpsPerSide" | "slippageBpsPerSide" | "funding"> {
+  const parameters = object(item.parameters);
+  const manifest = object(parameters.experimentManifest);
+  const instrument = object(manifest.instrument);
+  const dataset = object(manifest.dataset);
+  const fingerprint = object(dataset.fingerprint);
+  const execution = object(manifest.execution);
+  const integrity = object(manifest.integrity);
+  const providerTimestamp = dataset.providerTimestamp;
+  return {
+    assetName: safeLabel(instrument.assetName ?? parameters.assetName, 160),
+    assetKind: safeLabel(instrument.assetKind ?? parameters.assetKind, 48),
+    providerTimestamp: providerTimestamp === null ? null : positiveInteger(providerTimestamp),
+    candleFingerprint: digest(fingerprint.value ?? parameters.candleHash),
+    manifestDigest: digest(integrity.manifestDigest),
+    initialEquity: nonnegative(execution.initialEquity ?? parameters.initialEquity),
+    feeBpsPerSide: nonnegative(execution.feeBpsPerSide ?? parameters.feeBpsPerSide),
+    slippageBpsPerSide: nonnegative(execution.slippageBpsPerSide ?? parameters.slippageBpsPerSide),
+    funding: execution.funding === "excluded" || execution.funding === "not_applicable" ? execution.funding : null,
+  };
 }
 
 function failRead(error: { message: string; code?: string } | null): never {
@@ -194,7 +255,7 @@ function emptyList<T>(): DecisionRecordList<T> {
 async function linked(read: DecisionRecordRead, researchRunId: string, saved: DecisionRecordCapsule | null, window: DecisionRecordWindow): Promise<Pick<DecisionRecord, "capsule" | "strategyBacktests" | "nightwatchSchedules" | "paperDecisions" | "sources" | "evidence">> {
   const [savedCapsule, backtests, schedules, decisions, sources, evidence] = await Promise.all([
     saved ? Promise.resolve(saved) : single(read.capsules.from("decision_capsules").select("id,created_at").eq("user_id", read.userId).eq("research_run_id", researchRunId)).then(item => item ? capsule(item) : null),
-    many(before(read.user.from("strategy_backtest_runs").select("id,strategy_key,symbol,interval,created_at,market_category:parameters->>marketCategory").eq("user_id", read.userId).filter("parameters->>researchRunId", "ilike", researchRunId), window.strategiesBefore, "created_at")),
+    many(before(read.user.from("strategy_backtest_runs").select("id,strategy_key,symbol,interval,created_at,market_category:parameters->>marketCategory,parameters,data_start,data_end,candle_count").eq("user_id", read.userId).filter("parameters->>researchRunId", "ilike", researchRunId), window.strategiesBefore, "created_at")),
     many(before(read.user.from("nightwatch_schedules").select("id,label,symbol,playbook_key,enabled,created_at").eq("user_id", read.userId).eq("research_run_id", researchRunId), window.schedulesBefore, "created_at")),
     many(before(read.user.from("nightwatch_runs").select("id,symbol,signal,outcome,created_at").eq("user_id", read.userId).filter("snapshot->>researchRunId", "ilike", researchRunId), window.decisionsBefore, "created_at")),
     many(before(read.user.from("research_sources").select("id,title,publisher,source_type,url,published_at,retrieved_at").eq("research_run_id", researchRunId), window.sourcesBefore, "retrieved_at"), "retrieved_at"),
@@ -212,6 +273,10 @@ async function linked(read: DecisionRecordRead, researchRunId: string, saved: De
           interval: oneOf(item.interval, ["1H", "4H", "1D"]),
           marketCategory: marketCategory(item.market_category, symbol),
           createdAt: text(item.created_at, 80),
+          ...replayAssumptions(item),
+          dataStart: text(item.data_start, 80),
+          dataEnd: text(item.data_end, 80),
+          candleCount: positiveInteger(item.candle_count),
         };
       }),
       earlier: backtests.earlier,
