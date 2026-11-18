@@ -59,3 +59,19 @@ There is no central feature-flag registry in the repository. Code-level controls
 At **17:50 UTC**, health advisors returned no findings. Security advisors included 35 informational RLS-enabled tables without policies (including service-only tables), warnings for `pg_net` in `public`, three authenticated `SECURITY DEFINER` research-monitor overloads, and disabled leaked-password protection. Performance advisors reported six unindexed foreign keys and 52 unused indexes. These findings were reviewed as observations only; no database settings, policies, indexes, or functions were changed for this baseline.
 
 This baseline does not establish the reason for the prior Vercel disablement, verify signed-in product flows, confirm deployed private flag values, or adjudicate provider/data licensing. Those remain explicit roadmap work.
+
+## Follow-up checks · 18:31–18:36 UTC
+
+Read-only HTTP checks at **18:31 UTC** returned HTTP 200 for `/api/system/health`, `/flow`, `/judge`, `/developers`, `api.tidelight.app/v1`, and `status.tidelight.app/health`. System health reported deployment `f24ef374b00f`, the PR #542 merge. This updates the deployment observation above; it still does not verify an authenticated journey.
+
+Read-only Vercel project and deployment metadata showed the `f24ef374b00f95ff965d0d089ea42af23f4718be` main deployment in `READY` state with the production target, and `tidelight.app` verified on that project. A different historical project record lists the same host but reports it unverified. This metadata does not explain the historical `live: false` response or the 28 October HTTP 402, and does not establish that the historical project serves production. No aliases, deployments, project settings, or secrets were changed.
+
+At **18:34 UTC**, a read-only aggregate over the prior seven days of Nightwatch scheduled executions found 28 completed executions: 17 `no_action` and 11 `rejected`. All 28 had a matching `nightwatch_runs` row, matching captured schedule revision, and no linked `nightwatch_orders` row. Current linked schedules were enabled and not paused; none of the executions referenced a deleted schedule. The application logic records `no_action` and `rejected` without inserting a paper order. This is a dated natural-run reconciliation only; it does not establish the 90-day/100-eligible-decision supervised observation target or verify user-level balances.
+
+At **18:39 UTC**, Supabase health advisors again returned no findings. Security and performance categories remained materially consistent with the earlier snapshot: 35 informational service-only/RLS-without-policy findings, the `pg_net` schema warning, three owner-facing research-monitor `SECURITY DEFINER` functions, and leaked-password protection disabled; six unindexed foreign keys and 51 unused indexes. These are advisory observations, not independently verified vulnerabilities. No settings, grants, policies, or indexes were changed.
+
+At **19:00 UTC**, a metadata-only Vercel environment listing confirmed `AGENTKEY_API_KEY` targets production. The value was not decrypted or inspected. This establishes variable presence in project configuration, not validity of the credential or successful AgentKey tool execution.
+
+At **19:02 UTC**, read-only requests returned HTTP 200 for the landing page, trading page, status health, REST API root, developer docs, MCP protected-resource metadata, package directory, and blog home. These are route-availability checks only; no authenticated REST/MCP call or visual browser review was made.
+
+At **19:03 UTC**, `https://tidelight.app/trading` returned HTTP 200 and rendered the existing copy “Live exchange orders are disabled across this deployment.” This is public UI evidence for the rendered branch, not a direct read of the private live-order environment value; the code-level live-order guard remains the authoritative enforcement.
