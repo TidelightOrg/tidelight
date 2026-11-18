@@ -344,7 +344,7 @@ export async function POST(request: Request) {
             ticker,
           );
           return { ticker, issuer: market?.name ?? spotAsset?.name ?? ticker, secStatus: sec.status === "fulfilled" ? "available" as const : "unavailable" as const, financialFacts: capturedFacts, agentKeyContext: liveAgentKey.context, agentKeyTools: liveAgentKey.tools.map(tool => ({ name: tool.name, provider: tool.provider, costCredits: tool.costCredits })), perp: market, spot: spotAsset,
-            candles: candles.status === "fulfilled" ? candles.value : [], sources: evidence };
+            candles: market && candles.status === "fulfilled" ? candles.value : [], sources: evidence };
         }));
         const lookbackDays = issuerEvidenceLookbackDays(question);
         for (const snap of snapshots) stage("Evidence scout", snap.sources.length ? "complete" : "blocked", `${snap.ticker}: ${snap.sources.length} source headlines`, snap.sources.length ? `Collected dated headlines from the last ${lookbackDays} days across ${new Set(snap.sources.map(source => source.publisher)).size} publishers; ${new Set(snap.sources.map(source => new URL(source.url).hostname)).size} source domains, original links attached below.` : `No attributable public coverage was reached within the ${lookbackDays}-day search window.`, snap.ticker);
@@ -378,7 +378,7 @@ export async function POST(request: Request) {
         const assets = snapshots.map(snap => {
           const assessment = assessments[snap.ticker] ?? sourceOnlyRead(snap, tokenizedMarketQuestion);
           let completed: MarketSnapshot["candles"] = [];
-          try { completed = prepareBacktestCandles(snap.candles, "4H", now); }
+          try { if (snap.perp) completed = prepareBacktestCandles(snap.candles, "4H", now); }
           catch { /* Malformed candles keep this asset's trading gate closed. */ }
           // Keep a bounded, digest-checked provider snapshot in the owner's saved research
           // record. Public replay publishing has an explicit allowlist and omits this private
@@ -389,15 +389,15 @@ export async function POST(request: Request) {
           const gate = gateFlowTrade({ assessment, sources: snap.sources, marketVerified: Boolean(snap.perp), marketTimestamp: snap.perp?.providerTimestamp ?? null,
             lastCompletedCandleEnd: latestEnd, completedCandles: completed.length, currentSignal: Boolean(signals.at(-1)), previousSignal: Boolean(signals.at(-2)), now });
           const gateReasons = assessments[snap.ticker] ? gate.reasons : ["No verified AI assessment was returned; headlines alone cannot unlock trade review.", ...gate.reasons];
-          const destinations = gate.tradeable && user ? [
-            { mode: "paper_futures" as const, label: "Review a paper futures check", href: `/futures?symbol=${encodeURIComponent(snap.ticker + "USDT")}&researchRunId=${encodeURIComponent(runId)}` },
+          const destinations = gate.tradeable && user && snap.perp ? [
+            { mode: "paper_futures" as const, label: "Review a paper futures check", href: `/futures?symbol=${encodeURIComponent(snap.perp.symbol)}&researchRunId=${encodeURIComponent(runId)}` },
             ...(tokenizedMarketQuestion && gate.direction === "long" && snap.spot ? [{ mode: "live_spot" as const, label: "Review a live rToken spot order", href: `/trading?symbol=${encodeURIComponent(snap.spot.symbol)}` }] : []),
           ] : [];
-          stage("Alpha Factory", signals.length ? "complete" : "blocked", `${snap.ticker}: completed-candle rule`, signals.length ? `SMA 20/50 checked on ${completed.length} completed 4H bars; ${signals.at(-1) !== signals.at(-2) ? "fresh transition" : "no fresh transition"}.` : "Too few completed candles to test the fixed rule.", snap.ticker);
+          stage("Alpha Factory", signals.length ? "complete" : "blocked", `${snap.ticker}: completed-candle rule`, signals.length ? `SMA 20/50 checked on ${completed.length} completed 4H bars; ${signals.at(-1) !== signals.at(-2) ? "fresh transition" : "no fresh transition"}.` : snap.perp ? "Too few completed candles to test the fixed rule." : "Stock perpetual could not be verified.", snap.ticker);
           stage("Trading agent", gate.tradeable && user ? "complete" : "blocked", `${snap.ticker}: ${gate.tradeable && user ? "eligible for order review" : "research only"}`, gate.tradeable && user ? "Source coverage, market freshness, confidence, and the fixed Alpha rule align. You must still choose and confirm any action." : guest && gate.tradeable ? "Research gates passed, but public judge sessions are read-only. Sign in to continue to a separate paper review." : gateReasons.join(" "), snap.ticker);
           return { ticker: snap.ticker, issuer: snap.issuer, summary: assessment.summary, stance: assessment.stance, confidence: assessment.confidence, confidenceCapped: Boolean(assessment.confidenceCapped), ...(tokenizedMarketQuestion ? { tokenizedMarketReview: tokenizedMarketReview({ ticker: snap.ticker, spotSymbol: snap.spot?.symbol ?? null, spotPrice: snap.spot?.lastPrice ?? null, spotTimestamp: snap.spot?.providerTimestamp ?? null, now }) } : {}),
             tradeable: gate.tradeable, gateReasons, sources: researchSourcesFor(snap).slice(0, 30).map(({ title, url, publisher, publishedAt, via }): FlowSource => ({ title, url, publisher, publishedAt, via })),
-            market: { perpSymbol: snap.perp?.symbol ?? null, perpLastPrice: snap.perp?.lastPrice ?? null, perpProviderTimestamp: snap.perp?.providerTimestamp ?? null, ...(tokenizedMarketQuestion ? { spotSymbol: snap.spot?.symbol ?? null, spotLastPrice: snap.spot?.lastPrice ?? null, spotProviderTimestamp: snap.spot?.providerTimestamp ?? null } : {}), lastPrice: snap.perp?.lastPrice ?? null, providerTimestamp: snap.perp?.providerTimestamp ?? null, interval: "4H", candles: completed.slice(-30).map(candle => ({ timestamp: candle.timestamp, close: candle.close })) },
+            market: { perpSymbol: snap.perp?.symbol ?? null, perpLastPrice: snap.perp?.lastPrice ?? null, perpProviderTimestamp: snap.perp?.providerTimestamp ?? null, ...(tokenizedMarketQuestion ? { spotSymbol: snap.spot?.symbol ?? null, spotLastPrice: snap.spot?.lastPrice ?? null, spotProviderTimestamp: snap.spot?.providerTimestamp ?? null } : {}), lastPrice: snap.perp?.lastPrice ?? null, providerTimestamp: snap.perp?.providerTimestamp ?? null, interval: completed.length ? "4H" : null, candles: completed.slice(-30).map(candle => ({ timestamp: candle.timestamp, close: candle.close })) },
             ...(user && marketObservation ? { marketObservation: marketObservation.observation, marketObservationDigest: marketObservation.digest } : {}),
             handoff: gate.tradeable ? { destinations, reason: tokenizedMarketQuestion ? "Eligible for a separate, user-confirmed order review. Paper futures and live rToken spot use different instruments and accounts." : "Eligible for a separate, user-confirmed paper review. No order has been sent." } : null,
             evidenceBalance: { supporting: assessment.supportingEvidence, counter: assessment.counterEvidence },
