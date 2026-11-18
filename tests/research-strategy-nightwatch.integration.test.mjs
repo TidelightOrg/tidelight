@@ -305,6 +305,24 @@ test("Nightwatch reports missing server execution configuration before market or
   } finally { globalThis.flowTest.adminUnavailable = false; }
 });
 
+test("successful candle retrieval does not establish stock perpetual identity", async () => {
+  const originalPerp = globalThis.flowTest.perp;
+  globalThis.flowTest.perp = async () => null;
+  try {
+    const response = await researchRoute.POST(new Request("https://tidelight.app/api/research/agent-flow", {
+      method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ question: "Review NVDA using synthetic test fixture sources" }),
+    }));
+    assert.equal(response.status, 200);
+    const events = (await response.text()).split("\n\n").filter(Boolean).map(frame => JSON.parse(frame.split("\ndata: ")[1]));
+    const asset = events.findLast(frame => frame.researchRunId).assets[0];
+    assert.equal(asset.market.perpSymbol, null);
+    assert.equal(asset.market.interval, null);
+    assert.deepEqual(asset.market.candles, []);
+    assert.equal(asset.handoff, null);
+    assert.equal(asset.marketObservation, undefined);
+  } finally { globalThis.flowTest.perp = originalPerp; }
+});
+
 test("macro-only research saves a source-bound brief and bypasses stock providers and trade handoff", async () => {
   captures.marketCalls = 0;
   captures.macroCalls = 0;
