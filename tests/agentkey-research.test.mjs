@@ -17,15 +17,24 @@ const catalog = { content: [{ type: "text", text: JSON.stringify({ tools: [
   { name: "social/instagram/createPost", summary: "Create an Instagram post" },
 ] }) }] };
 
-test("AgentKey discovers provider-specific read-only tools and uses their described schemas", async () => {
+test("AgentKey discovers provider-specific tools and uses the documented params schema", async () => {
   const calls = [];
   const today = new Date().toISOString();
   const client = {
     async findTools(input) { calls.push(["find", input]); return catalog; },
     async describeTool(name) {
       calls.push(["describe", name]);
-      if (name === "GoogleNews/search") return { content: [{ type: "text", text: JSON.stringify({ cost: 1, inputSchema: { type: "object", properties: { query: { type: "string" }, num: { type: "integer", maximum: 20 } }, required: ["query"] } }) }] };
-      return { content: [{ type: "text", text: JSON.stringify({ cost: 2, inputSchema: { type: "object", properties: { symbol: { type: "string" }, range: { type: "string", enum: ["1mo", "1y"] }, interval: { type: "string", enum: ["1d", "1wk"] } }, required: ["symbol"] } }) }] };
+      const news = name === "GoogleNews/search";
+      const description = {
+        name,
+        cost: { credits_per_call: news ? 0.2 : 2 },
+        health: { healthy: true },
+        params: news
+          ? { type: "object", properties: { q: { type: "string" }, num: { type: "integer", maximum: 20 } }, required: ["q"] }
+          : { type: "object", properties: { symbol: { type: "string" }, range: { type: "string", enum: ["1mo", "1y"] }, interval: { type: "string", enum: ["1d", "1wk"] }, includePrePost: { type: "boolean", description: "Include candles after market close" } }, required: ["symbol"] },
+        execute_as: { name, params: news ? { q: "<Search query>" } : { symbol: "<Stock symbol>" } },
+      };
+      return { content: [{ type: "text", text: JSON.stringify(description) }] };
     },
     async executeTool(name, params) {
       calls.push(["execute", name, params]);
@@ -39,12 +48,24 @@ test("AgentKey discovers provider-specific read-only tools and uses their descri
   assert.equal(result.state, "used");
   assert.deepEqual(result.tools.map(item => item.name), ["GoogleNews/search", "yfinance/getChart"]);
   assert.deepEqual(calls.filter(item => item[0] === "execute").map(item => item.slice(1)), [
-    ["GoogleNews/search", { query, num: 20 }],
+    ["GoogleNews/search", { q: query, num: 20 }],
     ["yfinance/getChart", { symbol: "NVDA", range: "1y", interval: "1d" }],
   ]);
   assert.equal(result.sources.length, 1);
   assert.equal(result.sources[0].via, "AgentKey");
   assert.equal(result.sources[0].url, "https://news.example/nvidia");
+});
+
+test("AgentKey skips metered tools whose advertised price is only a minimum", async () => {
+  const client = {
+    async findTools() { return { tools: [{ name: "GoogleNews/search" }] }; },
+    async describeTool() {
+      return { cost: { credits_per_call: 1, metered: true, credits_minimum: 1 }, params: { properties: { q: { type: "string" } }, required: ["q"] } };
+    },
+    async executeTool() { assert.fail("Metered tool should not execute"); },
+  };
+  const result = await gatherAgentKeyResearch("Search Google News about NVIDIA", client, "NVDA");
+  assert.equal(result.reason, "no-usable-schema");
 });
 
 test("AgentKey never executes a tool without a verified low-cost schema", async () => {
