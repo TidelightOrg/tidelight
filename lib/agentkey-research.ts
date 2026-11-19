@@ -99,7 +99,7 @@ function readOnly(candidate: ToolCandidate) {
 
 function describedAsMutating(description: unknown) {
   const operationText: string[] = [];
-  const schemaKeys = /^(?:inputSchema|input_schema|parameters|schema|argsSchema|args_schema|execute_as|properties|required|enum|items|type|format|additionalProperties)$/i;
+  const schemaKeys = /^(?:params|inputSchema|input_schema|parameters|schema|argsSchema|args_schema|execute_as|properties|required|enum|items|type|format|additionalProperties)$/i;
   function collect(value: unknown, depth = 0) {
     if (depth > 8) return;
     if (typeof value === "string") { operationText.push(value); return; }
@@ -143,6 +143,10 @@ function numericCost(value: unknown): number | null {
 }
 
 function costCredits(description: unknown): number | null {
+  const payload = unwrap(description);
+  const advertisedCost = asRecord(asRecord(payload)?.cost);
+  // Metered prices are minimums, so they cannot establish the per-call cap.
+  if (advertisedCost && (advertisedCost.metered === true || "credits_minimum" in advertisedCost)) return null;
   let found: number | null = null;
   function visit(value: unknown, depth = 0) {
     if (depth > 7 || found !== null) return;
@@ -161,7 +165,7 @@ function costCredits(description: unknown): number | null {
       if (match) found = Number(match[1]);
     }
   }
-  visit(unwrap(description));
+  visit(payload);
   return found;
 }
 
@@ -241,7 +245,10 @@ function fitGeneratedValue(property: RecordValue, value: unknown): unknown {
 }
 
 function paramsFor(description: unknown, candidate: ToolCandidate, query: string, ticker?: string): RecordValue | null {
-  const schema = findSchema(unwrap(description));
+  const payload = unwrap(description);
+  const descriptor = asRecord(payload);
+  // AgentKey documents `params` as the input schema and `execute_as.params` as an example call.
+  const schema = descriptor && Object.hasOwn(descriptor, "params") ? asRecord(descriptor.params) : findSchema(payload);
   const properties = schema ? asRecord(schema.properties) : null;
   if (!schema || !properties) return null;
   const required = Array.isArray(schema.required) ? schema.required.filter((item): item is string => typeof item === "string") : [];
