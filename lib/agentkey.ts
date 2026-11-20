@@ -115,9 +115,9 @@ export class AgentKeyClient {
   }
 
   /** Discover live catalog names using the user's full natural-language intent. */
-  findTools(query: string): Promise<unknown> {
-    if (!query.trim() || query.length > 500) throw new AgentKeyError("protocol");
-    return this.callTool("find_tools", { q: query });
+  findTools(query: string, prefix?: string): Promise<unknown> {
+    if (!query.trim() || query.length > 500 || (prefix && !/^(?:search\/serper|finance\/yfinance)$/.test(prefix))) throw new AgentKeyError("protocol");
+    return this.callTool("find_tools", { q: query, ...(prefix ? { prefix } : {}) });
   }
 
   /** Fetch the current schema and cost before executing a discovered tool. */
