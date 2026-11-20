@@ -18,6 +18,11 @@
   --focus-halo: color-mix(in srgb, var(--focus-ring) 22%, transparent);
   --selection-bg: #286a4d;
   --selection-text: #ffffff;
+  --accent-readable: #176b4c;
+}
+
+:root[data-theme="dark"] {
+  --accent-readable: #b4e6c5;
 }
 
 ::selection {
@@ -148,4 +153,111 @@
   .app-shell .main-area > .topbar .mobile-utility-controls .top-signin {
     padding-inline: 5px !important;
   }
+}
+
+/* Keep small navigation labels readable in both palettes. */
+:root[data-theme="dark"] .workspace-label {
+  color: #9aa9a2;
+}
+
+:root[data-theme="dark"] .app-shell .nav-link:not(.active),
+:root[data-theme="dark"] .app-shell .sidebar-resources a {
+  color: #aab7b0;
+}
+
+:root[data-theme="dark"] .app-shell .profile-link {
+  color: #a8dbc0;
+}
+
+:root[data-theme="dark"] .markets-hero h1 span,
+:root[data-theme="dark"] .subtle-link {
+  color: #b4e6c5;
+}
+
+/* The overview's guide cards use theme-aware text and surfaces. */
+:root[data-theme="white"] .date-button {
+  color: var(--accent-readable);
+}
+
+:root[data-theme="white"] .empty-inline p,
+:root[data-theme="white"] .afterhours-panel > p,
+:root[data-theme="white"] .method-steps small {
+  color: #526158;
+}
+
+:root[data-theme="white"] .empty-inline a,
+:root[data-theme="white"] .panel-link,
+:root[data-theme="white"] .method-steps span {
+  color: var(--accent-readable);
+}
+
+:root[data-theme="white"] .method-steps div {
+  border-color: var(--line);
+  background: var(--panel-2);
+}
+
+:root[data-theme="white"] .method-steps b {
+  color: var(--text);
+}
+
+:root[data-theme="white"] .dashboard-page .method-steps span {
+  color: var(--accent-readable);
+}
+
+:root[data-theme="white"] .dashboard-page .method-steps small {
+  color: #526158;
+}
+
+:root[data-theme="white"] .markets-hero h1 span,
+:root[data-theme="white"] .subtle-link {
+  color: var(--accent-readable);
+}
+
+:root[data-theme="white"] .markets-hero-foot {
+  border-top-color: var(--line);
+  background: #fffefaed;
+  color: #526158;
+}
+
+:root[data-theme="white"] .markets-hero-foot small {
+  color: #526158;
+}
+
+:root[data-theme="white"] .market-note-card,
+:root[data-theme="white"] .market-data-card {
+  border-color: #dfe5e2;
+  background: #fffefa;
+}
+
+:root[data-theme="white"] .market-note-card h2 em {
+  color: var(--accent-readable);
+}
+
+:root[data-theme="white"] .market-data-card h3 {
+  color: var(--text);
+}
+
+:root[data-theme="white"] .market-data-card p {
+  color: #526158;
+}
+
+:root[data-theme="white"] .market-note-card p {
+  color: #526158;
+}
+
+:root[data-theme="white"] .market-data-card > a {
+  color: var(--accent-readable);
+}
+
+/* Preserve the bright developer accent for fills while using a darker
+   companion color for text on the light package catalog. */
+:root[data-theme="white"] .tic-packages-page {
+  --tic-accent-readable: #176b4c;
+}
+
+:root[data-theme="white"] .tic-packages-page .tic-eyebrow,
+:root[data-theme="white"] .tic-packages-page .tic-packages-hero h1 em,
+:root[data-theme="white"] .tic-packages-page .tic-package-proof-copy > a,
+:root[data-theme="white"] .tic-packages-page .tic-language-mcp {
+  color: var(--tic-accent-readable);
 }
