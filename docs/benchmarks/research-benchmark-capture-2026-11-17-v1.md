@@ -50,6 +50,8 @@ This is an operational follow-up, not a change to the v1 capture or its benchmar
 
 PR #555 removed appended format instructions from the issuer-search query. A local end-to-end mock then verified the focused query `NVIDIA's stock reaction to its latest earnings`, Yahoo Finance symbol `NVDA`, and one eligible AgentKey article. PR #555 merged as `5d85e748429bc8d0189459a46d202004480387fa`; its production deployment passed health, `/flow`, and `/developers` HTTP checks. The exact production prompt has not been rerun on that deployment: the guest endpoint allows three requests per hour per connection, so wait until after 13:43 UTC on 20 November for a fresh same-connection slot. The new raw response is kept locally at `.local/research-benchmarks/2026-11-17-v1/smoke-agentkey-223a1098.sse` (SHA-256 `4d061b80e4a4e03b175afcda83370361895891d86b93d3757fecd11cefee3db1`) and is not included in the v1 benchmark. Visual browser verification and signed-in testing were unavailable in this session.
 
+PR #557 subsequently made the accepted stance labels explicit for the synthesis model after that smoke's Gemini attempt failed validation with `invalid_stance`; the strict validation gate is unchanged. It is deployed as `63c17d1e5ac483275e85522fbad11598ceb415a4`. No conclusion about improved model output is available until a later live request.
+
 ## Provider availability diagnosis
 
 The `operationalDiagnostics.providerAttempts` in the ten preserved final result events distinguish provider failures from the separate claim-quality review. Counts below are attempts, not distinct events; an event can retry a provider.
