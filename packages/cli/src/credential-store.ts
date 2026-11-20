@@ -9,7 +9,6 @@ export interface CredentialStore {
   delete(): void;
 }
 
-/** Uses the OS credential store. Linux requires Secret Service (for example GNOME Keyring or KWallet). */
 export class OsCredentialStore implements CredentialStore {
   private entry() {
     return new Entry(SERVICE, ACCOUNT, { linux: { store: "secret-service" } });

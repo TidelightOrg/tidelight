@@ -14,7 +14,6 @@
 .tic-console-visual .tic-orbit-static{position:absolute;inset:0;width:100%;height:100%;opacity:.68;overflow:visible}.tic-console-visual .tic-package-three-orbit.has-webgl .tic-orbit-static{opacity:.1}
 @media(prefers-reduced-motion:reduce){.tic-console-visual .tic-orbit-static{transition:none!important}}
 
-/* Shared product identity and full-width desktop workspace */
 .tic-console .tic-console-header .tic-brand img{display:block;width:32px;height:32px;border-radius:9px;box-shadow:0 4px 14px color-mix(in srgb,var(--tic-accent) 16%,transparent)}
 .tic-console-grid{width:100%;max-width:1920px;grid-template-columns:minmax(232px,260px) minmax(0,1fr)}
 .tic-console-main{width:100%;max-width:none;padding-inline:clamp(28px,4.2vw,84px)}
@@ -30,7 +29,6 @@
 @media(max-width:1000px){.tic-console-grid{grid-template-columns:192px minmax(0,1fr)}.tic-console-main{padding-inline:22px}}
 @media(max-width:700px){.tic-console-main{padding-inline:15px}.tic-console .tic-console-nav{scrollbar-width:thin;scrollbar-color:color-mix(in srgb,var(--tic-accent) 42%,var(--tic-line)) transparent;scroll-padding-inline:14px;padding-bottom:11px;scroll-snap-type:x proximity}.tic-console .tic-console-nav button{min-height:42px;scroll-snap-align:start}.tic-console .tic-console-nav button:focus-visible{outline:2px solid var(--tic-accent);outline-offset:2px}.tic-console .tic-console-nav::-webkit-scrollbar{display:block;height:3px}.tic-console .tic-console-nav::-webkit-scrollbar-thumb{border-radius:9px;background:color-mix(in srgb,var(--tic-accent) 42%,var(--tic-line))}}
 
-/* Sharpen the overview's information hierarchy and improve dense activity readability. */
 .tic-console .tic-console-stats>div>span{font:600 11px var(--font);letter-spacing:.055em;color:var(--tic-muted)}
 .tic-console .tic-console-stats>div>strong{font-size:30px;line-height:1;letter-spacing:-.045em}
 .tic-console .tic-console-stats>div>small{display:block;margin-top:7px;font-size:11px;line-height:1.45;color:color-mix(in srgb,var(--tic-text) 72%,var(--tic-muted))}

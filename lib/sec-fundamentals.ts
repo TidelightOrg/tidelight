@@ -77,8 +77,6 @@ function latestFact(facts: CompanyFacts, tags: string[], unit = "USD", eligible:
   return [];
 }
 
-// SEC Company Facts exposes an acceptance date here, not a timestamp. Treat
-// the as-of calendar day as unavailable because intraday ordering is unknown.
 function filedBeforeAsOfDay(filed: string, asOfDate: string, includeSameDay: boolean) { return includeSameDay ? filed <= asOfDate : filed < asOfDate; }
 
 type PeriodFact = { value: SecFact; fiscalIdentity: SecFact };
@@ -94,9 +92,6 @@ function periodValues(facts: CompanyFacts, tags: string[], form: "10-Q" | "10-K"
     for (const item of latestFact(facts, [tag], "USD", eligible).sort((a, b) => a.filed.localeCompare(b.filed))) {
       latestByEnd.set(item.end, item);
       const interval = periodIdentityKey(item);
-      // SEC's fy/fp describe the filing that contains a fact. Retain these
-      // fields from the first eligible filing for this exact reporting interval
-      // so later comparative filings cannot rewrite its fiscal identity.
       if (!fiscalIdentityByInterval.has(interval)) fiscalIdentityByInterval.set(interval, item);
     }
     for (const [end, value] of latestByEnd) {

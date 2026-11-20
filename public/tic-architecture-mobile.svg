@@ -55,7 +55,6 @@
     <path d="M42 313l6 6 11-13" class="icon"/><text x="72" y="317" class="route mono">SOURCE + FRESHNESS CONTEXT</text>
   </g>
 
-  <!-- Converging evidence streams -->
   <path d="M210 332V354" class="flow"/><circle cx="210" cy="344" r="3.5" fill="var(--tic-visual-mint,#67c99b)"/>
   <text x="228" y="348" class="tiny mono">PROVENANCE CARRIED FORWARD</text>
 
@@ -85,7 +84,6 @@
     <circle cx="220" cy="727" r="3.5" fill="var(--tic-visual-mint,#67c99b)"/><text x="232" y="731" class="small">Audit trail</text>
   </g>
 
-  <!-- A single secured boundary fans out to the actual product interfaces -->
   <path d="M210 754V772" class="flow-muted"/><circle cx="210" cy="773" r="3.5" fill="var(--tic-visual-mint,#67c99b)"/>
   <text x="24" y="790" class="eyebrow mono">04 / DEVELOPER SURFACES</text>
   <path d="M14 828V964M14 828H24M14 896H24M14 964H24" class="flow-muted"/>

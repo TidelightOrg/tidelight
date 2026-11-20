@@ -98,7 +98,6 @@ export default function TidelightDotWordmark({ className }: { className?: string
       }
       context.globalAlpha = 1;
 
-      // A small Tidelight blue signal cursor drifts over the final letters.
       const cursorX = width * (0.815 + (reducedMotion.matches ? 0 : Math.sin(elapsed * 0.35) * 0.007));
       const cursorY = height * (0.36 + (reducedMotion.matches ? 0 : Math.sin(elapsed * 0.48 + 1.2) * 0.018));
       context.save();

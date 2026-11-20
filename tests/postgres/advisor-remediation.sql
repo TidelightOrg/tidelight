@@ -1,4 +1,3 @@
--- Advisor-remediation migration assertions.
 DO $$
 DECLARE n integer;
 BEGIN

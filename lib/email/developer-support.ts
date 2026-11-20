@@ -11,8 +11,6 @@ const SUPPORT_EMAIL_BATCH_INTERVAL_MS = 1_000;
 
 async function operatorRecipients(admin: SupabaseClient): Promise<string[]> {
   const recipients = new Set(requestedAdmins);
-  // The same confirmed identities permitted by the existing operator policy
-  // receive an alert. Do not include ticket content in the email itself.
   for (let page = 1; page <= 10; page++) {
     const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 1000 });
     if (error) throw new Error("Could not enumerate authorized support operators.");

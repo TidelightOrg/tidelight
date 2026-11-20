@@ -19,7 +19,7 @@ function validDeskPath(href: string, mode: string) {
     if (url.origin !== "https://tidelight.local") return null;
     if (mode === "paper_futures" && url.pathname === "/futures") return url.pathname + url.search;
     if (mode === "live_spot" && url.pathname === "/trading") return url.pathname + url.search;
-  } catch { /* Malformed stored links do not become navigation. */ }
+  } catch { }
   return null;
 }
 

@@ -59,6 +59,5 @@ async function handleStatusCheck(request: Request) {
   }
 }
 
-// Supabase pg_net invokes the worker over HTTPS with its Vault-held bearer.
 export const GET = (request: Request) => withStatusWorkerHeartbeat("research_job_processing", () => handleStatusCheck(request));
 export const POST = GET;

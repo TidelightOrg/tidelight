@@ -34,8 +34,6 @@ export function LandingMarketOrbit() {
     return () => { active = false; controller.abort(); };
   }, []);
 
-  // A focused sample keeps logo requests modest while the count reflects the
-  // complete currently supported Bitget Reality catalog.
   const visibleMarkets = useMemo(() => markets.slice(0, 18), [markets]);
 
   return <section className="landing-market-ribbon" aria-label={`Rotating examples from ${count ? `${count} ` : "the supported "}Bitget Reality rToken markets`}>

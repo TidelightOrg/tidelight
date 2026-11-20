@@ -55,7 +55,7 @@ export async function POST(request: Request) {
         body: "A user submitted a live US stock perpetual access request. Open the authenticated Tidelight operator review queue to inspect the accepted terms and make an auditable decision. Request reference: " + user.id + ".",
       });
       if (process.env.RESEND_API_KEY) await drainEmailQueue(admin);
-    } catch { /* The committed request remains pending; the protected retry worker will deliver queued mail. */ }
+    } catch { }
     return NextResponse.json({ status: "pending", requestedAt }, { headers: { "Cache-Control": "no-store" } });
   } catch (cause) {
     if (cause instanceof BitgetRequestError) return NextResponse.json({ error: "Bitget could not verify USDT futures account access. Check that the saved live API key has futures account read permission and an allowed IP." }, { status: 422 });

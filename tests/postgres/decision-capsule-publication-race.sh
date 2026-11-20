@@ -32,8 +32,6 @@ trap cleanup EXIT
 trap 'exit 130' INT
 trap 'exit 143' TERM
 
-# Keep the append transaction open after the append function acquires its lock.
-# The marker makes sure the stale publisher starts only after that lock exists.
 psql -v ON_ERROR_STOP=1 >"$tmp_dir/appender.log" 2>&1 <<SQL &
 begin;
 select public.append_decision_capsule_event(
@@ -98,8 +96,6 @@ if [[ "$publisher_waiting" != true ]]; then
   exit 1
 fi
 
-# The publisher is now known to be waiting on the same advisory lock. Allow
-# the appender transaction to append and commit, then inspect the RPC result.
 touch "$continue_file"
 set +e
 wait "$publisher_pid"

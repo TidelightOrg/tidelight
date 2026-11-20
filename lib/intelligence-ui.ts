@@ -52,7 +52,6 @@ const validUrl = (value: unknown) => {
   try { return new URL(value).protocol === "https:"; } catch { return false; }
 };
 
-/** Validate untrusted persisted/provider JSON before it reaches the trusted component registry. */
 export function parseIntelligenceResult(value: unknown): IntelligenceResult | null {
   if (!isRecord(value) || !isText(value.researchRunId, 80) || !isText(value.question, 500) || !Array.isArray(value.assets) || value.assets.length < 1 || value.assets.length > 3 || !Array.isArray(value.trace) || value.trace.length > 60 || typeof value.tradeable !== "boolean") return null;
   const assets: IntelligenceAsset[] = [];
@@ -100,7 +99,6 @@ export function parseIntelligenceResult(value: unknown): IntelligenceResult | nu
   return { researchRunId: value.researchRunId as string, question: value.question as string, assets, tradeable: value.tradeable, trace, ...(typeof value.contextRunId === "string" ? { contextRunId: value.contextRunId } : {}), ...(isText(value.workspaceContext, 240) ? { workspaceContext: value.workspaceContext as string } : {}) };
 }
 
-/** Trusted component registry selection is derived from validated fields, never model-authored component names. */
 export function composeIntelligenceBlocks(result: IntelligenceResult): IntelligenceBlock[] {
   return [
     { id: "activity", type: "activity", title: "Agent activity" },
@@ -113,7 +111,6 @@ export function composeIntelligenceBlocks(result: IntelligenceResult): Intellige
   ];
 }
 
-/** Build market handoffs only from exchange-verified symbols returned with the research snapshot. */
 export function intelligenceMarketActionLinks(asset: IntelligenceAsset, researchRunId: string) {
   return {
     strategy: asset.market.perpSymbol

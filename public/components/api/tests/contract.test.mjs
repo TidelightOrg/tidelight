@@ -7,8 +7,6 @@ async function loadContract() {
   try {
     return parse(await readFile(new URL("../openapi/tidelight.yaml", import.meta.url), "utf8"));
   } catch {
-    // In the mother repository, OpenAPI is maintained once in docs/ and copied
-    // into this distribution only by the mirror manifest.
     return parse(await readFile(new URL("../../../../docs/tic-openapi.yaml", import.meta.url), "utf8"));
   }
 }

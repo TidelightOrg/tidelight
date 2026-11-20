@@ -1,7 +1,3 @@
--- Run only after /api/cron/nightwatch-schedules is deployed and its bearer
--- secret matches tic_research_worker_secret in Supabase Vault.
--- Supabase Cron is minute-granularity; entered seconds are preserved in the
--- schedule and dispatched on the first poll after that time.
 do $$
 declare
   v_job_id bigint;

@@ -241,8 +241,6 @@ test("Simplified Chinese covers visible developer docs and package UI copy", asy
     const visit = (node) => {
       if (ts.isJsxText(node) && !insideCode(node)) {
         const key = normalized(node.getText(file));
-        // JSX often splits a sentence around inline <code>/<Link> children. Those
-        // fragments cannot be translated in isolation and aren't user-facing labels.
         if (key.length >= 16 && /[A-Za-z]/.test(key) && !isIdentifier(key) && !translations[key]) missing.add(`${path}: ${key}`);
       }
       if (ts.isJsxAttribute(node) && ["aria-label", "alt", "title", "placeholder"].includes(node.name.getText(file)) && node.initializer && ts.isStringLiteral(node.initializer)) {

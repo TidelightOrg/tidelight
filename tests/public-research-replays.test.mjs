@@ -107,8 +107,6 @@ test("publishing requires the owning session and serializes only cited public ev
     assert.equal(tokenPulsePayload.assets[0].ticker, "rNVDA");
     assert.deepEqual(tokenPulsePayload.assets[0].sources, ["https://news.example/story"]);
 
-    // Earlier saved overview pulses used a descriptive symbol/name/overview shape.
-    // It remains publishable while arbitrary fields and unlineaged sources stay private.
     context.run.summary = { assets: [{ symbol: "S&P 500", name: "Index pulse", overview: "A public, source-linked market snapshot.", sources: ["https://news.example/story", "https://forged.example/story"], accountId: "private" }] };
     const legacyPulseResponse = await route.POST(new Request("https://tidelight.app/api/research/replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ researchRunId: token }) }));
     assert.equal(legacyPulseResponse.status, 200);
@@ -119,8 +117,6 @@ test("publishing requires the owning session and serializes only cited public ev
     assert.deepEqual(legacyPulsePayload.assets[0].sources, ["https://news.example/story"]);
     assert.equal(JSON.stringify(legacyPulsePayload).includes("accountId"), false);
 
-    // Overview accepts full company names up to 80 characters; publishing should
-    // preserve that same safe, human-readable label rather than requiring a ticker.
     context.run.summary = { assets: [{ symbol: "Johnson & Johnson, Inc.", name: "Johnson & Johnson, Inc.", overview: "A public, source-linked company research snapshot.", sources: ["https://news.example/story"] }] };
     const companyNameResponse = await route.POST(new Request("https://tidelight.app/api/research/replays", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ researchRunId: token }) }));
     assert.equal(companyNameResponse.status, 200);

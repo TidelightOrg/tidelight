@@ -83,7 +83,6 @@ test("the private client applies the same switch before any Bitget write, and de
     source("../lib/live-order-policy.ts"),
     source("../lib/bitget-private.ts"),
   ]);
-  assert.match(policy, /Demo mode is never refused here/);
   assert.match(policy, /if \(mode !== "live"\) return false/);
   const guard = client.indexOf("liveExchangeWriteRefused(");
   const send = client.indexOf("fetch(url");

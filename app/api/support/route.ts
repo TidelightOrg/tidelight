@@ -58,8 +58,6 @@ export async function POST(request: Request) {
     /^(and |what about |where is |how do i do that|why|that\??$)/i.test(question) && precedingQuestion ? supportTopicsFor(precedingQuestion.content, pathname) : [];
   const fallback = supportFallback(topics);
   const docsRequested = /\b(doc|docs|documentation|document|manual|guide|how does|where can i|explain)\b/i.test(question);
-  // The model reasons across the product. Credential and execution instructions
-  // remain the reviewed version; no model can authorize or place an order.
   if (["demo-key", "live-key", "orders", "nightwatch", "futures"].includes(topics[0]?.id) || !configuredAiProviders().length) return response(fallback);
 
   let supabase;
@@ -82,8 +80,6 @@ export async function POST(request: Request) {
       { role: "user", content: question },
     ], value => typeof value.answer === "string" && value.answer.trim().length >= 20 && value.answer.length <= 1100 && Array.isArray(value.linkHrefs) && value.linkHrefs.every(item => typeof item === "string"), { budgetMs: 14000 });
     const answer = String(result.answer).trim();
-    // Provider output is confined to known product references. The knowledge
-    // response remains available if a provider is down or a result is dubious.
     const links = allowedSupportLinks(SUPPORT_TOPICS, result.linkHrefs);
     const withDocs = links.length ? links : (docsContext ? [{ label: "Open Tidelight docs", href: TIDELIGHT_DOCS_HOME }] : fallback.links);
     return response({ answer, links: withDocs, source: "ai" });

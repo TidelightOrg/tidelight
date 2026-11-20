@@ -15,7 +15,6 @@ export async function POST(request: Request) {
   if (!user) return Response.json({ error: "Sign in to check the data source." }, { status: 401 });
   const client = configuredAgentKey();
   if (!client) return Response.json({ state: "not_configured" }, { status: 503 });
-  // Reuse the authenticated, atomic two-per-hour provider diagnostic budget.
   const { data: checkId, error } = await supabase.rpc("reserve_ai_provider_check");
   if (error) return Response.json({ error: "Could not reserve a diagnostic." }, { status: 503 });
   if (!checkId) return Response.json({ error: "Provider checks are limited to twice per hour." }, { status: 429 });
@@ -23,7 +22,6 @@ export async function POST(request: Request) {
   let state = "available";
   let failure = "";
   try {
-    // Check a discovered read-only capability and its price without a billable data query.
     const catalog = await client.findTools("Search dated public news and financial research for a US listed company");
     const candidate = agentKeyResearchCandidates(catalog, "Search dated public news and financial research for a US listed company")[0];
     if (!candidate) throw new Error("research-tool-unavailable");

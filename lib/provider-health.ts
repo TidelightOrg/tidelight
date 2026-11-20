@@ -14,8 +14,6 @@ export const PROVIDER_CIRCUIT_FAILURE_WINDOW_MS = 120_000;
 export const PROVIDER_CIRCUIT_COOLDOWN_MS = 60_000;
 export const PROVIDER_HEALTH_READ_TIMEOUT_MS = 300;
 
-// Abort asks the transport to stop; racing a deadline also bounds callers when
-// an adapter ignores the signal or never settles.
 async function withinTelemetryDeadline<T>(timeoutMs: number, operation: (signal: AbortSignal) => PromiseLike<T>): Promise<T> {
   const controller = new AbortController();
   let timer: ReturnType<typeof setTimeout> | undefined;
@@ -29,7 +27,6 @@ async function withinTelemetryDeadline<T>(timeoutMs: number, operation: (signal:
   }
 }
 
-/** Apply only a short circuit from recent operational events; this never labels a provider healthy. */
 export function classifyProviderRouting(
   providers: ProviderHealthLabel[],
   events: ProviderHealthEvent[],
@@ -52,15 +49,12 @@ export function classifyProviderRouting(
       skippedProviders.push({ provider, consecutiveFailures, retryAfter: new Date(retryAt).toISOString() });
     }
   }
-  // If every configured provider appears impaired, retain the ordinary bounded
-  // Qwen→Gemini fallback as a half-open recovery probe instead of hard-failing.
   return {
     status: skippedProviders.length === providers.length && providers.length > 0 ? "all_open_probe" : "available",
     skippedProviders: skippedProviders.length === providers.length ? [] : skippedProviders,
   };
 }
 
-/** Read a small, recent metadata window. On telemetry failure, callers keep the configured provider order. */
 export async function getProviderRoutingDecision(providers: ProviderHealthLabel[], now = Date.now()): Promise<ProviderRoutingDecision> {
   if (providers.length < 2) return { status: "available", skippedProviders: [] };
   try {
@@ -80,7 +74,6 @@ export async function getProviderRoutingDecision(providers: ProviderHealthLabel[
   }
 }
 
-/** Persist at most six metadata-only attempts; abort the write after 1.5 seconds to protect research saves. */
 export async function recordProviderHealth(attempts: ProviderAttempt[], requestId: string | null = null) {
   if (!attempts.length) return;
   try {
@@ -102,7 +95,6 @@ export async function recordProviderHealth(attempts: ProviderAttempt[], requestI
         .abortSignal(signal));
     if (error) console.warn("provider-health-write-unavailable", error.code);
   } catch {
-    // Operations telemetry must never prevent a user's research result from saving.
     console.warn("provider-health-write-unavailable");
   }
 }

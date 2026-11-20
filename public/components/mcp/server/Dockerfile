@@ -1,6 +1,5 @@
 # syntax=docker/dockerfile:1
 
-# Build the public MCP stdio bridge from the mother repository source.
 FROM node:22-alpine AS build
 WORKDIR /app
 

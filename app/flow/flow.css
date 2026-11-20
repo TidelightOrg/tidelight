@@ -26,12 +26,10 @@
 
 .flow-quote{display:grid;gap:6px;margin-top:12px;padding:12px;border:1px solid var(--line);border-radius:10px;color:var(--muted);font:11px/1.65 var(--font);overflow-wrap:anywhere}.flow-quote>b{font-size:11px;font-weight:600}.flow-quote-fresh>b{color:var(--mint)}.flow-quote-stale>b{color:var(--amber)}.flow-quote time{color:var(--text)}.flow-source-via{color:var(--mint);font-style:normal}
 
-/* The orbit core represents Tidelight; keep the real brand mark centered. */
 .flow-orbit-core{grid-template-rows:42px auto;align-content:center;gap:3px;font-size:0}
 .flow-orbit-core>img{display:block;width:42px!important;height:42px!important;max-width:none;object-fit:contain;border-radius:13px;filter:drop-shadow(0 5px 12px color-mix(in srgb,var(--flow-glow) 24%,transparent))}
 .flow-orbit-core small{margin-top:0}
 
-/* A compact event rail keeps the active agent handoff readable at a glance. */
 .flow-trace{grid-template-columns:repeat(auto-fit,minmax(155px,1fr));gap:0;margin-top:22px;overflow:hidden;border:1px solid var(--line);border-radius:13px;background:color-mix(in srgb,var(--panel) 66%,transparent)}
 .flow-stage{position:relative;display:grid;grid-template-columns:22px minmax(0,1fr);align-items:start;gap:10px;min-width:0;min-height:126px;padding:15px 12px 13px;border:0;border-right:1px solid var(--line);border-radius:0;background:transparent;transition:background .2s}
 .flow-stage:last-child{border-right:0}
@@ -61,7 +59,6 @@
 @media(max-width:600px){.flow-trace{margin-top:18px}.flow-stage{padding:13px 11px 12px}}
 @media(prefers-reduced-motion:reduce){.flow-stage-running .flow-stage-node>span{animation:none}.flow-stage,.flow-stage::after{transition:none}}
 
-/* Activity is a quiet checkpoint grid; animation highlights only the active stage. */
 .flow-trace{grid-template-columns:repeat(3,minmax(0,1fr));grid-auto-flow:row;grid-auto-columns:auto;grid-template-rows:none;gap:10px;margin-top:22px;overflow:visible;border:0;background:transparent}
 .flow-stage{display:flex;align-items:flex-start;gap:12px;min-height:0;padding:15px;border:1px solid color-mix(in srgb,var(--flow-glow) 15%,var(--line));border-radius:13px;background:linear-gradient(145deg,color-mix(in srgb,var(--panel) 94%,var(--flow-glow) 6%),color-mix(in srgb,var(--panel) 98%,transparent));box-shadow:inset 0 1px 0 color-mix(in srgb,#fff 4%,transparent);scroll-snap-align:unset}
 .flow-stage::after{display:none}
@@ -87,7 +84,6 @@
 @media(max-width:560px){.flow-trace{grid-template-columns:minmax(0,1fr);gap:8px}.flow-stage{padding:13px}.flow-wait{grid-template-columns:25px minmax(0,1fr);padding:13px}.flow-wait time{grid-column:2;grid-row:2;justify-self:start;margin-top:2px}.flow-wait>span{grid-column:2}.flow-wait i{grid-row:1 / span 2;align-self:start;margin-top:2px}}
 @media(prefers-reduced-motion:reduce){.flow-stage-running .flow-stage-node>span{animation:none}}
 
-/* Two-sided evidence makes the research reading auditable at a glance. */
 .flow-evidence-balance{display:grid;gap:12px;margin-top:16px;padding:15px;border:1px solid color-mix(in srgb,var(--flow-glow) 18%,var(--line));border-radius:13px;background:linear-gradient(145deg,color-mix(in srgb,var(--flow-glow) 5%,var(--panel)),color-mix(in srgb,var(--panel) 96%,transparent))}
 .flow-evidence-balance>header{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .flow-evidence-balance>header b{color:var(--text);font:600 12px var(--display)}
@@ -104,7 +100,6 @@
 .flow-evidence-side a:hover{border-color:var(--flow-glow);background:color-mix(in srgb,var(--flow-glow) 8%,transparent)}
 @media(max-width:650px){.flow-evidence-columns{grid-template-columns:1fr}.flow-evidence-balance{padding:12px}.flow-evidence-side{padding:11px}}
 
-/* Research activity is a readable timeline, not a grid of compressed status tiles. */
 .flow-trace{
   display:grid;
   grid-template-columns:minmax(0,1fr);
@@ -253,7 +248,6 @@
   .flow-stage,.flow-stage-running .flow-stage-node>span,.flow-stage-detail summary{animation:none;transition:none}
 }
 
-/* Compact research activity: one scan-friendly row per observable check. */
 .flow-glass{padding:clamp(18px,2.8vw,30px)}
 .flow-section-head h2{font-size:clamp(21px,2.5vw,28px)}
 .flow-section-head p{font-size:12px;line-height:1.6}
@@ -354,7 +348,6 @@
   .flow-stage,.flow-stage-node,.flow-stage-chevron,.flow-stage[open] .flow-stage-detail{animation:none;transition:none}
 }
 
-/* Keep the checkpoint marker circular despite legacy rail sizing rules. */
 .flow-stage-node{
   align-self:center;
   grid-template-rows:none;
@@ -374,7 +367,6 @@
 .flow-token-verdict{display:grid;gap:9px;margin:15px 0;padding:15px 16px;border:1px solid color-mix(in srgb,var(--flow-glow) 28%,var(--line));border-radius:13px;background:linear-gradient(135deg,color-mix(in srgb,var(--flow-glow) 9%,var(--panel)),color-mix(in srgb,var(--panel) 86%,transparent))}.flow-token-verdict>b{color:var(--text);font:600 13px/1.55 var(--font)}.flow-token-quote{width:fit-content;padding:5px 8px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font:9px var(--mono);text-transform:uppercase;letter-spacing:.06em}.flow-token-quote-stale,.flow-token-quote-unavailable{border-color:color-mix(in srgb,var(--amber) 35%,var(--line));color:var(--amber)}.flow-token-quote-fresh{border-color:color-mix(in srgb,var(--mint) 35%,var(--line));color:var(--mint)}.flow-token-verdict ul{display:grid;gap:4px;margin:0;padding-left:17px;color:var(--muted);font:10px/1.5 var(--font)}
 
 
-/* Research activity reads as a single auditable ledger, with each step on a clear row. */
 .flow-trace{gap:0;overflow:hidden;border:1px solid var(--line);border-radius:16px;background:var(--panel)}
 .flow-stage{border:0;border-bottom:1px solid var(--line);border-radius:0;background:transparent;box-shadow:none}
 .flow-stage:last-of-type{border-bottom:0}
@@ -392,7 +384,6 @@
 @media(prefers-reduced-motion:reduce){.flow-stage-running .flow-stage-status::before{animation:none}}
 
 
-/* Agent conversation: visible work log followed by a source-led research reply. */
 .flow-work-thread .flow-state{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid var(--line);border-radius:999px;color:var(--faint);font:8px var(--mono);letter-spacing:.06em;text-transform:uppercase}
 .flow-work-thread .flow-state-live{border-color:color-mix(in srgb,var(--flow-glow) 40%,var(--line));background:color-mix(in srgb,var(--flow-glow) 8%,var(--panel));color:var(--text)}
 .flow-state-pulse{width:6px;height:6px;border-radius:50%;background:var(--flow-glow);box-shadow:0 0 0 3px color-mix(in srgb,var(--flow-glow) 14%,transparent);animation:flow-node-pulse 1.8s ease-in-out infinite}
@@ -437,7 +428,6 @@
 
 .flow-reply .flow-asset-grid{grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr))}
 
-/* Agent progress follows an open conversation rail; checkpoint details remain inline and expandable. */
 .agent-flow-page .flow-work-thread{max-width:1000px;margin:2px auto 0;padding:0 18px 18px;border:0;border-radius:0;background:transparent;box-shadow:none}
 .agent-flow-page .flow-thread-head{gap:11px;min-height:34px;margin:0 0 10px}
 .agent-flow-page .flow-thread-identity b{font-size:12px}
@@ -456,7 +446,6 @@
 @media(max-width:700px){.agent-flow-page .flow-work-thread{padding:0 7px 16px}.agent-flow-page .flow-work-thread .flow-trace{margin-left:10px;padding-left:11px}.agent-flow-page .flow-work-thread .flow-stage-detail{padding-left:20px}}
 
 
-/* In an active run, the question becomes the conversation composer and Tide's trace follows immediately. */
 .agent-flow-page .flow-hero-active{
   width:100%;
   min-height:0;
@@ -528,7 +517,6 @@
 @media(prefers-reduced-motion:reduce){.agent-flow-page .flow-work-thread .flow-state-live:before{animation:none}}
 
 
-/* Use compact stage symbols on the rail, matching the conversational work log. */
 .agent-flow-page .flow-work-thread .flow-stage-node{
   width:16px;
   min-height:16px;
@@ -561,7 +549,6 @@
   .agent-flow-page .flow-work-thread .flow-stage-spinner{animation:none}
 }
 
-/* Restored research entry surface: theme-aware glass, clear hierarchy, calm depth. */
 .agent-flow-page .flow-hero{
   min-height:430px;
   padding:clamp(30px,5vw,66px);
@@ -666,7 +653,6 @@
 }
 
 
-/* Responsive research hero: keep suggestions inside the card and give narrow layouts a clear visual anchor. */
 .agent-flow-page .flow-hero{min-height:0;transition:padding .25s ease,border-color .25s ease,background .25s ease,box-shadow .25s ease}
 .agent-flow-page .flow-form-row>button{flex:none}
 .agent-flow-page .flow-form-open .flow-suggestion-list{

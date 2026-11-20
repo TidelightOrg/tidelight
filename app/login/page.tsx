@@ -24,8 +24,6 @@ export default function LoginPage() {
   const [passkeyBusy, setPasskeyBusy] = useState(false);
   const passkeysEnabled = process.env.NEXT_PUBLIC_SUPABASE_PASSKEYS_ENABLED === "true";
   const googleEnabled = process.env.NEXT_PUBLIC_SUPABASE_GOOGLE_ENABLED === "true";
-  // Numeric codes require an email template that renders {{ .Token }}. Keep this
-  // hidden until that template is configured so users are never sent a link-only email.
   const emailCodesEnabled = process.env.NEXT_PUBLIC_SUPABASE_EMAIL_OTP_ENABLED === "true";
 
   function requestedNext() {
@@ -34,8 +32,6 @@ export default function LoginPage() {
   }
 
   async function confirmServerSession() {
-    // Give the proxy one response cycle to remove a legacy parent-domain cookie
-    // that can collide with the first-party session cookie.
     for (let attempt = 0; attempt < 2; attempt += 1) {
       const response = await fetch("/api/auth/session", { cache: "no-store" });
       if (response.ok && (await response.json()).authenticated === true) return true;
@@ -90,9 +86,6 @@ export default function LoginPage() {
         router.refresh();
         return;
       }
-      // Numeric email OTP verification stays on this page. Supplying a redirect URL
-      // here makes Supabase validate it against the Auth redirect allow-list even
-      // though the user never follows a magic link, which can reject code requests.
       const authResult = method === "code"
         ? (await supabase.auth.signInWithOtp({ email })).error
         : method === "link"

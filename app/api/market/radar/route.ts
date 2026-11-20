@@ -8,9 +8,6 @@ export async function GET() {
     const assets = await Promise.all(market.assets
       .filter((asset) => asset.isReality && RADAR_TICKERS.has(asset.underlyingTicker ?? ""))
       .map(async ({ symbol, baseCoin, name, underlyingTicker, kind, isReality, lastPrice, change24h, providerTimestamp, logoUrl, high24h, low24h, turnover24h }) => {
-        // Reality spot tokens do not have a Bitget /market/candles history
-        // endpoint. Use a separately identified stock perpetual reference only
-        // where Bitget actually lists the corresponding contract.
         const historySymbol = `${underlyingTicker ?? ""}USDT`;
         const hasPerpetualReference = (STOCK_PERP_UNIVERSE as readonly string[]).includes(historySymbol);
         const candles = hasPerpetualReference ? await getBitgetCandles(historySymbol, "4H", 18, "USDT-FUTURES").catch(() => []) : [];

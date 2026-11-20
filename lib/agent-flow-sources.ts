@@ -131,7 +131,7 @@ function officialUrlFromRedirectPage(html: string, allowedHosts: string[]) {
     try {
       const candidate = new URL(raw.replace(/[),.;]+$/, ""));
       if (allowedHosts.some(host => isHostOrSubdomain(candidate.hostname, host))) return candidate;
-    } catch { /* Ignore malformed URLs embedded in a search redirect page. */ }
+    } catch { }
   }
   return null;
 }
@@ -165,11 +165,10 @@ async function readPrimaryIssuerArticle(ticker: string, item: FlowEvidence): Pro
       const snippet = readableArticleText(html);
       return snippet.length >= 120 && isPersistableResearchSourceUrl(current.toString()) ? { ...item, url: current.toString(), snippet, via: "Issuer primary source" } : item;
     }
-  } catch { /* Keep the dated headline when an issuer site is unavailable. */ }
+  } catch { }
   return item;
 }
 
-/** Bounded multi-query public headline discovery. Search results are pointers, not verified article contents. */
 export function buildIssuerNewsQueries(ticker: string, issuer: string, question = ""): string[] {
   const name = issuerNames[ticker] ?? issuer;
   const context = historicalSearchContext(question);

@@ -72,10 +72,6 @@ export type SavedEvidenceGraph = {
   limitations: string[];
 };
 
-/**
- * Reject rows that exceed bounded storage and processing costs for one graph response.
- * Length checks use UTF-16 code units, which conservatively bounds JavaScript allocations.
- */
 export function savedGraphInputsWithinLimits(sources: SavedGraphSource[], evidence: SavedGraphEvidence[]) {
   let totalTextCodeUnits = 0;
   for (const source of sources) {
@@ -102,12 +98,10 @@ export function savedGraphInputsWithinLimits(sources: SavedGraphSource[], eviden
   return true;
 }
 
-/** Prefix stable node and edge identifiers with their graph kind. */
 function stableId(kind: string, recordId: string) {
   return `${kind}:${recordId}`;
 }
 
-/** Parse a source or record timestamp without accepting invalid date strings. */
 function validInstant(value: string | null | undefined): number | null {
   if (!value) return null;
   const dateOnly = /^(\d{4})-(\d{2})-(\d{2})$/.exec(value);
@@ -127,7 +121,6 @@ function validInstant(value: string | null | undefined): number | null {
   return Number.isFinite(parsed) ? parsed : null;
 }
 
-/** Allow only credential-free HTTPS source links in the private graph response. */
 function safeSourceUrl(value: string) {
   try {
     const url = new URL(value);
@@ -137,12 +130,10 @@ function safeSourceUrl(value: string) {
   }
 }
 
-/** Narrow untrusted saved JSON into a plain object. */
 function stringRecord(value: unknown): Record<string, unknown> | null {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
 }
 
-/** Reproduce a stored codepoint span from the captured source excerpt. */
 function matchedPassage(evidence: SavedGraphEvidence, source: SavedGraphSource | undefined, excerptCodepoints: string[] | undefined): string | null {
   if (!source?.excerpt || !excerptCodepoints || evidence.quote_match_status !== "matched_to_captured_text" ||
       !Number.isInteger(evidence.passage_start_codepoint) || !Number.isInteger(evidence.passage_end_codepoint) ||
@@ -152,10 +143,6 @@ function matchedPassage(evidence: SavedGraphEvidence, source: SavedGraphSource |
   return passage && passage.length <= SAVED_GRAPH_INPUT_LIMITS.passageCodeUnits && evidence.supporting_quote && normalizeQuote(passage) === normalizeQuote(evidence.supporting_quote) ? passage : null;
 }
 
-/**
- * Build an inspectable graph from the normalized owner-scoped saved-brief rows.
- * Recorded citation and quote-match edges describe provenance only; they do not verify claim truth.
- */
 export function buildSavedEvidenceGraph(input: { run: SavedGraphRun; sources: SavedGraphSource[]; evidence: SavedGraphEvidence[] }): SavedEvidenceGraph {
   if (!savedGraphInputsWithinLimits(input.sources, input.evidence)) throw new Error("saved-evidence-graph-input-too-large");
   const asOfMs = validInstant(input.run.completed_at);
@@ -217,7 +204,6 @@ export function buildSavedEvidenceGraph(input: { run: SavedGraphRun; sources: Sa
     if (publicationValue && (publishedMs === null || (dateOnly && new Date(publishedMs).toISOString().slice(0, 10) !== publicationValue))) continue;
     const snapshotDay = asOf.slice(0, 10);
     const publicationDay = publishedMs === null ? null : new Date(publishedMs).toISOString().slice(0, 10);
-    // A date-only source from the snapshot day has no publish time, so it is withheld conservatively.
     if (publishedMs !== null && (publishedMs > asOfMs || (dateOnly && publicationDay! >= snapshotDay))) continue;
     const id = stableId("source", source.id);
     const temporalStatus = publishedMs === null ? "undated" as const : dateOnly ? "date_only_before_snapshot" as const : "dated_before_snapshot" as const;

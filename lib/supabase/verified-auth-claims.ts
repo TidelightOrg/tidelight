@@ -13,7 +13,6 @@ function pick(source: unknown, keys: string[]): Claims {
   return Object.fromEntries(keys.flatMap((key) => input[key] === undefined ? [] : [[key, input[key]]]));
 }
 
-/** Minimize identity data forwarded from Proxy after Supabase validates the JWT. */
 export function encodeVerifiedAuthUser(claimsValue: unknown): string | null {
   const claims = record(claimsValue);
   const id = stringField(claims.sub);
@@ -30,7 +29,6 @@ export function encodeVerifiedAuthUser(claimsValue: unknown): string | null {
   return encodeURIComponent(JSON.stringify(snapshot));
 }
 
-/** Decode only the compact identity snapshot emitted by the trusted Proxy. */
 export function decodeVerifiedAuthUser(encoded: string | null): {
   id: string;
   email: string | null;

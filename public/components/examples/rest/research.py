@@ -11,7 +11,7 @@ from urllib.request import Request
 
 try:
     from ._http import open_api_url
-except ImportError:  # Also support `python rest/research.py` from the examples directory.
+except ImportError:
     from _http import open_api_url
 
 API_ROOT = "https://api.tidelight.app/v1"

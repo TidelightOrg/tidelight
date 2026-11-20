@@ -3,25 +3,21 @@ export type ExecutionSide = "buy" | "sell";
 export type ExecutionAction = "open_long" | "open_short" | "close";
 export type PositionDirection = "long" | "short" | null;
 
-/** Best displayed prices must come from levels that can contribute executable size. */
 export function bestExecutableBookPrices(asks: ExecutionBookLevel[], bids: ExecutionBookLevel[]) {
   const askPrices = asks.filter(level => Number.isFinite(level.price) && level.price > 0 && Number.isFinite(level.size) && level.size > 0).map(level => level.price);
   const bidPrices = bids.filter(level => Number.isFinite(level.price) && level.price > 0 && Number.isFinite(level.size) && level.size > 0).map(level => level.price);
   return { bestAsk: askPrices.length ? Math.min(...askPrices) : null, bestBid: bidPrices.length ? Math.max(...bidPrices) : null };
 }
 
-/** Advance a server-timestamped snapshot clock by elapsed client time since the request began (a conservative upper bound on response transit). */
 export function serverAnchoredSnapshotNow(serverReceivedAt: number | null | undefined, clientRequestStartedAt: number | null | undefined, clientNow: number, processingMs = 0) {
   if (!Number.isFinite(serverReceivedAt) || !Number.isFinite(clientRequestStartedAt) || !Number.isFinite(clientNow)) return clientNow;
   return (serverReceivedAt as number) + Math.max(0, clientNow - (clientRequestStartedAt as number) - (Number.isFinite(processingMs) && processingMs >= 0 ? processingMs : 0));
 }
 
-/** Apply the same venue skew and snapshot age limits to book-derived prices and sweeps. */
 export function isFreshBookTimestamp(timestamp: number | null | undefined, receivedAt: number | undefined, now: number, maxAgeMs = 15_000) {
   return timestamp != null && Number.isFinite(timestamp) && !(timestamp - (receivedAt ?? now) > 5_000) && !(now - timestamp > maxAgeMs);
 }
 
-/** Return only the side(s) implied by the proposed paper action. */
 export function executionSidesForAction(action: ExecutionAction, direction: PositionDirection) {
   const primarySide: ExecutionSide | null = action === "open_long" ? "buy" : action === "open_short" ? "sell" : direction === "long" ? "sell" : direction === "short" ? "buy" : null;
   return { primarySide, secondarySide: action === "close" ? null : primarySide === "buy" ? "sell" : primarySide === "sell" ? "buy" : null } as const;
@@ -40,7 +36,6 @@ export type BookSweep = {
   bookAgeMs: number | null;
 };
 
-/** Sweep only the levels returned by the venue. Never extrapolate unseen liquidity. */
 export function estimateBookSweep(input: {
   levels: ExecutionBookLevel[];
   side: ExecutionSide;
@@ -71,7 +66,6 @@ export function estimateBookSweep(input: {
     slippageBps: null,
     bookAgeMs,
   } as const;
-  // Check venue skew at server receipt; use the advanced server clock for age.
   if (!Number.isFinite(input.quantity) || input.quantity <= 0 || !base.referencePrice || !isFreshBookTimestamp(input.bookTimestamp, input.receivedAt, now, maxAgeMs) || validLevels.length === 0 || crossedBook) {
     return { ...base, status: "unavailable" };
   }
@@ -99,14 +93,12 @@ export function estimateBookSweep(input: {
   };
 }
 
-/** Evaluate smaller and larger visible-book sweeps using identical snapshot assumptions. */
 export function estimateSizeSensitivity(input: Parameters<typeof estimateBookSweep>[0]) {
   return [0.5, 2].map(multiplier => ({ multiplier, sweep: estimateBookSweep({ ...input, quantity: input.quantity * multiplier }) }));
 }
 
 export type FundingEstimate = { status: "estimated" | "unavailable"; rate: number | null; notional: number | null; cost: number | null; settlementAt: number | null };
 
-/** Estimate only the next announced settlement. Positive cost means the position pays; negative means it receives. */
 export function estimateNextFundingCost(input: {
   notional: number;
   direction: "long" | "short";

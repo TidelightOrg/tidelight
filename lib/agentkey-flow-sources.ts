@@ -21,7 +21,6 @@ function safeIssuerEvidence(source: AgentKeySource, ticker: string, issuer: stri
 
 export type AgentKeyIssuerResearch = { state: AgentKeyResearch["state"]; reason: AgentKeyResearch["reason"]; sources: FlowEvidence[]; context: string; tools: AgentKeyResearch["tools"] };
 
-/** One bounded AgentKey discovery pass, retaining bounded tool data for synthesis and attributable headlines for citations. */
 export async function agentKeyIssuerResearch(
   ticker: string,
   issuer: string,
@@ -31,10 +30,6 @@ export async function agentKeyIssuerResearch(
   const empty = (state: AgentKeyResearch["state"], reason: AgentKeyResearch["reason"] = null): AgentKeyIssuerResearch => ({ state, reason, sources: [], context: "", tools: [] });
   if (!client) return empty("unavailable");
   if (!/^[A-Z]{1,6}$/.test(ticker)) return empty("unsupported");
-  // Pass the research question through as-is. The search adapter already narrows
-  // the user-facing instruction into a provider query; appending format guidance
-  // here adds noise after that instruction and can prevent its cleanup from
-  // removing the trailing provider names.
   const query = question.slice(0, 360);
   const research = await gatherAgentKeyResearch(query, client, ticker);
   if (research.state !== "used") return empty(research.state, research.reason);

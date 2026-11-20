@@ -36,7 +36,6 @@ function parseText(value: string): unknown {
   try { return JSON.parse(trimmed) as unknown; } catch { return trimmed; }
 }
 
-/** MCP results commonly wrap their JSON payload in one or more text content blocks. */
 function unwrap(value: unknown, depth = 0): unknown {
   if (depth > 16) return value;
   if (typeof value === "string") return parseText(value);
@@ -104,8 +103,6 @@ function describedAsMutating(description: unknown): boolean {
   if (typeof payload === "string") return writeVerb.test(payload);
   const descriptor = asRecord(payload);
   if (!descriptor) return false;
-  // Check the operation name with the strict action list. Free-text descriptions
-  // of market data routinely mention open/close prices and buy/sell ratings.
   const identity = [descriptor.name, descriptor.operation, descriptor.action]
     .filter((value): value is string => typeof value === "string")
     .join(" ").toLowerCase().replace(/[_-]+/g, " ");
@@ -145,7 +142,6 @@ function numericCost(value: unknown): number | null {
 function costCredits(description: unknown): number | null {
   const payload = unwrap(description);
   const advertisedCost = asRecord(asRecord(payload)?.cost);
-  // Metered prices are minimums, so they cannot establish the per-call cap.
   if (advertisedCost && (advertisedCost.metered === true || "credits_minimum" in advertisedCost)) return null;
   let found: number | null = null;
   function visit(value: unknown, depth = 0) {
@@ -260,7 +256,6 @@ function fitGeneratedValue(property: RecordValue, value: unknown): unknown {
 function paramsFor(description: unknown, candidate: ToolCandidate, query: string, ticker?: string): RecordValue | null {
   const payload = unwrap(description);
   const descriptor = asRecord(payload);
-  // AgentKey documents `params` as the input schema and `execute_as.params` as an example call.
   const schema = descriptor && Object.hasOwn(descriptor, "params") ? asRecord(descriptor.params) : findSchema(payload);
   const properties = schema ? asRecord(schema.properties) : null;
   if (!schema || !properties) return null;
@@ -308,7 +303,6 @@ function records(value: unknown, depth = 0): RecordValue[] {
   return Object.values(object).flatMap(child => records(child, depth + 1)).slice(0, 40);
 }
 
-/** Field names only: enough to diagnose an unfamiliar provider wrapper without logging article content. */
 function recordShape(value: unknown, depth = 0, prefix = "", into = new Set<string>()): string[] {
   if (depth > 5 || into.size >= 32) return [...into];
   const parsed = unwrap(value);
@@ -333,8 +327,6 @@ function parseDate(value: unknown): string | null {
   const raw = String(value).trim();
   const absolute = Date.parse(raw);
   if (Number.isFinite(absolute)) return new Date(absolute).toISOString();
-  // Serper news dates are often relative to retrieval (for example, "3 hours ago").
-  // Keep only bounded ages that cannot cross the 30-day issuer evidence window.
   const relative = /^(\d{1,2}|an?)\s+(minute|hour|day|week)s?\s+ago$/i.exec(raw);
   if (!relative) return null;
   const count = /^an?$/i.test(relative[1]) ? 1 : Number(relative[1]);

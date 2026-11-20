@@ -17,7 +17,6 @@ export type CapsuleOutcomeSummary = {
 export const MIN_CALIBRATION_SAMPLE = 20;
 const CALIBRATION_BINS = 5;
 
-/** Summarize a server-verified event chain. User-entered observations stay explicitly descriptive. */
 export function summarizeCapsuleOutcomes(events: CapsuleOutcomeEvent[]): CapsuleOutcomeSummary {
   const forecasts = new Map(events.filter(event => event.type === "forecast").map(event => [event.id, event]));
   const outcomes = events.filter(event => event.type === "outcome");

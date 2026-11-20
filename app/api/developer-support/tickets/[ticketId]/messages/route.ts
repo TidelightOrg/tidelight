@@ -45,10 +45,10 @@ export async function POST(request: Request, context: { params: Promise<{ ticket
     await admin.from("developer_support_tickets").update({ status, updated_at: new Date().toISOString(), last_activity_at: new Date().toISOString() }).eq("id", ticketId);
     if (!operator) {
       try { await notifySupportOperators({ admin, ticketId, subject: ticket.subject, ecosystem: ticket.ecosystem, event: "New message", eventKey: saved.id }); }
-      catch { /* New messages remain visible in the authenticated admin inbox. */ }
+      catch { }
     } else {
       try { await notifySupportRequester({ admin, userId: ticket.requester_user_id, ticketId, subject: ticket.subject, eventKey: saved.id }); }
-      catch { /* Replies remain visible in the authenticated requester inbox. */ }
+      catch { }
     }
     return json({ message: saved, ticketStatus: status }, 201);
   } catch {

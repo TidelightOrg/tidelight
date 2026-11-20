@@ -1,4 +1,3 @@
-/** Decision-capsule instrument classes. Evidence-graph `reality_tokenized_spot` names the same Reality spot leg. */
 export const INSTRUMENT_SYMBOL_PATTERNS = {
   us_equity: /^[A-Z][A-Z0-9.-]{0,14}$/,
   reality_token: /^R[A-Z0-9.-]{1,15}$/,
@@ -9,18 +8,12 @@ export type CanonicalInstrumentKind = keyof typeof INSTRUMENT_SYMBOL_PATTERNS;
 export const CANONICAL_INSTRUMENT_KINDS = ["us_equity", "reality_token", "us_stock_perpetual"] as const satisfies readonly CanonicalInstrumentKind[];
 export type CanonicalIssuerId = `sec-cik:${string}`;
 
-/** Normalize a verified SEC CIK without inventing issuer mappings. */
 export function canonicalIssuerIdFromSecCik(value: string | number): CanonicalIssuerId | null {
   const raw = String(value).trim();
   if (!/^\d{1,10}$/.test(raw) || Number(raw) <= 0) return null;
   return `sec-cik:${raw.padStart(10, "0")}`;
 }
 
-/**
- * Stored names that already mean one of the canonical kinds.
- * `rtoken` on a MarketAsset is Reality spot only when `isReality` is true.
- * `getBitgetStockPerp` stores the same `rtoken` string with `isReality: false`.
- */
 export const LEGACY_INSTRUMENT_KINDS = {
   reality_tokenized_spot: "reality_token",
   tokenized_equity_spot: "reality_token",
@@ -43,16 +36,13 @@ export type RealityCatalogInstrument = {
   isReality: boolean;
 };
 
-/** Three linked symbols. They are not the same product and not interchangeable prices. */
 export type CanonicalInstrumentIdentity = {
   us_equity: InstrumentLeg<"us_equity">;
   reality_token: InstrumentLeg<"reality_token"> | null;
   us_stock_perpetual: InstrumentLeg<"us_stock_perpetual"> | null;
 };
 
-/** Quote age on the Bitget market universe and in research quote gates. */
 export const MARKET_QUOTE_STALE_AFTER_MS = 120_000;
-/** Future skew in research quote gates. Nightwatch exit quotes use 5_000. */
 export const MARKET_QUOTE_FUTURE_SKEW_MS = 60_000;
 
 export type InstrumentFreshnessStatus = "fresh" | "stale" | "unverified";
@@ -74,13 +64,11 @@ export function canonicalKindFromLegacy(kind: string): CanonicalInstrumentKind |
   return null;
 }
 
-/** Resolve a Bitget `MarketAsset` kind. A bare `rtoken` string is not enough for a stock perpetual. */
 export function canonicalKindForMarketAsset(asset: { kind: string; isReality: boolean }): CanonicalInstrumentKind | null {
   if (asset.kind === "rtoken") return asset.isReality ? "reality_token" : "us_stock_perpetual";
   return canonicalKindFromLegacy(asset.kind);
 }
 
-/** A Reality symbol is supported only when its provider catalog row identifies it as Reality spot. */
 export function isRealityCatalogInstrument(asset: RealityCatalogInstrument): boolean {
   return asset.kind === "rtoken"
     && asset.isReality
@@ -89,7 +77,6 @@ export function isRealityCatalogInstrument(asset: RealityCatalogInstrument): boo
     && isCanonicalInstrumentSymbol("reality_token", asset.symbol.toUpperCase());
 }
 
-/** Link supplied symbols. An invalid supplied leg rejects the identity; an omitted leg stays unknown. */
 export function linkCanonicalInstrument(input: {
   usEquitySymbol: string;
   realityTokenSymbol?: string | null;
@@ -107,7 +94,6 @@ export function linkCanonicalInstrument(input: {
   };
 }
 
-/** Classify a provider timestamp. A missing quote is the caller's own `unavailable` state. */
 export function describeInstrumentFreshness(input: {
   providerTimestampMs: number | null;
   evaluatedAtMs: number;

@@ -14,9 +14,6 @@ export const ALPHA_STRATEGIES: Record<StrategyKey, { label: string; description:
 export const BACKTEST_PARAMETERS = {
   fastWindow: 20,
   slowWindow: 50,
-  // Bitget currently serves about 90 days of 4H candles. A 66/34 split
-  // leaves enough room for a 30-day OOS window while preserving 30+ days
-  // of evaluated training data after the 50-candle warm-up.
   trainFraction: 0.66,
   feeBpsPerSide: 10,
   slippageBpsPerSide: 5,
@@ -52,10 +49,6 @@ export type BacktestResult = {
   validation: BacktestValidation;
 };
 
-/** A truthful, machine-readable summary of whether this run is useful evidence.
- *  This deliberately compares only the untouched holdout with its same-window
- *  buy-and-hold baseline; it is not a claim of future performance.
- */
 export type BacktestValidation = {
   trainingDays: number;
   holdoutDays: number;
@@ -92,7 +85,6 @@ function candleDuration(interval: CandleInterval) {
   return interval === "1H" ? 60 * 60 * 1000 : interval === "4H" ? 4 * 60 * 60 * 1000 : 24 * 60 * 60 * 1000;
 }
 
-/** Return the exact validated data set eligible for a historical replay. */
 export function prepareBacktestCandles(input: MarketCandle[], interval: CandleInterval, asOf = Date.now()) {
   const duration = candleDuration(interval);
   for (const candle of input) {
@@ -147,7 +139,6 @@ function averageVolume(candles: MarketCandle[], end: number, window: number) {
   return values.length === window ? values.reduce((sum, value) => sum + value, 0) / window : null;
 }
 
-/** Signals are decided from completed candles only and become effective on the next bar. */
 export function buildSignals(candles: MarketCandle[], key: StrategyKey): boolean[] {
   const out = Array(candles.length).fill(false) as boolean[];
   if (key === "sma_trend_v1") {
@@ -332,7 +323,6 @@ export function runBacktest(symbol: string, interval: CandleInterval, input: Mar
   };
 }
 
-/** Three disjoint trailing evaluation windows, each using only earlier candles to warm the rule. */
 export function runWalkForward(symbol: string, interval: CandleInterval, input: MarketCandle[], asOf = Date.now(), strategyKey: StrategyKey = BACKTEST_STRATEGY): WalkForwardResult {
   const candles = prepareBacktestCandles(input, interval, asOf);
   const fast = movingAverages(candles, BACKTEST_PARAMETERS.fastWindow);
@@ -353,7 +343,6 @@ export function runWalkForward(symbol: string, interval: CandleInterval, input: 
   return { folds, meanReturnPct, positiveFolds: folds.filter((fold) => fold.metrics.totalReturnPct > 0).length, totalFolds: folds.length, evaluationStart: folds[0].testStart, evaluationEnd: folds.at(-1)!.testEnd };
 }
 
-/** Stress the same fixed holdout under higher execution-cost assumptions. */
 export function runCostSensitivity(symbol: string, interval: CandleInterval, input: MarketCandle[], asOf = Date.now(), strategyKey: StrategyKey = BACKTEST_STRATEGY) {
   const candles = prepareBacktestCandles(input, interval, asOf);
   if (candles.length < 80) throw new Error("Cost sensitivity needs at least 80 completed candles.");
@@ -368,11 +357,6 @@ export function runCostSensitivity(symbol: string, interval: CandleInterval, inp
   ].map((scenario) => ({ ...scenario, returnPct: measure(candles, fast, slow, splitIndex, candles.length, interval, scenario.feeBpsPerSide, scenario.slippageBpsPerSide, signals).totalReturnPct }));
 }
 
-/**
- * Deterministic random long/cash placebo. Entry and exit hazards are estimated
- * only from the strategy's training-window conditional state transitions,
- * then applied to the untouched holdout with identical fee and slippage assumptions.
- */
 export function runRandomEntryPlacebo(input: MarketCandle[], interval: CandleInterval, asOf: number, strategyKey: StrategyKey, strategyHoldoutReturnPct: number, simulations = 100): RandomEntryPlacebo {
   const candles = prepareBacktestCandles(input, interval, asOf);
   if (candles.length < 80) throw new Error("Placebo comparison needs at least 80 completed candles.");
@@ -390,7 +374,6 @@ export function runRandomEntryPlacebo(input: MarketCandle[], interval: CandleInt
     if (!current && prior) exits += 1;
     prior = current;
   }
-  // An unobserved prior state has no estimated transitions; keep its hazard at zero.
   const trainingEntryRatePerBar = cashStateBars ? entries / cashStateBars : 0;
   const trainingExitRatePerBar = longStateBars ? exits / longStateBars : 0;
   let seed = 2166136261;
@@ -409,8 +392,6 @@ export function runRandomEntryPlacebo(input: MarketCandle[], interval: CandleInt
       return (state >>> 0) / 0x1_0000_0000;
     };
     const placeboSignals = Array<boolean>(candles.length).fill(false);
-    // measure() uses signal[i - 1] at candle i's open, so set the signal
-    // immediately before the first holdout candle from training-only rates.
     const initialState = cashStateBars === 0 ? "training_long_occupancy" : longStateBars === 0 ? "training_cash_occupancy" : "randomized_from_stationary_occupancy";
     let held = initialState === "training_long_occupancy" ? true : initialState === "training_cash_occupancy" ? false : random() < (trainingEntryRatePerBar + trainingExitRatePerBar > 0 ? trainingEntryRatePerBar / (trainingEntryRatePerBar + trainingExitRatePerBar) : longStateBars / (cashStateBars + longStateBars));
     placeboSignals[splitIndex - 1] = held;

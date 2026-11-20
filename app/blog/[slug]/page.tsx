@@ -28,7 +28,7 @@ export default async function BlogArticlePage({ params }: { params: Promise<{ sl
   try { article = articleBySlug(slug) ?? await getBlogArticleBySlug(slug); } catch { article = undefined; }
   if (!article) notFound();
   let published: typeof articles = [];
-  try { published = await getPublishedBlogArticles(); } catch { /* Keep built-in related stories available if the store is unavailable. */ }
+  try { published = await getPublishedBlogArticles(); } catch { }
   const allArticles = [...published, ...articles.filter(item => !published.some(post => post.slug === item.slug))];
   const relatedArticles = allArticles.filter((item) => item.slug !== article.slug).slice(0, 2);
   return <main className="tl-blog tl-blog-reading">

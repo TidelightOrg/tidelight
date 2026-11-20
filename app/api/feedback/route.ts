@@ -33,7 +33,6 @@ export async function POST(request: Request) {
     body = parsed as Record<string, unknown>;
   } catch { return json({ error: "Send a valid feedback message." }, 400); }
 
-  // Quiet honeypot for simple bots. A filled field receives a generic success response.
   if (typeof body.company === "string" && body.company.trim()) return json({ ok: true });
   const message = typeof body.message === "string" ? body.message.trim() : "";
   if (message.length < 8 || message.length > 2000) return json({ error: "Feedback must be between 8 and 2,000 characters." }, 400);
@@ -54,7 +53,7 @@ export async function POST(request: Request) {
       userId = user.id;
       fingerprints.push(createHmac("sha256", process.env.CRON_SECRET).update(`feedback-user:${user.id}`).digest("hex"));
     }
-  } catch { /* Feedback remains available if optional session lookup fails. */ }
+  } catch { }
 
   try {
     const admin = createAdminClient();
@@ -81,8 +80,6 @@ export async function POST(request: Request) {
       idempotencyKey: `feedback:${id}`,
     });
     if (replyTo) {
-      // Send a separate receipt only to an address the sender explicitly supplied.
-      // Keep the feedback body private and avoid promising a response deadline.
       await sendWithResend({
         from: emailSenders.auth,
         to: replyTo,

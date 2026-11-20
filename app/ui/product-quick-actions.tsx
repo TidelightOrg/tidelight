@@ -35,7 +35,7 @@ export default function ProductQuickActions() {
           timer = window.setTimeout(() => setPosition(denseWorkspace ? null : { left: Math.max(0, Math.min(parsed.left as number, window.innerWidth - 64)), top: Math.max(0, Math.min(parsed.top as number, window.innerHeight - 64)) }), 0);
         }
       }
-    } catch { /* Ignore malformed saved positions. */ }
+    } catch { }
     return () => window.clearTimeout(timer);
   }, [denseWorkspace]);
 
@@ -76,7 +76,7 @@ export default function ProductQuickActions() {
       const bounds = event.currentTarget.getBoundingClientRect();
       const next = { left: bounds.left, top: bounds.top };
       setPosition(next);
-      try { window.localStorage.setItem(QUICK_ACTIONS_POSITION_KEY, JSON.stringify(next)); } catch { /* Keep the current position for this visit. */ }
+      try { window.localStorage.setItem(QUICK_ACTIONS_POSITION_KEY, JSON.stringify(next)); } catch { }
       window.setTimeout(() => { suppressClick.current = false; }, 0);
     }
     drag.current = null;

@@ -9,7 +9,6 @@ export type SupportTopic = {
   links: SupportLink[];
 };
 
-/** Product-owned, reviewable knowledge. Keep this in step with the shipped screens. */
 export const SUPPORT_TOPICS: SupportTopic[] = [
   {
     id: "start", title: "Getting started", keywords: ["start", "begin", "new", "how does tidelight work", "what is tidelight", "first", "help"],

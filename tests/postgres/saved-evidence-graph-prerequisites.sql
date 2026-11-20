@@ -13,6 +13,5 @@ create table public.research_evidence (
   supporting_quote text
 );
 
--- The migration is intentionally NOT VALID so existing rows remain readable.
 insert into public.research_sources(id, url, title, excerpt)
 values ('20000000-0000-4000-8000-000000000001', 'https://sec.gov/legacy', 'Legacy', repeat('x', 7000));

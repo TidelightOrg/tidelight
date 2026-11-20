@@ -102,7 +102,7 @@ export default function SupportCompanion() {
         setConversations(valid);
         if (valid[0]?.messages?.length) { conversationIdRef.current = valid[0].id; setMessages(valid[0].messages); }
       }, 0);
-    } catch { /* a corrupt local history should never block Tide */ }
+    } catch { }
   }, []);
 
   useEffect(() => {
@@ -117,7 +117,7 @@ export default function SupportCompanion() {
         const oldBottom = Number(window.localStorage.getItem("tidelight-tide-bottom"));
         if (Number.isFinite(oldBottom) && oldBottom > 0) restored.y = bounds.maxY;
       }
-    } catch { /* Invalid saved placement falls back to the lower-right corner. */ }
+    } catch { }
     if (denseWorkspace) restored = { x: Math.max(260, Math.floor(window.innerWidth * 0.60)), y: 8 };
     restored = clampPosition(restored);
     const timer = window.setTimeout(() => { positionRef.current = restored; setPosition(restored); }, 0);

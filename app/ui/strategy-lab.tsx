@@ -156,8 +156,6 @@ export default function StrategyLab({ signedIn, initialRuns, initialSymbol = "RA
   const activeSet = marketCategory === "SPOT" ? validationSet : futuresBasket === "leaders" ? stockPerpSet : semiconductorSet;
   const matrixComplete = matrix.length === activeSet.length;
   const alignedHoldout = matrixComplete && hasAlignedHoldout(matrix);
-  // Freeze selection using training observations only. The holdout below is read
-  // after selection; do not choose the largest holdout return in hindsight.
   const selectedLeader = marketCategory === "USDT-FUTURES" && alignedHoldout ? [...matrix]
     .filter(item => item.train.trades >= 2 && item.train.maxDrawdownPct <= 20 && item.train.sharpeRatio != null && item.train.sharpeRatio > 0)
     .sort((a, b) => (b.train.sharpeRatio ?? 0) - (a.train.sharpeRatio ?? 0))[0] ?? null : null;

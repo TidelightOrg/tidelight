@@ -30,7 +30,6 @@ async function readBoundedJson(request: Request): Promise<unknown> {
   catch { throw new Error("invalid_json"); }
 }
 
-/** Run bounded, read-only AgentKey research through the project's Tidelight credential. */
 export async function POST(request: Request) {
   const started = performance.now();
   const auth = await authorizeDeveloperRequest(request, "/v1/research/agentkey", RESEARCH_SCOPE);

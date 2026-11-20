@@ -1,9 +1,5 @@
-/* Final mobile safety layer. Keep every route inside the device viewport. */
 .mobile-language-toggle { display:none; }
 @media (max-width: 780px) {
-  /* `hidden` creates a scrolling ancestor that prevents viewport sticky
-     headers from sticking on mobile. Clip horizontal overflow without
-     capturing vertical page scrolling. */
   html, body { max-width: 100%; overflow-x: clip; overflow-y: visible; }
   body { -webkit-text-size-adjust: 100%; }
   .app-shell, .main-area, .route-content, .content-wrap { min-width: 0; max-width: 100%; }
@@ -59,11 +55,8 @@
   img, svg, video { max-width: 100%; }
 }
 
-/* landing.css declares overflow:hidden for artwork clipping; that creates a
-   scroll container and disables the sticky public masthead. */
 .landing-page { overflow-x: clip; overflow-y: visible; }
 
-/* Let the draggable Tide launcher share the quick-action and masthead glass. */
 .tide-guide-launcher {
   position: relative;
   isolation: isolate;
@@ -105,7 +98,6 @@
 }
 
 
-/* Premium liquid-glass mastheads, matched to the draggable quick-action pill. */
 .main-area > .topbar {
   --masthead-glass: color-mix(in srgb, var(--panel) 48%, transparent);
   position: sticky;
@@ -227,8 +219,6 @@
   .landing-tide-hand { width: 280px; bottom: -72px; }
 }
 
-/* A shared glass finish for compact information cards and useful sub-cards.
-   Large reading, form, and data-table panels keep their calmer solid surfaces. */
 :root .app-shell :is(
   .metric-card,
   .company-card,
@@ -293,7 +283,6 @@
   transform: translateY(-2px);
 }
 
-/* Reusable inset data tiles gain a faint refracted edge, not another heavy card. */
 :root .app-shell :is(
   .metric-note,
   .company-card-range > span,
@@ -380,14 +369,12 @@
   }
 }
 
-/* The overview radar stays a compact two-by-two even below the global stack breakpoint. */
 @media (max-width: 780px) {
   .company-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 8px; }
   .company-card { min-width: 0; min-height: 150px; padding: 10px; }
   .company-card-foot { flex-wrap: wrap; }
 }
 
-/* Keep the Bitget universe in a compact desktop-style grid on phones. */
 @media (max-width: 780px) {
   .universe-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; gap: 9px; }
   .universe-card { padding: 10px; border-radius: 10px; }
@@ -422,8 +409,6 @@
   .company-card { min-height: 220px; }
 }
 
-/* Floating and expanded surfaces use the same refracted glass as the masthead.
-   Keep the content layer translucent too, so the card beneath remains visible. */
 :root .app-shell :is(.brief-dialog,.session-sheet,.workshop-sheet,.feedback-dialog) {
   position: relative;
   isolation: isolate;
@@ -459,12 +444,10 @@
   backdrop-filter: blur(10px);
 }
 .modal-backdrop,.feedback-scrim,.session-backdrop,.workshop-backdrop {
-  /* The overlay is a positioning/click-dismiss layer only; leave the page vivid. */
   background: transparent !important;
   -webkit-backdrop-filter: none !important;
   backdrop-filter: none !important;
 }
-/* CSS Modules may omit the filter on the session popover in some bundles. */
 :root .app-shell details[open] > div[class*="popover"] {
   background: linear-gradient(145deg,color-mix(in srgb,var(--panel) 84%,transparent),color-mix(in srgb,var(--panel-2) 87%,transparent));
   -webkit-backdrop-filter: blur(24px) saturate(155%) !important;

@@ -32,7 +32,6 @@ function readLanguage(): Language {
     const stored = window.localStorage.getItem(STORAGE_KEY);
     if (stored === "zh-CN" || stored === "en") return stored;
   } catch {
-    // Use the server-provided initial language when browser storage is unavailable.
   }
   return "en";
 }
@@ -63,9 +62,6 @@ function translateWithSpacing(source: string) {
     }
   }
   if (!translated || translated === key) return null;
-  // Text nodes can include separate inline elements (for example "The <em>method</em>").
-  // Translate only when the entire node is a glossary entry; never replace a brand
-  // name or a short word inside a longer phrase.
   const leading = source.match(/^\s*/)?.[0] ?? "";
   const trailing = source.match(/\s*$/)?.[0] ?? "";
   return `${leading}${translated}${trailing}`;
@@ -79,7 +75,7 @@ export function LanguageProvider({ children, initialLanguage }: { children: Reac
   const appliedAttributes = useRef(new WeakMap<Element, Map<string, string>>());
 
   const setLanguage = useCallback((next: Language) => {
-    try { window.localStorage.setItem(STORAGE_KEY, next); } catch { /* Cookie still persists the selection for this browser. */ }
+    try { window.localStorage.setItem(STORAGE_KEY, next); } catch { }
     const hostname = window.location.hostname.toLowerCase();
     const sharedDomain = hostname === "tidelight.app" || hostname.endsWith(".tidelight.app") ? "; domain=.tidelight.app" : "";
     document.cookie = `${STORAGE_KEY}=${next}; path=/; max-age=31536000; samesite=lax${sharedDomain}`;
@@ -93,8 +89,6 @@ export function LanguageProvider({ children, initialLanguage }: { children: Reac
     document.documentElement.dataset.language = language;
     const englishTitle = "Tidelight — See the signal between sessions";
     const chineseTitle = "Tidelight — 看清交易时段之间的市场信号";
-    // Keep route-specific metadata (for example the developer platform title)
-    // intact when the global language setting changes.
     if (document.title === englishTitle || document.title === chineseTitle) {
       document.title = language === "zh-CN" ? chineseTitle : englishTitle;
     }

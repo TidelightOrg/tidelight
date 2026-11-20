@@ -84,7 +84,6 @@ export async function POST(request: Request) {
     .select("id,created_at,original_snapshot,integrity_hash,hash_algorithm,schema_version")
     .maybeSingle();
   if (insertError) {
-    // Idempotency under concurrent requests: only disclose this owner's capsule.
     if (insertError.code === "23505") {
       const { data: existing, error } = await admin.from("decision_capsules").select("id,created_at,original_snapshot,integrity_hash,hash_algorithm,schema_version").eq("user_id", user.id).eq("research_run_id", runId).maybeSingle();
       if (!error && existing) {
