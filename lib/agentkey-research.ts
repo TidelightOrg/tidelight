@@ -290,7 +290,7 @@ function records(value: unknown, depth = 0): RecordValue[] {
     return [];
   }
   if (typeof object.title === "string" && (typeof object.url === "string" || typeof object.link === "string")) return [object];
-  return ["results", "items", "news", "articles", "data", "organic", "sources", "content"].flatMap(key => records(object[key], depth + 1)).slice(0, 40);
+  return ["results", "items", "news", "news_results", "newsResults", "articles", "data", "organic", "sources", "content"].flatMap(key => records(object[key], depth + 1)).slice(0, 40);
 }
 
 function parseDate(value: unknown): string | null {
@@ -317,7 +317,7 @@ function sourceFrom(raw: RecordValue, tool: string): AgentKeySource | null {
   let url: URL;
   try { url = new URL(rawUrl); } catch { return null; }
   if (url.protocol !== "https:" || url.username || url.password || !url.hostname.includes(".")) return null;
-  const date = parseDate(raw.publishedAt ?? raw.published_at ?? raw.published_date ?? raw.publication_date ?? raw.published ?? raw.date ?? raw.time);
+  const date = parseDate(raw.publishedAt ?? raw.published_at ?? raw.published_date ?? raw.publication_date ?? raw.datePublished ?? raw.publishedTime ?? raw.isoDate ?? raw.pubDate ?? raw.published ?? raw.date ?? raw.time);
   const rawPublisher = raw.publisher ?? raw.source;
   const publisher = typeof rawPublisher === "string" && rawPublisher.trim() ? rawPublisher.trim() : url.hostname.replace(/^www\./, "");
   const snippet = typeof raw.snippet === "string" ? raw.snippet : typeof raw.description === "string" ? raw.description : "";
@@ -413,6 +413,8 @@ export async function gatherAgentKeyResearch(
 
     const tools: ToolResult[] = [];
     const sources: AgentKeySource[] = [];
+    let sourceRecords = 0;
+    let rejectedSourceRecords = 0;
     for (const { candidate, cost, params } of prepared) {
       const result = await client.executeTool(candidate.name, params);
       const data = boundedJson(unwrap(result));
@@ -422,11 +424,14 @@ export async function gatherAgentKeyResearch(
       }
       tools.push({ name: candidate.name, provider: candidate.name.split("/", 1)[0], costCredits: cost, data });
       for (const record of records(result)) {
+        sourceRecords++;
         const source = sourceFrom(record, candidate.name);
         if (source && !sources.some(item => item.url === source.url)) sources.push(source);
+        else if (!source) rejectedSourceRecords++;
       }
     }
     if (!tools.length) return empty("unsupported", "no-tool-executed");
+    if (!sources.length) console.warn("agentkey-research-no-article-links", { tools: tools.map(tool => tool.name), sourceRecords, rejectedSourceRecords });
     const context = contextForTools(tools);
     return { state: "used", reason: null, query: normalized, tools, sources: sources.slice(0, 40), context };
   } catch (cause) {

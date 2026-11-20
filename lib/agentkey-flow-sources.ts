@@ -34,10 +34,13 @@ export async function agentKeyIssuerResearch(
   const research = await gatherAgentKeyResearch(query, client, ticker);
   if (research.state !== "used") return empty(research.state, research.reason);
   const now = Date.now();
+  let rejectedForFreshnessOrRelevance = 0;
   const sources = research.sources.flatMap(source => {
     const evidence = safeIssuerEvidence(source, ticker, issuer, question, now);
+    if (!evidence) rejectedForFreshnessOrRelevance++;
     return evidence ? [evidence] : [];
   }).slice(0, 20);
+  if (!sources.length) console.warn("agentkey-issuer-evidence-empty", { ticker, tools: research.tools.map(tool => tool.name), extractedSources: research.sources.length, rejectedForFreshnessOrRelevance });
   return { state: research.state, reason: research.reason, sources, context: research.context, tools: research.tools };
 }
 
