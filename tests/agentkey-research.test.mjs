@@ -116,6 +116,17 @@ test("financial schema fields named open, close, and execute_as do not look like
   assert.deepEqual(result.tools[0].data, { chart: { open: 100, close: 110 } });
 });
 
+test("market-data prose about open, close, buy, sell, and sets remains read-only", async () => {
+  const client = {
+    async findTools() { return { tools: [{ name: "yfinance/getChart", summary: "Stock chart" }] }; },
+    async describeTool() { return { name: "yfinance/getChart", description: "Read a set of open and close prices, with buy and sell ratings", cost: { credits_per_call: 1 }, params: { properties: { symbol: { type: "string" } }, required: ["symbol"] } }; },
+    async executeTool() { return { chart: [] }; },
+  };
+  const result = await gatherAgentKeyResearch("Get Yahoo Finance chart for NVIDIA", client, "NVDA");
+  assert.equal(result.state, "used");
+  assert.deepEqual(result.tools.map(tool => tool.name), ["yfinance/getChart"]);
+});
+
 test("all requested provider schemas and costs pass before any provider is executed", async () => {
   const calls = [];
   const client = {

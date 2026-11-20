@@ -98,22 +98,18 @@ function readOnly(candidate: ToolCandidate) {
 }
 
 function describedAsMutating(description: unknown) {
-  const operationText: string[] = [];
-  const schemaKeys = /^(?:params|inputSchema|input_schema|parameters|schema|argsSchema|args_schema|execute_as|properties|required|enum|items|type|format|additionalProperties)$/i;
-  function collect(value: unknown, depth = 0) {
-    if (depth > 8) return;
-    if (typeof value === "string") { operationText.push(value); return; }
-    if (Array.isArray(value)) { for (const child of value) collect(child, depth + 1); return; }
-    const object = asRecord(value);
-    if (!object) return;
-    for (const [key, child] of Object.entries(object)) {
-      if (schemaKeys.test(key)) continue;
-      operationText.push(key);
-      collect(child, depth + 1);
-    }
-  }
-  collect(unwrap(description));
-  return MUTATING.test(operationText.join(" ").toLowerCase().replace(/[_-]+/g, " "));
+  const descriptor = asRecord(unwrap(description));
+  if (!descriptor) return true;
+  // Check the operation name with the strict action list. Free-text descriptions
+  // of market data routinely mention open/close prices and buy/sell ratings.
+  const identity = [descriptor.name, descriptor.operation, descriptor.action]
+    .filter((value): value is string => typeof value === "string")
+    .join(" ").toLowerCase().replace(/[_-]+/g, " ");
+  if (MUTATING.test(identity)) return true;
+  const prose = [descriptor.summary, descriptor.description]
+    .filter((value): value is string => typeof value === "string")
+    .join(" ").toLowerCase();
+  return /\b(?:creat(?:e|es|ing)|updat(?:e|es|ing)|delet(?:e|es|ing)|remov(?:e|es|ing)|publish(?:es|ing)?|submitt?(?:ed|ing|s)?|plac(?:e|es|ing)|send(?:s|ing)?|transferr?(?:ed|ing|s)?|withdraw(?:s|ing)?|deposit(?:s|ing)?|purchas(?:e|es|ing)|modif(?:y|ies|ying)|edit(?:s|ing)?|cancel(?:s|ing)?|activat(?:e|es|ing)|deactivat(?:e|es|ing)|enabl(?:e|es|ing)|disabl(?:e|es|ing))\b/i.test(prose);
 }
 
 function providerMatch(candidate: ToolCandidate, query: string) {
