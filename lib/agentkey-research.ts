@@ -456,7 +456,7 @@ export async function gatherAgentKeyResearch(
       }
     }
     if (!tools.length) return empty("unsupported", "no-tool-executed");
-    if (!sources.length) console.warn("agentkey-research-no-article-links", { tools: tools.map(tool => tool.name), sourceRecords, rejectedSourceRecords, resultShapes: tools.map(tool => ({ name: tool.name, fields: recordShape(tool.data) })) });
+    if (!sources.length) console.warn("agentkey-research-no-article-links", { tools: tools.map(tool => tool.name), sourceRecords, rejectedSourceRecords, resultShapes: tools.map(tool => ({ name: tool.name, fields: recordShape(tool.data).join(",") })) });
     const context = contextForTools(tools);
     return { state: "used", reason: null, query: normalized, tools, sources: sources.slice(0, 40), context };
   } catch (cause) {
