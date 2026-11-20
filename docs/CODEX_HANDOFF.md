@@ -1,9 +1,19 @@
 # Tidelight Codex handoff
 
 **Prepared:** 26 October 2026
-**Continuation refreshed:** 17 November 2026
+**Continuation refreshed:** 20 November 2026
 **Repository:** [`TidelightOrg/tidelight`](https://github.com/TidelightOrg/tidelight)
 **Purpose:** let a fresh session continue from current verified state without repeating completed work.
+
+## Current verified continuation point · 20 November 2026
+
+Resume here. Older sections titled “current” are historical notes from the day they were written.
+
+**Production baseline.** `main` is merge `5d85e748429bc8d0189459a46d202004480387fa` (PR #555). On 20 November 2026, `https://tidelight.app/api/system/health` returned HTTP 200 and reported deployment `5d85e748429b`; `/flow` and `/developers` returned HTTP 200. The anonymous GET to `/api/research/agent-flow` returned the expected 401. These checks do not verify sign-in or visual browser behavior.
+
+**AgentKey implementation and live smoke.** PRs #551–#554 added no-source diagnostics, broadened nested result parsing, made Vercel diagnostics show bounded field names, and focused Serper Google News queries; all are merged. PR #555 removes appended format guidance from the issuer research query because it prevented the Google News query normalizer from stripping provider-routing words. The complete repository suite passed 633 tests; typecheck, targeted ESLint, CI, Vercel preview, and first Codex review passed, with no findings or open review threads. The live exact NVIDIA prompt on deployment `223a109` executed `Serper/searchNews` and `yfinance/getChart`, but its one extracted article was rejected by the issuer freshness/relevance gate. The output therefore fell back to public feeds; AI synthesis was unavailable after a Qwen timeout and Gemini invalid-response/HTTP 503 failures. A local end-to-end mock after PR #555 verified a focused earnings query, an NVDA chart request, and one eligible AgentKey source. After PR #555 deployed, production health and route checks passed; the exact live prompt has not yet been rerun because the guest endpoint allows three requests per hour per connection. Wait until after 13:43 UTC on 20 November before the next same-connection smoke. Raw response captures remain ignored under `.local/`.
+
+**Browser verification boundary.** The computer-browser service failed to initialize in this session. No visual production check, signed-in session, or Google OAuth flow was completed. Do not mark those gates complete from route status or mocked tests.
 
 ## Current verified continuation point · 17 November 2026
 
