@@ -55,6 +55,13 @@
     --line: #7b897f;
     --line-soft: #aab5ad;
   }
+
+  :root[data-theme="dark"] {
+    --muted: #d0d9d3;
+    --faint: #bdc9c1;
+    --line: #66756c;
+    --line-soft: #4a5950;
+  }
 }
 
 /* Avoid nonessential movement for people who ask the system to reduce motion. */
