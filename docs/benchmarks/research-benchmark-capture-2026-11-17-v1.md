@@ -44,6 +44,12 @@ The public guest endpoint permits three requests per hour and ten per rolling da
 
 The exact NVIDIA AgentKey prompt ran after NVIDIA published its FY27 Q3 results. Agent Flow's trace reported `unsupported (no-usable-schema)`. Zero AgentKey tools executed. The result used SEC data and public news feeds. Its source-only fallback followed a Qwen timeout and two Gemini HTTP 503 responses.
 
+## Separate AgentKey operational smoke · 20 November 2026
+
+This is an operational follow-up, not a change to the v1 capture or its benchmark scoring. On 20 November at 12:43 UTC, the exact prompt ran against production deployment `223a109` after PRs #551–#554. Agent Flow executed two read-only tools (`Serper/searchNews` and `yfinance/getChart`). The AgentKey parser extracted one article candidate, which the downstream issuer freshness/relevance gate rejected. The response listed 30 public sources and used source-only fallback. Provider logs recorded a Qwen timeout, a Gemini invalid response, and Gemini HTTP 503; no AI synthesis was returned. This run confirms tool execution, not usable AgentKey citations or answer quality.
+
+PR #555 removed appended format instructions from the issuer-search query. A local end-to-end mock then verified the focused query `NVIDIA's stock reaction to its latest earnings`, Yahoo Finance symbol `NVDA`, and one eligible AgentKey article. PR #555 merged as `5d85e748429bc8d0189459a46d202004480387fa`; its production deployment passed health, `/flow`, and `/developers` HTTP checks. The exact production prompt has not been rerun on that deployment: the guest endpoint allows three requests per hour per connection, so wait until after 13:43 UTC on 20 November for a fresh same-connection slot. The new raw response is kept locally at `.local/research-benchmarks/2026-11-17-v1/smoke-agentkey-223a1098.sse` (SHA-256 `4d061b80e4a4e03b175afcda83370361895891d86b93d3757fecd11cefee3db1`) and is not included in the v1 benchmark. Visual browser verification and signed-in testing were unavailable in this session.
+
 ## Provider availability diagnosis
 
 The `operationalDiagnostics.providerAttempts` in the ten preserved final result events distinguish provider failures from the separate claim-quality review. Counts below are attempts, not distinct events; an event can retry a provider.
