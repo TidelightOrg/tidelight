@@ -22,6 +22,7 @@ import "./tidelight-animated-mark.css";
 import "./account-center.css";
 import "./notifications/notifications.css";
 import "./readability-polish.css";
+import "./product-design-polish.css";
 import { getServerUser } from "@/lib/supabase/auth-user";
 
 const validTheme = (value: string | undefined): value is "dark" | "white" => value === "dark" || value === "white";
