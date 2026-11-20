@@ -79,3 +79,73 @@
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Keep the compact workspace toolbar legible and usable on phone widths. */
+@media (max-width: 780px) {
+  .app-shell .main-area > .topbar .mobile-utility > b {
+    flex: 0 1 auto;
+    max-width: clamp(42px, 20vw, 120px);
+    color: var(--text-secondary);
+    font-size: 9px !important;
+    letter-spacing: 0.04em !important;
+  }
+
+  .app-shell .main-area > .topbar .mobile-utility-controls {
+    gap: 4px;
+  }
+
+  .app-shell .main-area > .topbar .mobile-utility-controls .experience-switch,
+  .app-shell .main-area > .topbar .mobile-utility-controls .theme-quick-switch {
+    flex: none;
+    margin-inline: 0 !important;
+    transform: none !important;
+  }
+
+  .app-shell .main-area > .topbar .mobile-utility-controls .experience-switch button {
+    min-width: 29px;
+    min-height: 26px;
+    padding: 5px 6px;
+    font-size: 8px !important;
+    letter-spacing: 0.03em;
+  }
+
+  .app-shell .main-area > .topbar .mobile-utility-controls .theme-quick-option {
+    width: 23px;
+    height: 23px;
+  }
+
+  .app-shell .main-area > .topbar .mobile-utility-controls .theme-quick-icon {
+    width: 13px;
+    height: 13px;
+  }
+
+  .app-shell .main-area > .topbar .mobile-utility-controls .top-signin {
+    min-height: 26px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 7px !important;
+    font-size: 8px !important;
+    letter-spacing: 0.03em;
+  }
+}
+
+@media (max-width: 380px) {
+  .app-shell .main-area > .topbar .mobile-utility-controls {
+    gap: 3px;
+  }
+
+  .app-shell .main-area > .topbar .mobile-utility-controls .theme-quick-option {
+    width: 22px;
+    height: 22px;
+  }
+
+  .app-shell .main-area > .topbar .mobile-utility-controls .experience-switch button {
+    min-width: 27px;
+    padding-inline: 5px;
+  }
+
+  .app-shell .main-area > .topbar .mobile-utility-controls .top-signin {
+    padding-inline: 5px !important;
+  }
+}
