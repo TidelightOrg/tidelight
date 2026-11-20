@@ -340,6 +340,7 @@ export async function gatherAgentKeyResearch(
   const normalized = query.trim().replace(/\s+/g, " ");
   if (!client) return empty("unavailable");
   if (!normalized || normalized.length > MAX_QUERY_LENGTH) return empty("unsupported", "invalid-query");
+  const activeClient = client;
 
   try {
     const discovery = await client.findTools(normalized);
@@ -347,40 +348,57 @@ export async function gatherAgentKeyResearch(
     const requestedProviders: string[] = [];
     if (/\bgoogle\s+news\b/i.test(normalized)) requestedProviders.push("google-news");
     if (/\byahoo(?:\s+finance)?\b|\byfinance\b/i.test(normalized)) requestedProviders.push("yahoo-finance");
-    const selected: ToolCandidate[] = [];
+    const prepared: Array<{ candidate: ToolCandidate; cost: number; params: RecordValue }> = [];
+    let reservedCredits = 0;
+    let describedCount = 0;
+    async function prepare(candidate: ToolCandidate, provider?: string) {
+      if (describedCount >= MAX_DESCRIBED_CANDIDATES) return false;
+      describedCount++;
+      const description = await activeClient.describeTool(candidate.name);
+      const cost = costCredits(description);
+      const params = paramsFor(description, candidate, normalized, ticker);
+      const rejection = describedAsMutating(description) ? "mutation" : cost === null ? "unknown-cost"
+        : cost > MAX_CREDITS_PER_TOOL || reservedCredits + cost > MAX_CREDITS_PER_QUERY ? "over-budget"
+          : params === null ? "incompatible-params" : null;
+      if (rejection) {
+        if (provider) console.warn("agentkey-research-tool-rejected", { provider, tool: candidate.name, reason: rejection });
+        return false;
+      }
+      if (cost === null || !params) return false;
+      prepared.push({ candidate, cost, params });
+      reservedCredits += cost;
+      return true;
+    }
+
     for (const provider of requestedProviders) {
       const matches = (item: ToolCandidate) => provider === "google-news" ? isGoogleNews(item) : isYahooFinance(item);
-      let candidate = candidates.find(item => !selected.includes(item) && matches(item));
-      if (!candidate) {
+      const tried = new Set<string>();
+      let found = false;
+      const options = candidates.filter(matches);
+      for (const candidate of options) {
+        tried.add(candidate.name);
+        if (await prepare(candidate, provider)) { found = true; break; }
+      }
+      if (!found) {
         const scope = provider === "google-news" ? "search/serper" : "finance/yfinance";
         const intent = provider === "google-news"
           ? `Search Google News about ${ticker ?? "a US listed company"} latest earnings`
           : `Get Yahoo Finance stock price history for ${ticker ?? "a US listed company"} around latest earnings`;
         const scopedDiscovery = await client.findTools(intent, scope);
-        candidate = agentKeyResearchCandidates(scopedDiscovery, intent).find(item => !selected.includes(item) && matches(item));
+        for (const candidate of agentKeyResearchCandidates(scopedDiscovery, intent).filter(item => matches(item) && !tried.has(item.name))) {
+          tried.add(candidate.name);
+          if (await prepare(candidate, provider)) { found = true; break; }
+        }
       }
-      if (!candidate) return empty("unsupported", "requested-provider-missing");
-      selected.push(candidate);
+      if (!found) return empty("unsupported", tried.size ? "no-usable-schema" : "requested-provider-missing");
     }
-    if (!requestedProviders.length) selected.push(...candidates.slice(0, MAX_DESCRIBED_CANDIDATES));
-    if (!selected.length) return empty("unsupported", "no-research-tool");
-
-    const prepared: Array<{ candidate: ToolCandidate; cost: number; params: RecordValue }> = [];
-    let reservedCredits = 0;
-    for (const candidate of selected) {
-      if (prepared.length >= MAX_RESULTS) break;
-      const description = await client.describeTool(candidate.name);
-      const cost = costCredits(description);
-      const params = paramsFor(description, candidate, normalized, ticker);
-      const usable = !describedAsMutating(description) && cost !== null && cost <= MAX_CREDITS_PER_TOOL && reservedCredits + cost <= MAX_CREDITS_PER_QUERY && params !== null;
-      if (!usable) {
-        if (requestedProviders.length) return empty("unsupported", "no-usable-schema");
-        continue;
+    if (!requestedProviders.length) {
+      for (const candidate of candidates.slice(0, MAX_DESCRIBED_CANDIDATES)) {
+        if (prepared.length >= MAX_RESULTS) break;
+        await prepare(candidate);
       }
-      if (cost === null || !params) continue;
-      prepared.push({ candidate, cost, params });
-      reservedCredits += cost;
     }
+    if (!prepared.length) return empty("unsupported", candidates.length ? "no-usable-schema" : "no-research-tool");
 
     const tools: ToolResult[] = [];
     const sources: AgentKeySource[] = [];
