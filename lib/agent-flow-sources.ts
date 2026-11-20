@@ -4,6 +4,10 @@ import { isPersistableResearchSourceUrl } from "./research-source-limits.js";
 export type FlowEvidence = FlowSource & { snippet: string };
 const issuerNames: Record<string, string> = { NVDA: "NVIDIA", TSLA: "Tesla", AAPL: "Apple", AMD: "Advanced Micro Devices", MSFT: "Microsoft", META: "Meta", AMZN: "Amazon", GOOGL: "Alphabet", INTC: "Intel", ASML: "ASML", QCOM: "Qualcomm", MU: "Micron" };
 
+export function canonicalIssuerName(ticker: string, fallback: string) {
+  return issuerNames[ticker.trim().toUpperCase()] ?? fallback;
+}
+
 function decode(value: string) {
   return value.replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, "$1").replace(/<[^>]+>/g, " ")
     .replace(/&amp;/g, "&").replace(/&quot;/g, '"').replace(/&#39;|&apos;/g, "'")

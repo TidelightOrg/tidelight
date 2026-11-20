@@ -2,7 +2,7 @@ import "server-only";
 
 import { configuredAgentKey, type AgentKeyClient } from "./agentkey";
 import { gatherAgentKeyResearch, inspectAgentKeyResearchCost, type AgentKeyResearch, type AgentKeySource } from "./agentkey-research";
-import { issuerEvidenceLookbackDays, type FlowEvidence } from "./agent-flow-sources";
+import { canonicalIssuerName, issuerEvidenceLookbackDays, type FlowEvidence } from "./agent-flow-sources";
 
 export { inspectAgentKeyResearchCost as inspectAgentKeySearchDescription };
 
@@ -14,7 +14,8 @@ function safeIssuerEvidence(source: AgentKeySource, ticker: string, issuer: stri
   const maxAge = issuerEvidenceLookbackDays(question) > 30 ? MAX_HISTORICAL_AGE_MS : MAX_CURRENT_AGE_MS;
   if (!Number.isFinite(publishedAt) || publishedAt > now + 300_000 || now - publishedAt > maxAge) return null;
   const excerpt = `${source.title} ${source.snippet}`;
-  if (!new RegExp(`(^|[^a-z0-9])${ticker}([^a-z0-9]|$)`, "i").test(excerpt) && !excerpt.toLowerCase().includes(issuer.toLowerCase())) return null;
+  const canonicalIssuer = canonicalIssuerName(ticker, issuer).toLowerCase();
+  if (!new RegExp(`(^|[^a-z0-9])${ticker}([^a-z0-9]|$)`, "i").test(excerpt) && !excerpt.toLowerCase().includes(canonicalIssuer)) return null;
   return { title: source.title, url: source.url, publisher: source.publisher, publishedAt: source.publishedAt, snippet: source.snippet.slice(0, 400), via: "AgentKey" };
 }
 

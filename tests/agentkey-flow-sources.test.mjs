@@ -50,6 +50,19 @@ test("AgentKey issuer results preserve the execution state for diagnostics", asy
   assert.deepEqual(result.sources, []);
 });
 
+test("AgentKey accepts the canonical issuer name when market metadata includes a legal suffix", async () => {
+  const { api } = client({ result: { results: [{
+    title: "Nvidia stock reacts after earnings",
+    url: "https://publisher.example/nvidia-earnings",
+    publisher: "Publisher",
+    publishedAt: today,
+    snippet: "Investors reassessed NVIDIA after the report.",
+  }] } });
+  const evidence = await agentKeyIssuerEvidence("NVDA", "NVIDIA Corporation", api);
+  assert.equal(evidence.length, 1);
+  assert.equal(evidence[0].title, "Nvidia stock reacts after earnings");
+});
+
 test("no execution with undiscovered tool or ambiguous and over-budget cost", async () => {
   for (const options of [{ discover: "agentkey_social" }, { cost: 3 }, { cost: "unknown" }]) {
     const { api, calls } = client(options);
