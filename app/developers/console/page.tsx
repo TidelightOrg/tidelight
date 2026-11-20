@@ -1,11 +1,9 @@
-import { createClient } from "@/lib/supabase/server";
 import Image from "next/image";
 import Link from "next/link";
 import type { Metadata } from "next";
 import DeveloperConsole from "./ui";
 import { ThemeQuickSwitch } from "@/app/ui/theme-provider";
 import { EcosystemSwitcher } from "../ecosystem-switcher";
-import { DeveloperMobileDock } from "../platform-nav";
 import "../tidelight-developers.css";
 import "../platform-polish.css";
 import "./console-premium.css";
@@ -17,7 +15,6 @@ export const metadata: Metadata = {
 };
 
 export default async function ConsolePage() {
-  const supabase = await createClient();
   const user = await getServerUser();
   if (!user) return <main className="tic tic-console tic-console-entry">
     <header className="tic-console-header">
@@ -53,7 +50,6 @@ export default async function ConsolePage() {
         <div className="tic-signin-preview-foot"><span>REST API</span><span>MCP</span><span>Research jobs</span></div>
       </aside>
     </div>
-    <DeveloperMobileDock current="console" />
   </main>;
   return <DeveloperConsole userId={user.id} />;
 }
