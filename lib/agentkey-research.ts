@@ -295,7 +295,18 @@ function records(value: unknown, depth = 0): RecordValue[] {
 
 function parseDate(value: unknown): string | null {
   if (typeof value !== "string" && typeof value !== "number") return null;
-  const timestamp = Date.parse(String(value));
+  const raw = String(value).trim();
+  const absolute = Date.parse(raw);
+  if (Number.isFinite(absolute)) return new Date(absolute).toISOString();
+  // Serper news dates are often relative to retrieval (for example, "3 hours ago").
+  // Keep only bounded ages that cannot cross the 30-day issuer evidence window.
+  const relative = /^(\d{1,2}|an?)\s+(minute|hour|day|week)s?\s+ago$/i.exec(raw);
+  if (!relative) return null;
+  const count = /^an?$/i.test(relative[1]) ? 1 : Number(relative[1]);
+  const unitMs = { minute: 60_000, hour: 3_600_000, day: 86_400_000, week: 604_800_000 }[relative[2].toLowerCase() as "minute" | "hour" | "day" | "week"];
+  const ageMs = count * unitMs;
+  if (!count || ageMs > 28 * 86_400_000) return null;
+  const timestamp = Date.now() - ageMs;
   return Number.isFinite(timestamp) ? new Date(timestamp).toISOString() : null;
 }
 
