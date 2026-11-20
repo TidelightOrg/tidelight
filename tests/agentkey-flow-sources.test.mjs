@@ -70,3 +70,15 @@ test("AgentKey evidence uses the same 30-day current window as public-feed snaps
   const historical = await agentKeyIssuerEvidence("NVDA", "NVIDIA", api, "Find NVDA 2026 earnings results");
   assert.equal(historical.length, 1);
 });
+
+test("relative Serper news dates admit recent headlines but not old or undated items", async () => {
+  const now = Date.now();
+  const { api } = client({ result: { news: [
+    { title: "NVDA earnings reaction", link: "https://publisher.example/recent", source: "Publisher", date: "3 hours ago" },
+    { title: "NVDA earnings earlier", link: "https://publisher.example/older", source: "Publisher", date: "5 weeks ago" },
+    { title: "NVDA earnings unknown", link: "https://publisher.example/undated", source: "Publisher", date: "recently" },
+  ] } });
+  const evidence = await agentKeyIssuerEvidence("NVDA", "NVIDIA", api);
+  assert.deepEqual(evidence.map(item => item.url), ["https://publisher.example/recent"]);
+  assert.ok(Math.abs(Date.parse(evidence[0].publishedAt) - (now - 3 * 3_600_000)) < 10_000);
+});
