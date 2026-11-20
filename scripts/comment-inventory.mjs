@@ -19,7 +19,11 @@ const hashExts = new Set([".py", ".sh", ".toml", ".env"]);
 
 export function normalizeComment(raw) {
   let text = String(raw).replace(/\r\n/g, "\n").trim();
-  if (text.startsWith("<!--")) text = text.slice(4).replace(/-->\s*$/, "");
+  if (text.startsWith("<!--")) {
+    text = text.slice(4).trimEnd();
+    if (text.endsWith("--!>")) text = text.slice(0, -4);
+    else if (text.endsWith("-->")) text = text.slice(0, -3);
+  }
   else if (text.startsWith("/*")) text = text.slice(2).replace(/\*\/\s*$/, "");
   else if (text.startsWith("//")) text = text.slice(2);
   else if (text.startsWith("--")) text = text.slice(2);
@@ -277,19 +281,37 @@ function extractCss(text) {
 
 function extractHtml(text) {
   const comments = [];
-  const re = /<!--[\s\S]*?-->/g;
-  let match;
-  while ((match = re.exec(text))) {
-    const startPos = lineCol(text, match.index);
+  let searchFrom = 0;
+  while (searchFrom < text.length) {
+    const start = text.indexOf("<!--", searchFrom);
+    if (start < 0) break;
+    let end = start + 4;
+    let closed = false;
+    while (end < text.length) {
+      if (text.startsWith("-->", end)) {
+        end += 3;
+        closed = true;
+        break;
+      }
+      if (text.startsWith("--!>", end)) {
+        end += 4;
+        closed = true;
+        break;
+      }
+      end++;
+    }
+    if (!closed) break;
+    const startPos = lineCol(text, start);
     comments.push({
       line: startPos.line,
       col: startPos.col,
-      endLine: lineCol(text, match.index + match[0].length - 1).line,
-      pos: match.index,
-      end: match.index + match[0].length,
-      raw: match[0],
+      endLine: lineCol(text, end - 1).line,
+      pos: start,
+      end,
+      raw: text.slice(start, end),
       kind: "html",
     });
+    searchFrom = end;
   }
   return comments;
 }
@@ -306,6 +328,7 @@ function walk(dir, out = []) {
 
 function isSource(file) {
   const base = path.basename(file);
+  if (base === "next-env.d.ts") return false;
   if (base === "Dockerfile" || base === ".env.example") return true;
   const ext = path.extname(file);
   return (
