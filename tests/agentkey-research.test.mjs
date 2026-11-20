@@ -48,7 +48,7 @@ test("AgentKey discovers provider-specific tools and uses the documented params 
   assert.equal(result.state, "used");
   assert.deepEqual(result.tools.map(item => item.name), ["GoogleNews/search", "yfinance/getChart"]);
   assert.deepEqual(calls.filter(item => item[0] === "execute").map(item => item.slice(1)), [
-    ["GoogleNews/search", { q: query, num: 20 }],
+    ["GoogleNews/search", { q: "NVIDIA's stock reaction to its latest earnings", num: 20 }],
     ["yfinance/getChart", { symbol: "NVDA", range: "1y", interval: "1d" }],
   ]);
   assert.equal(result.sources.length, 1);

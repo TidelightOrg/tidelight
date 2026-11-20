@@ -193,6 +193,20 @@ function enumValue(property: RecordValue, preferred: unknown) {
   return match;
 }
 
+function searchQueryFor(candidate: ToolCandidate, query: string) {
+  const bounded = query.slice(0, 420);
+  if (!isGoogleNews(candidate)) return bounded;
+  const focused = bounded
+    .replace(/^\s*(?:please\s+)?use\s+agent\s*key\s+(?:to\s+)?/i, "")
+    .replace(/^\s*(?:please\s+)?(?:explain|analyze|summarize|find|search(?:\s+for)?)\s+/i, "")
+    .replace(/\busing\s+(?:google\s+news|yahoo(?:\s+finance)?)\b/gi, "")
+    .replace(/\b(?:google\s+news|yahoo(?:\s+finance)?|agent\s*key)\b/gi, "")
+    .replace(/\b(?:and|or)\s*[.,;:!?]*\s*$/i, "")
+    .replace(/\s+([.,!?])/g, "$1").replace(/[.,!?]+$/g, "")
+    .replace(/\s+/g, " ").trim();
+  return focused || bounded;
+}
+
 function schemaTypes(property: RecordValue): string[] {
   const type = property.type;
   return Array.isArray(type) ? type.filter((item): item is string => typeof item === "string") : typeof type === "string" ? [type] : [];
@@ -260,7 +274,7 @@ function paramsFor(description: unknown, candidate: ToolCandidate, query: string
     const field = key.toLowerCase().replace(/[-_]/g, "");
     let value: unknown;
     const identityField = /^(?:ticker|symbol|stock|tickersymbol)$/.test(field);
-    if (/^(?:q|query|searchquery|searchterm|keywords|keyword|newsquery|prompt)$/.test(field)) value = query.slice(0, 420);
+    if (/^(?:q|query|searchquery|searchterm|keywords|keyword|newsquery|prompt)$/.test(field)) value = searchQueryFor(candidate, query);
     else if (identityField && symbol) value = symbol;
     else if (/^(?:period|range|timeperiod)$/.test(field)) value = "1y";
     else if (/^(?:interval|frequency)$/.test(field)) value = "1d";
