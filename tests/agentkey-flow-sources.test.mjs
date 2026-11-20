@@ -32,7 +32,14 @@ test("AgentKey admits attributable, relevant HTTPS headlines with provenance and
   assert.equal(evidence.length, 1);
   assert.equal(evidence[0].via, "AgentKey");
   assert.equal(calls[2][1], "agentkey_search");
-  assert.deepEqual(calls[2][2], { query: "Find recent news about NVIDIA (NVDA), including earnings, guidance, and market reaction. Include public, dated, attributable sources for NVIDIA (NVDA).", type: "news", num: 20 });
+  assert.deepEqual(calls[2][2], { query: "Find recent news about NVIDIA (NVDA), including earnings, guidance, and market reaction.", type: "news", num: 20 });
+});
+
+test("AgentKey issuer research does not append search noise to the source query", async () => {
+  const question = "Use AgentKey to explain NVIDIA's stock reaction to its latest earnings using Google News.";
+  const { api, calls } = client({ result: { news: [] } });
+  await agentKeyIssuerResearch("NVDA", "NVIDIA", api, question);
+  assert.deepEqual(calls[0], ["find", question]);
 });
 
 test("AgentKey issuer results preserve the execution state for diagnostics", async () => {
