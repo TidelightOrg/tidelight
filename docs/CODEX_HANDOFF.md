@@ -15,6 +15,8 @@ Resume here. Older sections titled “current” are historical notes from the d
 
 **Browser verification boundary.** The computer-browser service failed to initialize in this session. No visual production check, signed-in session, or Google OAuth flow was completed. Do not mark those gates complete from route status or mocked tests.
 
+**Agent Flow synthesis contract · PR #557.** Production logs from the 12:43 smoke also recorded Gemini JSON rejected for `invalid_stance`, followed by an HTTP 503 retry. PR #557 made the exact accepted stance enum (`bullish`, `bearish`, `mixed`, `unclear`) and numeric confidence range explicit in the existing model prompt; validation remains strict. The prompt contract test, all 633 repository tests, typecheck, lint, CI, preview, and first Codex review passed. PR #557 merged as `63c17d1e5ac483275e85522fbad11598ceb415a4`; production health, `/flow`, and `/developers` report the new deployment. A live follow-up remains pending after the guest request window resets; one successful model response would still need a separate visual browser check to establish UI behavior.
+
 ## Current verified continuation point · 17 November 2026
 
 Resume here. Older sections titled “current” are historical notes from the day they were written.
