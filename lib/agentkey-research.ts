@@ -282,15 +282,37 @@ function paramsFor(description: unknown, candidate: ToolCandidate, query: string
 }
 
 function records(value: unknown, depth = 0): RecordValue[] {
-  if (depth > 5) return [];
+  if (depth > 7) return [];
   const parsed = unwrap(value);
   const object = asRecord(parsed);
   if (!object) {
     if (Array.isArray(parsed)) return parsed.flatMap(item => records(item, depth + 1)).slice(0, 40);
     return [];
   }
-  if (typeof object.title === "string" && (typeof object.url === "string" || typeof object.link === "string")) return [object];
-  return ["results", "items", "news", "news_results", "newsResults", "articles", "data", "organic", "sources", "content"].flatMap(key => records(object[key], depth + 1)).slice(0, 40);
+  const title = [object.title, object.headline].some(value => typeof value === "string");
+  const url = [object.url, object.link, object.href, object.canonicalUrl, object.canonical_url].some(value => typeof value === "string");
+  if (title && url) return [object];
+  return Object.values(object).flatMap(child => records(child, depth + 1)).slice(0, 40);
+}
+
+/** Field names only: enough to diagnose an unfamiliar provider wrapper without logging article content. */
+function recordShape(value: unknown, depth = 0, prefix = "", into = new Set<string>()): string[] {
+  if (depth > 5 || into.size >= 32) return [...into];
+  const parsed = unwrap(value);
+  if (Array.isArray(parsed)) {
+    if (parsed.length) recordShape(parsed[0], depth + 1, `${prefix}[]`, into);
+    return [...into];
+  }
+  const object = asRecord(parsed);
+  if (!object) return [...into];
+  for (const [key, child] of Object.entries(object)) {
+    const safeKey = /^[a-zA-Z][a-zA-Z0-9_-]{0,40}$/.test(key) ? key : "<other>";
+    const path = prefix ? `${prefix}.${safeKey}` : safeKey;
+    into.add(path);
+    if (child && typeof child === "object") recordShape(child, depth + 1, path, into);
+    if (into.size >= 32) break;
+  }
+  return [...into];
 }
 
 function parseDate(value: unknown): string | null {
@@ -311,16 +333,19 @@ function parseDate(value: unknown): string | null {
 }
 
 function sourceFrom(raw: RecordValue, tool: string): AgentKeySource | null {
-  const title = typeof raw.title === "string" ? raw.title.trim() : "";
-  const rawUrl = typeof raw.url === "string" ? raw.url : raw.link;
+  const titleValue = [raw.title, raw.headline].find(value => typeof value === "string");
+  const title = typeof titleValue === "string" ? titleValue.trim() : "";
+  const rawUrl = [raw.url, raw.link, raw.href, raw.canonicalUrl, raw.canonical_url].find(value => typeof value === "string");
   if (!title || title.length > 300 || typeof rawUrl !== "string") return null;
   let url: URL;
   try { url = new URL(rawUrl); } catch { return null; }
   if (url.protocol !== "https:" || url.username || url.password || !url.hostname.includes(".")) return null;
   const date = parseDate(raw.publishedAt ?? raw.published_at ?? raw.published_date ?? raw.publication_date ?? raw.datePublished ?? raw.publishedTime ?? raw.isoDate ?? raw.pubDate ?? raw.published ?? raw.date ?? raw.time);
   const rawPublisher = raw.publisher ?? raw.source;
-  const publisher = typeof rawPublisher === "string" && rawPublisher.trim() ? rawPublisher.trim() : url.hostname.replace(/^www\./, "");
-  const snippet = typeof raw.snippet === "string" ? raw.snippet : typeof raw.description === "string" ? raw.description : "";
+  const publisherName = typeof rawPublisher === "string" ? rawPublisher : asRecord(rawPublisher)?.name;
+  const publisher = typeof publisherName === "string" && publisherName.trim() ? publisherName.trim() : url.hostname.replace(/^www\./, "");
+  const snippetValue = [raw.snippet, raw.description, raw.excerpt, raw.summary].find(value => typeof value === "string");
+  const snippet = typeof snippetValue === "string" ? snippetValue : "";
   return { title, url: url.href, publisher: publisher.slice(0, 120), publishedAt: date, snippet: snippet.slice(0, 500), via: "AgentKey", tool };
 }
 
@@ -431,7 +456,7 @@ export async function gatherAgentKeyResearch(
       }
     }
     if (!tools.length) return empty("unsupported", "no-tool-executed");
-    if (!sources.length) console.warn("agentkey-research-no-article-links", { tools: tools.map(tool => tool.name), sourceRecords, rejectedSourceRecords });
+    if (!sources.length) console.warn("agentkey-research-no-article-links", { tools: tools.map(tool => tool.name), sourceRecords, rejectedSourceRecords, resultShapes: tools.map(tool => ({ name: tool.name, fields: recordShape(tool.data) })) });
     const context = contextForTools(tools);
     return { state: "used", reason: null, query: normalized, tools, sources: sources.slice(0, 40), context };
   } catch (cause) {
