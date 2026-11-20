@@ -333,6 +333,29 @@ test("a different news provider cannot claim Google News through its summary", a
   assert.equal(result.reason, "requested-provider-missing");
 });
 
+test("a rejected catalog candidate can fall through to another tool from the requested provider", async () => {
+  const calls = [];
+  const client = {
+    async findTools(_query, prefix) {
+      calls.push(["find", prefix]);
+      if (prefix === "search/serper") return { tools: [{ name: "Serper/news", summary: "Google News" }] };
+      return { tools: [{ name: "Serper/badNews", summary: "Google News" }, { name: "yfinance/getChart", summary: "Stock chart" }] };
+    },
+    async describeTool(name) {
+      calls.push(["describe", name]);
+      if (name === "Serper/badNews") return { cost: { credits_minimum: 1, metered: true }, params: { properties: { q: { type: "string" } }, required: ["q"] } };
+      return { cost: { credits_per_call: 1 }, params: name === "Serper/news"
+        ? { properties: { q: { type: "string" } }, required: ["q"] }
+        : { properties: { symbol: { type: "string" } }, required: ["symbol"] } };
+    },
+    async executeTool(name, params) { calls.push(["execute", name, params]); return { results: [] }; },
+  };
+  const result = await gatherAgentKeyResearch(query, client, "NVDA");
+  assert.equal(result.state, "used");
+  assert.deepEqual(result.tools.map(tool => tool.name), ["Serper/news", "yfinance/getChart"]);
+  assert.deepEqual(calls.filter(([kind]) => kind === "execute").map(([, name]) => name), ["Serper/news", "yfinance/getChart"]);
+});
+
 test("unsupported provider discovery includes a safe diagnostic reason", async () => {
   const client = { findTools: async () => ({ tools: [] }), describeTool: async () => ({}), executeTool: async () => ({}) };
   const result = await gatherAgentKeyResearch("Use Yahoo Finance and Google News", client, "NVDA");
