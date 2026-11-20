@@ -178,10 +178,6 @@
   color: #aab7b0;
 }
 
-:root[data-theme="dark"] .tic-mobile-quick-cta {
-  color: #16221c;
-}
-
 :root[data-theme="dark"] .tic-packages-page .tic-package-proof-copy > a {
   color: #54d4b9;
 }
@@ -275,5 +271,9 @@
 }
 
 :root[data-theme="white"] .tic-platform-nav-links a[aria-current="page"] {
+  color: var(--tic-accent-readable);
+}
+
+:root[data-theme="white"] .tic-mobile-system-dock a[aria-current="page"] {
   color: var(--tic-accent-readable);
 }
