@@ -32,12 +32,14 @@ test("MCP handshake and discovery/description/execution preserve session and sec
   };
   const client = new AgentKeyClient("test-secret", transport);
   await client.findTools("Find recent NVDA headlines");
+  await client.findTools("Search Google News for NVDA", "search/serper");
   await client.describeTool("Brave/getWebSearch");
   await client.executeTool("Brave/getWebSearch", { query: "NVDA" });
-  assert.deepEqual(calls.map(call => call.body.method), ["initialize", "notifications/initialized", "tools/call", "tools/call", "tools/call"]);
-  assert.deepEqual(calls.slice(2).map(call => call.body.params.name), ["find_tools", "describe_tool", "execute_tool"]);
+  assert.deepEqual(calls.map(call => call.body.method), ["initialize", "notifications/initialized", "tools/call", "tools/call", "tools/call", "tools/call"]);
+  assert.deepEqual(calls.slice(2).map(call => call.body.params.name), ["find_tools", "find_tools", "describe_tool", "execute_tool"]);
   assert.equal(calls[2].body.params.arguments.q, "Find recent NVDA headlines");
-  assert.equal(calls[4].headers["Mcp-Session-Id"], "session-123");
+  assert.deepEqual(calls[3].body.params.arguments, { q: "Search Google News for NVDA", prefix: "search/serper" });
+  assert.equal(calls[5].headers["Mcp-Session-Id"], "session-123");
 });
 
 test("SSE tool response selects matching JSON-RPC id", async () => {

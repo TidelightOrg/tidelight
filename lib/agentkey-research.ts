@@ -117,20 +117,20 @@ function describedAsMutating(description: unknown) {
 }
 
 function providerMatch(candidate: ToolCandidate, query: string) {
-  const name = `${candidate.name} ${candidate.summary}`.toLowerCase();
-  // Keep the generic AgentKey news search available when a request names
-  // sources that are not exposed as separate tools in the current catalog.
-  if (candidate.name.toLowerCase() === "agentkey_search") return true;
   const asksGoogleNews = /\bgoogle\s+news\b/i.test(query);
   const asksYahoo = /\byahoo(?:\s+finance)?\b|\byfinance\b/i.test(query);
-  if (asksGoogleNews && asksYahoo) {
-    const googleNews = /google.{0,16}news|news.{0,16}google/.test(name);
-    const yahoo = /yahoo|yfinance/.test(name);
-    return googleNews || yahoo;
-  }
-  if (asksGoogleNews) return /google.{0,16}news|news.{0,16}google/.test(name);
-  if (asksYahoo) return /yahoo|yfinance/.test(name);
+  if (asksGoogleNews || asksYahoo) return (asksGoogleNews && isGoogleNews(candidate)) || (asksYahoo && isYahooFinance(candidate));
   return true;
+}
+
+function isGoogleNews(candidate: ToolCandidate) {
+  const name = candidate.name.toLowerCase();
+  return /^serper\/.*news/.test(name) || /^(?:googlenews|google_news)\//.test(name);
+}
+
+function isYahooFinance(candidate: ToolCandidate) {
+  const name = candidate.name.toLowerCase();
+  return /^(?:yfinance|yahoofinance)\//.test(name);
 }
 
 function numericCost(value: unknown): number | null {
@@ -348,23 +348,19 @@ export async function gatherAgentKeyResearch(
     if (/\bgoogle\s+news\b/i.test(normalized)) requestedProviders.push("google-news");
     if (/\byahoo(?:\s+finance)?\b|\byfinance\b/i.test(normalized)) requestedProviders.push("yahoo-finance");
     const selected: ToolCandidate[] = [];
-    let missingProvider = false;
     for (const provider of requestedProviders) {
-      const candidate = candidates.find(item => !selected.includes(item) && (provider === "google-news" ? /google.{0,16}news|news.{0,16}google/i.test(`${item.name} ${item.summary}`) : /yahoo|yfinance/i.test(`${item.name} ${item.summary}`)));
-      if (candidate) selected.push(candidate);
-      else missingProvider = true;
-    }
-    if (missingProvider) {
-      let fallback = candidates.find(item => !selected.includes(item) && item.name.toLowerCase() === "agentkey_search");
-      if (!fallback) {
-        // Catalog search is free; retry without provider names so a provider
-        // catalog can surface its generic read-only research tool.
-        const fallbackQuery = `Search recent public news and financial research for ${ticker ?? "a US listed company"}.`;
-        const fallbackDiscovery = await client.findTools(fallbackQuery);
-        fallback = agentKeyResearchCandidates(fallbackDiscovery, fallbackQuery).find(item => !selected.some(selectedItem => selectedItem.name === item.name));
+      const matches = (item: ToolCandidate) => provider === "google-news" ? isGoogleNews(item) : isYahooFinance(item);
+      let candidate = candidates.find(item => !selected.includes(item) && matches(item));
+      if (!candidate) {
+        const scope = provider === "google-news" ? "search/serper" : "finance/yfinance";
+        const intent = provider === "google-news"
+          ? `Search Google News about ${ticker ?? "a US listed company"} latest earnings`
+          : `Get Yahoo Finance stock price history for ${ticker ?? "a US listed company"} around latest earnings`;
+        const scopedDiscovery = await client.findTools(intent, scope);
+        candidate = agentKeyResearchCandidates(scopedDiscovery, intent).find(item => !selected.includes(item) && matches(item));
       }
-      if (!fallback) return empty("unsupported", "requested-provider-missing");
-      selected.push(fallback);
+      if (!candidate) return empty("unsupported", "requested-provider-missing");
+      selected.push(candidate);
     }
     if (!requestedProviders.length) selected.push(...candidates.slice(0, MAX_DESCRIBED_CANDIDATES));
     if (!selected.length) return empty("unsupported", "no-research-tool");

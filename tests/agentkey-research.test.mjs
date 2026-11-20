@@ -276,7 +276,7 @@ test("plain text catalog discovery recognizes the legacy AgentKey search name", 
   assert.deepEqual(agentKeyResearchCandidates({ content: [{ type: "text", text: "agentkey_search — Search public news" }] }).map(item => item.name), ["agentkey_search"]);
 });
 
-test("generic AgentKey news search backs up provider-specific discovery", async () => {
+test("generic AgentKey news search does not impersonate requested providers", async () => {
   const calls = [];
   const client = {
     async findTools(query) {
@@ -293,30 +293,44 @@ test("generic AgentKey news search backs up provider-specific discovery", async 
     },
   };
   const result = await gatherAgentKeyResearch("Use AgentKey to explain NVIDIA's stock reaction using Yahoo Finance and Google News", client, "NVDA");
-  assert.equal(result.state, "used");
-  assert.deepEqual(result.tools.map(tool => tool.name), ["agentkey_search"]);
-  assert.equal(calls.at(-1)[1], "agentkey_search");
+  assert.equal(result.state, "unsupported");
+  assert.equal(result.reason, "requested-provider-missing");
+  assert.equal(calls.some(([method]) => method === "execute"), false);
 });
 
-test("provider-neutral rediscovery can find a general read-only news tool", async () => {
+test("scoped discovery finds the requested Google News and Yahoo Finance tools", async () => {
   const calls = [];
   const client = {
-    async findTools(query) {
-      calls.push(["find", query]);
-      return query.includes("Yahoo Finance")
-        ? { tools: [{ name: "yfinance/getChart", summary: "Yahoo Finance stock history" }] }
-        : { tools: [{ name: "web/search_news", summary: "Search recent public news" }] };
+    async findTools(query, prefix) {
+      calls.push(["find", query, prefix]);
+      if (prefix === "search/serper") return { tools: [{ name: "Serper/news", summary: "News search" }] };
+      if (prefix === "finance/yfinance") return { tools: [{ name: "yfinance/getChart", summary: "Stock price history" }] };
+      return { tools: [{ name: "Brave/getNewsSearch", summary: "News search" }] };
     },
     async describeTool(name) {
       calls.push(["describe", name]);
-      return { name, cost: 1, inputSchema: { properties: { query: { type: "string" } }, required: ["query"] } };
+      return { name, cost: { credits_per_call: 1 }, params: name === "Serper/news"
+        ? { type: "object", properties: { q: { type: "string" } }, required: ["q"] }
+        : { type: "object", properties: { symbol: { type: "string" } }, required: ["symbol"] } };
     },
-    async executeTool(name) { calls.push(["execute", name]); return { results: [] }; },
+    async executeTool(name, params) { calls.push(["execute", name, params]); return { results: [] }; },
   };
   const result = await gatherAgentKeyResearch("Use AgentKey research with Yahoo Finance and Google News", client, "NVDA");
   assert.equal(result.state, "used");
-  assert.deepEqual(result.tools.map(tool => tool.name), ["yfinance/getChart", "web/search_news"]);
-  assert.equal(calls.filter(([method]) => method === "find").length, 2);
+  assert.deepEqual(result.tools.map(tool => tool.name), ["Serper/news", "yfinance/getChart"]);
+  assert.deepEqual(calls.filter(([method]) => method === "find").map(([, , prefix]) => prefix), [undefined, "search/serper", "finance/yfinance"]);
+  assert.deepEqual(calls.filter(([method]) => method === "execute").map(([, name]) => name), ["Serper/news", "yfinance/getChart"]);
+});
+
+test("a different news provider cannot claim Google News through its summary", async () => {
+  const client = {
+    async findTools() { return { tools: [{ name: "Brave/getNewsSearch", summary: "Alternative to Google News" }] }; },
+    async describeTool() { assert.fail("Wrong provider must not be described"); },
+    async executeTool() { assert.fail("Wrong provider must not execute"); },
+  };
+  const result = await gatherAgentKeyResearch("Use Google News for NVDA earnings", client, "NVDA");
+  assert.equal(result.state, "unsupported");
+  assert.equal(result.reason, "requested-provider-missing");
 });
 
 test("unsupported provider discovery includes a safe diagnostic reason", async () => {
