@@ -56,15 +56,22 @@ test("AgentKey discovers provider-specific tools and uses the documented params 
   assert.equal(result.sources[0].url, "https://news.example/nvidia");
 });
 
-test("Google News remains in search terms when it is the research subject", async () => {
-  let executedQuery = "";
-  const client = {
-    async findTools() { return { tools: [{ name: "GoogleNews/search", summary: "Search news articles" }] }; },
-    async describeTool() { return { name: "GoogleNews/search", cost: 1, params: { properties: { q: { type: "string" } }, required: ["q"] } }; },
-    async executeTool(_name, params) { executedQuery = params.q; return { news: [] }; },
-  };
-  await gatherAgentKeyResearch("Use AgentKey to find Google News antitrust lawsuits", client);
-  assert.equal(executedQuery, "Google News antitrust lawsuits");
+test("Google News topics and trailing OR tokens remain in search terms", async () => {
+  const cases = [
+    ["Use AgentKey to find Google News antitrust lawsuits", "Google News antitrust lawsuits"],
+    ["Use AgentKey to find Google News coverage of $OR", "Google News coverage of $OR"],
+    ["Use AgentKey to find Google News coverage in Portland, OR", "Google News coverage in Portland, OR"],
+  ];
+  for (const [input, expected] of cases) {
+    let executedQuery = "";
+    const client = {
+      async findTools() { return { tools: [{ name: "GoogleNews/search", summary: "Search news articles" }] }; },
+      async describeTool() { return { name: "GoogleNews/search", cost: 1, params: { properties: { q: { type: "string" } }, required: ["q"] } }; },
+      async executeTool(_name, params) { executedQuery = params.q; return { news: [] }; },
+    };
+    await gatherAgentKeyResearch(input, client);
+    assert.equal(executedQuery, expected);
+  }
 });
 
 test("AgentKey extracts article links through unknown wrappers and headline aliases", async () => {

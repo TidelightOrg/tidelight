@@ -201,7 +201,6 @@ function searchQueryFor(candidate: ToolCandidate, query: string) {
     .replace(/^\s*(?:please\s+)?(?:explain|analyze|summarize|find|search(?:\s+for)?)\s+/i, "")
     .replace(/[.,!?]+$/g, "")
     .replace(/\s+using\s+(?:google\s+news|yahoo\s+finance)(?:\s+(?:and|or)\s+(?:google\s+news|yahoo\s+finance))*\s*$/i, "")
-    .replace(/\b(?:and|or)\s*[.,;:!?]*\s*$/i, "")
     .replace(/\s+([.,!?])/g, "$1").replace(/[.,!?]+$/g, "")
     .replace(/\s+/g, " ").trim();
   return focused || bounded;
