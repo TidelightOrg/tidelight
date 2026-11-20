@@ -48,12 +48,30 @@ test("AgentKey discovers provider-specific tools and uses the documented params 
   assert.equal(result.state, "used");
   assert.deepEqual(result.tools.map(item => item.name), ["GoogleNews/search", "yfinance/getChart"]);
   assert.deepEqual(calls.filter(item => item[0] === "execute").map(item => item.slice(1)), [
-    ["GoogleNews/search", { q: query, num: 20 }],
+    ["GoogleNews/search", { q: "NVIDIA's stock reaction to its latest earnings", num: 20 }],
     ["yfinance/getChart", { symbol: "NVDA", range: "1y", interval: "1d" }],
   ]);
   assert.equal(result.sources.length, 1);
   assert.equal(result.sources[0].via, "AgentKey");
   assert.equal(result.sources[0].url, "https://news.example/nvidia");
+});
+
+test("Google News topics and trailing OR tokens remain in search terms", async () => {
+  const cases = [
+    ["Use AgentKey to find Google News antitrust lawsuits", "Google News antitrust lawsuits"],
+    ["Use AgentKey to find Google News coverage of $OR", "Google News coverage of $OR"],
+    ["Use AgentKey to find Google News coverage in Portland, OR", "Google News coverage in Portland, OR"],
+  ];
+  for (const [input, expected] of cases) {
+    let executedQuery = "";
+    const client = {
+      async findTools() { return { tools: [{ name: "GoogleNews/search", summary: "Search news articles" }] }; },
+      async describeTool() { return { name: "GoogleNews/search", cost: 1, params: { properties: { q: { type: "string" } }, required: ["q"] } }; },
+      async executeTool(_name, params) { executedQuery = params.q; return { news: [] }; },
+    };
+    await gatherAgentKeyResearch(input, client);
+    assert.equal(executedQuery, expected);
+  }
 });
 
 test("AgentKey extracts article links through unknown wrappers and headline aliases", async () => {
