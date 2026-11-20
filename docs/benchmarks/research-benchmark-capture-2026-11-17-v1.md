@@ -44,4 +44,17 @@ The public guest endpoint permits three requests per hour and ten per rolling da
 
 The exact NVIDIA AgentKey prompt ran after NVIDIA published its FY27 Q3 results. Agent Flow's trace reported `unsupported (no-usable-schema)`. Zero AgentKey tools executed. The result used SEC data and public news feeds. Its source-only fallback followed a Qwen timeout and two Gemini HTTP 503 responses.
 
+## Provider availability diagnosis
+
+The `operationalDiagnostics.providerAttempts` in the ten preserved final result events distinguish provider failures from the separate claim-quality review. Counts below are attempts, not distinct events; an event can retry a provider.
+
+| Provider | Attempts | Success | Timeout | Invalid response | HTTP 503 |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| Qwen | 11 | 0 | 10 | 1 | 0 |
+| Gemini | 19 | 2 | 1 | 2 | 14 |
+
+Qwen's first attempt timed out in nine events and returned an invalid response in one; its one retry also timed out. Gemini returned both successful syntheses, but fourteen of its nineteen attempts returned HTTP 503. Eight final events therefore used the explicit source-only fallback. These observations apply only to the 17–18 November 2026 capture window and do not establish an ongoing provider error rate. The recorded `providerRouting.status` was `unavailable` in every result; this field is reported as observed and is not a diagnosis of the underlying routing service.
+
+The next reliability investigation should separate Qwen's time budget and response validation failures from Gemini's HTTP 503 responses. Repeating prompts or changing the research model's instructions cannot establish a source-quality improvement while provider availability is this low. No claim-quality metric is calculated here.
+
 Reviewers still need the rendered text, source passages, and two independent labels per claim followed by adjudication. Confirm provider permissions before sharing any capture containing market data. The frozen 24 October packet and its scorer result remain separate.
