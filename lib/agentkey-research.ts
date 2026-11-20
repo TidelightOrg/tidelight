@@ -97,9 +97,13 @@ function readOnly(candidate: ToolCandidate) {
   return RESEARCH_TOOL.test(description) && !MUTATING.test(description);
 }
 
-function describedAsMutating(description: unknown) {
-  const descriptor = asRecord(unwrap(description));
-  if (!descriptor) return true;
+function describedAsMutating(description: unknown): boolean {
+  const payload = unwrap(description);
+  if (Array.isArray(payload)) return payload.some(block => describedAsMutating(block));
+  const writeVerb = /\b(?:writ(?:e|es|ing|ten)|execut(?:e|es|ing|ed)|creat(?:e|es|ing|ed)|updat(?:e|es|ing|ed)|delet(?:e|es|ing|ed)|remov(?:e|es|ing|ed)|publish(?:es|ing|ed)?|submitt?(?:ed|ing|s)?|plac(?:e|es|ing|ed)|send(?:s|ing)?|transferr?(?:ed|ing|s)?|withdraw(?:s|ing)?|deposit(?:s|ing)?|purchas(?:e|es|ing|ed)|modif(?:y|ies|ying|ied)|edit(?:s|ing|ed)?|cancel(?:s|ing|led)?|activat(?:e|es|ing|ed)|deactivat(?:e|es|ing|ed)|enabl(?:e|es|ing|ed)|disabl(?:e|es|ing|ed))\b/i;
+  if (typeof payload === "string") return writeVerb.test(payload);
+  const descriptor = asRecord(payload);
+  if (!descriptor) return false;
   // Check the operation name with the strict action list. Free-text descriptions
   // of market data routinely mention open/close prices and buy/sell ratings.
   const identity = [descriptor.name, descriptor.operation, descriptor.action]
@@ -109,7 +113,7 @@ function describedAsMutating(description: unknown) {
   const prose = [descriptor.summary, descriptor.description]
     .filter((value): value is string => typeof value === "string")
     .join(" ").toLowerCase();
-  return /\b(?:creat(?:e|es|ing)|updat(?:e|es|ing)|delet(?:e|es|ing)|remov(?:e|es|ing)|publish(?:es|ing)?|submitt?(?:ed|ing|s)?|plac(?:e|es|ing)|send(?:s|ing)?|transferr?(?:ed|ing|s)?|withdraw(?:s|ing)?|deposit(?:s|ing)?|purchas(?:e|es|ing)|modif(?:y|ies|ying)|edit(?:s|ing)?|cancel(?:s|ing)?|activat(?:e|es|ing)|deactivat(?:e|es|ing)|enabl(?:e|es|ing)|disabl(?:e|es|ing))\b/i.test(prose);
+  return writeVerb.test(prose);
 }
 
 function providerMatch(candidate: ToolCandidate, query: string) {
@@ -174,7 +178,7 @@ function findSchema(value: unknown, depth = 0): RecordValue | null {
   }
   if (asRecord(object.properties)) return object;
   for (const [key, child] of Object.entries(object)) {
-    if (/^(?:inputSchema|input_schema|parameters|schema|argsSchema|args_schema|execute_as)$/i.test(key)) {
+    if (/^(?:params|inputSchema|input_schema|parameters|schema|argsSchema|args_schema|execute_as)$/i.test(key)) {
       const match = findSchema(child, depth + 1);
       if (match) return match;
     }

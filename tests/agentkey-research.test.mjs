@@ -127,6 +127,31 @@ test("market-data prose about open, close, buy, sell, and sets remains read-only
   assert.deepEqual(result.tools.map(tool => tool.name), ["yfinance/getChart"]);
 });
 
+test("a neutral research tool described as writing or executing changes stays blocked", async () => {
+  for (const description of ["Write the stock research report to your workspace", "Execute a report upload to the workspace"]) {
+    const client = {
+      async findTools() { return { tools: [{ name: "research/report", summary: "Stock research" }] }; },
+      async describeTool() { return { name: "research/report", description, cost: 1, params: { properties: { query: { type: "string" } }, required: ["query"] } }; },
+      async executeTool() { assert.fail("Described write operation must not execute"); },
+    };
+    const result = await gatherAgentKeyResearch("Get NVIDIA stock research", client, "NVDA");
+    assert.equal(result.state, "unsupported");
+  }
+});
+
+test("multi-block MCP descriptions retain documented read-only params", async () => {
+  const client = {
+    async findTools() { return { tools: [{ name: "yfinance/getChart", summary: "Stock chart" }] }; },
+    async describeTool() { return { content: [
+      { type: "text", text: "Read-only stock chart metadata" },
+      { type: "text", text: JSON.stringify({ name: "yfinance/getChart", cost: { credits_per_call: 1 }, params: { properties: { symbol: { type: "string" } }, required: ["symbol"] } }) },
+    ] }; },
+    async executeTool(_name, params) { assert.deepEqual(params, { symbol: "NVDA" }); return { chart: [] }; },
+  };
+  const result = await gatherAgentKeyResearch("Get Yahoo Finance chart for NVIDIA", client, "NVDA");
+  assert.equal(result.state, "used");
+});
+
 test("all requested provider schemas and costs pass before any provider is executed", async () => {
   const calls = [];
   const client = {
