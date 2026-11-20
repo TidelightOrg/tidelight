@@ -56,6 +56,22 @@ test("AgentKey discovers provider-specific tools and uses the documented params 
   assert.equal(result.sources[0].url, "https://news.example/nvidia");
 });
 
+test("AgentKey extracts article links through unknown wrappers and headline aliases", async () => {
+  const client = {
+    async findTools() { return { tools: [{ name: "GoogleNews/search", summary: "Search dated Google News articles" }] }; },
+    async describeTool() { return { name: "GoogleNews/search", cost: 1, params: { properties: { q: { type: "string" } }, required: ["q"] } }; },
+    async executeTool() {
+      return { structuredContent: { response: { payload: { records: [{ headline: "NVIDIA earnings reaction", canonical_url: "https://news.example/nvidia", source: { name: "News Desk" }, excerpt: "Shares fell after earnings." }] } } } };
+    },
+  };
+  const result = await gatherAgentKeyResearch("Search Google News about NVIDIA earnings", client, "NVDA");
+  assert.equal(result.sources.length, 1);
+  assert.equal(result.sources[0].title, "NVIDIA earnings reaction");
+  assert.equal(result.sources[0].publisher, "News Desk");
+  assert.equal(result.sources[0].url, "https://news.example/nvidia");
+  assert.equal(result.sources[0].snippet, "Shares fell after earnings.");
+});
+
 test("AgentKey skips metered tools whose advertised price is only a minimum", async () => {
   const client = {
     async findTools() { return { tools: [{ name: "GoogleNews/search" }] }; },
