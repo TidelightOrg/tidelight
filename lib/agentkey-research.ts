@@ -199,8 +199,8 @@ function searchQueryFor(candidate: ToolCandidate, query: string) {
   const focused = bounded
     .replace(/^\s*(?:please\s+)?use\s+agent\s*key\s+(?:to\s+)?/i, "")
     .replace(/^\s*(?:please\s+)?(?:explain|analyze|summarize|find|search(?:\s+for)?)\s+/i, "")
-    .replace(/\busing\s+(?:google\s+news|yahoo(?:\s+finance)?)\b/gi, "")
-    .replace(/\b(?:google\s+news|yahoo(?:\s+finance)?|agent\s*key)\b/gi, "")
+    .replace(/[.,!?]+$/g, "")
+    .replace(/\s+using\s+(?:google\s+news|yahoo\s+finance)(?:\s+(?:and|or)\s+(?:google\s+news|yahoo\s+finance))*\s*$/i, "")
     .replace(/\b(?:and|or)\s*[.,;:!?]*\s*$/i, "")
     .replace(/\s+([.,!?])/g, "$1").replace(/[.,!?]+$/g, "")
     .replace(/\s+/g, " ").trim();

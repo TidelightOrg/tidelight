@@ -56,6 +56,17 @@ test("AgentKey discovers provider-specific tools and uses the documented params 
   assert.equal(result.sources[0].url, "https://news.example/nvidia");
 });
 
+test("Google News remains in search terms when it is the research subject", async () => {
+  let executedQuery = "";
+  const client = {
+    async findTools() { return { tools: [{ name: "GoogleNews/search", summary: "Search news articles" }] }; },
+    async describeTool() { return { name: "GoogleNews/search", cost: 1, params: { properties: { q: { type: "string" } }, required: ["q"] } }; },
+    async executeTool(_name, params) { executedQuery = params.q; return { news: [] }; },
+  };
+  await gatherAgentKeyResearch("Use AgentKey to find Google News antitrust lawsuits", client);
+  assert.equal(executedQuery, "Google News antitrust lawsuits");
+});
+
 test("AgentKey extracts article links through unknown wrappers and headline aliases", async () => {
   const client = {
     async findTools() { return { tools: [{ name: "GoogleNews/search", summary: "Search dated Google News articles" }] }; },
