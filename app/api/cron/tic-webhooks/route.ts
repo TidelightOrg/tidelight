@@ -34,7 +34,9 @@ async function handleStatusCheck(request: Request) {
   catch { return NextResponse.json({ error: "The webhook worker is not configured." }, { status: 503, headers: { "Cache-Control": "no-store" } }); }
   const { data, error } = await admin.rpc("claim_tic_webhook_deliveries", { p_limit: 3 });
   if (error) {
-    console.error("tic-webhook-claim-failed", error.code);
+    const errorStatus = error && typeof (error as { status?: unknown }).status === "number" ? (error as { status: number }).status : "unknown";
+    const errorCode = error && typeof error.code === "string" && /^[A-Z0-9_-]{1,24}$/.test(error.code) ? error.code : "unknown";
+    console.error("tic-webhook-claim-failed", errorCode, errorStatus);
     return NextResponse.json({ error: "Webhook deliveries could not be claimed." }, { status: 503, headers: { "Cache-Control": "no-store" } });
   }
   const deliveries = Array.isArray(data) ? data as Delivery[] : [];
