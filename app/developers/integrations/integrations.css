@@ -1,4 +1,6 @@
 .tic-integration-page{--tic-green:var(--tic-accent);overflow:clip}
+:root:is([data-theme="daylight"],[data-theme="white"]) .tic-integration-page{--tic-accent:#176b5c}
+:root:is([data-theme="daylight"],[data-theme="white"]) .tic-integration-page .tic-primary{background:var(--brand-teal);border-color:var(--brand-teal);color:var(--brand-ink,#06100e)}
 .tic-integration-hero{width:min(1220px,100%);margin:auto;display:grid;grid-template-columns:minmax(0,.95fr) minmax(440px,1.05fr);align-items:center;gap:clamp(48px,8vw,112px);padding:clamp(70px,9vw,112px) 28px 88px}
 .tic-integration-hero-copy h1{max-width:11ch;margin:20px 0 22px;font-size:clamp(54px,6.5vw,82px);font-weight:540;line-height:1.01;letter-spacing:-.075em;text-wrap:balance}
 .tic-integration-hero-copy h1 em{color:var(--tic-accent);font-style:normal}
