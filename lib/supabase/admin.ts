@@ -20,20 +20,9 @@ export function safeSupabaseFailureCode(error: unknown): string {
       if (/\b(fetch failed|failed to fetch|network request failed)\b/i.test(candidate.message)) return "FETCH_FAILED";
       if (/\b(timeout|timed out)\b/i.test(candidate.message)) return "TIMEOUT";
       if (candidate.message) {
-        const messageType = candidate.message.trim().split(/\s+/, 1)[0].replace(/[^A-Za-z0-9]/g, "").slice(0, 24).toUpperCase();
-        const safeDetail = [candidate.message, typeof candidate.details === "string" ? candidate.details : ""]
-          .filter(Boolean)
-          .join(" ")
-          .replace(/https?:\/\/[^\s]+/gi, "[url]")
-          .replace(/(?:sb_(?:secret|publishable)_[A-Za-z0-9_-]+|eyJ[A-Za-z0-9._-]+)/g, "[credential]")
-          .replace(/\b(password|secret|token|apikey|authorization)\s*[:=]\s*\S+/gi, "$1=[redacted]")
-          .replace(/\b\d{1,3}(?:\.\d{1,3}){3}\b/g, "[ip]")
-          .replace(/\b[A-Za-z0-9_-]{32,}\b/g, "[redacted]")
-          .replace(/[\r\n\t]+/g, " ")
-          .replace(/[^A-Za-z0-9 .,:()_\-]/g, "?")
-          .trim()
-          .slice(0, 96);
-        fallback = messageType ? `MESSAGE_${messageType}: ${safeDetail}` : "MESSAGE_OTHER";
+        if (/\\bHeaders\\.set:.*invalid header value/i.test(candidate.message)) return "INVALID_HEADER_VALUE";
+        const messageType = candidate.message.trim().split(/\\s+/, 1)[0].replace(/[^A-Za-z0-9]/g, "").slice(0, 24).toUpperCase();
+        fallback = messageType ? `MESSAGE_${messageType}` : "MESSAGE_OTHER";
       }
     }
     if (typeof candidate.name === "string" && /^[A-Za-z][A-Za-z0-9]{0,31}$/.test(candidate.name)) {
@@ -44,11 +33,27 @@ export function safeSupabaseFailureCode(error: unknown): string {
   return fallback;
 }
 
+function invalidHeaderSummary(input: RequestInfo | URL, init?: RequestInit): string | null {
+  const headers = init?.headers ?? (input instanceof Request ? input.headers : undefined);
+  let entries: Array<[string, string]> = [];
+  if (headers instanceof Headers) entries = [...headers.entries()];
+  else if (Array.isArray(headers)) entries = headers.map(([name, value]) => [String(name), String(value)]);
+  else if (headers && typeof headers === "object") entries = Object.entries(headers).map(([name, value]) => [name, String(value)]);
+  for (const [name, value] of entries) {
+    for (const character of value) {
+      const code = character.codePointAt(0) ?? 0;
+      const reason = code === 10 || code === 13 ? "line_break" : code < 32 && code !== 9 || code === 127 ? "control_character" : code > 255 ? "non_latin1_character" : null;
+      if (reason) return `${name.toLowerCase()}:${reason}`;
+    }
+  }
+  return null;
+}
+
 async function fetchSupabase(input: RequestInfo | URL, init?: RequestInit): Promise<Response> {
   try {
     return await fetch(input, init);
   } catch (error) {
-    console.error("supabase-api-transport-failed", safeSupabaseFailureCode(error));
+    console.error("supabase-api-transport-failed", safeSupabaseFailureCode(error), invalidHeaderSummary(input, init) ?? "no_invalid_header_found");
     throw error;
   }
 }
