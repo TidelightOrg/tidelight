@@ -70,7 +70,7 @@ export async function POST(request: Request) {
     try {
       const result = await notifySupportOperators({ admin, ticketId: ticket.id, subject, ecosystem, event: "New conversation", eventKey: savedMessage.id });
       notificationState = result.delivered === result.total ? "sent" : result.delivered ? "partial" : "failed";
-    } catch { /* The conversation remains available in the admin inbox if email delivery is unavailable. */ }
+    } catch { }
     const notifiedAt = notificationState === "sent" ? new Date().toISOString() : null;
     await admin.from("developer_support_tickets").update({ admin_notification_state: notificationState, admin_notified_at: notifiedAt }).eq("id", ticket.id);
     return json({ ticket, notificationState }, 201);

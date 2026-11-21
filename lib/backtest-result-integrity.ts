@@ -25,7 +25,6 @@ function sameRows(left: unknown, right: unknown, keys: readonly string[]) {
   });
 }
 
-/** Compare archived metrics with a fresh calculation from the same saved candles. */
 export function backtestMetricsMatch(saved: unknown, reproduced: BacktestMetrics): boolean {
   const original = object(saved);
   if (!original) return false;

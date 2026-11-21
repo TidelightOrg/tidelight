@@ -5,7 +5,6 @@ from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 class _RejectRedirects(HTTPRedirectHandler):
     def redirect_request(self, request, response, code, message, headers, new_url):
-        # API bearer credentials must never be forwarded to a redirect target.
         return None
 
 

@@ -1,4 +1,3 @@
-/** Official starting points; these links help discovery but are not evidence until captured. */
 const cikByTicker: Record<string, string> = { AAPL: "320193", AMZN: "1018724", MSFT: "789019", NVDA: "1045810", TSLA: "1318605" };
 const issuerNews: Record<string, { label: string; url: string }> = {
   AAPL: { label: "Apple Newsroom", url: "https://www.apple.com/newsroom/" },
@@ -18,7 +17,6 @@ export function getSourceStarters(ticker: string) {
   ];
 }
 
-/** Match source entry points to the question so a prior/default ticker is never shown for another topic. */
 export function getResearchSourceStarters(question: string, fallbackTicker = "") {
   const normalized = question.toLocaleUpperCase("en-US");
   const companyAliases: Array<[string, RegExp]> = [

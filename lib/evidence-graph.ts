@@ -50,7 +50,6 @@ function isValidDateOnly(value: string) {
   return date.getUTCFullYear() === year && date.getUTCMonth() === month - 1 && date.getUTCDate() === day;
 }
 
-/** Build a bounded, citation-addressable graph. Citation links establish provenance, not semantic truth. */
 export function buildEvidenceGraph(input: { question: string; assets: EvidenceGraphAsset[]; asOf: string; synthesisMode: "model" | "source_only" }): EvidenceGraph {
   const asOfMs = Date.parse(input.asOf);
   if (!Number.isFinite(asOfMs)) throw new Error("evidence-graph-invalid-asof");
@@ -112,8 +111,6 @@ export function buildEvidenceGraph(input: { question: string; assets: EvidenceGr
       const publishedMs = source.publishedAt ? Date.parse(source.publishedAt) : NaN;
       const dateOnly = typeof source.publishedAt === "string" && /^\d{4}-\d{2}-\d{2}$/.test(source.publishedAt);
       const dateOnlyIsValid = dateOnly && !Number.isNaN(publishedMs) && new Date(publishedMs).toISOString().slice(0, 10) === source.publishedAt;
-      // A future-dated source is omitted completely so a historical snapshot
-      // cannot reveal even its existence or excerpt before the publication.
       const snapshotDate = asOf.slice(0, 10);
       const publishedDate = Number.isFinite(publishedMs) ? new Date(publishedMs).toISOString().slice(0, 10) : null;
       const isFuture = dateOnly ? !dateOnlyIsValid || publishedDate! >= snapshotDate : Number.isFinite(publishedMs) && publishedMs > asOfMs;

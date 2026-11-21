@@ -1,4 +1,3 @@
-/** Forward only the platform client-IP header used by the shared rate limiter. */
 export function mcpRateLimitClientHeaders(incoming: Headers): Headers {
   const headers = new Headers();
   const forwarded = incoming.get("x-vercel-forwarded-for");

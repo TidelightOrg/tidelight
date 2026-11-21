@@ -2,7 +2,6 @@ import { createHash, timingSafeEqual } from "node:crypto";
 
 export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
 
-/** Canonical JSON for durable integrity checks: object keys sort recursively; array order is retained. */
 export function canonicalJson(value: unknown): string {
   const visit = (item: unknown): string => {
     if (item === null) return "null";
@@ -67,7 +66,6 @@ export type CapsuleEvidence = {
   passage_end_codepoint: number | null;
 };
 
-/** Snapshot saved inputs as observed; does not add predictions, outcomes, or inferred facts. */
 export function buildOriginalCapsuleSnapshot(run: CapsuleRun, sources: CapsuleSource[], evidence: CapsuleEvidence[]) {
   return {
     schemaVersion: 1,

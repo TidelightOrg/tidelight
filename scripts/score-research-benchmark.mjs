@@ -50,15 +50,12 @@ function validateRunCapture(capture, label, errors, { required = false } = {}) {
   return invalid.length === 0;
 }
 
-/** Operational captures are observable facts, not reviewer-scored research quality. */
 function scoreOperationalObservations(events, unmatchedRunCaptures = []) {
   const errors = [];
   const captures = events.flatMap((event, eventIndex) => {
     const capture = event?.run_capture;
     if (capture === undefined || capture === null) return [];
     if (!validateRunCapture(capture, `events[${eventIndex}].run_capture`, errors)) return [];
-    // A template may contain an all-null placeholder. Count only a capture
-    // with an observed run status or another concrete observation field.
     const hasObservation = capture && typeof capture === "object" && (
       (typeof capture.status === "string" && capture.status.trim())
       || (typeof capture.aiSynthesis === "string" && capture.aiSynthesis.trim())
@@ -199,7 +196,7 @@ export function scoreBenchmark(benchmark) {
       const quote = typeof claim.quote === "string" ? claim.quote : "";
       if (!quote.trim()) errors.push(`${claimLabel}.quote is required.`);
       let canonicalClaimUrl = null;
-      try { if (typeof claim.sourceUrl === "string") canonicalClaimUrl = new URL(claim.sourceUrl, "https://invalid.local").href; } catch { /* Report a schema error below; malformed input must not crash scoring. */ }
+      try { if (typeof claim.sourceUrl === "string") canonicalClaimUrl = new URL(claim.sourceUrl, "https://invalid.local").href; } catch { }
       if (!canonicalClaimUrl || !sourceUrls.has(canonicalClaimUrl)) errors.push(`${claimLabel}.sourceUrl must match one captured source URL.`);
       const reviewers = Array.isArray(claim.reviewers) ? claim.reviewers : [];
       const reviewerIds = new Set(reviewers.map((reviewer) => typeof reviewer?.reviewerId === "string" ? reviewer.reviewerId.trim() : "").filter(Boolean));

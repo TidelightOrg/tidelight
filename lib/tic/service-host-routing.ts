@@ -9,8 +9,6 @@ const sharedPageResources = new Set([
 export function resolveServiceHostRoute(hostname: string, pathname: string): ServiceHostRoute {
   const host = hostname.toLowerCase();
   if (host === "blogs.tidelight.app") {
-    // Blog content has a dedicated host with concise article URLs. Keep shared
-    // static assets and Next's internal assets on their original paths.
     if (sharedPageResources.has(pathname) || pathname === "/tidelight-social.png" || pathname === "/tidelight-social.svg") return null;
     if (pathname === "/") return { kind: "rewrite", pathname: "/blog" };
     if (pathname === "/blog" || pathname.startsWith("/blog/")) return null;

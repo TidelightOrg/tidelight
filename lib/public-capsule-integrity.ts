@@ -11,7 +11,6 @@ export type PublicCapsulePublication = {
 
 const isRecord = (value: unknown): value is JsonRecord => Boolean(value && typeof value === "object" && !Array.isArray(value) && Object.getPrototypeOf(value) === Object.prototype);
 
-/** Canonical JSON shared with the server capsule hash: sorted object keys, ordered arrays. */
 export function canonicalPublicCapsuleJson(value: unknown): string {
   if (value === null || typeof value === "string" || typeof value === "boolean") return JSON.stringify(value);
   if (typeof value === "number" && Number.isFinite(value)) return JSON.stringify(value);
@@ -20,7 +19,6 @@ export function canonicalPublicCapsuleJson(value: unknown): string {
   throw new TypeError("Snapshot is not canonical JSON.");
 }
 
-/** Independently verify a disclosed capsule snapshot in a browser or WebCrypto runtime. */
 export async function verifyPublicCapsuleDigest(snapshot: JsonRecord, expected: string): Promise<boolean> {
   if (!/^[a-f0-9]{64}$/.test(expected) || !globalThis.crypto?.subtle) return false;
   try {
@@ -30,7 +28,6 @@ export async function verifyPublicCapsuleDigest(snapshot: JsonRecord, expected: 
   } catch { return false; }
 }
 
-/** Validate the public response envelope and verify its disclosed snapshot. */
 export async function verifyPublicCapsulePublication(value: unknown): Promise<PublicCapsulePublication | null> {
   if (!isRecord(value)
     || value.schemaVersion !== 1

@@ -2,7 +2,6 @@ import { getSystemStatus } from "@/lib/tic/system-status";
 
 export const dynamic = "force-dynamic";
 
-/** Public, read-only service snapshot for the landing page status card. */
 export async function GET() {
   try {
     const status = await getSystemStatus();

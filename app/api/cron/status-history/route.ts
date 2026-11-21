@@ -25,7 +25,7 @@ export async function GET(request: Request) {
     });
     if (error) throw error;
     let notifications = { sent: 0, skipped: true };
-    try { notifications = await notifyStatusSubscribers(); } catch { /* Status recording remains authoritative if email delivery is unavailable. */ }
+    try { notifications = await notifyStatusSubscribers(); } catch { }
     return NextResponse.json({ ok: true, ...data, notifications }, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return NextResponse.json({ error: "The scheduled status check did not complete." }, { status: 503, headers: { "Cache-Control": "no-store" } });

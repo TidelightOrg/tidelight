@@ -29,7 +29,6 @@ export default async function OperatorConsolePage() {
       .eq("status", "pending");
     if (!error) pendingRequests = count ?? 0;
   } catch {
-    // Keep the console available if the operational count is temporarily unavailable.
   }
 
   return <main className="content-wrap inner-page">

@@ -15,7 +15,6 @@ export async function sendWithResend(message: ResendMessage): Promise<ResendResu
   });
   const data = await response.json().catch(() => null) as { id?: unknown; message?: unknown; name?: unknown } | null;
   if (!response.ok || typeof data?.id !== "string") {
-    // Never include provider response text because it may echo recipient data or message content.
     throw Object.assign(new Error("Email provider rejected the delivery."), { code: `resend_${response.status}` });
   }
   return { id: data.id };

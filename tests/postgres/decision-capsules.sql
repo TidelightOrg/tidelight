@@ -45,8 +45,6 @@ do $$ begin
 end $$;
 reset role;
 
--- The research run is a lifecycle link, not the capsule's owner. Deleting it
--- must preserve the immutable decision record and only clear the run reference.
 delete from public.research_runs where id = '20000000-0000-4000-8000-000000000001';
 do $$ begin
   if not exists (

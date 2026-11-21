@@ -36,10 +36,6 @@ async function asToolResult(response: Response, select?: (data: Record<string, u
 const tickerSchema = z.string().trim().toUpperCase().regex(/^[A-Z][A-Z0-9.]{0,9}$/).describe("Supported US stock ticker, for example NVDA.");
 const jobIdSchema = z.string().uuid().describe("Research job ID returned when the job was started.");
 
-/**
- * Create the public Tidelight MCP tool server around a host-provided invoker.
- * Authentication, tenant isolation, quotas and provider access belong to the host.
- */
 export function createTidelightMcpServer(scopes: ReadonlySet<string>, invoke: TicMcpInvoker) {
   const server = new McpServer(TIC_MCP_SERVER, { capabilities: { tools: {} } });
 

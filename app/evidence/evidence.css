@@ -23,7 +23,6 @@
 @media(max-width:800px){.evidence-grid{grid-template-columns:1fr 1fr}}
 @media(max-width:560px){.evidence-page{padding-inline:18px}.evidence-header{align-items:flex-start}.evidence-header-actions{align-items:flex-end;flex-direction:column}.evidence-hero{padding:54px 0 42px}.evidence-table,.evidence-grid{grid-template-columns:1fr}.evidence-section-head,.evidence-footer{align-items:flex-start;flex-direction:column}.evidence-footer{gap:9px}}
 
-/* Evidence hub: make the public verification path feel deliberate and easy to scan. */
 .evidence-page{position:relative;isolation:isolate;overflow:hidden;background:radial-gradient(ellipse at 12% 18%,color-mix(in srgb,var(--evidence-accent) 8%,transparent),transparent 28%),radial-gradient(circle at 85% 0%,color-mix(in srgb,var(--evidence-accent) 13%,transparent) 0,transparent 33%),var(--bg)}
 .evidence-page::before{position:absolute;z-index:-1;top:270px;right:-190px;width:420px;height:420px;border:1px solid color-mix(in srgb,var(--evidence-accent) 8%,transparent);border-radius:50%;box-shadow:0 0 0 40px color-mix(in srgb,var(--evidence-accent) 2%,transparent),0 0 0 90px color-mix(in srgb,var(--evidence-accent) 1%,transparent);content:"";pointer-events:none}
 .evidence-header{position:relative}.evidence-header::after{position:absolute;right:0;bottom:-1px;left:0;height:1px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--evidence-accent) 48%,var(--line)),transparent);content:""}

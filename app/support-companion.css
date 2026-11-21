@@ -54,7 +54,6 @@
 @media(max-width:600px){.tide-guide-panel{width:min(344px,calc(100vw - 16px));height:var(--tide-panel-available,min(540px,calc(100dvh - 32px)));min-height:min(280px,var(--tide-panel-available,280px));max-height:calc(100dvh - 32px)}}
 @media(prefers-reduced-motion:reduce){.tide-guide-panel:before{display:none}}
 
-/* Keep the glass surface legible over busy product pages and avoid duplicate Tide labels while open. */
 .tide-guide-panel{background:linear-gradient(145deg,color-mix(in srgb,var(--panel) 76%,transparent),color-mix(in srgb,var(--panel-2) 80%,transparent));backdrop-filter:blur(30px) saturate(165%);-webkit-backdrop-filter:blur(30px) saturate(165%);box-shadow:0 30px 90px rgba(0,0,0,.3),0 8px 26px rgba(0,0,0,.12),inset 0 1px 0 rgba(255,255,255,.24),inset 0 -1px 0 color-mix(in srgb,var(--brand-teal) 16%,transparent),0 0 34px color-mix(in srgb,var(--brand-teal) 11%,transparent)}
 .tide-guide-thread{background:radial-gradient(circle at 50% 2%,color-mix(in srgb,var(--brand-teal) 6%,transparent),transparent 55%),color-mix(in srgb,var(--panel) 42%,transparent)}
 .tide-guide-head{background:radial-gradient(circle at 84% -35%,color-mix(in srgb,var(--brand-teal) 21%,transparent),transparent 64%),linear-gradient(135deg,color-mix(in srgb,var(--panel-2) 66%,transparent),color-mix(in srgb,var(--panel) 56%,transparent));backdrop-filter:blur(18px) saturate(155%);-webkit-backdrop-filter:blur(18px) saturate(155%)}
@@ -67,7 +66,6 @@
 @media(max-width:600px){.tide-guide.is-open .tide-guide-launcher{width:42px;min-width:42px;height:42px;min-height:42px}.tide-guide.is-open .tide-guide-launcher .tide-guide-mark{width:35px;height:35px}}
 
 
-/* Research activity: compact evidence-ledger rows across the assistant and result surfaces. */
 .tide-guide-research-progress>ol{gap:0;overflow:hidden;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
 .tide-guide-research-progress>ol>li{position:relative;min-height:48px;padding:10px 12px;border:0;border-bottom:1px solid var(--line-soft);border-radius:0;background:transparent}
 .tide-guide-research-progress>ol>li:last-child{border-bottom:0}

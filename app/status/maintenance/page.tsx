@@ -32,7 +32,6 @@ export default async function MaintenancePage() {
   let unavailable = false;
   try { notices = await getMaintenanceNotices(); } catch { unavailable = true; }
   const currentNotices = notices.filter(item => item.status === "ongoing" || item.status === "scheduled");
-  // getMaintenanceNotices only includes resolved notices from the last 24 hours.
   const pastNotices = notices.filter(item => item.status === "completed");
 
   return <main className="tic-status-page">

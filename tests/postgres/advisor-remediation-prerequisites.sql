@@ -1,4 +1,3 @@
--- Minimal schema fixture for production advisor remediation migration.
 DO $$ BEGIN CREATE ROLE authenticated; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 DO $$ BEGIN CREATE ROLE anon; EXCEPTION WHEN duplicate_object THEN NULL; END $$;
 CREATE SCHEMA auth;

@@ -6,7 +6,6 @@ export type StatusWorkerName =
   | "webhook_delivery"
   | "email_delivery";
 
-/** Record the latest authenticated worker result without changing the worker response. */
 export async function withStatusWorkerHeartbeat(
   worker: StatusWorkerName,
   run: () => Promise<Response>,
@@ -21,7 +20,6 @@ export async function withStatusWorkerHeartbeat(
         p_detail: detail,
       }).abortSignal(AbortSignal.timeout(5_000));
     } catch {
-      // Availability checks must never prevent the underlying worker response.
     }
   };
 

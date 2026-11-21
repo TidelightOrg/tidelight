@@ -1,8 +1,5 @@
 import "server-only";
 
-// AgentKey is an optional Chainbase data source, not a Bitget order gateway.
-// Keep its master key on the server: a browser caller must never choose a tool
-// name or send arbitrary parameters directly to this client.
 const ENDPOINT = "https://api.agentkey.app/v1/mcp";
 const PROTOCOL_VERSION = "2025-06-18";
 const MAX_RESPONSE_BYTES = 1_000_000;
@@ -26,7 +23,7 @@ function parseResponse(raw: string, contentType: string, id: number): JsonRpcRes
       try {
         const message = JSON.parse(data) as JsonRpcResponse;
         if (message.id === id) return message;
-      } catch { /* Ignore non-JSON keepalives. */ }
+      } catch { }
     }
     throw new AgentKeyError("protocol");
   }
@@ -114,19 +111,16 @@ export class AgentKeyClient {
     return result;
   }
 
-  /** Discover live catalog names using the user's full natural-language intent. */
   findTools(query: string, prefix?: string): Promise<unknown> {
     if (!query.trim() || query.length > 500 || (prefix && !/^(?:search\/serper|finance\/yfinance)$/.test(prefix))) throw new AgentKeyError("protocol");
     return this.callTool("find_tools", { q: query, ...(prefix ? { prefix } : {}) });
   }
 
-  /** Fetch the current schema and cost before executing a discovered tool. */
   describeTool(name: string): Promise<unknown> {
     if (!name.trim() || name.length > 200) throw new AgentKeyError("protocol");
     return this.callTool("describe_tool", { name });
   }
 
-  /** Call only a tool whose name and params were checked against describeTool. */
   executeTool(name: string, params: Record<string, unknown>): Promise<unknown> {
     if (!name.trim() || name.length > 200) throw new AgentKeyError("protocol");
     return this.callTool("execute_tool", { name, params });

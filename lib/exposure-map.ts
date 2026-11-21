@@ -37,7 +37,6 @@ function lookupKey(value: string) {
   return value.normalize("NFKC").toUpperCase().replace(/[^A-Z0-9.]/g, "");
 }
 
-/** Return only Reality spot instruments present in the provider catalog with a known underlying ticker. */
 export function findCatalogRealityAssets<T extends RealityCatalogEntry>(query: string, assets: readonly T[]): T[] {
   const key = lookupKey(query);
   if (!key) return [];

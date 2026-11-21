@@ -7,7 +7,6 @@ export type TicOauthScope = typeof TIC_OAUTH_SCOPES[number];
 
 export function requestedOAuthClientScopes(value: unknown): TicOauthScope[] | null {
   if (typeof value !== "string") return [...TIC_OAUTH_SCOPES];
-  // parseOAuthScopes checks against TIC_OAUTH_SCOPES by default.
   return parseOAuthScopes(value) as TicOauthScope[] | null;
 }
 

@@ -1,4 +1,3 @@
-/** Tab-scoped Judge results are optional; storage may be disabled or full. */
 export const JUDGE_SESSION_KEY = "tidelight-judge-research-v1";
 
 export function storeJudgeResult(result: unknown): boolean {

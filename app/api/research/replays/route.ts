@@ -23,9 +23,6 @@ function publicSourceUrl(value: unknown, allowedSources: Set<string>): string | 
 function replayLabel(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const label = value.trim();
-  // Token-pulse inputs can be full company and market names, not only short
-  // exchange symbols. Keep labels bounded and inert while allowing common name
-  // punctuation such as commas and apostrophes (for example, "Johnson & Johnson, Inc.").
   return label.length <= 80 && /^[\p{L}\p{N}][\p{L}\p{N} .,_/&+():$^%'-]{0,79}$/u.test(label) ? label : null;
 }
 
@@ -63,14 +60,9 @@ export async function POST(request: Request) {
     const claims = (summary.claims as unknown[]).flatMap(raw => {
       const claim = object(raw);
       if (!claim || typeof claim.claim !== "string" || typeof claim.quote !== "string") return [];
-      // Evidence briefs use `sourceUrl`; older imported records used `source_url`.
-      // Persist only links that are present in this run's source table.
       const url = typeof claim.sourceUrl === "string" ? claim.sourceUrl : typeof claim.source_url === "string" ? claim.source_url : "";
       return [{ text: claim.claim.slice(0, 260), quote: claim.quote, citedUrls: url ? [url] : [] }];
     });
-    // Claim citations are canonicalized and checked against both the asset's
-    // sources and persisted run lineage below; comparing raw URLs here would
-    // reject equivalent forms before that validation can occur.
     const points = claims;
     const answerStatus = summary.answer_status === "insufficient_evidence" || summary.answer_status === "source_matched_claims" ? summary.answer_status : undefined;
     return [{ ticker, issuer, summary: String(summary.summary).slice(0, 700), ...(answerStatus ? { answerStatus } : {}), stance: "unclear", confidence: 0, confidenceCapped: true, gateReasons: ["Evidence brief; no trading handoff was assessed."], sources: sources.map(source => source.url), evidenceBalance: { supporting: points, counter: [] }, market: { perpSymbol: null, spotSymbol: null, lastPrice: null, providerTimestamp: null }, risks: [], nextCheck: null }];
@@ -89,9 +81,6 @@ export async function POST(request: Request) {
   const assets = rows.flatMap((raw) => {
     const row = object(raw);
     if (!row) return [];
-    // Older saved pulses used symbol/name/overview, while newer runs use
-    // ticker/issuer/summary. Normalize only these known string fields; the public
-    // object below remains an explicit allowlist and source URLs still need DB lineage.
     const ticker = replayLabel(row.ticker ?? row.symbol ?? row.underlyingTicker ?? row.token);
     const issuer = replayText(row, "issuer", "issuerName", "name") ?? ticker;
     const summaryText = replayText(row, "summary", "overview", "analysis");
@@ -149,8 +138,6 @@ export async function POST(request: Request) {
     return [{ agent: stage.agent.slice(0, 80), status: ["complete", "blocked", "running"].includes(String(stage.status)) ? stage.status : "blocked", title: stage.title.slice(0, 160), at: typeof stage.at === "string" ? stage.at : null, asset: typeof stage.asset === "string" ? stage.asset.slice(0, 12) : null }];
   }).slice(0, 40) : evidenceBrief ? [{ agent: "Evidence brief", status: "complete", title: "Source-bounded research saved", at: typeof run.completed_at === "string" ? run.completed_at : null, asset: null }] : [];
   const citedUrlSet = new Set(assets.flatMap(asset => asset.sources));
-  // Excerpts are used above only to validate quoted passages. A public replay
-  // shares source metadata and cited quotations, never the full captured text.
   const publicSources = sources.filter(source => citedUrlSet.has(source.url)).map(source => ({
     url: source.url,
     title: source.title,

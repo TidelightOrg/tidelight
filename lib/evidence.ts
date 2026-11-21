@@ -69,7 +69,6 @@ export function findQuotePassageSpan(excerpt: string, quote: string) {
   return start === undefined || last === undefined ? null : { start_codepoint: start, end_codepoint: last + 1 };
 }
 
-/** Keep only claims whose meaningful quote is present in the exact supplied passage. */
 export function validateBrief(value: unknown, sources: EvidenceSource[]): QwenBrief | null {
   if (!value || typeof value !== "object") return null;
   const candidate = value as Record<string, unknown>;

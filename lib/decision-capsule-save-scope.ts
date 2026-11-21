@@ -1,4 +1,3 @@
-/** True only while a pending capsule save still belongs to the currently displayed research run. */
 export function isCurrentDecisionCapsuleSave(input: {
   currentGeneration: number;
   requestGeneration: number;

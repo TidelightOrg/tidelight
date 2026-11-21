@@ -1,9 +1,3 @@
-/**
- * Real exchange orders stay disabled unless an operator explicitly opts a
- * deployment in after the product, legal, security, and operations reviews.
- * Paper and demo execution do not use this gate.
- * Missing configuration fails closed: only the exact string "true" enables writes.
- */
 export function isLiveOrderExecutionEnabled(environment: NodeJS.ProcessEnv = process.env): boolean {
   return environment.TIDELIGHT_LIVE_ORDER_EXECUTION_ENABLED === "true";
 }
@@ -23,7 +17,6 @@ export class LiveOrderExecutionDisabledError extends Error {
 
 const PLACE_ORDER_PATH = /place-order|placeorder|batch-place|batch-order/i;
 
-/** Live-credential writes, and any place-order path, are exchange order effects. */
 export function isLiveExchangeOrderEffect(method: string, path: string): boolean {
   const verb = method.toUpperCase();
   const normalized = path.split("?")[0] ?? path;
@@ -31,11 +24,6 @@ export function isLiveExchangeOrderEffect(method: string, path: string): boolean
   return verb !== "GET" && verb !== "HEAD";
 }
 
-/**
- * Refuse a private Bitget call that could place or prepare a live order.
- * Demo mode is never refused here. Reads stay available so a deployment can
- * still verify a key without sending an order.
- */
 export function liveExchangeWriteRefused(
   mode: string,
   method: string,
@@ -58,7 +46,6 @@ export function liveOrderBlockedAudit(details: Record<string, unknown> = {}) {
 
 const BLOCKED_ORDER_BODY_BYTES = 2048;
 
-/** Read only a small preview. An oversized blocked request is still refused, without buffering it. */
 export async function readBlockedOrderPreview(request: Request): Promise<{ symbol: string | null; action: string | null }> {
   const declared = Number(request.headers.get("content-length") ?? 0);
   if (Number.isFinite(declared) && declared > BLOCKED_ORDER_BODY_BYTES) return { symbol: null, action: null };

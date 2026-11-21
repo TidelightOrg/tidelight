@@ -1,4 +1,3 @@
-/* Shared contrast and type scale for the Tidelight web surfaces. */
 :root {
   --text: #f3f7f4;
   --muted: #b2bdb7;
@@ -190,12 +189,10 @@ body {
 }
 
 
-/* Keep the light-theme landing links aligned with the shared contrast palette. */
 :root:is([data-theme="daylight"], [data-theme="white"]) .landing-page .landing-nav-links a:not(.landing-nav-judge):not(.landing-nav-field-notes) {
   color: var(--muted);
 }
 
-/* Let the full desktop navigation reflow cleanly on narrow laptop and tablet widths. */
 @media (min-width: 801px) and (max-width: 1120px) {
   .landing-nav {
     flex-wrap: wrap;
@@ -215,7 +212,6 @@ body {
   }
 }
 
-/* Context.dev's mobile body copy uses a comfortable 16px reading size. */
 @media (max-width: 800px) {
   .landing-page :is(.landing-hero p, .landing-section-lede, .landing-method p,
     .landing-capabilities p, .landing-docs-copy > p, .landing-workflow-card > p,

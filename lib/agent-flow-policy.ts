@@ -37,13 +37,11 @@ export type FlowGateInput = {
   now: number;
 };
 
-/** Detect explicit token-market intent without treating ordinary words such as “right” as rTickers. */
 export function isTokenizedMarketQuestion(question: string, tickers: readonly string[]): boolean {
   if (/\b(?:tokeni[sz]ed|reality market|r[\s-]?token)\b/i.test(question)) return true;
   return tickers.some((ticker) => /^[A-Z]{1,6}$/i.test(ticker) && new RegExp(`\\br[\\s-]?${ticker}(?:usdt)?\\b`, "i").test(question));
 }
 
-/** Evidence-only fallback used when every configured synthesis provider is unavailable. */
 export function sourceOnlyAssessment(input: { ticker: string; headlineCount: number; publishers: number; latestTitle?: string | null; latestPublisher?: string | null; latestDate?: string | null; tokenizedMarketQuestion: boolean; spotSymbol?: string | null; spotPrice?: number | null; spotTimestamp?: number | null; perpSymbol?: string | null }): FlowAssessment {
   const { ticker } = input;
   const summary = input.tokenizedMarketQuestion
@@ -54,7 +52,6 @@ export function sourceOnlyAssessment(input: { ticker: string; headlineCount: num
   return { summary, stance: "unclear", confidence: 0, citedUrls: [], supportingEvidence: [], counterEvidence: [], risks: ["AI synthesis is unavailable; retrieved headlines are discovery references only.", ...(input.tokenizedMarketQuestion ? ["Issuer coverage does not establish rToken liquidity, spread, or premium/discount."] : [])], nextCheck: input.tokenizedMarketQuestion ? "Verify the rToken's live availability, quote freshness, liquidity, spread, and premium or discount from instrument-specific sources." : "Review issuer filings and completed candles." };
 }
 
-/** Deterministic instrument-specific conclusion, independent of model prose. */
 export function tokenizedMarketReview(input: { ticker: string; spotSymbol: string | null; spotPrice: number | null; spotTimestamp: number | null; now: number }) {
   const quoteAvailable = Boolean(input.spotSymbol && typeof input.spotPrice === "number" && Number.isFinite(input.spotPrice) && input.spotPrice > 0);
   const freshness = describeInstrumentFreshness({ providerTimestampMs: input.spotTimestamp, evaluatedAtMs: input.now });
@@ -74,7 +71,6 @@ const aliases: Record<string, string[]> = {
   QCOM: ["QUALCOMM"], MU: ["MICRON"],
 };
 
-/** Only supported Bitget stock perpetual underlyings are inferred, not arbitrary tickers. */
 export function extractFlowTickers(question: string, supportedContracts: readonly string[], max = 3): string[] {
   const upper = question.toUpperCase();
   const found = new Set<string>();
@@ -86,12 +82,10 @@ export function extractFlowTickers(question: string, supportedContracts: readonl
   return [...found].slice(0, max);
 }
 
-/** Provider names describe research tools, not companies to add to the issuer scope. */
 export function stripResearchProviderNames(question: string): string {
   return question.replace(/\b(?:Google\s+News|Yahoo(?:\s+Finance)?)\b/gi, " ");
 }
 
-/** An explanation alone cannot unlock a trade destination. */
 export function gateFlowTrade(input: FlowGateInput) {
   const reasons: string[] = [];
   const recent = input.sources.filter(source => source.publishedAt &&
@@ -156,9 +150,8 @@ export function normalizeFlowAssessment(value: Record<string, unknown>, sources:
   };
 }
 
-/** A partial or malformed provider response must allow the next provider to try. */
 export function normalizeFlowAssessments(value: Record<string, unknown>, sourcesByTicker: Record<string, FlowSource[]>, now = Date.now(), onFailure?: (reason: FlowValidationFailure) => void): Record<string, FlowAssessment> | null {
-  const fail = (reason: FlowValidationFailure) => { try { onFailure?.(reason); } catch { /* Diagnostics must not affect validation. */ } return null; };
+  const fail = (reason: FlowValidationFailure) => { try { onFailure?.(reason); } catch { } return null; };
   const requested = Object.keys(sourcesByTicker);
   if (!requested.length) return fail("no_requested_assets");
   if (!Array.isArray(value.assets)) return fail("assets_not_array");

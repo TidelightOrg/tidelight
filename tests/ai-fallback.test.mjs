@@ -2,8 +2,6 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { registerHooks } from "node:module";
 
-// Next's server-only marker guards client bundles. This Node test process is a
-// server context; substitute only that marker while importing the actual helper.
 const hooks = registerHooks({
   resolve(specifier, context, nextResolve) {
     if (specifier === "server-only") return { url: "data:text/javascript,export {};", shortCircuit: true };

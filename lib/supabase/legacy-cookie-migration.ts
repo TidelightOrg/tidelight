@@ -1,14 +1,11 @@
-/** Supabase SSR stores auth cookies as one cookie or numbered chunks. */
 export function isSupabaseAuthCookie(name: string): boolean {
   return /^sb-[a-z0-9-]+-auth-token(?:\.\d+)?$/i.test(name);
 }
 
-/** Only the primary app origin can safely move the old shared session to its own host. */
 export function shouldMigrateSharedAuthCookies(hostname: string): boolean {
   return hostname.toLowerCase().replace(/:\d+$/, "") === "tidelight.app";
 }
 
-/** Read raw Cookie header pairs before Next's cookie map collapses duplicate names. */
 export function readSupabaseAuthCookieHeader(header: string | null): {
   cookies: Array<{ name: string; value: string }>;
   names: string[];
@@ -22,7 +19,7 @@ export function readSupabaseAuthCookieHeader(header: string | null): {
     if (!isSupabaseAuthCookie(name)) continue;
     const encodedValue = pair.slice(separator + 1);
     let value = encodedValue;
-    try { value = decodeURIComponent(encodedValue); } catch { /* retain the raw value */ }
+    try { value = decodeURIComponent(encodedValue); } catch { }
     const values = byName.get(name) ?? [];
     values.push(value);
     byName.set(name, values);
@@ -34,7 +31,6 @@ export function readSupabaseAuthCookieHeader(header: string | null): {
   };
 }
 
-/** Do not let a pre-refresh request cookie overwrite a token just refreshed by Supabase. */
 export function excludeRefreshedAuthCookies(
   cookies: Array<{ name: string; value: string }>,
   refreshedNames: ReadonlySet<string>,

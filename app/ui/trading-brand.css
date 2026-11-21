@@ -1,4 +1,3 @@
-/* The trading desk inherits the same type scale and theme as every workspace route. */
 .tw-grid,.tw-grid :where(p,button,input,select,textarea,a,small,b,strong){font-family:var(--font)}
 .tw-grid .settings-card>p,.tw-grid .tw-footnote{font-size:12px;font-weight:400;line-height:1.7;color:var(--muted)}
 .tw-grid .tw-form label{font:500 9px/1.4 var(--mono);letter-spacing:.08em;color:var(--muted)}

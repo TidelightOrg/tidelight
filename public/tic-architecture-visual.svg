@@ -48,7 +48,6 @@
   <text x="64" y="145" class="title">One intelligence core. Three secure ways in.</text>
   <text x="64" y="180" class="sub">Shared services carry source lineage through every authorized interface.</text>
 
-  <!-- Source and provenance boundary -->
   <g aria-label="Supported market and research sources with source lineage">
     <text x="64" y="254" class="eyebrow mono">01 / EVIDENCE INPUTS</text>
     <rect x="64" y="278" width="244" height="88" rx="16" class="card"/>
@@ -62,13 +61,11 @@
     <text x="64" y="596" class="small">Source, freshness, and evidence</text><text x="64" y="623" class="small">remain distinguishable from inference.</text>
   </g>
 
-  <!-- Provenance-aware service flow -->
   <path d="M308 322H382V359H425" class="flow"/>
   <path d="M308 426H356V400H425" class="flow-muted"/>
   <circle cx="382" cy="322" r="5" fill="var(--tic-visual-mint, #67c99b)"/><circle cx="356" cy="426" r="5" fill="var(--tic-visual-mint, #67c99b)"/>
   <text x="324" y="295" class="tiny mono">SOURCE-LINKED</text>
 
-  <!-- Isometric shared core -->
   <g filter="url(#softShadow)" aria-label="Shared intelligence core: existing research and market services">
     <text x="430" y="254" class="eyebrow mono">02 / SHARED SERVICES</text>
     <path d="M430 350 560 280 690 350 560 420Z" fill="url(#coreTop)" stroke="var(--tic-visual-mint-hi, #b8f1d5)" stroke-opacity=".8" stroke-width="2"/>
@@ -84,7 +81,6 @@
   <rect x="453" y="557" width="214" height="39" rx="19.5" class="pill"/>
   <text x="560" y="582" text-anchor="middle" class="tiny mono" fill="var(--tic-visual-mint, #67c99b)">REUSED SERVICE BOUNDARIES</text>
 
-  <!-- Server-side authorization gateway -->
   <path d="M690 385H742" class="flow"/>
   <g aria-label="Server-side access boundary applies tenant isolation, scopes, quotas, and audit">
     <text x="744" y="254" class="eyebrow mono">03 / ACCESS BOUNDARY</text>
@@ -99,7 +95,6 @@
     <circle cx="783" cy="523" r="5" fill="var(--tic-visual-mint, #67c99b)"/><text x="800" y="529" class="small">Audited requests</text>
   </g>
 
-  <!-- Three public/developer surfaces -->
   <path d="M980 417H1014V311H1036M1014 417V449H1036M1014 449V587H1036" class="flow-muted"/>
   <circle cx="1014" cy="417" r="5" fill="var(--tic-visual-mint, #67c99b)"/>
   <g aria-label="REST API service">
@@ -118,7 +113,6 @@
     <text x="1114" y="576" class="label">Developer console</text><text x="1114" y="605" class="route mono">tidelight.app/developers</text>
   </g>
 
-  <!-- Principle strip -->
   <path d="M64 690H1336" class="hair" opacity=".7"/>
   <circle cx="76" cy="735" r="5" fill="var(--tic-visual-mint, #67c99b)"/><text x="95" y="741" class="small">Source lineage stays attached to supported outputs</text>
   <circle cx="585" cy="735" r="5" fill="var(--tic-visual-mint, #67c99b)"/><text x="604" y="741" class="small">Access is checked at the service boundary</text>

@@ -41,7 +41,6 @@ do $$ begin
   if exists(select 1 from public.nightwatch_schedules) then raise exception 'RLS leaked another owner schedules'; end if;
 end $$;
 reset role;
--- Verify actual paper ledger delegation, retry lease isolation, and same-candle idempotency.
 do $$
 declare s public.nightwatch_schedules; e jsonb; r jsonb; v_time bigint := floor(extract(epoch from now()-interval '1 minute')*1000); v_cash numeric; v_owner uuid := '00000000-0000-4000-8000-000000000001'; n integer;
 begin

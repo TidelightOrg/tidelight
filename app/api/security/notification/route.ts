@@ -47,7 +47,6 @@ export async function POST(request: Request) {
     after(async () => { try { await drainEmailQueue(admin); } catch { console.error("Account security email delivery deferred"); } });
     return NextResponse.json({ ok: true, queued: true }, { headers: { "Cache-Control": "no-store" } });
   } catch {
-    // Authenticated changes must not reveal internal mail or provider state to the caller.
     return NextResponse.json({ ok: true, queued: false }, { headers: { "Cache-Control": "no-store" } });
   }
 }

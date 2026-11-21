@@ -1,13 +1,24 @@
 import { defineConfig, globalIgnores } from "eslint/config";
 import nextVitals from "eslint-config-next/core-web-vitals";
 import nextTs from "eslint-config-next/typescript";
+import noNewComments from "./eslint/no-new-comments.mjs";
 
 const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
-  // Override default ignores of eslint-config-next.
+  {
+    plugins: {
+      tidelight: {
+        rules: {
+          "no-new-comments": noNewComments,
+        },
+      },
+    },
+    rules: {
+      "tidelight/no-new-comments": "error",
+    },
+  },
   globalIgnores([
-    // Default ignores of eslint-config-next:
     ".next/**",
     "out/**",
     "build/**",

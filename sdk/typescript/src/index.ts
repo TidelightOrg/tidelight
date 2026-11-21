@@ -65,7 +65,6 @@ function canonicalJson(value: unknown): string {
   throw new TypeError("Public capsule snapshots must contain JSON values only.");
 }
 
-/** Checks that a public copy matches its stated SHA-256; this does not establish source truth or authorship. */
 export function verifyPublicDecisionCapsule(publication: Pick<PublicDecisionCapsule, "snapshot" | "integrityHash" | "hashAlgorithm">): boolean {
   if (publication.hashAlgorithm !== "sha256" || !/^[a-f0-9]{64}$/.test(publication.integrityHash)) return false;
   try { return createHash("sha256").update(canonicalJson(publication.snapshot), "utf8").digest("hex") === publication.integrityHash; }

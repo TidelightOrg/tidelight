@@ -239,7 +239,7 @@ function safeDeskLink(destination: Destination) {
     if (url.origin !== "https://tidelight.local") return null;
     if (destination.mode === "paper_futures" && url.pathname === "/futures") return url.pathname + url.search;
     if (destination.mode === "live_spot" && url.pathname === "/trading") return url.pathname + url.search;
-  } catch { /* A malformed destination is never rendered. */ }
+  } catch { }
   return null;
 }
 
@@ -293,7 +293,7 @@ export default function AgentFlowDesk({ initialQuestion, initialMonitorId = null
         const parsed = JSON.parse(saved) as FlowResult;
         if (parsed?.guestSessionResult === true && Array.isArray(parsed.assets) && Array.isArray(parsed.trace)) restoreFrame.current = window.requestAnimationFrame(() => { restoreFrame.current = null; setGuestStored(true); setResult(parsed); });
       } else if (saved) sessionStorage.removeItem(JUDGE_SESSION_KEY);
-    } catch { try { sessionStorage.removeItem(JUDGE_SESSION_KEY); } catch { /* Storage may be unavailable. */ } }
+    } catch { try { sessionStorage.removeItem(JUDGE_SESSION_KEY); } catch { } }
     return () => { if (restoreFrame.current !== null) { window.cancelAnimationFrame(restoreFrame.current); restoreFrame.current = null; } };
   }, [evaluatorMode]);
 
@@ -401,7 +401,6 @@ export default function AgentFlowDesk({ initialQuestion, initialMonitorId = null
           setQuoteNow(Date.now());
           const stored = data.guestSessionResult === true && storeJudgeResult(data);
           setGuestStored(stored);
-          // A successful overwrite also removes the older result whose deletion failed.
           if (stored) setClearError(false);
           setResult(data as FlowResult);
         } else if (kind === "error") {

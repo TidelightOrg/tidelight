@@ -5,8 +5,6 @@ import { renderCatalogContent, loadPackageEntries } from "../scripts/generate-de
 
 const root = new URL("../", import.meta.url);
 
-// Node cannot directly import the generated TypeScript module; load the validated
-// source entries from the same manifest reader used to produce it.
 const entries = await loadPackageEntries();
 
 test("generated directory catalog stays byte-for-byte aligned with source metadata", async () => {

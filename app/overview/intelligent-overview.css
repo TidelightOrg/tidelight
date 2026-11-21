@@ -16,7 +16,6 @@
 @media(prefers-reduced-motion:reduce){.intelligent-overview *,.intelligence-activity *{scroll-behavior:auto!important;animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important}}
 
 
-/* A single aligned checkpoint ledger for completed research runs. */
 .iu-activity-card>p{display:none}
 .iu-stage-track{grid-template-columns:1fr;gap:0;overflow:hidden;margin-top:12px;border:1px solid var(--line);border-radius:14px;background:var(--panel)}
 .iu-stage{padding:0 14px;border:0;border-bottom:1px solid var(--line-soft);border-radius:0;background:transparent}
@@ -25,7 +24,6 @@
 .iu-stage-complete{background:linear-gradient(90deg,color-mix(in srgb,var(--iu-positive) 5%,var(--panel)),var(--panel) 76%)}
 .iu-stage-blocked{background:linear-gradient(90deg,color-mix(in srgb,var(--amber) 6%,var(--panel)),var(--panel) 76%)}
 
-/* Keep overview labels readable when a phone requests desktop-site layout. */
 .intelligent-overview .iu-eyebrow,
 .intelligent-overview .iu-kicker { font-size: 10px; }
 .intelligent-overview .iu-mode-chip,

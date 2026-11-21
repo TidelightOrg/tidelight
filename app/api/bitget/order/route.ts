@@ -20,7 +20,6 @@ export async function POST(request: Request) {
   try {
     const credentials = await getBitgetCredentials(user.id);
     if (!credentials) return NextResponse.json({ error: "Connect and verify a Bitget account first." }, { status: 409 });
-    // Demo orders are Bitget virtual-funds orders (paptrading). They stay outside this switch.
     if (credentials.mode === "live" && !isLiveOrderExecutionEnabled()) {
       const { error: blockedAuditError } = await supabase.from("security_events").insert({
         user_id: user.id,

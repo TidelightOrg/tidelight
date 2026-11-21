@@ -44,8 +44,6 @@ export async function GET(_request: Request, { params }: { params: Promise<{ han
       if (error) throw error;
       saved = await fetchPosts(db, (data ?? []).map(x => x.post_id));
     }
-    // The RPC checks current opt-in atomically and only returns aggregate counts.
-    // No privileged row data is queried or serialized by this endpoint.
     let studioStats: unknown = null;
     if (profile.show_studio_stats === true) {
       const { data, error } = await createAdminClient().rpc("community_public_studio_stats", { p_profile_id: profile.id });

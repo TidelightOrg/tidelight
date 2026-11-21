@@ -36,9 +36,6 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Secure key storage is not configured for this deployment. No credentials were saved." }, { status: 503 });
   }
   try {
-    // This endpoint requires trade READ, the permission relevant to the spot desk.
-    // The account-assets endpoint requires a separate management permission and
-    // rejects otherwise usable dedicated trading keys.
     await bitgetPrivateRequest({ apiKey, apiSecret, passphrase, mode }, "GET", "/api/v3/trade/unfilled-orders?category=SPOT");
     const admin = createAdminClient();
     const record = {

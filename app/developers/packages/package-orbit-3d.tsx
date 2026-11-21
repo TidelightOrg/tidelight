@@ -18,8 +18,6 @@ export function PackageOrbit3D({ motionTargetSelector = ".tic-package-constellat
     camera.position.set(0, 0, 8.5);
     let renderer: THREE.WebGLRenderer;
     try {
-      // Probe WebGL2 first so unsupported browsers keep the static constellation
-      // without Three.js emitting a renderer initialization error.
       const canvas = document.createElement("canvas");
       const context = canvas.getContext("webgl2", { alpha: true, antialias: true, powerPreference: "low-power" });
       if (!context) return;
@@ -130,7 +128,6 @@ export function PackageOrbit3D({ motionTargetSelector = ".tic-package-constellat
     const startAnimation = () => {
       if (!frame && inView && !document.hidden && !reduceMotion.matches) render();
     };
-    // Paint a still frame immediately; animation starts only while visible.
     renderer.render(scene, camera);
     const onMotion = () => {
       if (frame) window.cancelAnimationFrame(frame);

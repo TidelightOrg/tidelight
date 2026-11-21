@@ -2,8 +2,6 @@
 :root[data-theme="white"] .privacy-links a { color: #286a4d; }
 :root[data-theme="white"] .sidebar-promo a { font-weight: 600; }
 
-/* Keep the navigation as the flexible, scrollable region on short desktop
-   viewports so the research promo and account controls never get clipped. */
 @media (min-width: 781px) {
   .sidebar { min-height: 0; overflow: hidden; }
   .nav-list {
@@ -29,7 +27,6 @@
   .data-status { margin-bottom: 8px; padding-top: 9px; padding-bottom: 9px; }
 }
 
-/* Overview market cards keep full quote context while the chart stays quiet. */
 .company-card { min-height: 254px; padding: 14px 15px 12px; }
 .company-card-top { margin-bottom: 8px; }
 .company-card-price { margin-top: 9px; }
@@ -74,7 +71,6 @@
 :root[data-theme="white"] .connection-row > b { color: #286a4d; }
 
 
-/* Profile imagery and compact mobile brand rail */
 .avatar{overflow:hidden;flex:none;border:1px solid color-mix(in srgb,var(--brand-teal) 28%,var(--line));box-shadow:0 0 12px color-mix(in srgb,var(--brand-teal) 13%,transparent)}
 .avatar>img{display:block;width:100%;height:100%;object-fit:cover;border-radius:inherit}
 .mobile-profile-avatar{display:grid;place-items:center;flex:0 0 30px;width:30px;height:30px;overflow:hidden;border:1px solid color-mix(in srgb,var(--brand-teal) 36%,var(--line));border-radius:50%;background:linear-gradient(145deg,color-mix(in srgb,var(--brand-teal) 24%,var(--panel)),var(--panel-2));color:var(--brand-aqua);font:600 10px var(--mono);box-shadow:0 0 13px color-mix(in srgb,var(--brand-teal) 16%,transparent)}
@@ -122,7 +118,6 @@
 }
 
 
-/* Make Mini/Pro state unmistakable and apply it to the mobile workspace drawer. */
 .app-shell[data-experience="mini"] .mobile-drawer-link[data-technical="true"],
 .app-shell[data-experience="mini"] .nav-link[data-technical="true"]{display:none!important}
 .app-shell[data-experience] .experience-switch button{min-height:26px;padding:5px 8px;transition:background .16s,color .16s,box-shadow .16s}
@@ -135,7 +130,6 @@
 }
 
 
-/* Straight, legible masthead with a Tidelight-lit story typewriter. */
 .main-area > .topbar{isolation:isolate;clip-path:none;border-radius:0 0 12px 12px}
 .main-area > .topbar::after{content:none}
 .main-area > .topbar>*{position:relative;z-index:1}
@@ -147,7 +141,6 @@
 @media(max-width:420px){.main-area>.topbar{padding-right:21px!important}.mobile-brand-story{padding-right:10px!important}}
 @media(prefers-reduced-motion:reduce){.mobile-brand-story .brand-story-copy::after{animation:none;opacity:1}}
 
-/* Liquid glass for interface chrome: keep content panels opaque and calm. */
 .topbar,
 .mobile-nav,
 .mobile-workspace-drawer,
@@ -275,7 +268,6 @@
   .app-shell .station-heading { padding: 14px; border-radius: 15px; }
 }
 
-/* Keep the public masthead pinned while letting the page move beneath it. */
 .landing-page {
   overflow-x: clip;
   overflow-y: visible;
@@ -298,7 +290,6 @@
 }
 
 
-/* A movable helper should read as glass, with the page still visible through it. */
 .product-quick-actions {
   background: color-mix(in srgb, var(--panel) 38%, transparent) !important;
   -webkit-backdrop-filter: blur(11px) saturate(140%) !important;
@@ -333,8 +324,6 @@
 }
 
 
-
-/* Shared workspace typography and card treatment. Status borders retain their semantic colours. */
 .app-shell :is(.flow-hero,.nw-hero,.futures-hero,.markets-hero,.strategy-hero,.hero-card) {
   border-color:var(--line);
   border-radius:var(--radius-card);
@@ -402,7 +391,6 @@
 .company-chart-caption { margin:0 0 2px; color:var(--faint); font:5px var(--mono); letter-spacing:.06em; text-align:right; }
 @media (max-width:780px) { .company-chart-caption { font-size:4.5px; } }
 
-/* Shared glass treatment for dense workspace panels and account settings. */
 .app-shell .station-panel {
   border-color:color-mix(in srgb,var(--brand-teal) 16%,var(--line));
   background:radial-gradient(ellipse at 8% 0%,color-mix(in srgb,var(--brand-teal) 5%,transparent),transparent 48%),linear-gradient(145deg,color-mix(in srgb,var(--panel) 97%,var(--brand-teal) 3%),var(--panel));
@@ -462,7 +450,6 @@
 }
 
 
-/* Match the reference's recognizable sun, device, and moon controls. */
 .theme-quick-option .theme-quick-icon {
   width: 14px;
   height: 14px;
@@ -493,7 +480,6 @@
 }
 .theme-option-copy small { display: block; margin-top: 3px; color: var(--muted); font-size: 11px; }
 
-/* Keep small but meaningful workspace text readable in the white theme. */
 :root[data-theme="white"] :is(.workspace-label, .eyebrow, .small-eyebrow) { color: #58675d; }
 :root[data-theme="white"] .page-footer { color: #58675d; }
 :root[data-theme="white"] .page-footer a { color: #46584d; }

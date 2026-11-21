@@ -4,7 +4,6 @@ const NIGHTWATCH_SYMBOL = /^[A-Z0-9]{2,24}USDT$/;
 const TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(?:\.\d{1,9})?(?:Z|[+-]\d{2}:\d{2})$/;
 const LINK_LIMIT = 50;
 
-/** A linked read failed. Callers must not present that as an empty record. */
 export class DecisionRecordUnavailable extends Error {
   constructor() {
     super("decision-record-unavailable");
@@ -12,10 +11,8 @@ export class DecisionRecordUnavailable extends Error {
   }
 }
 
-/** One row, or a page of rows, from a user-scoped or capsule read. */
 export type DecisionRecordResult = { data: unknown; error: { message: string; code?: string } | null };
 
-/** Query methods the resolver calls. Production passes a Supabase client. */
 export type DecisionRecordQuery = {
   select(columns: string): DecisionRecordQuery;
   eq(column: string, value: string): DecisionRecordQuery;
@@ -27,16 +24,11 @@ export type DecisionRecordQuery = {
   maybeSingle(): Promise<DecisionRecordResult>;
 };
 
-/** Signed-in client for owner tables. Capsule reads use the server role because authenticated has no table grant. */
 export type DecisionRecordClient = { from(table: string): DecisionRecordQuery };
 
-/** Research run fields shown on the record. The id is the continuity key. */
 export type DecisionRecordResearchRun = { id: string; question: string; status: string; createdAt: string };
-/** Capsule id and time. The snapshot stays on the capsule row. */
 export type DecisionRecordCapsule = { id: string; createdAt: string };
-/** Market stored on a strategy backtest. */
 export type DecisionRecordMarket = "SPOT" | "USDT-FUTURES";
-/** Strategy backtest identity, including the saved market. */
 export type DecisionRecordBacktest = {
   id: string;
   strategyKey: string;
@@ -57,28 +49,18 @@ export type DecisionRecordBacktest = {
   slippageBpsPerSide: number | null;
   funding: "excluded" | "not_applicable" | null;
 };
-/** Nightwatch schedule identity. */
 export type DecisionRecordSchedule = { id: string; label: string; symbol: string; playbookKey: string; enabled: boolean };
-/** Paper decision identity. The outcome is the recorded action. */
 export type DecisionRecordPaperDecision = { id: string; symbol: string; signal: string; outcome: string; createdAt: string };
-/** Owner-scoped source citation. Excerpts and query strings are deliberately omitted. */
 export type DecisionRecordSource = { id: string; title: string; publisher: string | null; sourceType: "web" | "market_data" | "filing" | "user_note"; href: string | null; publishedAt: string | null; retrievedAt: string };
-/** Owner-scoped claim summary. Supporting quotes are deliberately omitted. */
 export type DecisionRecordEvidence = { id: string; sourceId: string | null; source: { id: string; title: string; publisher: string | null; href: string | null } | null; claim: string; stance: "supports" | "contradicts" | "context"; confidence: number | null; createdAt: string };
-/** Bounded identity trace projected from the existing saved evidence graph. */
 export type DecisionRecordExposure = { id: string; ticker: string; name: string; subjectType: "issuer" | "macro_topic" };
 export type DecisionRecordInstrument = { id: string; symbol: string; marketType: "reality_tokenized_spot" | "us_stock_perpetual" };
 export type DecisionRecordGraph = { eventId: string; asOf: string; subjects: DecisionRecordExposure[]; instruments: DecisionRecordInstrument[] };
-/** One page of linked rows. `earlier` is the cursor for the next older page. */
 export type DecisionRecordList<T> = { items: T[]; earlier: string | null };
-/** Optional cursors. Each linked list pages on its own. */
 export type DecisionRecordWindow = { strategiesBefore?: string | null; schedulesBefore?: string | null; decisionsBefore?: string | null; sourcesBefore?: string | null; evidenceBefore?: string | null; publicReplaysBefore?: string | null };
-/** Existing public link metadata only. The replay payload is deliberately never selected. */
 export type DecisionRecordPublicReplay = { id: string; createdAt: string; expiresAt: string; status: "active" | "expired" | "revoked" };
-/** Owner's existing Nightwatch settings linked to this research run. */
 export type DecisionRecordNightwatchPreferences = { triggerMode: "manual" | "every_check"; symbol: string | null; playbookKey: string; alertOnSignal: boolean; alertOnFill: boolean };
 
-/** Owner-scoped references. The stable id is the research run while that run exists. */
 export type DecisionRecord = {
   schemaVersion: 1;
   id: string;
@@ -97,7 +79,6 @@ export type DecisionRecord = {
 
 type DecisionRecordRead = { userId: string; user: DecisionRecordClient; capsules: DecisionRecordClient };
 
-/** Read-only links into the existing desks. Invalid symbols are not linked. */
 export const decisionRecordHref = {
   capsule(id: string) {
     return UUID.test(id) ? `/api/decision-capsules/${id}` : null;
@@ -391,14 +372,12 @@ async function linked(read: DecisionRecordRead, researchRunId: string, saved: De
   };
 }
 
-/** Accept only an ISO timestamp cursor. Any other value is ignored. */
 export function decisionRecordCompositeCursor(value: string | string[] | undefined): string | null {
   if (typeof value !== "string" || !value) return null;
   const [timestamp, id, extra] = value.split("~");
   return TIMESTAMP.test(timestamp ?? "") && UUID.test(id ?? "") && extra === undefined ? value : null;
 }
 
-/** Next older page of one list, keeping the other lists' cursors. */
 export function decisionRecordEarlierHref(id: string, cursors: DecisionRecordWindow, key: keyof DecisionRecordWindow, earlier: string) {
   const params = new URLSearchParams();
   for (const [name, value] of Object.entries({ ...cursors, [key]: earlier })) {
@@ -407,7 +386,6 @@ export function decisionRecordEarlierHref(id: string, cursors: DecisionRecordWin
   return `/decisions/${id}?${params.toString()}`;
 }
 
-/** Read this owner's research, capsule, strategy, and Nightwatch ids. Does not copy snapshots or write. Returns null when this owner cannot see the id. */
 export async function resolveDecisionRecord(read: DecisionRecordRead, id: string, window: DecisionRecordWindow = {}): Promise<DecisionRecord | null> {
   if (!UUID.test(id)) return null;
   const runRow = await single(read.user.from("research_runs").select("id,question,status,created_at,evidence_graph:summary->evidenceGraph").eq("id", id).eq("user_id", read.userId));

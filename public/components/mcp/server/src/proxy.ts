@@ -24,11 +24,6 @@ export function validateTidelightMcpProxyOptions(options: TidelightMcpProxyOptio
   return { apiKey: options.apiKey, endpoint, fetch: options.fetch ?? globalThis.fetch };
 }
 
-/**
- * Create a local stdio-compatible MCP server which forwards discovery and tool
- * calls to Tidelight's hosted MCP service. Authorization and scopes stay on the
- * hosted service; this adapter does not duplicate Tidelight business logic.
- */
 export async function createTidelightMcpProxy(options: TidelightMcpProxyOptions) {
   const config = validateTidelightMcpProxyOptions(options);
   const remoteClient = new Client({ name: "tidelight-mcp-stdio-proxy", version: "0.1.0" });

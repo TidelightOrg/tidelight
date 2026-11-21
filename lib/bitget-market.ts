@@ -64,9 +64,7 @@ export type MarketAsset = {
   volume24h: number | null;
   turnover24h: number | null;
   providerTimestamp: number | null;
-  /** Server receipt time for the current provider observation, in epoch milliseconds. */
   receivedAt?: number;
-  /** Exact provider status when present; null means the catalog omitted it. */
   instrumentStatus?: string | null;
   logoUrl: string | null;
 };
@@ -76,7 +74,6 @@ export type AlphaMarketCategory = "SPOT" | "USDT-FUTURES";
 export const STOCK_PERP_UNIVERSE = ["NVDAUSDT", "AMDUSDT", "MSFTUSDT", "AAPLUSDT", "METAUSDT", "AMZNUSDT", "GOOGLUSDT", "TSLAUSDT", "INTCUSDT", "ASMLUSDT", "QCOMUSDT", "MUUSDT", "MSTRUSDT", "CRCLUSDT", "QQQUSDT", "ACNUSDT", "RDDTUSDT", "PLTRUSDT", "HOODUSDT", "UNHUSDT", "LLYUSDT", "FUTUUSDT", "APPUSDT", "ORCLUSDT", "BABAUSDT", "MRVLUSDT", "ARMUSDT", "PEPUSDT", "GMEUSDT", "MAUSDT", "JDUSDT", "IBMUSDT", "CSCOUSDT", "MCDUSDT", "GEUSDT"] as const;
 export type MarketCandle = {
   timestamp: number;
-  /** Bitget response clock when the provider supplies it. */
   providerTimestamp?: number | null;
   open: number;
   high: number;
@@ -177,8 +174,6 @@ function getLogo(baseCoin: string, underlyingTicker: string | null, isReality: b
   if (underlyingTicker && companyDomains[underlyingTicker]) {
     return `https://www.google.com/s2/favicons?domain=${companyDomains[underlyingTicker]}&sz=128`;
   }
-  // Ticker logos preserve issuer branding when a company domain is not in our
-  // curated map. Do not send token contract/base symbols to a coin logo service.
   if (isReality && underlyingTicker && /^[A-Z][A-Z0-9.\-]{0,9}$/.test(underlyingTicker)) {
     return `https://img.loadlogo.com/ticker/${encodeURIComponent(underlyingTicker)}?size=128&format=webp`;
   }
@@ -255,8 +250,6 @@ export async function getBitgetMarketUniverse() {
       }];
     })
     .sort((left, right) => Number(right.isReality) - Number(left.isReality) || (right.turnover24h ?? 0) - (left.turnover24h ?? 0));
-  // Keep the live quote count distinct from Bitget's instrument catalog. A
-  // listed pair can be temporarily offline or lack a valid current ticker.
   const usdtSpotListings = instruments.filter((instrument) => instrument.category === "SPOT" && instrument.quoteCoin === "USDT");
   const listedRealityTokens = usdtSpotListings.filter((instrument) => instrument.isReality?.toLowerCase() === "yes");
   const liveRealityCount = assets.filter((asset) => asset.isReality).length;
@@ -328,7 +321,6 @@ export async function getBitgetAsset(symbol: string): Promise<MarketAsset | null
   };
 }
 
-/** Latest actual Bitget public fill; ticker `ts` only marks ticker generation time. */
 export async function getBitgetRealityTradeQuote(symbol: string): Promise<BitgetTradeQuote | null> {
   if (!/^[A-Z0-9]{2,24}USDT$/.test(symbol)) return null;
   const query = new URLSearchParams({ category: "SPOT", symbol, limit: "100" });
@@ -343,7 +335,6 @@ export async function getBitgetRealityTradeQuote(symbol: string): Promise<Bitget
   return latest;
 }
 
-/** Futures are a separate verified US-stock contract universe, never inferred from an rToken prefix. */
 export async function getBitgetStockPerp(symbol: string): Promise<MarketAsset | null> {
   if (!(STOCK_PERP_UNIVERSE as readonly string[]).includes(symbol)) return null;
   const query = new URLSearchParams({ category: "USDT-FUTURES", symbol });

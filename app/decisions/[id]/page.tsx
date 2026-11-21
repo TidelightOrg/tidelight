@@ -24,7 +24,6 @@ export default async function DecisionRecordPage({ params, searchParams }: { par
 
   let records: DecisionRecordClient;
   try {
-    // The cookie client reaches PostgREST as anon when the server session is absent. anon has no select grant, so the read is permission denied. The service role is the same boundary the research desk already uses, and every query still filters user_id.
     records = createAdminClient() as unknown as DecisionRecordClient;
   } catch (error) {
     console.error("Decision record client unavailable", error instanceof Error ? error.message : "unknown");

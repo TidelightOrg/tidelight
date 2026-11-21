@@ -9,7 +9,6 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-
 const MAX_SOURCES = 90;
 const MAX_EVIDENCE = 500;
 
-/** Return a bounded, owner-scoped provenance graph for an eligible saved brief. */
 export async function GET(_request: Request, { params }: { params: Promise<{ runId: string }> }) {
  try {
   const auth = await getServerAuthState();

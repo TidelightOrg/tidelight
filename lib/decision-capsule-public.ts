@@ -18,7 +18,6 @@ function exactKeys(value: Record<string, unknown>, allowed: string[], required =
   return Object.keys(value).every(key => allowed.includes(key)) && required.every(key => Object.hasOwn(value, key));
 }
 
-/** New projections record this version. Policy 2 stays frozen so stored copies keep their original rules. */
 const CURRENT_URL_POLICY_VERSION = 3;
 
 function safeHttps(value: unknown, policyVersion = 2): string | null {
@@ -102,7 +101,6 @@ function publicResearchSummary(value: unknown): JsonValue {
   return summary;
 }
 
-/** Builds a public allowlist projection; private owner, run, source and event-storage IDs are excluded. */
 export function buildPublicCapsuleSnapshot(input: {
   originalSnapshot: unknown;
   capsuleIntegrityHash: string;
@@ -217,7 +215,6 @@ export function buildPublicCapsuleSnapshot(input: {
   return projection;
 }
 
-/** Verifies the disclosed projection and its re-keyed public event chain without exposing storage IDs. */
 export function verifyPublicCapsuleSnapshot(value: unknown): boolean {
   const snapshot = record(value);
   const urlPolicyVersion = snapshot?.urlPolicyVersion === undefined ? 1 : snapshot.urlPolicyVersion;
@@ -312,7 +309,6 @@ export function capsuleHistoryHead(capsuleIntegrityHash: string, events: Capsule
   const lastEvent = events.at(-1);
   return lastEvent ? { sequence: lastEvent.sequence, hash: lastEvent.integrityHash } : { sequence: 0, hash: capsuleIntegrityHash };
 }
-/** Bind owner confirmation to disclosed bytes and the private history head, even if events stay private. */
 export function capsulePublicationConfirmationHash(publicSnapshot: unknown, historyHead: { sequence: number; hash: string }) {
   return capsulePublicationHash({ publicSnapshot, historyHead });
 }

@@ -84,7 +84,6 @@ function matchesPeriod(item: MacroEvidence, question: string, now: number) {
   if (monthMatches && yearMatches) return true;
   const pubDate = new Date(published);
   if (period.day && pubDate.getUTCFullYear() === Number(period.year) && pubDate.getUTCMonth() === monthIndex[period.month] && pubDate.getUTCDate() === period.day) return true;
-  // Allow a named release month and its publication in the following month (e.g. August CPI released in September).
   const targetMonth = new Date(Date.UTC(Number(period.year), monthIndex[period.month], 1));
   const targetIndex = Number(period.year) * 12 + targetMonth.getUTCMonth();
   const publishedIndex = pubDate.getUTCFullYear() * 12 + pubDate.getUTCMonth();
@@ -124,7 +123,6 @@ async function readFeed(url: URL): Promise<Array<{ item: string; title: string; 
     const location = response.headers.get("location");
     if (!location) return [];
     const next = new URL(location, current);
-    // Keep the feed fetch on its original trusted search provider and bound redirect hops.
     if (next.protocol !== "https:" || next.hostname !== url.hostname) return [];
     current = next;
   }
@@ -143,7 +141,6 @@ async function readFeed(url: URL): Promise<Array<{ item: string; title: string; 
   });
 }
 
-/** Bounded public-feed discovery for macro questions; only official Fed/BLS and named publishers are admitted. */
 export async function gatherMacroEvidence(question: string, onOmittedUrl?: () => void): Promise<MacroEvidence[]> {
   const topic = classifyMacroQuestion(question);
   if (!topic) return [];

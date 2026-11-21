@@ -1,4 +1,3 @@
-/** A basket comparison is causal only when all markets share one holdout window. */
 export function hasAlignedHoldout(runs: Array<{
   train: { equityCurve: Array<{ timestamp: number }> };
   test: { equityCurve: Array<{ timestamp: number }> };

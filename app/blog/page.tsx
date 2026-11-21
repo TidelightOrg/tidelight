@@ -16,7 +16,7 @@ export const dynamic = "force-dynamic";
 
 export default async function BlogHome() {
   let published: typeof articles = [];
-  try { published = await getPublishedBlogArticles(); } catch { /* Built-in articles remain available if the editorial store is unavailable. */ }
+  try { published = await getPublishedBlogArticles(); } catch { }
   const allArticles = [...published, ...articles.filter(article => !published.some(item => item.slug === article.slug))];
   const [featured, ...latest] = allArticles;
   if (!featured) return <main className="tl-blog"><nav className="tl-blog-nav" aria-label="Main navigation"><Link href="https://tidelight.app" className="tl-blog-brand"><Image src="/tidelight-mark.svg" alt="" width={30} height={30}/><span>Tidelight</span><i/>Field Notes</Link></nav><section className="tl-blog-hero"><div className="tl-blog-hero-copy"><p className="tl-blog-eyebrow"><span/> NOTES FROM THE ECOSYSTEM</p><h1>Ideas for a clearer<br/><em>view of the signal.</em></h1><p className="tl-blog-intro">New stories are on the way.</p></div></section></main>;

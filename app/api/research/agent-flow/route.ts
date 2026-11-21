@@ -26,7 +26,6 @@ type MarketSnapshot = { ticker: string; issuer: string; sources: FlowEvidence[];
 function secFactExcerpt(fact: ResearchFact) {
   return `${fact.label}: ${fact.value} ${fact.unit}; period ended ${fact.periodEnd}; filed ${fact.filedAt} (${fact.form}).`;
 }
-// Keep the model's facts inside the graph passage and persisted source bounds.
 function boundedSecFacts(facts: ResearchFact[]): ResearchFact[] {
   const selected: ResearchFact[] = [];
   let length = 0;
@@ -120,10 +119,8 @@ export async function GET(request: Request) {
   return NextResponse.json({ summary }, { headers: { "Cache-Control": "private, no-store" } });
 }
 
-/** Starts an authenticated research run and streams progress until its private result is saved. */
 export async function POST(request: Request) {
   const requestId = readRequestCorrelationId(request);
-  // Reserve time for the final gates and private record commit under maxDuration.
   const researchAsOf = new Date().toISOString();
   const analysisDeadline = Date.now() + 108_000;
   const auth = await getServerAuthState();
@@ -182,7 +179,6 @@ export async function POST(request: Request) {
   const macroTopic: MacroTopic | null = tickers.length ? null : classifyMacroQuestion(question);
   if (monitor && (!tickers.includes(monitor.ticker) || macroTopic)) return NextResponse.json({ error: `Name ${monitor.ticker} in the company research question for this monitor.` }, { status: 422 });
   if (!tickers.length && !macroTopic) return NextResponse.json({ error: "Name a supported US stock, or ask about a dated FOMC, CPI, or employment release." }, { status: 422 });
-  // Validate scope and account-owned context before consuming anonymous capacity.
   if (guest) {
     const secret = process.env.CRON_SECRET;
     if (!secret) return NextResponse.json({ error: "Public research is temporarily unavailable." }, { status: 503 });
@@ -209,7 +205,7 @@ export async function POST(request: Request) {
     async start(controller) {
       const push = (type: "stage" | "result" | "error", payload: unknown) => {
         if (request.signal.aborted) return;
-        try { controller.enqueue(encoder.encode(event(type, payload))); } catch { /* Reader disconnected. Finish the private record. */ }
+        try { controller.enqueue(encoder.encode(event(type, payload))); } catch { }
       };
       const stage = (agent: string, status: Stage["status"], title: string, detail: string, asset?: string) => {
         const activeIndex = trace.findIndex(item => item.agent === agent && (item.asset ?? "") === (asset ?? "") && item.status === "running");
@@ -284,8 +280,6 @@ export async function POST(request: Request) {
         const oversizedIssuerLinks = new Map<string, number>();
         const snapshots: MarketSnapshot[] = await Promise.all(tickers.map(async ticker => {
           const symbol = `${ticker}USDT`;
-          // Bound each independent provider call so one stalled feed cannot consume the
-          // function's full execution window or prevent a source-only research result.
           const [perp, spot, candles, sources, agentKeyResearch, sec] = await Promise.allSettled([
             settleWithin(getBitgetStockPerp(symbol), 18_000),
             tokenizedMarketQuestion ? settleWithin(getBitgetAsset(`R${ticker}USDT`), 18_000) : Promise.resolve(null),
@@ -379,10 +373,7 @@ export async function POST(request: Request) {
           const assessment = assessments[snap.ticker] ?? sourceOnlyRead(snap, tokenizedMarketQuestion);
           let completed: MarketSnapshot["candles"] = [];
           try { if (snap.perp) completed = prepareBacktestCandles(snap.candles, "4H", now); }
-          catch { /* Malformed candles keep this asset's trading gate closed. */ }
-          // Keep a bounded, digest-checked provider snapshot in the owner's saved research
-          // record. Public replay publishing has an explicit allowlist and omits this private
-          // observation until redistribution rights are confirmed.
+          catch { }
           const marketObservation = snap.perp ? createBacktestMarketObservation({ asset: snap.perp, candles: completed, interval: "4H", capturedAt: now }) : null;
           const signals = completed.length >= 60 ? buildSignals(completed, "sma_trend_v1") : [];
           const latestEnd = completed.length ? completed.at(-1)!.timestamp + 4 * 3_600_000 : null;

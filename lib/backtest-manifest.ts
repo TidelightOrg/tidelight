@@ -69,7 +69,6 @@ type ManifestInput = {
   sourceRevision: string | null;
 };
 
-/** Convert candles into the stable OHLCV field order used by dataset fingerprints. */
 function canonicalRows(candles: MarketCandle[]) {
   return candles.map((candle) => [
     candle.timestamp,
@@ -82,7 +81,6 @@ function canonicalRows(candles: MarketCandle[]) {
   ]);
 }
 
-/** Serialize plain JSON values with sorted object keys for reproducible digests. */
 function stableJson(value: unknown): string {
   if (Array.isArray(value)) return `[${value.map(stableJson).join(",")}]`;
   if (value && typeof value === "object") {
@@ -92,12 +90,10 @@ function stableJson(value: unknown): string {
   return JSON.stringify(value) ?? "null";
 }
 
-/** Return the SHA-256 fingerprint for an ordered set of archived OHLCV candles. */
 export function fingerprintBacktestCandles(candles: MarketCandle[]) {
   return createHash("sha256").update(JSON.stringify(canonicalRows(candles))).digest("hex");
 }
 
-/** Capture provider-returned market context alongside the private run, without expanding the public replay manifest. */
 export function createBacktestMarketObservation(input: { asset: MarketAsset; candles: MarketCandle[]; interval: CandleInterval; capturedAt: number }) {
   const asset = input.asset;
   const intervalDuration = input.interval === "15m" ? 15 * 60_000 : input.interval === "1H" ? 60 * 60_000 : input.interval === "4H" ? 4 * 60 * 60_000 : 24 * 60 * 60_000;
@@ -129,7 +125,6 @@ export function createBacktestMarketObservation(input: { asset: MarketAsset; can
   return { observation, digest: createHash("sha256").update(stableJson(observation)).digest("hex") };
 }
 
-/** Validate the bounded private observation snapshot and its canonical digest before rendering it. */
 export function verifyBacktestMarketObservation(value: unknown, digest: unknown, candles?: MarketCandle[]): value is BacktestMarketObservation {
   const observation = value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
   if (!observation || typeof digest !== "string" || !/^[0-9a-f]{64}$/i.test(digest)) return false;
@@ -167,12 +162,10 @@ export function verifyBacktestMarketObservation(value: unknown, digest: unknown,
   catch { return false; }
 }
 
-/** Hash the manifest fields that precede its integrity record. */
 function digestManifest(manifest: Omit<BacktestExperimentManifest, "integrity">) {
   return createHash("sha256").update(stableJson(manifest)).digest("hex");
 }
 
-/** Capture the strategy, market, holdout split, costs, and dataset provenance for one run. */
 export function createBacktestExperimentManifest(input: ManifestInput): BacktestExperimentManifest {
   if (input.candles.length < 2 || input.splitIndex < 1 || input.splitIndex >= input.candles.length) throw new Error("The experiment manifest needs a valid training and holdout split.");
   if (!Number.isSafeInteger(input.capturedAt) || input.capturedAt <= 0) throw new Error("The experiment capture time is invalid.");
@@ -210,7 +203,6 @@ export function createBacktestExperimentManifest(input: ManifestInput): Backtest
   return { ...manifest, integrity: { algorithm: "SHA-256", manifestDigest: digestManifest(manifest) } };
 }
 
-/** Verify candle validity, dataset identity, manifest assumptions, and digest before replay publication. */
 export function verifyBacktestExperimentManifest(value: unknown, candles: MarketCandle[]): value is BacktestExperimentManifest {
   if (!value || typeof value !== "object" || Array.isArray(value) || candles.length < 2 || candles.length > 1000) return false;
   for (let index = 0; index < candles.length; index += 1) {
@@ -244,7 +236,6 @@ export function verifyBacktestExperimentManifest(value: unknown, candles: Market
   catch { return false; }
 }
 
-/** Confirm a verified manifest still describes the persisted run row and its execution assumptions. */
 export function backtestManifestMatchesRun(
   row: Record<string, unknown>,
   parameters: Record<string, unknown>,

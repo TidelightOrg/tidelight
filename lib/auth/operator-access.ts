@@ -17,7 +17,6 @@ export function isTidelightOperatorEmail(value: string | null | undefined): bool
   return OPERATOR_EMAILS.has(email) || email.endsWith("@tidelight.app");
 }
 
-/** Use only a Supabase Auth user returned by getUser() on the server. */
 export function isTidelightOperator(user: OperatorIdentity | null | undefined): boolean {
   if (!user) return false;
 
