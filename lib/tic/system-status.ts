@@ -32,7 +32,8 @@ async function checkDatabase(): Promise<StatusService> {
   try {
     const admin = createAdminClient();
     const { error } = await admin.from("developer_api_keys").select("id").limit(1);
-    return { name: "Application database", state: error ? "degraded" : "operational", detail: error ? "Database query failed." : "Read-only query succeeded.", href: "https://supabase.com" };
+    const errorCode = error && typeof error.code === "string" && /^[A-Z0-9_-]{1,24}$/.test(error.code) ? ` (${error.code})` : "";
+    return { name: "Application database", state: error ? "degraded" : "operational", detail: error ? `Database query failed${errorCode}.` : "Read-only query succeeded.", href: "https://supabase.com" };
   } catch {
     return { name: "Application database", state: "degraded", detail: "Database connection failed.", href: "https://supabase.com" };
   }
