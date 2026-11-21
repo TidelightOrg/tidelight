@@ -20,8 +20,8 @@ export function safeSupabaseFailureCode(error: unknown): string {
       if (/\b(fetch failed|failed to fetch|network request failed)\b/i.test(candidate.message)) return "FETCH_FAILED";
       if (/\b(timeout|timed out)\b/i.test(candidate.message)) return "TIMEOUT";
       if (candidate.message) {
-        if (/\\bHeaders\\.set:.*invalid header value/i.test(candidate.message)) return "INVALID_HEADER_VALUE";
-        const messageType = candidate.message.trim().split(/\\s+/, 1)[0].replace(/[^A-Za-z0-9]/g, "").slice(0, 24).toUpperCase();
+        if (/\bHeaders\.set:.*invalid header value/i.test(candidate.message)) return "INVALID_HEADER_VALUE";
+        const messageType = candidate.message.trim().split(/\s+/, 1)[0].replace(/[^A-Za-z0-9]/g, "").slice(0, 24).toUpperCase();
         fallback = messageType ? `MESSAGE_${messageType}` : "MESSAGE_OTHER";
       }
     }
