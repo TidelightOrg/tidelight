@@ -32,9 +32,9 @@ async function handleStatusCheck(request: Request) {
   let admin: ReturnType<typeof createAdminClient>;
   try { admin = createAdminClient(); }
   catch { return NextResponse.json({ error: "The webhook worker is not configured." }, { status: 503, headers: { "Cache-Control": "no-store" } }); }
-  const { data, error } = await admin.rpc("claim_tic_webhook_deliveries", { p_limit: 3 });
+  const { data, error, status } = await admin.rpc("claim_tic_webhook_deliveries", { p_limit: 3 });
   if (error) {
-    const errorStatusValue = error && (error as unknown as { status?: unknown }).status;
+    const errorStatusValue = status;
     const errorStatus = typeof errorStatusValue === "number" && Number.isInteger(errorStatusValue) && errorStatusValue >= 0 && errorStatusValue <= 999 ? errorStatusValue : "unknown";
     const errorCode = error && typeof error.code === "string" && /^[A-Z0-9_-]{1,24}$/.test(error.code) ? error.code : "unknown";
     console.error("tic-webhook-claim-failed", errorCode, errorStatus);
