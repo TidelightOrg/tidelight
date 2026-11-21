@@ -1,7 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { withStatusWorkerHeartbeat } from "@/lib/tic/worker-health";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClient, safeSupabaseFailureCode } from "@/lib/supabase/admin";
 import { sendSignedWebhook } from "@/lib/tic/webhook-security";
 
 export const dynamic = "force-dynamic";
@@ -36,7 +36,7 @@ async function handleStatusCheck(request: Request) {
   if (error) {
     const errorStatusValue = responseStatus;
     const errorStatus = typeof errorStatusValue === "number" && Number.isInteger(errorStatusValue) && errorStatusValue >= 0 && errorStatusValue <= 999 ? errorStatusValue : "unknown";
-    const errorCode = error && typeof error.code === "string" && /^[A-Z0-9_-]{1,24}$/.test(error.code) ? error.code : "unknown";
+    const errorCode = safeSupabaseFailureCode(error);
     console.error("tic-webhook-claim-failed", errorCode, errorStatus);
     return NextResponse.json({ error: "Webhook deliveries could not be claimed." }, { status: 503, headers: { "Cache-Control": "no-store" } });
   }
