@@ -15,11 +15,12 @@ export type SystemStatus = {
   history: StatusHistory;
 };
 
-function safeDatabaseErrorLabel(error: unknown): string {
+function safeDatabaseErrorLabel(error: unknown, responseStatus?: unknown): string {
   if (!error || typeof error !== "object") return "";
   const candidate = error as { code?: unknown; status?: unknown };
   if (typeof candidate.code === "string" && /^[A-Z0-9_-]{1,24}$/.test(candidate.code)) return ` (${candidate.code})`;
-  if (typeof candidate.status === "number" && Number.isInteger(candidate.status) && candidate.status >= 0 && candidate.status <= 999) return ` (HTTP ${candidate.status})`;
+  const status = typeof responseStatus === "number" ? responseStatus : candidate.status;
+  if (typeof status === "number" && Number.isInteger(status) && status >= 0 && status <= 999) return ` (HTTP ${status})`;
   return "";
 }
 
@@ -39,8 +40,8 @@ async function checkDatabase(): Promise<StatusService> {
   }
   try {
     const admin = createAdminClient();
-    const { error } = await admin.from("developer_api_keys").select("id").limit(1);
-    const errorLabel = safeDatabaseErrorLabel(error);
+    const { error, status } = await admin.from("developer_api_keys").select("id").limit(1);
+    const errorLabel = safeDatabaseErrorLabel(error, status);
     return { name: "Application database", state: error ? "degraded" : "operational", detail: error ? `Database query failed${errorLabel}.` : "Read-only query succeeded.", href: "https://supabase.com" };
   } catch {
     return { name: "Application database", state: "degraded", detail: "Database connection failed.", href: "https://supabase.com" };
@@ -81,15 +82,15 @@ export async function getStatusHistory(): Promise<StatusHistory> {
 async function checkBackgroundServices(): Promise<StatusService[]> {
   try {
     const admin = createAdminClient();
-    const { data, error } = await admin.rpc("get_tic_background_worker_status");
-    if (error || !Array.isArray(data)) throw error ?? new Error("invalid_worker_health");
+    const { data, error, status } = await admin.rpc("get_tic_background_worker_status");
+    if (error || !Array.isArray(data)) throw error ? Object.assign(error, { responseStatus: status }) : new Error("invalid_worker_health");
     return data.map((worker: { name: string; state: ServiceState; detail: string }) => ({
       name: worker.name,
       state: worker.state,
       detail: worker.detail,
     }));
   } catch (error) {
-    const errorLabel = safeDatabaseErrorLabel(error);
+    const errorLabel = safeDatabaseErrorLabel(error, error && typeof error === "object" ? (error as { responseStatus?: unknown }).responseStatus : undefined);
     return [
       { name: "Research job processing", state: "degraded", detail: `Scheduler health could not be read${errorLabel}.` },
       { name: "Scheduled paper analysis", state: "degraded", detail: `Scheduler health could not be read${errorLabel}.` },
