@@ -51,3 +51,6 @@
 .tic-key-filters>label:first-child{flex:1 1 260px}
 .tic-key-filters input{min-height:38px;padding:7px 10px;border:1px solid var(--tic-line);border-radius:8px;background:var(--tic-bg);color:var(--tic-text);font:inherit}
 .tic-key-filters input:focus-visible{outline:2px solid var(--tic-accent);outline-offset:2px}
+
+:root:is([data-theme="daylight"],[data-theme="white"]) .tic-console :is(.tic-console-quick-actions>a>span,.tic-console-quick-actions>button>span,.tic-console-section-head>button,.tic-request-status.is-ok){color:#176b5c}
+:root:is([data-theme="daylight"],[data-theme="white"]) .tic-console .tic-request-status:not(.is-ok){color:#8b4a22}
