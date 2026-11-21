@@ -8,8 +8,8 @@ export function safeSupabaseFailureCode(error: unknown): string {
     if (typeof candidate.code === "string" && /^[A-Z0-9_-]{1,24}$/.test(candidate.code)) return candidate.code;
     if (candidate.name === "TimeoutError" || candidate.name === "AbortError") return candidate.name;
     if (typeof candidate.message === "string") {
-      if (/\\b(fetch failed|failed to fetch|network request failed)\\b/i.test(candidate.message)) return "FETCH_FAILED";
-      if (/\\b(timeout|timed out)\\b/i.test(candidate.message)) return "TIMEOUT";
+      if (/\b(fetch failed|failed to fetch|network request failed)\b/i.test(candidate.message)) return "FETCH_FAILED";
+      if (/\b(timeout|timed out)\b/i.test(candidate.message)) return "TIMEOUT";
     }
     current = candidate.cause;
   }
