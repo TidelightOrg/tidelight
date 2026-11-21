@@ -27,7 +27,9 @@ async function handleStatusCheck(request: Request) {
   }
   const { data, error } = claim;
   if (error) {
-    console.error("tic-research-claim-failed", error.code);
+    const errorStatus = error && typeof (error as { status?: unknown }).status === "number" ? (error as { status: number }).status : "unknown";
+    const errorCode = error && typeof error.code === "string" && /^[A-Z0-9_-]{1,24}$/.test(error.code) ? error.code : "unknown";
+    console.error("tic-research-claim-failed", errorCode, errorStatus);
     return NextResponse.json({ error: "The research queue could not be claimed." }, { status: 503, headers: { "Cache-Control": "no-store" } });
   }
   const job = Array.isArray(data) ? data[0] : null;
