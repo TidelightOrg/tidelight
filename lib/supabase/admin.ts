@@ -21,7 +21,19 @@ export function safeSupabaseFailureCode(error: unknown): string {
       if (/\b(timeout|timed out)\b/i.test(candidate.message)) return "TIMEOUT";
       if (candidate.message) {
         const messageType = candidate.message.trim().split(/\s+/, 1)[0].replace(/[^A-Za-z0-9]/g, "").slice(0, 24).toUpperCase();
-        fallback = messageType ? `MESSAGE_${messageType}` : "MESSAGE_OTHER";
+        const safeDetail = [candidate.message, typeof candidate.details === "string" ? candidate.details : ""]
+          .filter(Boolean)
+          .join(" ")
+          .replace(/https?:\/\/[^\s]+/gi, "[url]")
+          .replace(/(?:sb_(?:secret|publishable)_[A-Za-z0-9_-]+|eyJ[A-Za-z0-9._-]+)/g, "[credential]")
+          .replace(/\b(password|secret|token|apikey|authorization)\s*[:=]\s*\S+/gi, "$1=[redacted]")
+          .replace(/\b\d{1,3}(?:\.\d{1,3}){3}\b/g, "[ip]")
+          .replace(/\b[A-Za-z0-9_-]{32,}\b/g, "[redacted]")
+          .replace(/[\r\n\t]+/g, " ")
+          .replace(/[^A-Za-z0-9 .,:()_\-]/g, "?")
+          .trim()
+          .slice(0, 96);
+        fallback = messageType ? `MESSAGE_${messageType}: ${safeDetail}` : "MESSAGE_OTHER";
       }
     }
     if (typeof candidate.name === "string" && /^[A-Za-z][A-Za-z0-9]{0,31}$/.test(candidate.name)) {
