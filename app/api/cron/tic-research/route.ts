@@ -25,9 +25,12 @@ async function handleStatusCheck(request: Request) {
   catch {
     return NextResponse.json({ error: "The research queue could not be claimed." }, { status: 503, headers: { "Cache-Control": "no-store" } });
   }
-  const { data, error } = claim;
+  const { data, error, status } = claim;
   if (error) {
-    console.error("tic-research-claim-failed", error.code);
+    const errorStatusValue = status;
+    const errorStatus = typeof errorStatusValue === "number" && Number.isInteger(errorStatusValue) && errorStatusValue >= 0 && errorStatusValue <= 999 ? errorStatusValue : "unknown";
+    const errorCode = error && typeof error.code === "string" && /^[A-Z0-9_-]{1,24}$/.test(error.code) ? error.code : "unknown";
+    console.error("tic-research-claim-failed", errorCode, errorStatus);
     return NextResponse.json({ error: "The research queue could not be claimed." }, { status: 503, headers: { "Cache-Control": "no-store" } });
   }
   const job = Array.isArray(data) ? data[0] : null;

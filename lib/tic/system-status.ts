@@ -15,6 +15,15 @@ export type SystemStatus = {
   history: StatusHistory;
 };
 
+function safeDatabaseErrorLabel(error: unknown, responseStatus?: unknown): string {
+  if (!error || typeof error !== "object") return "";
+  const candidate = error as { code?: unknown; status?: unknown };
+  if (typeof candidate.code === "string" && /^[A-Z0-9_-]{1,24}$/.test(candidate.code)) return ` (${candidate.code})`;
+  const status = typeof responseStatus === "number" ? responseStatus : candidate.status;
+  if (typeof status === "number" && Number.isInteger(status) && status >= 0 && status <= 999) return ` (HTTP ${status})`;
+  return "";
+}
+
 async function probe(name: string, url: string, options: { expected?: number[]; href?: string; detail?: string } = {}): Promise<StatusService> {
   try {
     const response = await fetch(url, { method: "GET", headers: { Accept: "application/json,text/html,*/*" }, cache: "no-store", signal: AbortSignal.timeout(2500) });
@@ -31,9 +40,9 @@ async function checkDatabase(): Promise<StatusService> {
   }
   try {
     const admin = createAdminClient();
-    const { error } = await admin.from("developer_api_keys").select("id").limit(1);
-    const errorCode = error && typeof error.code === "string" && /^[A-Z0-9_-]{1,24}$/.test(error.code) ? ` (${error.code})` : "";
-    return { name: "Application database", state: error ? "degraded" : "operational", detail: error ? `Database query failed${errorCode}.` : "Read-only query succeeded.", href: "https://supabase.com" };
+    const { error, status } = await admin.from("developer_api_keys").select("id").limit(1);
+    const errorLabel = safeDatabaseErrorLabel(error, status);
+    return { name: "Application database", state: error ? "degraded" : "operational", detail: error ? `Database query failed${errorLabel}.` : "Read-only query succeeded.", href: "https://supabase.com" };
   } catch {
     return { name: "Application database", state: "degraded", detail: "Database connection failed.", href: "https://supabase.com" };
   }
@@ -73,19 +82,20 @@ export async function getStatusHistory(): Promise<StatusHistory> {
 async function checkBackgroundServices(): Promise<StatusService[]> {
   try {
     const admin = createAdminClient();
-    const { data, error } = await admin.rpc("get_tic_background_worker_status");
-    if (error || !Array.isArray(data)) throw error ?? new Error("invalid_worker_health");
+    const { data, error, status } = await admin.rpc("get_tic_background_worker_status");
+    if (error || !Array.isArray(data)) throw error ? Object.assign(error, { responseStatus: status }) : new Error("invalid_worker_health");
     return data.map((worker: { name: string; state: ServiceState; detail: string }) => ({
       name: worker.name,
       state: worker.state,
       detail: worker.detail,
     }));
-  } catch {
+  } catch (error) {
+    const errorLabel = safeDatabaseErrorLabel(error, error && typeof error === "object" ? (error as { responseStatus?: unknown }).responseStatus : undefined);
     return [
-      { name: "Research job processing", state: "degraded", detail: "Scheduler health could not be read." },
-      { name: "Scheduled paper analysis", state: "degraded", detail: "Scheduler health could not be read." },
-      { name: "Webhook delivery", state: "degraded", detail: "Scheduler health could not be read." },
-      { name: "Email delivery", state: "degraded", detail: "Worker health could not be read." },
+      { name: "Research job processing", state: "degraded", detail: `Scheduler health could not be read${errorLabel}.` },
+      { name: "Scheduled paper analysis", state: "degraded", detail: `Scheduler health could not be read${errorLabel}.` },
+      { name: "Webhook delivery", state: "degraded", detail: `Scheduler health could not be read${errorLabel}.` },
+      { name: "Email delivery", state: "degraded", detail: `Worker health could not be read${errorLabel}.` },
     ];
   }
 }
