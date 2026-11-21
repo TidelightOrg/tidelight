@@ -19,7 +19,10 @@ export function safeSupabaseFailureCode(error: unknown): string {
     if (typeof candidate.message === "string") {
       if (/\b(fetch failed|failed to fetch|network request failed)\b/i.test(candidate.message)) return "FETCH_FAILED";
       if (/\b(timeout|timed out)\b/i.test(candidate.message)) return "TIMEOUT";
-      if (candidate.message) fallback = "MESSAGE_OTHER";
+      if (candidate.message) {
+        const messageType = candidate.message.trim().split(/\s+/, 1)[0].replace(/[^A-Za-z0-9]/g, "").slice(0, 24).toUpperCase();
+        fallback = messageType ? `MESSAGE_${messageType}` : "MESSAGE_OTHER";
+      }
     }
     if (typeof candidate.name === "string" && /^[A-Za-z][A-Za-z0-9]{0,31}$/.test(candidate.name)) {
       fallback = `NAME_${candidate.name.toUpperCase()}`;
