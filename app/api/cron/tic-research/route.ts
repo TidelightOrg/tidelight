@@ -1,7 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { withStatusWorkerHeartbeat } from "@/lib/tic/worker-health";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createAdminClient, safeSupabaseFailureCode } from "@/lib/supabase/admin";
 import { runCompanySnapshot } from "@/lib/tic/research-snapshot";
 
 export const dynamic = "force-dynamic";
@@ -29,7 +29,7 @@ async function handleStatusCheck(request: Request) {
   if (error) {
     const errorStatusValue = status;
     const errorStatus = typeof errorStatusValue === "number" && Number.isInteger(errorStatusValue) && errorStatusValue >= 0 && errorStatusValue <= 999 ? errorStatusValue : "unknown";
-    const errorCode = error && typeof error.code === "string" && /^[A-Z0-9_-]{1,24}$/.test(error.code) ? error.code : "unknown";
+    const errorCode = safeSupabaseFailureCode(error);
     console.error("tic-research-claim-failed", errorCode, errorStatus);
     return NextResponse.json({ error: "The research queue could not be claimed." }, { status: 503, headers: { "Cache-Control": "no-store" } });
   }
