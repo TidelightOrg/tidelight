@@ -65,12 +65,24 @@ test("moves the split back when missing candles would make the calendar holdout 
   const complete = fixture(540);
   const candles = complete.filter((_, index) => index === 0 || index > 13);
   const countBasedSplit = Math.floor(candles.length * 0.66);
-  const result = runBacktest("RAAPLUSDT", "4H", candles);
+  const asOf = candles.at(-1).timestamp + FOUR_HOURS;
+  const result = runBacktest("RAAPLUSDT", "4H", candles, asOf);
 
   assert.ok(result.splitIndex < countBasedSplit);
   assert.ok(result.validation.trainingDays >= 30);
   assert.ok(result.validation.holdoutDays >= 30);
   assert.ok(result.test.candles >= 20);
+
+  const baseCost = runCostSensitivity("RAAPLUSDT", "4H", candles, asOf, result.strategyKey)[0];
+  assert.equal(baseCost.returnPct, result.test.totalReturnPct, "base cost sensitivity uses the exact replay holdout");
+
+  const placebo = runRandomEntryPlacebo(candles, "4H", asOf, result.strategyKey, result.test.totalReturnPct);
+  const changedHoldout = [...candles];
+  const changedIndex = result.splitIndex + 1;
+  const changedClose = changedHoldout[changedIndex].close + 20;
+  changedHoldout[changedIndex] = { ...changedHoldout[changedIndex], close: changedClose, high: Math.max(changedHoldout[changedIndex].open, changedClose) + 0.15 };
+  const placeboAfterHoldoutChange = runRandomEntryPlacebo(changedHoldout, "4H", asOf, result.strategyKey, result.test.totalReturnPct);
+  assert.deepEqual(placeboAfterHoldoutChange, placebo, "the placebo training rates and seed exclude all candles after the resolved split");
 });
 
 test("rejects 90 daily candles when the SMA warm-up leaves too little evaluated training data", () => {
