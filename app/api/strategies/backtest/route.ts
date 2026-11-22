@@ -1,6 +1,6 @@
 import { createHash } from "node:crypto";
 import { getBitgetAsset, getBitgetCandles, getBitgetStockPerp, type AlphaMarketCategory, type CandleInterval } from "@/lib/bitget-market";
-import { ALPHA_STRATEGIES, prepareBacktestCandles, runBacktest, runCostSensitivity, runRandomEntryPlacebo, runWalkForward, type StrategyKey, type WalkForwardResult } from "@/lib/backtest";
+import { ALPHA_STRATEGIES, InsufficientBacktestHistoryError, prepareBacktestCandles, runBacktest, runCostSensitivity, runRandomEntryPlacebo, runWalkForward, type StrategyKey, type WalkForwardResult } from "@/lib/backtest";
 import { createBacktestExperimentManifest, createBacktestMarketObservation } from "@/lib/backtest-manifest";
 import { createClient } from "@/lib/supabase/server";
 import { getServerAuthState } from "@/lib/supabase/auth-user";
@@ -104,8 +104,11 @@ export async function POST(request: Request) {
     return Response.json({ run: { ...result, parameters: replayParameters, id: data.id, runId: data.id, createdAt: data.created_at, assetName: asset.name, assetKind, candleHash, candles, walkForward, walkForwardStatus, costSensitivity, benchmarks, researchRunId, providerTimestamp: asset.providerTimestamp, experimentManifest, marketObservation: marketObservation.observation, marketObservationDigest: marketObservation.digest, sessionHours: asset.tradingSessions, weekendTradable: asset.weekendTradable } }, { headers: { "Cache-Control": "no-store" } });
   } catch (error) {
     const message = error instanceof Error ? error.message : "Backtest unavailable.";
-    const status = /At least|too short/.test(message) ? 422 : 503;
+    if (error instanceof InsufficientBacktestHistoryError) {
+      console.info("Strategy backtest history insufficient", { symbol, interval, marketCategory, message: message.slice(0, 180) });
+      return Response.json({ error: message, code: error.code }, { status: 422, headers: { "Cache-Control": "no-store" } });
+    }
     console.error("Strategy backtest failed", { symbol, interval, marketCategory, message: message.slice(0, 180) });
-    return Response.json({ error: status === 422 ? message : "Bitget could not return enough usable candles for this market. Retry shortly; no result was stored." }, { status, headers: { "Cache-Control": "no-store" } });
+    return Response.json({ error: "Bitget could not return enough usable candles for this market. Retry shortly; no result was stored." }, { status: 503, headers: { "Cache-Control": "no-store" } });
   }
 }
