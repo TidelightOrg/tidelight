@@ -62,7 +62,7 @@ test("uses current Bitget-sized 4H history while preserving 30-day training and 
 });
 
 test("rejects 90 daily candles when the SMA warm-up leaves too little evaluated training data", () => {
-  assert.throws(() => runBacktest("RAAPLUSDT", "1D", fixture(90, ONE_DAY)), /training window is shorter than 30 days after the 50-candle warm-up/);
+  assert.throws(() => runBacktest("RAAPLUSDT", "1D", fixture(90, ONE_DAY)), /required 30-day training window after indicator warm-up/);
 });
 
 test("excludes the current unfinished candle from the run and its score", () => {
@@ -100,7 +100,7 @@ test("rejects malformed OHLC, negative volume, and duplicate timestamps", () => 
 
 test("rejects data that cannot support the required overall and holdout windows", () => {
   assert.throws(() => runBacktest("RAAPLUSDT", "4H", fixture(79)), /At least 80/);
-  assert.throws(() => runBacktest("RAAPLUSDT", "4H", fixture(400)), /holdout is shorter than 30 days/);
+  assert.throws(() => runBacktest("RAAPLUSDT", "4H", fixture(400)), /required 30-day holdout/);
 });
 
 test("changing a future candle cannot rewrite trades that already exited", () => {
