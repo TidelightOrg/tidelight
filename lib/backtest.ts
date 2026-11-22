@@ -294,7 +294,9 @@ function measure(candles: MarketCandle[], fast: (number | null)[], slow: (number
 export function runBacktest(symbol: string, interval: CandleInterval, input: MarketCandle[], asOf = Date.now(), strategyKey: StrategyKey = BACKTEST_STRATEGY): BacktestResult {
   const candles = prepareBacktestCandles(input, interval, asOf);
   if (candles.length < 80) throw new InsufficientBacktestHistoryError("At least 80 completed candles are required to evaluate this strategy with a holdout window.");
-  const splitIndex = Math.floor(candles.length * BACKTEST_PARAMETERS.trainFraction);
+  let splitIndex = Math.floor(candles.length * BACKTEST_PARAMETERS.trainFraction);
+  const minimumHoldoutMs = 30 * 24 * 60 * 60 * 1000;
+  while (splitIndex > 0 && candles.at(-1)!.timestamp - candles[splitIndex].timestamp < minimumHoldoutMs) splitIndex -= 1;
   if (splitIndex < BACKTEST_PARAMETERS.slowWindow + 5 || candles.length - splitIndex < 20) throw new InsufficientBacktestHistoryError("This candle history is too short for a meaningful chronological holdout.");
   const fast = movingAverages(candles, BACKTEST_PARAMETERS.fastWindow);
   const slow = movingAverages(candles, BACKTEST_PARAMETERS.slowWindow);
