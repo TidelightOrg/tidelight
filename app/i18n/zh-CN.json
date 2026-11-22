@@ -5913,6 +5913,7 @@
   "Sources attached to this assessment": "本项评估所附来源",
   "No cited source links were stored for this assessment.": "此项评估未保存引用来源链接。",
   "Claim checks": "主张核查",
+  "Point placement is model-assigned; cited sources do not independently verify claim support.": "观点分类由模型给出；引用来源并不能独立证实这些主张。",
   "Verification rule": "核验规则",
   "Counterpoint": "反方观点",
   "REVIEW QUALIFIED": "符合评估条件",

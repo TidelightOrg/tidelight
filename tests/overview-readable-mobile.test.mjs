@@ -5,6 +5,7 @@ import { readFile } from "node:fs/promises";
 test("overview and token pulse copy stay readable in desktop-site phone widths", async () => {
   const globals = await readFile(new URL("../app/globals.css", import.meta.url), "utf8");
   const pulse = await readFile(new URL("../app/ui/token-pulse.css", import.meta.url), "utf8");
+  const overview = await readFile(new URL("../app/overview/page.tsx", import.meta.url), "utf8");
   assert.match(globals, /@media\s*\(min-width:\s*761px\)\s*and\s*\(max-width:\s*1100px\)/);
   assert.match(globals, /\.dashboard-page \.data-disclaimer\s*\{\s*font-size:\s*12px/);
   assert.match(globals, /\.dashboard-page \.company-card > small\s*\{\s*font-size:\s*11px/);
@@ -13,4 +14,6 @@ test("overview and token pulse copy stay readable in desktop-site phone widths",
   assert.match(globals, /\.dashboard-page \.method-steps :is\(span, small\) \{ color: #a4b3aa; \}/);
   assert.match(pulse, /@media\s*\(min-width:\s*761px\)\s*and\s*\(max-width:\s*1100px\)/);
   assert.match(pulse, /\.tp-helper\s*,[\s\S]*?\.tp-sources a\s*\{\s*font-size:\s*13px/);
+  assert.match(overview, /MARKET COVERAGE[\s\S]*?Featured companies/);
+  assert.doesNotMatch(overview, /YOUR RADAR, AT A GLANCE/);
 });
