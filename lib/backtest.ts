@@ -60,6 +60,15 @@ export type WalkForwardFold = { index: number; trainStart: number; testStart: nu
 export type WalkForwardResult = { folds: WalkForwardFold[]; meanReturnPct: number; positiveFolds: number; totalFolds: number; evaluationStart: number; evaluationEnd: number };
 export type RandomEntryPlacebo = { version: 4; initialState: "training_long_occupancy" | "training_cash_occupancy" | "randomized_from_stationary_occupancy"; simulations: number; seed: number; trainingEntryRatePerBar: number; trainingExitRatePerBar: number; medianReturnPct: number; p05ReturnPct: number; p95ReturnPct: number; beatsStrategyPct: number };
 
+export class InsufficientBacktestHistoryError extends Error {
+  readonly code = "insufficient_history";
+
+  constructor(message: string) {
+    super(message);
+    this.name = "InsufficientBacktestHistoryError";
+  }
+}
+
 function validateCandles(input: MarketCandle[]) {
   const candles = [...input].sort((a, b) => a.timestamp - b.timestamp);
   for (let i = 0; i < candles.length; i += 1) {
@@ -284,17 +293,17 @@ function measure(candles: MarketCandle[], fast: (number | null)[], slow: (number
 
 export function runBacktest(symbol: string, interval: CandleInterval, input: MarketCandle[], asOf = Date.now(), strategyKey: StrategyKey = BACKTEST_STRATEGY): BacktestResult {
   const candles = prepareBacktestCandles(input, interval, asOf);
-  if (candles.length < 80) throw new Error("At least 80 Bitget candles are required to evaluate a 50-period strategy with an out-of-sample window.");
+  if (candles.length < 80) throw new InsufficientBacktestHistoryError("At least 80 completed candles are required to evaluate this strategy with a holdout window.");
   const splitIndex = Math.floor(candles.length * BACKTEST_PARAMETERS.trainFraction);
-  if (splitIndex < BACKTEST_PARAMETERS.slowWindow + 5 || candles.length - splitIndex < 20) throw new Error("This candle history is too short for a meaningful chronological holdout.");
+  if (splitIndex < BACKTEST_PARAMETERS.slowWindow + 5 || candles.length - splitIndex < 20) throw new InsufficientBacktestHistoryError("This candle history is too short for a meaningful chronological holdout.");
   const fast = movingAverages(candles, BACKTEST_PARAMETERS.fastWindow);
   const slow = movingAverages(candles, BACKTEST_PARAMETERS.slowWindow);
   const signals = buildSignals(candles, strategyKey);
   const day = 24 * 60 * 60 * 1000;
-  if (candles.at(-1)!.timestamp - candles[0].timestamp < 60 * day) throw new Error("Bitget returned less than 60 days of candles. Choose a longer interval; this run cannot meet the Alpha Factory window requirement.");
-  if (candles.at(-1)!.timestamp - candles[splitIndex].timestamp < 30 * day) throw new Error("The chronological holdout is shorter than 30 days. This market history is insufficient for the Alpha Factory window requirement.");
+  if (candles.at(-1)!.timestamp - candles[0].timestamp < 60 * day) throw new InsufficientBacktestHistoryError("At least 60 calendar days of completed candle history are required for the Alpha Factory evaluation window.");
+  if (candles.at(-1)!.timestamp - candles[splitIndex].timestamp < 30 * day) throw new InsufficientBacktestHistoryError("This market’s completed candle history is too short to provide the required 30-day holdout. Choose a market or interval with more history.");
   const warmup = BACKTEST_PARAMETERS.slowWindow;
-  if (candles[splitIndex - 1].timestamp - candles[warmup].timestamp < 30 * day) throw new Error("The evaluated training window is shorter than 30 days after the 50-candle warm-up. Choose a history with more data.");
+  if (candles[splitIndex - 1].timestamp - candles[warmup].timestamp < 30 * day) throw new InsufficientBacktestHistoryError("This market’s completed candle history is too short to provide the required 30-day training window after indicator warm-up. Choose a market or interval with more history.");
   const train = measure(candles, fast, slow, warmup, splitIndex, interval, BACKTEST_PARAMETERS.feeBpsPerSide, BACKTEST_PARAMETERS.slippageBpsPerSide, signals);
   const test = measure(candles, fast, slow, splitIndex, candles.length, interval, BACKTEST_PARAMETERS.feeBpsPerSide, BACKTEST_PARAMETERS.slippageBpsPerSide, signals);
   const trainingDays = (candles[splitIndex - 1].timestamp - candles[warmup].timestamp) / day;
