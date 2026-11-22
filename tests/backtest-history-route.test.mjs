@@ -42,7 +42,7 @@ test("insufficient market history returns an actionable 422 instead of a provide
     const historyResponse = await route.POST(request());
     assert.equal(historyResponse.status, 422);
     assert.deepEqual(await historyResponse.json(), {
-      error: "This market’s completed candle history is too short to provide the required 30-day holdout. Choose a market or interval with more history.",
+      error: "This market’s completed candle history is too short to provide the required 30-day training window after indicator warm-up. Choose a market or interval with more history.",
       code: "insufficient_history",
     });
 
