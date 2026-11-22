@@ -208,6 +208,13 @@ function intervalBarsPerYear(interval: CandleInterval) {
   return interval === "1H" ? 8760 : interval === "4H" ? 2190 : 365;
 }
 
+export function resolveBacktestSplitIndex(candles: MarketCandle[]) {
+  let splitIndex = Math.floor(candles.length * BACKTEST_PARAMETERS.trainFraction);
+  const minimumHoldoutMs = 30 * 24 * 60 * 60 * 1000;
+  while (splitIndex > 0 && candles.at(-1)!.timestamp - candles[splitIndex].timestamp < minimumHoldoutMs) splitIndex -= 1;
+  return splitIndex;
+}
+
 function measure(candles: MarketCandle[], fast: (number | null)[], slow: (number | null)[], start: number, end: number, interval: CandleInterval, feeBps: number = BACKTEST_PARAMETERS.feeBpsPerSide, slippageBps: number = BACKTEST_PARAMETERS.slippageBpsPerSide, signals?: boolean[]): BacktestMetrics {
   const cost = (feeBps + slippageBps) / 10_000;
   let cash: number = BACKTEST_PARAMETERS.initialEquity;
@@ -294,9 +301,7 @@ function measure(candles: MarketCandle[], fast: (number | null)[], slow: (number
 export function runBacktest(symbol: string, interval: CandleInterval, input: MarketCandle[], asOf = Date.now(), strategyKey: StrategyKey = BACKTEST_STRATEGY): BacktestResult {
   const candles = prepareBacktestCandles(input, interval, asOf);
   if (candles.length < 80) throw new InsufficientBacktestHistoryError("At least 80 completed candles are required to evaluate this strategy with a holdout window.");
-  let splitIndex = Math.floor(candles.length * BACKTEST_PARAMETERS.trainFraction);
-  const minimumHoldoutMs = 30 * 24 * 60 * 60 * 1000;
-  while (splitIndex > 0 && candles.at(-1)!.timestamp - candles[splitIndex].timestamp < minimumHoldoutMs) splitIndex -= 1;
+  const splitIndex = resolveBacktestSplitIndex(candles);
   if (splitIndex < BACKTEST_PARAMETERS.slowWindow + 5 || candles.length - splitIndex < 20) throw new InsufficientBacktestHistoryError("This candle history is too short for a meaningful chronological holdout.");
   const fast = movingAverages(candles, BACKTEST_PARAMETERS.fastWindow);
   const slow = movingAverages(candles, BACKTEST_PARAMETERS.slowWindow);
@@ -357,7 +362,7 @@ export function runWalkForward(symbol: string, interval: CandleInterval, input: 
 export function runCostSensitivity(symbol: string, interval: CandleInterval, input: MarketCandle[], asOf = Date.now(), strategyKey: StrategyKey = BACKTEST_STRATEGY) {
   const candles = prepareBacktestCandles(input, interval, asOf);
   if (candles.length < 80) throw new Error("Cost sensitivity needs at least 80 completed candles.");
-  const splitIndex = Math.floor(candles.length * BACKTEST_PARAMETERS.trainFraction);
+  const splitIndex = resolveBacktestSplitIndex(candles);
   const fast = movingAverages(candles, BACKTEST_PARAMETERS.fastWindow);
   const slow = movingAverages(candles, BACKTEST_PARAMETERS.slowWindow);
   const signals = buildSignals(candles, strategyKey);
@@ -372,7 +377,7 @@ export function runRandomEntryPlacebo(input: MarketCandle[], interval: CandleInt
   const candles = prepareBacktestCandles(input, interval, asOf);
   if (candles.length < 80) throw new Error("Placebo comparison needs at least 80 completed candles.");
   const count = Math.max(20, Math.min(500, Number.isFinite(simulations) ? Math.floor(simulations) : 100));
-  const splitIndex = Math.floor(candles.length * BACKTEST_PARAMETERS.trainFraction);
+  const splitIndex = resolveBacktestSplitIndex(candles);
   const warmup = BACKTEST_PARAMETERS.slowWindow;
   const strategySignals = buildSignals(candles, strategyKey);
   let prior = strategySignals[Math.max(0, warmup - 2)] === true;
