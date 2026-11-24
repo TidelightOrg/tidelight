@@ -81,8 +81,8 @@ export default function SupportCompanion() {
   const denseWorkspace = pathname === "/futures" || pathname === "/trading" || pathname === "/flow" || pathname === "/markets" || pathname === "/strategies" || pathname === "/nightwatch";
   const viewportBounds = useCallback(() => {
     const viewport = window.visualViewport;
-    const width = Math.max(1, Math.floor(viewport?.width ?? document.documentElement.clientWidth ?? window.innerWidth));
-    const height = Math.max(1, Math.floor(viewport?.height ?? document.documentElement.clientHeight ?? window.innerHeight));
+    const width = Math.max(1, Math.floor(viewport?.width || document.documentElement.clientWidth || window.innerWidth));
+    const height = Math.max(1, Math.floor(viewport?.height || document.documentElement.clientHeight || window.innerHeight));
     const launcher = launcherRef.current?.getBoundingClientRect();
     const buttonWidth = Math.max(46, launcher?.width ?? 46);
     const buttonHeight = Math.max(46, launcher?.height ?? 46);
