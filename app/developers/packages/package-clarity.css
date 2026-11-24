@@ -302,3 +302,34 @@
     transition-duration: .01ms !important;
   }
 }
+
+:root[data-theme="white"] .tic-packages-page {
+  --tic-accent: #176b5c;
+  --tic-green: #176b5c;
+  --brand-teal: #176b5c;
+}
+
+:root[data-theme="white"] .tic-packages-page .tic-primary {
+  color: #fffefa !important;
+}
+
+:root[data-theme="white"] .tic-package-dashboard .tic-package-dashboard-heading h1 em,
+:root[data-theme="white"] .tic-package-dashboard .tic-package-intro-heading h2 em,
+:root[data-theme="white"] .tic-package-dashboard .tic-package-dashboard-summary > a,
+:root[data-theme="white"] .tic-package-dashboard .tic-package-intro-steps article > span {
+  color: var(--tic-accent);
+}
+
+:root[data-theme="white"] .tic-packages-page .tic-syntax-number,
+:root[data-theme="white"] .tic-packages-page .tic-syntax-constant {
+  color: #76551f;
+}
+
+:root[data-theme="white"] .tic-packages-page .tic-package-lifecycle-code-head > span {
+  color: var(--tic-text);
+}
+
+.tic-packages-page :is(.tic-registry-install, .tic-package-card-install):focus-visible {
+  outline: 2px solid var(--tic-accent);
+  outline-offset: 2px;
+}
