@@ -161,7 +161,7 @@ export default function StrategyLab({ signedIn, initialRuns, initialSymbol = "RA
     .sort((a, b) => (b.train.sharpeRatio ?? 0) - (a.train.sharpeRatio ?? 0))[0] ?? null : null;
 
   return <>
-    <section className="strategy-spine" aria-label="Tidelight decision spine"><span>EVENT</span><i>→</i><span>EVIDENCE</span><i>→</i><span>EXPOSURE</span><i>→</i><span>SCENARIO</span><i>→</i><b>DECISION</b></section>
+    <section className="strategy-spine" aria-label="Tidelight decision spine" tabIndex={0}><span>EVENT</span><i>→</i><span>EVIDENCE</span><i>→</i><span>EXPOSURE</span><i>→</i><span>SCENARIO</span><i>→</i><b>DECISION</b></section>
     <section className="strategy-workbench" aria-labelledby="strategy-workbench-title">
       <div className="strategy-workbench-head"><div><span className="eyebrow small-eyebrow">ALPHA FACTORY · REPRODUCIBLE REPLAY</span><h2 id="strategy-workbench-title">Test the rule, then test its limits.</h2></div><span className="strategy-readonly">PAPER RESEARCH ONLY</span></div>
       <div className="alpha-market-switch" role="group" aria-label="Market to validate"><button type="button" aria-pressed={marketCategory === "SPOT"} disabled={busy || matrixBusy || hypothesisBusy} onClick={() => { setMarketCategory("SPOT"); setSymbol("RNVDAUSDT"); setRun(null); setMatrix([]); setError(""); }}>Reality rTokens · spot</button><button type="button" aria-pressed={marketCategory === "USDT-FUTURES"} disabled={busy || matrixBusy || hypothesisBusy} onClick={() => { setMarketCategory("USDT-FUTURES"); setSymbol("NVDAUSDT"); setHypothesis(null); setRun(null); setMatrix([]); setError(""); }}>US stocks · perpetuals</button></div>
