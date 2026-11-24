@@ -5,6 +5,18 @@
 **Repository:** [`TidelightOrg/tidelight`](https://github.com/TidelightOrg/tidelight)
 **Purpose:** let a fresh session continue from current verified state without repeating completed work.
 
+## Current verified continuation point · 24 November 2026
+
+Resume here. The earlier dated sections below are historical evidence from their own continuations.
+
+**Production baseline.** PR #590 is merged as `7a78df9813e98d72106f7b84bebb0781c479b183`; Vercel marks its production deployment READY and aliases it to `tidelight.app` and `package.tidelight.app`. Production pages loaded in the connected browser after rollout.
+
+**Package ecosystem light-theme contrast · PR #590.** White-theme package pages use the accessible `#176b5c` teal through both package tokens and inherited brand-token selectors, with light-code syntax colors corrected. Registry install snippets on package details and cards are keyboard-focusable and show a visible focus outline. `npm run build` and `git diff --check` passed. The PR's first Codex review completed without findings; there were no review threads. CodeRabbit skipped automatic review because this repository has fewer than 10 stars; no manual review was triggered. GitHub's Vercel status was marked failure with an account-blocked help URL even though the linked Vercel deployment API reported the preview READY and its authenticated page fetch returned HTTP 200. The merged production deployment is READY.
+
+**Production accessibility sweep.** Axe WCAG 2.1 A/AA scans returned no violations at 390px and 1440px in white and dark themes for `/developers/packages/sdk`, `/mcp`, `/python`, `/react`, `/cli`, and `/dashboard`. The detail and dashboard install snippets exposed keyboard focus targets. The same scan passed on `/developers/docs`, `/developers/integrations`, `/developers`, `/developers/console`, `/developers/oauth/consent`, `/`, `/markets`, `/research`, and `/nightwatch` at those widths and themes. These are accessibility scans of the rendered public states, not signed-in workflow verification or a complete visual/performance audit.
+
+**Next gates.** No implementation PRs remain open after #590. Continue code-complete UI and accessibility work without duplicating existing features. The roadmap's external evidence gates remain open: signed-in production journeys and Google OAuth; the frozen benchmark's two independent labels and adjudication; observed first-time-user sessions; provider redistribution terms; Vercel's earlier account-disablement cause; and the supervised Nightwatch observation period. Do not infer completion from public page scans, mocked tests, or deployment readiness. See `PRODUCT_EVOLUTION_ROADMAP.md` for the canonical priorities.
+
 ## Current verified continuation point · 21 November 2026
 
 Resume here. Older sections titled “current” are historical notes from the day they were written.
