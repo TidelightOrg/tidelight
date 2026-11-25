@@ -5,6 +5,18 @@
 **Repository:** [`TidelightOrg/tidelight`](https://github.com/TidelightOrg/tidelight)
 **Purpose:** let a fresh session continue from current verified state without repeating completed work.
 
+## Current verified continuation point · 25 November 2026
+
+Resume here. Earlier dated sections are historical evidence from their own continuations.
+
+**Production baseline.** PR #594 merged as `74b9e896d9cf99d38619735fef18717b8e77e148`; PR #595 merged as `49c127320e6a046e12bb051d95c7d86eae8c537d`. Vercel marks the latter production deployment READY, and `https://tidelight.app/api/system/health` reports deployment `49c127320e6a`.
+
+**Public accessibility follow-up · PRs #594–#595.** PR #594 gives the white-theme Evidence page an accessible teal accent and improves the white-theme Monitor auth eyebrow and back link. PR #595 makes the shared About, Help, and Contact accents readable in white mode, corrects Field Notes text contrast in its paper palette, and gives the existing benchmark table scroll region an accessible name and keyboard focus. `npm run build`, `git diff --check`, and repository CI passed. CodeRabbit posted only its automatic skipped-review notice; no actionable review threads were open.
+
+**Live production route sweep.** Axe WCAG 2.1 A/AA scans at 320px and 1440px in white and dark themes reported zero violations and no horizontal overflow on `/markets/NVDA`, `/briefs`, `/evidence`, `/monitor`, `/guide`, `/about`, `/help`, `/contact`, `/blog`, `/judge`, `/privacy`, `/terms`, `/demo`, `/use-cases`, and `/markets`. The benchmark table scroll region exposes `tabIndex=0`. Theme selection was made through the actual application theme control before each route scan. This covers public/signed-out render states only; it does not certify signed-in workflows, OAuth, research quality, or the roadmap's human/provider-rights gates. No implementation PRs remain open.
+
+**Next gates.** Continue with current production verification of signed-in Google OAuth journeys only when a usable authenticated session is available; two independent frozen-benchmark labels plus adjudication; observed first-time-user sessions; provider redistribution terms; the reason for Vercel's earlier account disablement; and the supervised Nightwatch observation period. Do not infer completion from the public route scans. See [`PRODUCT_EVOLUTION_ROADMAP.md`](PRODUCT_EVOLUTION_ROADMAP.md) for the canonical priorities.
+
 ## Current verified continuation point · 24 November 2026
 
 Resume here. The earlier dated sections below are historical evidence from their own continuations.
