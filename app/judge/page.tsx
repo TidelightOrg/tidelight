@@ -296,7 +296,7 @@ export default function JudgePage() {
       <p className="judge-section-note">On this ten-run sample, only two outputs included model synthesis; both raised material evidence concerns. Eight were source-only or had no usable synthesis. This measures capture availability, not factual accuracy. The provisional 2.5/10 single-reviewer product assessment is descriptive only; task time was not measured. The September CPI run included off-topic sources.</p>
       <details className="judge-benchmark-run-table" open>
         <summary>Run-by-run production captures</summary>
-        <div className="judge-benchmark-table-scroll"><table>
+        <div className="judge-benchmark-table-scroll" role="region" tabIndex={0} aria-label="Run-by-run production captures table"><table>
           <caption>Observed UI durations and outputs. These are not protocol task-time or claim-quality scores.</caption>
           <thead><tr><th scope="col">Frozen event</th><th scope="col">UI elapsed</th><th scope="col">Observed output</th></tr></thead>
           <tbody>

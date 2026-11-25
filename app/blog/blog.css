@@ -24,3 +24,7 @@
 .tl-article-related-card>b{margin-top:auto;padding-top:10px;align-self:flex-end;color:var(--green);font-size:13px}
 @media(max-width:560px){.tl-article-related-head{align-items:flex-start}.tl-article-related-grid{grid-template-columns:1fr}.tl-article-related-card{min-height:150px}}
 @media(prefers-reduced-motion:reduce){.tl-article-related-card{transition:none}.tl-article-related-card:hover{transform:none}}
+
+.tl-blog{--muted:#4c5b52}
+.tl-blog .tl-blog-eyebrow{color:#176b5c}
+.tl-blog .tl-blog-story-meta time,.tl-blog .tl-blog-footer>span{color:#4c5b52}
