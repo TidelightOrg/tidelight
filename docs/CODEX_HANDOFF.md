@@ -1,7 +1,7 @@
 # Tidelight Codex handoff
 
 **Prepared:** 26 October 2026
-**Continuation refreshed:** 20 November 2026
+**Continuation refreshed:** 25 November 2026
 **Repository:** [`TidelightOrg/tidelight`](https://github.com/TidelightOrg/tidelight)
 **Purpose:** let a fresh session continue from current verified state without repeating completed work.
 
@@ -15,7 +15,11 @@ Resume here. Earlier dated sections are historical evidence from their own conti
 
 **Live production route sweep.** Axe WCAG 2.1 A/AA scans at 320px and 1440px in white and dark themes reported zero violations and no horizontal overflow on `/markets/NVDA`, `/briefs`, `/evidence`, `/monitor`, `/guide`, `/about`, `/help`, `/contact`, `/blog`, `/judge`, `/privacy`, `/terms`, `/demo`, `/use-cases`, and `/markets`. The benchmark table scroll region exposes `tabIndex=0`. Theme selection was made through the actual application theme control before each route scan. This covers public/signed-out render states only; it does not certify signed-in workflows, OAuth, research quality, or the roadmap's human/provider-rights gates. No implementation PRs remain open.
 
-**Next gates.** Continue with current production verification of signed-in Google OAuth journeys only when a usable authenticated session is available; two independent frozen-benchmark labels plus adjudication; observed first-time-user sessions; provider redistribution terms; the reason for Vercel's earlier account disablement; and the supervised Nightwatch observation period. Do not infer completion from the public route scans. See [`PRODUCT_EVOLUTION_ROADMAP.md`](PRODUCT_EVOLUTION_ROADMAP.md) for the canonical priorities.
+**Production and sign-in follow-up · 25 November 2026.** A fresh request to `/api/system/health` returned HTTP 200 at 06:29 UTC and reported deployment `3df7cf06e61b`; Bitget was available with 3,592 assets and 3,098 Reality instruments, while Qwen, Supabase, and Nightwatch scheduler were configured. The connected remote browser reached Google's sign-in flow for the already authorized account, but Google required that account's password or passkey. Account recovery required an additional owner-controlled recovery step; Gmail had no Google verification code. Sign-in was not completed, and no signed-in Tidelight workflow was exercised. Resume only when the account owner completes Google authentication in their own browser/session; never request or store their password or passkey.
+
+**Provider-terms review.** The current [Bitget API Key Terms](https://www.bitget.com/support/articles/12560603797947) grant a limited, revocable license and prohibit repackaging/reselling the API, API services, or API-related data. Bitget's [Terms of Use](https://www.bitget.com/support/articles/360014944032-terms-of-use/) describe its IP license as for non-commercial personal or internal-business use. [AgentKey's Terms](https://agentkey.app/terms.html) make third-party providers independent, place compliance responsibility on the user, and prohibit raw third-party data redistribution where that would violate the originating provider's terms. [Serper's Terms](https://serper.dev/terms) also leave third-party content rights with their owners and prohibit misrepresenting or removing source and attribution notices. These public terms do not grant Tidelight written rights for commercial public API redistribution. Keep the existing owner-directed market path as configured; do not expand raw market/search data redistribution or represent rights as cleared without written permission for Tidelight's intended use.
+
+**Next gates.** Obtain account-owner completion of Google OAuth; two independent frozen-benchmark labels plus adjudication; observed first-time-user sessions; written provider terms for intended redistribution; the reason for Vercel's earlier account disablement; and the supervised Nightwatch observation period. Do not infer completion from public route scans, health checks, provider availability, or terms research. See [`PRODUCT_EVOLUTION_ROADMAP.md`](PRODUCT_EVOLUTION_ROADMAP.md) for the canonical priorities.
 
 ## Current verified continuation point · 24 November 2026
 
