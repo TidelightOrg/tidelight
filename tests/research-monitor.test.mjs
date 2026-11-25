@@ -5,6 +5,7 @@ import { readFile } from "node:fs/promises";
 const files = {
   migration: new URL("../supabase/migrations/20261026190000_research_monitor_foundation.sql", import.meta.url),
   proxyAuthMigration: new URL("../supabase/migrations/20261026200000_research_monitor_proxy_auth.sql", import.meta.url),
+  legacyRpcRevokeMigration: new URL("../supabase/migrations/20261125130000_revoke_legacy_research_monitor_rpcs.sql", import.meta.url),
   actions: new URL("../app/monitor/actions.ts", import.meta.url),
   route: new URL("../app/api/research/agent-flow/route.ts", import.meta.url),
   ui: new URL("../app/ui/research-monitor.tsx", import.meta.url),
@@ -32,6 +33,17 @@ test("proxy-verified Monitor actions scope service-role access to the verified o
   assert.ok(sql.includes("to service_role"));
   assert.ok(sql.includes("from public, anon, authenticated"));
   assert.ok(sql.includes("research_monitor_observations_research_run_id_idx"));
+});
+
+test("legacy SECURITY DEFINER monitor RPC overloads are unavailable to client roles", async () => {
+  const sql = (await readFile(files.legacyRpcRevokeMigration, "utf8")).replace(/\s+/g, " ");
+  for (const signature of [
+    "public.create_research_monitor(text, text)",
+    "public.update_research_monitor_thesis(uuid, text)",
+    "public.set_research_monitor_status(uuid, text)",
+  ]) {
+    assert.ok(sql.includes(`revoke all on function ${signature} from public, anon, authenticated`), signature);
+  }
 });
 
 test("each monitor mutation authenticates and uses owner-aware database functions", async () => {
