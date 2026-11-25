@@ -1,4 +1,5 @@
 .evidence-page{--evidence-accent:var(--brand-teal,var(--mint-2));min-height:100vh;padding:24px clamp(20px,5vw,76px) 64px;background:radial-gradient(circle at 85% 0%,color-mix(in srgb,var(--evidence-accent) 13%,transparent) 0,transparent 33%),var(--bg);color:var(--text)}
+:root[data-theme="white"] .evidence-page{--evidence-accent:#176b5c}
 .evidence-page a{color:var(--evidence-accent);text-decoration:none}.evidence-page a:hover{text-decoration:underline}
 .evidence-header,.evidence-hero,.evidence-section,.evidence-footer{max-width:1160px;margin:0 auto}
 .evidence-header{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:12px 0 20px;border-bottom:1px solid var(--line)}
