@@ -5,12 +5,13 @@ import { registerHooks } from "node:module";
 const hooks = registerHooks({
   resolve(specifier, context, nextResolve) {
     if (specifier === "server-only") return { url: "data:text/javascript,export {};", shortCircuit: true };
+    if (specifier === "@/lib/ai-fallback") return { url: `data:text/javascript,${encodeURIComponent("export async function aiJsonWithFallback(){throw new Error('provider-unavailable')}")}`, shortCircuit: true };
     if (specifier === "./provider-health" && context.parentURL?.endsWith("/lib/ai-fallback.ts")) return { url: "data:text/javascript,export const getProviderRoutingDecision=async()=>({status:'available',skippedProviders:[]});", shortCircuit: true };
     if (specifier.startsWith("@/lib/")) return { url: new URL(`../lib/${specifier.slice(6)}.ts`, import.meta.url).href, shortCircuit: true };
     return nextResolve(specifier, context);
   },
 });
-const { parseDecision } = await import("../lib/nightwatch-agent.ts");
+const { parseDecision, decideNightwatch } = await import("../lib/nightwatch-agent.ts");
 hooks.deregister();
 
 const proposal = { action: "buy", confidence: 0.8, rationale: "The completed-bar rule and source evidence support a paper review.", evidence: ["Completed-bar candidate"], risks: ["Gap risk"], invalidation: "Next completed close falls below the trend.", horizon: "Next completed candle" };
@@ -33,4 +34,23 @@ test("invalid actions and unusable explanations trigger provider fallback", () =
   assert.equal(parseDecision({ ...proposal, action: "withdraw" }), null);
   assert.equal(parseDecision({ ...proposal, rationale: "yes" }), null);
   assert.equal(parseDecision({ ...proposal, rationale: "x".repeat(501) }), null);
+});
+
+test("provider failure stays unavailable instead of becoming a valid-looking hold", async () => {
+  const candles = Array.from({ length: 60 }, (_, index) => ({
+    timestamp: index * 4 * 60 * 60 * 1000,
+    open: 100,
+    high: 101,
+    low: 99,
+    close: 100,
+    volume: 1,
+    turnover: 100,
+  }));
+  await assert.rejects(decideNightwatch({
+    symbol: "AAPLUSDT",
+    issuer: "Apple",
+    candles,
+    account: { cashUsd: 10_000, positionQuantity: 0, averageCostUsd: null, dailyRealizedPnlUsd: 0, fillsToday: 0 },
+    playbookKey: "sma_trend_v1",
+  }), { message: "nightwatch-analysis-unavailable" });
 });
