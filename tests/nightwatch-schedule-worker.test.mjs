@@ -7,7 +7,7 @@ const modules={
   '@/lib/bitget-market':'export const getBitgetAsset=(...args)=>globalThis.nwTest.asset(...args); export const getBitgetCandles=async()=>Array.from({length:60},(_,i)=>({timestamp:Date.now()-(61-i)*14400000,close:100}));',
   '@/lib/backtest':'export const prepareBacktestCandles=c=>c; export const ALPHA_STRATEGIES={sma_trend_v1:{label:"SMA"}};',
   '@/lib/nightwatch-signal':'export const evaluateSmaCrossover=()=>({fastSma:101,slowSma:99});',
-  '@/lib/nightwatch-agent':'export const decideNightwatch=async()=>({signal:"hold",action:"hold",rationale:"No crossover",risks:[]});',
+  '@/lib/nightwatch-agent':'export const decideNightwatch=async(...args)=>globalThis.nwTest.decideNightwatch?.(...args) ?? ({signal:"hold",action:"hold",rationale:"No crossover",risks:[]});',
   '@/lib/nightwatch-budget':'export const readBeforeNightwatchDeadline=async p=>await p;',
   '@/lib/email/nightwatch':'export const enqueueNightwatchEmail=async()=>{};',
   '@/lib/email/delivery':'export const drainEmailQueue=async()=>{};',
@@ -17,7 +17,7 @@ const {POST}=await import('../app/api/cron/nightwatch-schedules/route.ts');hook.
 const job={id:'job',user_id:'owner',lease_token:'lease',config:{symbol:'RAAPLUSDT',playbook_key:'sma_trend_v1',research_run_id:null}};
 function setup(claim=job){
  const calls=[];
- globalThis.nwTest={asset:async()=>({isReality:true,name:'Apple',symbol:'RAAPLUSDT'}),admin:{
+globalThis.nwTest={asset:async()=>({isReality:true,name:'Apple',symbol:'RAAPLUSDT'}),decideNightwatch:async()=>({signal:'hold',action:'hold',rationale:'No crossover',risks:[]}),admin:{
    rpc:async(name,args)=>{calls.push({name,args});return {data:name==='claim_nightwatch_schedule'?claim:{status:args.p_error_code?'retry_pending':'complete',outcome:'no_action'},error:null};},
    from:table=>{
     const data=table==='nightwatch_accounts'?{cash_balance:10000,paused:false}:table==='nightwatch_orders'?[]:null;
@@ -37,4 +37,7 @@ test('schedule worker commits only to the leased database occurrence',async()=>{
 });
 test('provider failure records a bounded retry without revealing upstream errors',async()=>{
  const calls=setup();globalThis.nwTest.asset=()=>{throw new Error('private upstream response');};const response=await POST(request());assert.equal(response.status,503);const body=await response.text();assert.ok(!body.includes('private upstream'));assert.equal(calls.at(-1).args.p_error_code,'provider_unavailable');assert.equal(calls.at(-1).args.p_lease_token,'lease');
+});
+test('analysis provider failure retries without committing a synthetic hold',async()=>{
+ const calls=setup();globalThis.nwTest.decideNightwatch=async()=>{throw new Error('nightwatch-analysis-unavailable');};const response=await POST(request());assert.equal(response.status,503);const finishes=calls.filter(c=>c.name==='finish_nightwatch_schedule');assert.equal(finishes.length,1);assert.equal(finishes[0].args.p_error_code,'provider_unavailable');assert.equal('p_market' in finishes[0].args,false);
 });

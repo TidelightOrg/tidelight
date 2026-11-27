@@ -52,7 +52,7 @@ export async function decideNightwatch(input: {
     const value = await aiJsonWithFallback(messages, (candidate) => Boolean(parseDecision(candidate)), options);
     return parseDecision(value)!;
   } catch (error) {
-    console.error("Nightwatch analysis unavailable", error instanceof Error ? error.message : "unknown");
-    return { action: "hold", signal: "hold", confidence: 0, rationale: "The analysis providers were unavailable for this completed candle. Nightwatch held the position and will reassess on the next candle.", evidence: [`${input.symbol} completed 4-hour candle checked`], risks: ["No validated AI interpretation was available"], invalidation: "A fresh completed candle with a validated analysis", horizon: "next completed 4-hour candle" };
+    console.error("Nightwatch analysis unavailable", error instanceof Error ? error.name : "unknown");
+    throw new Error("nightwatch-analysis-unavailable");
   }
 }
