@@ -87,7 +87,7 @@ export async function POST(request: Request) {
       p_slow_sma: slow,
       p_signal: signal,
       p_snapshot: {
-        agent: { version: "nightwatch-agent-v1", action: decision.action, signal, confidence: decision.confidence, rationale: decision.rationale, evidence: decision.evidence, risks: decision.risks, invalidation: decision.invalidation, horizon: decision.horizon },
+        agent: { version: "nightwatch-agent-v1", action: decision.action, signal, confidence: decision.confidence, rationale: decision.rationale, evidence: decision.evidence, risks: decision.risks, invalidation: decision.invalidation, horizon: decision.horizon, analysisProvider: decision.analysisProvider },
         ...(researchRunId ? { researchRunId } : {}),
         provider: "Bitget public Spot candles",
         interval: "4H",

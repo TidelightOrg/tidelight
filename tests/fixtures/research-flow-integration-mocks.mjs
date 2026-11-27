@@ -103,7 +103,7 @@ export const decideFuturesPaper = async (input) => {
 export const evaluateSmaCrossover = () => ({ fastSma: 101, slowSma: 100, previousFastSma: 99, previousSlowSma: 100 });
 export const decideNightwatch = async (input) => {
   globalThis.flowTest.nightwatch = input;
-  return { action: "hold", signal: "hold", confidence: 0.9, rationale: "Synthetic Nightwatch fixture held; no order.", evidence: ["Synthetic linked research fixture"], risks: [], invalidation: "Fixture ends", horizon: "test only" };
+  return { action: "hold", signal: "hold", confidence: 0.9, rationale: "Synthetic Nightwatch fixture held; no order.", evidence: ["Synthetic linked research fixture"], risks: [], invalidation: "Fixture ends", horizon: "test only", analysisProvider: { name: "gemini", model: "gemini-test" } };
 };
 export const normalizeNightwatchPreferences = (value) => ({ playbook_key: value.playbook_key ?? "sma_trend_v1" });
 export const isNightwatchPlaybookKey = (value) => ["sma_trend_v1", "rsi_reversion_v1", "channel_breakout_v1", "weekend_drift_v1", "trend_pullback_v1", "semi_breakout_v1"].includes(value);

@@ -215,6 +215,7 @@ test("synthetic positive handoff preserves lineage through Research → paper St
   assert.equal(globalThis.flowTest.nightwatch.research.question, "Synthetic NVDA evidence fixture");
   assert.equal(globalThis.flowTest.nightwatch.playbookKey, "semi_breakout_v1", "manual checks use the playbook shown for the current handoff");
   const nightwatchCommit = captures.rpc.find(call => call.name === "nightwatch_tick_from_server");
+  assert.deepEqual(nightwatchCommit.args.p_snapshot.agent.analysisProvider, { name: "gemini", model: "gemini-test" }, "manual decision snapshots retain the actual analysis provider and model");
   assert.equal(nightwatchCommit.args.p_snapshot.researchRunId, researchId);
   assert.equal(nightwatchCommit.args.p_snapshot.playbook.key, "semi_breakout_v1", "the decision snapshot records the local handoff playbook");
   assert.equal(nightwatchCommit.args.p_snapshot.marketObservation.interval, "4H");
