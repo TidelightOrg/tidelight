@@ -5,7 +5,7 @@ import { registerHooks } from "node:module";
 const hooks = registerHooks({
   resolve(specifier, context, nextResolve) {
     if (specifier === "server-only") return { url: "data:text/javascript,export {};", shortCircuit: true };
-    if (specifier === "@/lib/ai-fallback") return { url: `data:text/javascript,${encodeURIComponent("export async function aiJsonWithFallback(){throw new Error('provider-unavailable')}")}`, shortCircuit: true };
+    if (specifier === "@/lib/ai-fallback") return { url: `data:text/javascript,${encodeURIComponent("export async function aiJsonWithFallback(_messages,_valid,options){if(globalThis.nwDecisionTest?.fail)throw new Error('provider-unavailable');if(!globalThis.nwDecisionTest?.missingProvenance)options.onSuccess?.({label:'gemini',model:'gemini-3-flash'});return {action:'hold',confidence:0.9,rationale:'The completed-bar evidence is mixed, so keep the paper position unchanged.',evidence:['Completed 4-hour candle'],risks:['The next candle may reverse'],invalidation:'A confirmed trend reversal',horizon:'next completed candle'}}")}`, shortCircuit: true };
     if (specifier === "./provider-health" && context.parentURL?.endsWith("/lib/ai-fallback.ts")) return { url: "data:text/javascript,export const getProviderRoutingDecision=async()=>({status:'available',skippedProviders:[]});", shortCircuit: true };
     if (specifier.startsWith("@/lib/")) return { url: new URL(`../lib/${specifier.slice(6)}.ts`, import.meta.url).href, shortCircuit: true };
     return nextResolve(specifier, context);
@@ -37,6 +37,7 @@ test("invalid actions and unusable explanations trigger provider fallback", () =
 });
 
 test("provider failure stays unavailable instead of becoming a valid-looking hold", async () => {
+  globalThis.nwDecisionTest = { fail: true };
   const candles = Array.from({ length: 60 }, (_, index) => ({
     timestamp: index * 4 * 60 * 60 * 1000,
     open: 100,
@@ -46,6 +47,31 @@ test("provider failure stays unavailable instead of becoming a valid-looking hol
     volume: 1,
     turnover: 100,
   }));
+  await assert.rejects(decideNightwatch({
+    symbol: "AAPLUSDT",
+    issuer: "Apple",
+    candles,
+    account: { cashUsd: 10_000, positionQuantity: 0, averageCostUsd: null, dailyRealizedPnlUsd: 0, fillsToday: 0 },
+    playbookKey: "sma_trend_v1",
+  }), { message: "nightwatch-analysis-unavailable" });
+});
+
+test("validated decisions retain the provider and model that produced them", async () => {
+  globalThis.nwDecisionTest = { fail: false };
+  const candles = Array.from({ length: 60 }, (_, index) => ({ timestamp: index * 4 * 60 * 60 * 1000, open: 100, high: 101, low: 99, close: 100, volume: 1, turnover: 100 }));
+  const decision = await decideNightwatch({
+    symbol: "AAPLUSDT",
+    issuer: "Apple",
+    candles,
+    account: { cashUsd: 10_000, positionQuantity: 0, averageCostUsd: null, dailyRealizedPnlUsd: 0, fillsToday: 0 },
+    playbookKey: "sma_trend_v1",
+  });
+  assert.deepEqual(decision.analysisProvider, { name: "gemini", model: "gemini-3-flash" });
+});
+
+test("a result without provider provenance is unavailable", async () => {
+  globalThis.nwDecisionTest = { fail: false, missingProvenance: true };
+  const candles = Array.from({ length: 60 }, (_, index) => ({ timestamp: index * 4 * 60 * 60 * 1000, open: 100, high: 101, low: 99, close: 100, volume: 1, turnover: 100 }));
   await assert.rejects(decideNightwatch({
     symbol: "AAPLUSDT",
     issuer: "Apple",
