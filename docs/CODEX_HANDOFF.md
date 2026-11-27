@@ -1,13 +1,25 @@
 # Tidelight Codex handoff
 
 **Prepared:** 26 October 2026
-**Continuation refreshed:** 25 November 2026
+**Continuation refreshed:** 27 November 2026
 **Repository:** [`TidelightOrg/tidelight`](https://github.com/TidelightOrg/tidelight)
 **Purpose:** let a fresh session continue from current verified state without repeating completed work.
 
-## Current verified continuation point · 25 November 2026
+## Current verified continuation point · 27 November 2026
 
-Resume here. Earlier dated sections are historical evidence from their own continuations.
+Resume here. Dated sections below are previous checkpoints.
+
+**Production baseline.** At 02:54 UTC, `https://tidelight.app/api/system/health` returned HTTP 200 and reported production deployment `7a8fcd6654a9`; Bitget was available and Qwen, Supabase, and Nightwatch scheduler were configured.
+
+**Research-monitor RPC hardening · PR #598.** The production Supabase catalog had three obsolete two-argument `SECURITY DEFINER` research-monitor overloads executable by `authenticated`. The current application uses only the three-argument owner-verified server RPCs. PR #598 merged as `7a8fcd6654a9bb0803f419a025aee89f1972e5a8`; its migration is recorded in Supabase. A post-migration catalog query confirms `anon` and `authenticated` cannot execute any of the three legacy overloads; the current three-argument RPCs remain executable by `service_role`. The targeted Monitor suite passed 9/9 tests, and the Vercel preview reached READY. The security advisor no longer reports those three authenticated `SECURITY DEFINER` functions.
+
+**Nightwatch scheduled-observation snapshot · 27 November 2026.** A read-only 90-day aggregate found 162 complete scheduled executions from 16 October through 27 November: 4 `executed`, 116 `no_action`, and 42 `rejected`. All 162 had a matching same-owner `nightwatch_runs` record and matching captured schedule revision; no failed or skipped executions appeared in this result. Four linked orders were paper-only; no non-paper orders were linked. Five historical executions no longer have a current schedule row, consistent with the schedule foreign key setting deleted schedule IDs to null; the retained run and captured revision still matched. The observations span 43 calendar dates, not 90. The project has not defined which outcomes count toward “100 eligible decisions”; do not count all 162 as eligible or close the supervised observation gate. This aggregate does not certify guardrail quality or user-level balances.
+
+**Remaining gates.** Google sign-in still requires the account owner to finish authentication in their own browser. The frozen benchmark still needs two independent labels and adjudication; first-time-user sessions need to be observed; intended public/commercial data redistribution needs written provider permission; and the cause of the historical Vercel disablement remains unknown. Continue the supervised Nightwatch period and define eligible-decision criteria before reporting its count. Supabase still reports leaked-password protection disabled and `pg_net` installed in `public`. The [Supabase `pg_net` guidance](https://supabase.com/docs/guides/database/extensions/pg_net) notes the extension's schema constraints; moving it safely requires dropping and recreating it, which clears its transient response table. At the latest check its request queue was empty but 770 recent response rows existed, so no relocation was attempted. Review the Supabase RLS and index notices table by table. No open PRs remain after #598.
+
+## Verification record · 25 November 2026
+
+Earlier dated sections are historical evidence from their own continuations.
 
 **Production baseline.** PR #594 merged as `74b9e896d9cf99d38619735fef18717b8e77e148`; PR #595 merged as `49c127320e6a046e12bb051d95c7d86eae8c537d`. Vercel marks the latter production deployment READY, and `https://tidelight.app/api/system/health` reports deployment `49c127320e6a`.
 
