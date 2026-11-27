@@ -1,6 +1,6 @@
 import type { MarketCandle } from "@/lib/bitget-market";
 import { ALPHA_STRATEGIES, buildSignals, type StrategyKey } from "@/lib/backtest";
-import { aiJsonWithFallback } from "@/lib/ai-fallback";
+import { aiJsonWithFallback, type Provider } from "@/lib/ai-fallback";
 
 export type AgentDecision = {
   action: "buy" | "sell" | "hold";
@@ -11,6 +11,10 @@ export type AgentDecision = {
   risks: string[];
   invalidation: string;
   horizon: string;
+};
+
+export type NightwatchDecision = AgentDecision & {
+  analysisProvider: { name: Provider["label"]; model: string };
 };
 
 export function parseDecision(value: Record<string, unknown>): AgentDecision | null {
@@ -39,7 +43,7 @@ export async function decideNightwatch(input: {
   account: { cashUsd: number; positionQuantity: number; averageCostUsd: number | null; dailyRealizedPnlUsd: number; fillsToday: number };
   research?: { question: string; summary: unknown } | null;
   playbookKey: StrategyKey;
-}, options?: { budgetMs?: number; deadlineAt?: number }): Promise<AgentDecision> {
+}, options?: { budgetMs?: number; deadlineAt?: number }): Promise<NightwatchDecision> {
   const snapshot = marketSnapshot(input.candles);
   const playbookSignals = buildSignals(input.candles, input.playbookKey);
   const currentState = playbookSignals.at(-1) ? "in_candidate_state" : "outside_candidate_state";
@@ -49,8 +53,14 @@ export async function decideNightwatch(input: {
   const user = JSON.stringify({ market: { symbol: input.symbol, issuer: input.issuer, interval: "4H", ...snapshot }, selectedPlaybook: playbook, paperAccount: input.account, linkedResearch: input.research ?? null });
   const messages = [{ role:"system",content:system },{ role:"user",content:user }];
   try {
-    const value = await aiJsonWithFallback(messages, (candidate) => Boolean(parseDecision(candidate)), options);
-    return parseDecision(value)!;
+    let analysisProvider: NightwatchDecision["analysisProvider"] | null = null;
+    const value = await aiJsonWithFallback(messages, (candidate) => Boolean(parseDecision(candidate)), {
+      ...options,
+      onSuccess: (provider) => { analysisProvider = { name: provider.label, model: provider.model }; },
+    });
+    const decision = parseDecision(value);
+    if (!decision || !analysisProvider) throw new Error("nightwatch-analysis-provenance-missing");
+    return { ...decision, analysisProvider };
   } catch (error) {
     console.error("Nightwatch analysis unavailable", error instanceof Error ? error.name : "unknown");
     throw new Error("nightwatch-analysis-unavailable");
